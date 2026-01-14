@@ -344,13 +344,16 @@ const shouldShowProgressionTrainView = (
 ): boolean => {
   // Show train view during active operations (FailingOver/Relocating)
   // OR when waiting for cleanup (WaitOnUserToCleanUp) - so user can see train is stuck at cleanup step
+  // OR when phase is FailedOver/Relocated but progression is still active (cleanup steps ongoing)
   return (
     [
       DRStatus.FailingOver,
       DRStatus.Relocating,
       DRStatus.WaitOnUserToCleanUp,
+      DRStatus.FailedOver,
+      DRStatus.Relocated,
     ].includes(status) &&
-    !!progression &&
+    isProgressionActive(progression) &&
     !!action
   );
 };
@@ -376,6 +379,9 @@ const isReplicationHealthy = (
 
   return isVolumeHealthy && isKubeObjectHealthy;
 };
+
+const isProgressionActive = (progression?: string): boolean =>
+  !!progression && progression !== Progression.Completed;
 
 const shouldShowActionStatus = ({
   phase,
@@ -485,7 +491,7 @@ const getDRStatus = ({
   ];
 
   // For FailedOver/Relocated phases:
-  // - If sync has started (lastGroupSyncTime exists), always show health status
+  // - If sync has started (lastGroupSyncTime exists), show health status unless progression is still active
   // - If sync hasn't started yet, show completion message (phase status)
   // This check must come BEFORE "Protecting" status to ensure completion status
   // is shown immediately after failover/relocate completes, even if protectedCondition
@@ -493,36 +499,37 @@ const getDRStatus = ({
   const hasSyncStarted = !!volumeLastGroupSyncTime;
 
   if (phase === DRPCStatus.FailedOver || phase === DRPCStatus.Relocated) {
-    // Once sync has started, always prioritize health status over phase status
-    if (hasSyncStarted) {
-      // If any health status is CRITICAL, return Critical status
-      if (replicationHealths.includes(VolumeReplicationHealth.CRITICAL))
-        return DRStatus.Critical;
-
-      // If any health status is WARNING, return Warning status
-      if (replicationHealths.includes(VolumeReplicationHealth.WARNING))
-        return DRStatus.Warning;
-
-      // If replication is healthy, return Healthy status (not phase status)
-      if (
-        isReplicationHealthy(
-          volumeReplicationHealth,
-          kubeObjectReplicationHealth
-        )
-      ) {
-        return DRStatus.Healthy;
-      }
-
-      // Fallback: show Critical if health cannot be determined
-      return DRStatus.Critical;
+    // If sync hasn't started yet, show completion message (phase status)
+    if (!hasSyncStarted) {
+      return phase === DRPCStatus.FailedOver
+        ? DRStatus.FailedOver
+        : DRStatus.Relocated;
     }
 
-    // Sync hasn't started yet - show completion message (phase status)
-    // This happens immediately after failover/relocate completes, before first sync
-    if (phase === DRPCStatus.FailedOver) return DRStatus.FailedOver;
-    if (phase === DRPCStatus.Relocated) return DRStatus.Relocated;
+    // Once sync has started, check if progression is still active before showing health status
+    // If progression is active (not Completed/undefined), show phase status to keep progression view visible
+    if (isProgressionActive(progression)) {
+      return phase === DRPCStatus.FailedOver
+        ? DRStatus.FailedOver
+        : DRStatus.Relocated;
+    }
 
-    // Fallback: show Critical if phase doesn't match
+    // If any health status is CRITICAL, return Critical status
+    if (replicationHealths.includes(VolumeReplicationHealth.CRITICAL))
+      return DRStatus.Critical;
+
+    // If any health status is WARNING, return Warning status
+    if (replicationHealths.includes(VolumeReplicationHealth.WARNING))
+      return DRStatus.Warning;
+
+    // If replication is healthy, return Healthy status (not phase status)
+    if (
+      isReplicationHealthy(volumeReplicationHealth, kubeObjectReplicationHealth)
+    ) {
+      return DRStatus.Healthy;
+    }
+
+    // Fallback: show Critical if health cannot be determined
     return DRStatus.Critical;
   }
 
