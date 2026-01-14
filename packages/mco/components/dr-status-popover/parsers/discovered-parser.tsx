@@ -49,10 +49,13 @@ export const DRPlacementControlParser: React.FC<
 
     const kubeObjectSchedulingInterval =
       drPlacementControl?.spec?.kubeObjectProtection?.captureInterval;
-    const kubeObjectReplicationHealth = getReplicationHealth(
-      lastKubeObjectProtectionTime,
-      kubeObjectSchedulingInterval
-    );
+
+    const kubeObjectReplicationHealth = kubeObjectSchedulingInterval
+      ? getReplicationHealth(
+          lastKubeObjectProtectionTime,
+          kubeObjectSchedulingInterval
+        )
+      : undefined;
 
     const protectedCondition = getProtectedCondition(drPlacementControl);
 
