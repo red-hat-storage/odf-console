@@ -148,6 +148,26 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
     return filteredData.slice(start, end) || [];
   }, [filteredData, page, perPage]);
 
+  const handleSelectionChange = React.useCallback(
+    (newSelectedClusters: ManagedClusterInfoType[]) => {
+      // Merge selections: keep existing selections not in current paginated view,
+      // and add new selections from current view
+      const paginatedDataIds = new Set(paginatedData.map((c) => getName(c)));
+      const preservedSelections = selectedClusters.filter(
+        (cluster) => !paginatedDataIds.has(getName(cluster))
+      );
+      onChange([...preservedSelections, ...newSelectedClusters]);
+    },
+    [onChange, selectedClusters, paginatedData]
+  );
+
+  const visibleSelectedClusters = React.useMemo(() => {
+    const paginatedDataIds = new Set(paginatedData.map((c) => getName(c)));
+    return selectedClusters.filter((cluster) =>
+      paginatedDataIds.has(getName(cluster))
+    );
+  }, [selectedClusters, paginatedData]);
+
   return (
     <>
       <Grid>
@@ -182,8 +202,8 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
         columns={getColumns(t)}
         rows={paginatedData}
         RowComponent={ClusterRow}
-        selectedRows={selectedClusters}
-        setSelectedRows={onChange}
+        selectedRows={visibleSelectedClusters}
+        setSelectedRows={handleSelectionChange}
         loaded={isLoaded}
         loadError={error}
         variant={TableVariant.DEFAULT}
