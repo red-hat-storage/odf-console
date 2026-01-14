@@ -14,6 +14,11 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
   const patch: Patch[] = [
     {
       op: 'add',
+      path: '/metadata/labels',
+      value: {},
+    },
+    {
+      op: 'add',
       path: labelPath,
       value: '',
     },
@@ -54,6 +59,10 @@ export const createScaleLocalClusterPayload = (
       license: {
         accept: true,
         license: isEncryptionEnabled ? 'data-management' : 'data-access',
+      },
+      site: {
+        name: '',
+        zone: '',
       },
     },
   };

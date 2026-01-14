@@ -85,7 +85,7 @@ export const createLocalFileSystem = async (
 
   const fileSystemPayload: FileSystemKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
-    kind: FileSystemModel.kind,
+    kind: 'Filesystem',
     metadata: {
       name: fsName,
       namespace: IBM_SCALE_NAMESPACE,
@@ -94,9 +94,9 @@ export const createLocalFileSystem = async (
       local: {
         replication: '1-way',
         type: 'shared',
+        blockSize: '4M',
         pools: [
           {
-            blockSize: '4M',
             disks: localDisks.map((disk) => getName(disk)),
             name: 'system', // Default pool name as per IBM Scale conventions
           },

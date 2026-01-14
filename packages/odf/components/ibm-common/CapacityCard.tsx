@@ -4,7 +4,7 @@ import {
   ScaleDashboardQuery,
 } from '@odf/core/queries';
 import { filesystemResource, scResource } from '@odf/core/resources';
-import { FilesystemKind } from '@odf/core/types/scale';
+import { FileSystemKind } from '@odf/core/types/scale';
 import { getStackChartStats } from '@odf/ocs/utils';
 import {
   BreakdownCardBody,
@@ -41,7 +41,9 @@ export const CapacityCard: React.FC = () => {
   const location = useLocation();
   const pathName = location.pathname;
   return (
-    <CapacityCardInternal useRemoteFileSystems={pathName.includes('san')} />
+    <CapacityCardInternal
+      useRemoteFileSystems={!pathName.toLowerCase().includes('san')}
+    />
   );
 };
 
@@ -51,7 +53,7 @@ type CapacityCardInternalProps = {
 
 const filterScaleStorageClasses = (
   storageClasses: StorageClassResourceKind[],
-  fileSystems: FilesystemKind[]
+  fileSystems: FileSystemKind[]
 ): StorageClassResourceKind[] => {
   const remoteFileSystems = fileSystems.filter(
     (fs) => fs.spec.remote && !_.isEmpty(fs.spec.remote)
@@ -65,7 +67,7 @@ const filterScaleStorageClasses = (
 
 const filterSANStorageClasses = (
   storageClasses: StorageClassResourceKind[],
-  fileSystems: FilesystemKind[]
+  fileSystems: FileSystemKind[]
 ): StorageClassResourceKind[] => {
   const localFileSystems = fileSystems.filter(
     (fs) => fs.spec.local && _.isEmpty(fs.spec.remote)
@@ -85,7 +87,7 @@ export const CapacityCardInternal: React.FC<CapacityCardInternalProps> = ({
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
 
   const [fileSystems, fileSystemsLoaded, fileSystemsError] =
-    useK8sWatchResource<FilesystemKind[]>(filesystemResource);
+    useK8sWatchResource<FileSystemKind[]>(filesystemResource);
 
   const [storageClasses, storageClassesLoaded, storageClassesError] =
     useK8sWatchResource<StorageClassResourceKind[]>(scResource);

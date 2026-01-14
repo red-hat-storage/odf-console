@@ -1361,6 +1361,8 @@
   "my-storage-pool": "my-storage-pool",
   "Name": "Name",
   "Name input": "Name input",
+  "Name must be at least {{min}} character": "Name must be at least {{min}} character",
+  "Name must be no more than {{max}} characters": "Name must be no more than {{max}} characters",
   "Name requirements": "Name requirements",
   "Name:": "Name:",
   "Name: {{name}} ({{status}})": "Name: {{name}} ({{status}})",

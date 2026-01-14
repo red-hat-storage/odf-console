@@ -21,6 +21,7 @@ import {
   VirtualizedTable,
   useListPageFilter,
   HealthState,
+  k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';
@@ -37,6 +38,7 @@ import {
 } from '@patternfly/react-core';
 import { InfoCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
+import { filterSANFileSystems } from '../ibm-common/utils';
 
 const resource = {
   kind: referenceForModel(FileSystemModel),
@@ -215,6 +217,24 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
   const isHealthy = status === HealthState.OK;
   const storageClassName = getStorageClassName(obj);
   const consoleLink = getConsoleLink(obj);
+  const cleanupBeforeDelete = async (fs: FileSystemKind) => {
+    await k8sPatch({
+      model: FileSystemModel,
+      resource: fs,
+      data: [
+        {
+          op: 'add',
+          path: '/metadata/labels',
+          value: {},
+        },
+        {
+          op: 'add',
+          path: '/metadata/labels/scale.spectrum.ibm.com~1allowDelete',
+          value: '',
+        },
+      ],
+    });
+  };
 
   return (
     <>
@@ -253,6 +273,7 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
             resource: obj,
             resourceModel: FileSystemModel,
             confirmWithName: true,
+            cleanupBeforeDelete,
           }}
         />
       </TableData>
@@ -264,15 +285,15 @@ const LUNGroupsTable: React.FC = () => {
   const { t } = useCustomTranslation();
   const [fileSystems, fileSystemsLoaded, fileSystemsLoadError] =
     useK8sWatchResource<FileSystemKind[]>(resource);
-
-  const connectedLUNGroups = fileSystems?.filter((fileSystem) =>
+  const filteredFileSystems = filterSANFileSystems(fileSystems);
+  const connectedLUNGroups = filteredFileSystems?.filter((fileSystem) =>
     isConnected(fileSystem)
   );
 
   const rowFilters = React.useMemo(() => [lunGroupStatusFilter(t)], [t]);
 
   const [data, filteredData, onFilterChange] = useListPageFilter(
-    fileSystems || [],
+    filteredFileSystems || [],
     rowFilters
   );
 
@@ -282,7 +303,7 @@ const LUNGroupsTable: React.FC = () => {
         <Text component={TextVariants.h2}>
           <span className="pf-v5-u-mr-sm">
             <LUNGroupStatusIcon
-              fileSystems={fileSystems || []}
+              fileSystems={filteredFileSystems || []}
               loading={!fileSystemsLoaded}
               loadError={!!fileSystemsLoadError}
             />
@@ -304,7 +325,7 @@ const LUNGroupsTable: React.FC = () => {
       />
       <LUNGroupsList
         data={filteredData}
-        unfilteredData={fileSystems || []}
+        unfilteredData={filteredFileSystems || []}
         loaded={fileSystemsLoaded}
         loadError={fileSystemsLoadError}
       />

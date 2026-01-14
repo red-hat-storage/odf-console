@@ -1,7 +1,7 @@
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import {
   EncryptionConfigKind,
-  FilesystemKind,
+  FileSystemKind,
   RemoteClusterKind,
 } from '@odf/core/types/scale';
 import {
@@ -122,7 +122,7 @@ export const createFileSystem = (
   remoteClusterName: string,
   remoteFileSystemName: string
 ) => {
-  const payload: FilesystemKind = {
+  const payload: FileSystemKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
     kind: 'Filesystem',
     metadata: {
