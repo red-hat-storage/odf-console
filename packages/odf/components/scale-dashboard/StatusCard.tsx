@@ -42,7 +42,7 @@ const getRemoteClusterConnectionHealth = (
   }
   const remoteClusterConnectionStatus = remoteCluster?.status?.conditions?.find(
     (condition) => condition.type === 'Available'
-  ).status;
+  )?.status;
   return remoteClusterConnectionStatus === 'True'
     ? HealthState.OK
     : HealthState.ERROR;

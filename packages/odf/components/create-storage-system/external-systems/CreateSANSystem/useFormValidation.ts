@@ -2,6 +2,7 @@ import * as React from 'react';
 import { formSettings, useYupValidationResolver } from '@odf/shared';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import validationRegEx from '@odf/shared/utils/validation';
 import {
   useForm,
   Control,
@@ -39,31 +40,34 @@ const useSANSystemFormValidation = (): SANSystemFormValidation => {
   const { t } = useCustomTranslation();
 
   const { formSchema, fieldRequirements } = React.useMemo(() => {
-    // LUN group name validation - use object for robust mapping
-    const lunGroupNameFieldRequirements = {
-      maxChars: fieldRequirementsTranslations.maxChars(
-        t,
-        LUN_GROUP_NAME_MAX_LENGTH
-      ),
-      minChars: fieldRequirementsTranslations.minChars(
-        t,
-        LUN_GROUP_NAME_MIN_LENGTH
-      ),
-      cannotBeEmpty: fieldRequirementsTranslations.cannotBeEmpty(t),
-    };
+    // LUN group name validation - Kubernetes resource name validation
+    const lunGroupNameFieldRequirements = [
+      fieldRequirementsTranslations.maxChars(t, LUN_GROUP_NAME_MAX_LENGTH),
+      fieldRequirementsTranslations.startAndEndName(t),
+      fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+      fieldRequirementsTranslations.cannotBeEmpty(t),
+    ];
 
     const formSchema = Yup.object({
       lunGroupName: Yup.string()
         .required(t('LUN group name is required'))
-        .max(LUN_GROUP_NAME_MAX_LENGTH, lunGroupNameFieldRequirements.maxChars)
-        .min(LUN_GROUP_NAME_MIN_LENGTH, lunGroupNameFieldRequirements.minChars)
+        .max(LUN_GROUP_NAME_MAX_LENGTH, lunGroupNameFieldRequirements[0])
+        .min(LUN_GROUP_NAME_MIN_LENGTH, lunGroupNameFieldRequirements[3])
+        .matches(
+          validationRegEx.startAndEndsWithAlphanumerics,
+          lunGroupNameFieldRequirements[1]
+        )
+        .matches(
+          validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
+          lunGroupNameFieldRequirements[2]
+        )
         .transform((value: string) => (!!value ? value : '')),
     });
 
     return {
       formSchema: formSchema as unknown as SANSystemFormSchema,
       fieldRequirements: {
-        lunGroupName: Object.values(lunGroupNameFieldRequirements),
+        lunGroupName: lunGroupNameFieldRequirements,
       },
     };
   }, [t]);
