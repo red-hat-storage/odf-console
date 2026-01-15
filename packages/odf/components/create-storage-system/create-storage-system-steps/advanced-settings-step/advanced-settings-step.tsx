@@ -59,6 +59,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
               dispatch={dispatch}
               isRBDStorageClassDefault={isRBDStorageClassDefault}
               doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
+              scLoaded={scLoaded}
             />
           </>
         )}
@@ -85,6 +86,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
               })
             }
             className="odf-backing-store__radio--margin-bottom"
+            isDisabled={isDbBackup}
           />
         )}
         {useExternalPostgres && !hasOCS && (
@@ -110,6 +112,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             dispatch={dispatch}
             isMCG={isMCG}
             dbBackup={dbBackup}
+            isExternalPostgresEnabled={useExternalPostgres}
           />
         )}
       </FormGroup>
