@@ -422,7 +422,7 @@ export type OCSRequestData = {
   enableNoobaaClientSideCerts?: boolean;
   storageClusterName: string;
   isDbBackup?: boolean;
-  dbBackup?: WizardState['backingStorage']['dbBackup'];
+  dbBackup?: WizardState['advancedSettings']['dbBackup'];
 };
 
 export const getOCSRequestData = ({
