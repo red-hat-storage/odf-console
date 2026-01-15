@@ -17,48 +17,82 @@ import {
 } from '../selectors';
 import { useDeepCompareMemoize } from './deep-compare-memoize';
 
-const mapStorageClusterToStorageSystem = (
-  storageCluster: K8sResourceKind
+type ClusterCondition = { type: string; status: string };
+
+const SAN_STORAGE_NAME = 'SAN_Storage';
+
+const getClusterPhase = (cluster: K8sResourceKind): string | undefined => {
+  if (cluster?.status?.phase) {
+    return cluster.status.phase;
+  }
+  const conditions = cluster?.status?.conditions;
+  if (!conditions?.length) {
+    return undefined;
+  }
+  const readyCondition = conditions.find(
+    (c: ClusterCondition) => c.type === 'Ready' || c.type === 'Success'
+  );
+  if (readyCondition?.status === 'True') {
+    return 'Ready';
+  }
+  const availableCondition = conditions.find(
+    (c: ClusterCondition) => c.type === 'Available'
+  );
+  if (availableCondition?.status === 'True') {
+    return 'Ready';
+  }
+  const failedCondition = conditions.find(
+    (c: ClusterCondition) => c.type === 'Failed' || c.type === 'Error'
+  );
+  if (failedCondition?.status === 'True') {
+    return 'Error';
+  }
+  return 'Pending';
+};
+
+type MapClusterOptions = {
+  overrideName?: string;
+  includeFullMetadata?: boolean;
+};
+
+const mapClusterToStorageSystem = (
+  cluster: K8sResourceKind,
+  options: MapClusterOptions = { includeFullMetadata: true }
 ): StorageSystemKind => ({
   apiVersion: ODFStorageSystem.apiVersion,
   kind: ODFStorageSystem.kind,
   metadata: {
-    name: getName(storageCluster),
-    namespace: getNamespace(storageCluster),
-    uid: getUID(storageCluster),
-    creationTimestamp: storageCluster.metadata.creationTimestamp,
-    resourceVersion: storageCluster.metadata.resourceVersion,
-    annotations: getAnnotations(storageCluster),
-    labels: getLabels(storageCluster),
+    name: options.overrideName || getName(cluster),
+    namespace: getNamespace(cluster),
+    ...(options.includeFullMetadata && {
+      uid: getUID(cluster),
+      creationTimestamp: cluster.metadata.creationTimestamp,
+      resourceVersion: cluster.metadata.resourceVersion,
+      annotations: getAnnotations(cluster),
+      labels: getLabels(cluster),
+    }),
   },
   spec: {
-    kind: `${storageCluster.kind.toLowerCase()}.${storageCluster.apiVersion}`,
-    name: getName(storageCluster),
-    namespace: getNamespace(storageCluster),
+    kind: `${cluster.kind.toLowerCase()}.${cluster.apiVersion}`,
+    name: getName(cluster),
+    namespace: getNamespace(cluster),
   },
   status: {
-    phase: storageCluster?.status?.phase,
+    phase: getClusterPhase(cluster),
   },
 });
 
+const mapStorageClusterToStorageSystem = (
+  storageCluster: K8sResourceKind
+): StorageSystemKind => mapClusterToStorageSystem(storageCluster);
+
 const mapSANClusterToStorageSystem = (
   sanCluster: K8sResourceKind
-): StorageSystemKind => ({
-  apiVersion: ODFStorageSystem.apiVersion,
-  kind: ODFStorageSystem.kind,
-  metadata: {
-    name: 'SAN_Storage',
-    namespace: getNamespace(sanCluster),
-  },
-  spec: {
-    kind: `${sanCluster.kind.toLowerCase()}.${sanCluster.apiVersion}`,
-    name: getName(sanCluster),
-    namespace: getNamespace(sanCluster),
-  },
-  status: {
-    phase: sanCluster?.status?.phase,
-  },
-});
+): StorageSystemKind =>
+  mapClusterToStorageSystem(sanCluster, {
+    overrideName: SAN_STORAGE_NAME,
+    includeFullMetadata: false,
+  });
 /**
  * A facade layer to poll StorageCluster and IBMFlashSystem resources.
  * It should be used where watching of StorageSystem resource is required.

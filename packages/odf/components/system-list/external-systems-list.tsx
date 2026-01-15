@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
+import { FDF_FLAG } from '@odf/core/redux';
 import { storageClusterResource } from '@odf/core/resources';
 import {
   DEFAULT_INFRASTRUCTURE,
@@ -22,6 +23,7 @@ import {
   ODFStorageSystem,
   StorageClusterModel,
   ClusterModel,
+  FileSystemModel,
 } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { Status } from '@odf/shared/status/Status';
@@ -33,6 +35,7 @@ import {
   humanizeIOPS,
   humanizeLatency,
   referenceForGroupVersionKind,
+  referenceForModel,
   getGVK,
   isCSVSucceeded,
 } from '@odf/shared/utils';
@@ -47,6 +50,7 @@ import {
   TableColumn,
   TableData,
   useActiveColumns,
+  useFlag,
   useK8sWatchResource,
   useListPageFilter,
   useModal,
@@ -56,8 +60,15 @@ import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { Button } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { ODF_QUERIES, ODFQueries } from '../../queries';
+import {
+  ODF_QUERIES,
+  ODFQueries,
+  SCALE_QUERIES,
+  ScaleQueries,
+  ScaleHealthStatus,
+} from '../../queries';
 import { useODFNamespaceSelector } from '../../redux';
+import { FilesystemKind } from '../../types/scale';
 import { OperandStatus } from '../utils';
 import { getActions } from './actions';
 import ODFSystemLink from './system-link';
@@ -69,73 +80,216 @@ type SystemMetrics = {
     iops: HumanizeResult;
     throughput: HumanizeResult;
     latency: HumanizeResult;
+    healthStatus?: string;
   };
+};
+
+type MetricSet = {
+  latency: PrometheusResponse;
+  throughput: PrometheusResponse;
+  rawCapacity: PrometheusResponse;
+  usedCapacity: PrometheusResponse;
+  iops: PrometheusResponse;
+  health?: PrometheusResponse;
+  filesystemHealth?: PrometheusResponse;
+};
+
+type FilesystemsByRemoteCluster = {
+  [remoteClusterName: string]: string[];
+};
+
+const getSANSystemStatus = (phase: string | undefined): string | null => {
+  switch (phase) {
+    case undefined:
+    case null:
+      return null;
+    case 'Ready':
+    case 'Healthy':
+      return 'Ready';
+    case 'Error':
+    case 'Failed':
+      return 'Error';
+    case 'Degraded':
+      return 'Warning';
+    default:
+      return phase;
+  }
+};
+
+const getHealthStatusFromMetric = (healthValue: number | undefined): string => {
+  if (healthValue === undefined) {
+    return 'Unknown';
+  }
+  if (healthValue <= ScaleHealthStatus.HEALTHY) {
+    return 'Ready';
+  }
+  if (healthValue <= ScaleHealthStatus.DEGRADED) {
+    return 'Warning';
+  }
+  return 'Error';
 };
 
 type MetricNormalize = (
   systems: StorageSystemKind[],
-  latency: PrometheusResponse,
-  throughput: PrometheusResponse,
-  rawCapacity: PrometheusResponse,
-  usedCapacity: PrometheusResponse,
-  iops: PrometheusResponse
+  odfMetrics: MetricSet,
+  scaleMetrics: MetricSet,
+  filesystemsByRemoteCluster: FilesystemsByRemoteCluster
 ) => SystemMetrics;
 
 export const normalizeMetrics: MetricNormalize = (
   systems,
-  latency,
-  throughput,
-  rawCapacity,
-  usedCapacity,
-  iops
+  odfMetrics,
+  scaleMetrics,
+  filesystemsByRemoteCluster
 ) => {
-  if (
-    _.isEmpty(systems) ||
-    !latency ||
-    !throughput ||
-    !rawCapacity ||
-    !usedCapacity ||
-    !iops
-  ) {
+  if (_.isEmpty(systems)) {
     return {};
   }
 
-  // ToDo (epic 4422): This equality check should work (for now) as "managedBy" will be unique,
-  // but moving forward add a label to metric for StorageSystem namespace as well and use that,
-  // equality check should be updated with "&&" condition on StorageSystem namespace.
-  // Helper to humanize and return '-' if value is empty or 0
+  const hasMetrics = (metrics: MetricSet): boolean =>
+    !!(
+      metrics.latency ||
+      metrics.throughput ||
+      metrics.rawCapacity ||
+      metrics.usedCapacity ||
+      metrics.iops
+    );
+
+  if (!hasMetrics(odfMetrics) && !hasMetrics(scaleMetrics)) {
+    return {};
+  }
+
+  const emptyResult = { string: '-', value: 0, unit: '' };
+
   const getHumanizedMetric = (
-    humanizeFn,
-    metricResult: PrometheusResponse,
+    humanizeFn: (v: string | number) => HumanizeResult,
+    odfMetricResult: PrometheusResponse,
+    scaleMetricResult: PrometheusResponse,
     system: StorageSystemKind
   ) => {
-    const value = metricResult.data.result.find(
-      (item) => item?.metric?.managedBy === system.spec.name
-    )?.value?.[1];
+    const { kind } = getGVK(system.spec.kind);
+    const isSANSystem = kind === ClusterModel.kind.toLowerCase();
+    const isRemoteClusterSystem =
+      kind === RemoteClusterModel.kind.toLowerCase();
+    const isLatencyMetric = humanizeFn === humanizeLatency;
 
-    // Check for undefined, null, empty string, or 0
-    if (
-      value === undefined ||
-      value === null ||
-      value === '' ||
-      Number(value) === 0
-    ) {
-      return { string: '-', value: 0, unit: '' };
+    let value: string | undefined;
+
+    const aggregateMetrics = (
+      metrics: { value?: [number, string] }[]
+    ): string | undefined => {
+      if (metrics.length === 0) return undefined;
+      const sum = metrics.reduce(
+        (acc, item) => acc + parseFloat(item?.value?.[1] || '0'),
+        0
+      );
+      return isLatencyMetric
+        ? (sum / metrics.length).toString()
+        : sum.toString();
+    };
+
+    if (isSANSystem && scaleMetricResult?.data?.result) {
+      const matchingMetrics = scaleMetricResult.data.result.filter((item) =>
+        item?.metric?.gpfs_cluster_name?.startsWith(system.spec.name)
+      );
+      value = aggregateMetrics(matchingMetrics);
+    } else if (isRemoteClusterSystem && scaleMetricResult?.data?.result) {
+      // Match by K8s Filesystem resource name - GPFS exporter uses this as gpfs_fs_name label
+      const filesystemNames =
+        filesystemsByRemoteCluster[system.spec.name] || [];
+      const matchingMetrics = scaleMetricResult.data.result.filter((item) =>
+        filesystemNames.includes(item?.metric?.gpfs_fs_name)
+      );
+      value = aggregateMetrics(matchingMetrics);
+    } else if (odfMetricResult?.data?.result) {
+      const metric = odfMetricResult.data.result.find(
+        (item) => item?.metric?.managedBy === system.spec.name
+      );
+      value = metric?.value?.[1];
+    }
+
+    if (!value || Number(value) === 0) {
+      return emptyResult;
     }
     return humanizeFn(value);
   };
 
+  // Get health status from metrics for Scale systems (SAN/RemoteCluster)
+  const getSystemHealthStatus = (
+    system: StorageSystemKind
+  ): string | undefined => {
+    const { kind } = getGVK(system.spec.kind);
+    const isSANSystem = kind === ClusterModel.kind.toLowerCase();
+    const isRemoteClusterSystem =
+      kind === RemoteClusterModel.kind.toLowerCase();
+
+    // SAN systems use overall GPFS health
+    if (isSANSystem && scaleMetrics.health?.data?.result?.length) {
+      const healthMetric = scaleMetrics.health.data.result[0];
+      const healthValue = healthMetric?.value?.[1];
+      return healthValue !== undefined
+        ? getHealthStatusFromMetric(Number(healthValue))
+        : undefined;
+    }
+
+    // RemoteCluster systems use filesystem health matched by filesystem name
+    if (
+      isRemoteClusterSystem &&
+      scaleMetrics.filesystemHealth?.data?.result?.length
+    ) {
+      const filesystemNames =
+        filesystemsByRemoteCluster[system.spec.name] || [];
+      const matchingMetrics = scaleMetrics.filesystemHealth.data.result.filter(
+        (item) => filesystemNames.includes(item?.metric?.gpfs_health_entity)
+      );
+
+      if (matchingMetrics.length === 0) {
+        return undefined;
+      }
+
+      // Take worst health (max value) across all filesystems for this RemoteCluster
+      const worstHealth = Math.max(
+        ...matchingMetrics.map((m) => Number(m?.value?.[1] || 0))
+      );
+      return getHealthStatusFromMetric(worstHealth);
+    }
+
+    return undefined;
+  };
+
   return systems.reduce<SystemMetrics>((acc, curr) => {
     acc[`${getName(curr)}${getNamespace(curr)}`] = {
-      rawCapacity: getHumanizedMetric(humanizeBinaryBytes, rawCapacity, curr),
-      usedCapacity: getHumanizedMetric(humanizeBinaryBytes, usedCapacity, curr),
-      iops: getHumanizedMetric(humanizeIOPS, iops, curr),
-      throughput: getHumanizedMetric(
-        humanizeDecimalBytesPerSec,
-        throughput,
+      rawCapacity: getHumanizedMetric(
+        humanizeBinaryBytes,
+        odfMetrics.rawCapacity,
+        scaleMetrics.rawCapacity,
         curr
       ),
-      latency: getHumanizedMetric(humanizeLatency, latency, curr),
+      usedCapacity: getHumanizedMetric(
+        humanizeBinaryBytes,
+        odfMetrics.usedCapacity,
+        scaleMetrics.usedCapacity,
+        curr
+      ),
+      iops: getHumanizedMetric(
+        humanizeIOPS,
+        odfMetrics.iops,
+        scaleMetrics.iops,
+        curr
+      ),
+      throughput: getHumanizedMetric(
+        humanizeDecimalBytesPerSec,
+        odfMetrics.throughput,
+        scaleMetrics.throughput,
+        curr
+      ),
+      latency: getHumanizedMetric(
+        humanizeLatency,
+        odfMetrics.latency,
+        scaleMetrics.latency,
+        curr
+      ),
+      healthStatus: getSystemHealthStatus(curr),
     };
     return acc;
   }, {});
@@ -301,8 +455,26 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const metrics =
     normalizedMetrics?.normalizedMetrics?.[`${systemName}${systemNamespace}`];
 
-  const { rawCapacity, usedCapacity, iops, throughput, latency } =
+  const { rawCapacity, usedCapacity, iops, throughput, latency, healthStatus } =
     metrics || {};
+
+  const isSANSystem = kind === ClusterModel.kind.toLowerCase();
+  const isRemoteCluster = kind === RemoteClusterModel.kind.toLowerCase();
+  const sanStatus = getSANSystemStatus(obj?.status?.phase);
+
+  const getStatusComponent = (): React.ReactNode => {
+    if (obj?.metadata?.deletionTimestamp) {
+      return <Status status="Terminating" />;
+    }
+    if ((isSANSystem || isRemoteCluster) && healthStatus) {
+      return <Status status={healthStatus} />;
+    }
+    if ((isSANSystem || isRemoteCluster) && sanStatus) {
+      return <Status status={sanStatus} />;
+    }
+    return <OperandStatus operand={obj} />;
+  };
+
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
@@ -313,11 +485,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
         />
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        {obj?.metadata?.deletionTimestamp ? (
-          <Status status="Terminating" />
-        ) : (
-          <OperandStatus operand={obj} />
-        )}
+        {getStatusComponent()}
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         {rawCapacity?.string || '-'}
@@ -353,6 +521,7 @@ export const StorageSystemListPage: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const launchModal = useModal();
+  const isFDF = useFlag(FDF_FLAG);
 
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
@@ -361,30 +530,84 @@ export const StorageSystemListPage: React.FC = () => {
   const [data, filteredData, onFilterChange] =
     useListPageFilter(storageSystems);
 
+  const prometheusBasePath = usePrometheusBasePath();
+
   const [latency] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.LATENCY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [iops] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.IOPS],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [throughput] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.THROUGHPUT],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [rawCapacity] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.RAW_CAPACITY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [usedCapacity] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.USED_CAPACITY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
+  });
+
+  const scaleLatencyQuery = isFDF ? SCALE_QUERIES[ScaleQueries.LATENCY] : null;
+  const scaleIopsQuery = isFDF ? SCALE_QUERIES[ScaleQueries.IOPS] : null;
+  const scaleThroughputQuery = isFDF
+    ? SCALE_QUERIES[ScaleQueries.THROUGHPUT]
+    : null;
+  const scaleRawCapacityQuery = isFDF
+    ? SCALE_QUERIES[ScaleQueries.RAW_CAPACITY]
+    : null;
+  const scaleUsedCapacityQuery = isFDF
+    ? SCALE_QUERIES[ScaleQueries.USED_CAPACITY]
+    : null;
+  const scaleHealthQuery = isFDF ? SCALE_QUERIES[ScaleQueries.HEALTH] : null;
+  const scaleFilesystemHealthQuery = isFDF
+    ? SCALE_QUERIES[ScaleQueries.FILESYSTEM_HEALTH]
+    : null;
+
+  const [scaleLatency] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleLatencyQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleIops] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleIopsQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleThroughput] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleThroughputQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleRawCapacity] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleRawCapacityQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleUsedCapacity] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleUsedCapacityQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleHealth] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleHealthQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleFilesystemHealth] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleFilesystemHealthQuery,
+    basePath: prometheusBasePath,
   });
 
   const [infrastructure] = useK8sGet<InfrastructureKind>(
@@ -395,19 +618,76 @@ export const StorageSystemListPage: React.FC = () => {
     storageClusterResource
   );
 
+  const filesystemResource = isFDF
+    ? {
+        kind: referenceForModel(FileSystemModel),
+        isList: true,
+        namespaced: false,
+      }
+    : null;
+
+  const [filesystems, filesystemsLoaded] =
+    useK8sWatchResource<FilesystemKind[]>(filesystemResource);
+
+  const filesystemsByRemoteCluster = React.useMemo(() => {
+    if (!isFDF || !filesystemsLoaded || !filesystems) {
+      return {};
+    }
+    const mapping: FilesystemsByRemoteCluster = {};
+    filesystems.forEach((fs) => {
+      const remoteClusterName = fs.spec?.remote?.cluster;
+      // Use K8s Filesystem resource name - GPFS exporter uses this as gpfs_fs_name label
+      if (remoteClusterName) {
+        if (!mapping[remoteClusterName]) {
+          mapping[remoteClusterName] = [];
+        }
+        mapping[remoteClusterName].push(getName(fs));
+      }
+    });
+    return mapping;
+  }, [isFDF, filesystems, filesystemsLoaded]);
+
   const normalizedMetrics = React.useMemo(
     () => ({
       normalizedMetrics: normalizeMetrics(
-        data as any,
-        latency,
-        throughput,
-        rawCapacity,
-        usedCapacity,
-        iops
+        data as StorageSystemKind[],
+        {
+          latency,
+          throughput,
+          rawCapacity,
+          usedCapacity,
+          iops,
+        },
+        {
+          latency: scaleLatency,
+          throughput: scaleThroughput,
+          rawCapacity: scaleRawCapacity,
+          usedCapacity: scaleUsedCapacity,
+          iops: scaleIops,
+          health: scaleHealth,
+          filesystemHealth: scaleFilesystemHealth,
+        },
+        filesystemsByRemoteCluster
       ),
     }),
-    [data, iops, latency, rawCapacity, throughput, usedCapacity]
+    [
+      data,
+      iops,
+      latency,
+      rawCapacity,
+      throughput,
+      usedCapacity,
+      scaleIops,
+      scaleLatency,
+      scaleRawCapacity,
+      scaleThroughput,
+      scaleUsedCapacity,
+      scaleHealth,
+      scaleFilesystemHealth,
+      filesystemsByRemoteCluster,
+    ]
   );
+
   const [lsoCSV, lsoCSVLoaded, lsoCSVLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
