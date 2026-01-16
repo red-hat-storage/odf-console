@@ -39,7 +39,6 @@ import {
   Checkbox,
 } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
-import { EnableNFS } from './enable-nfs';
 import { PostgresConnectionDetails } from './noobaa-external-postgres/postgres-connection-details';
 import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
 import SetVirtualizeSCDefault from './set-virtualize-sc-default';
@@ -118,7 +117,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 }) => {
   const {
     type,
-    enableNFS,
     isRBDStorageClassDefault,
     externalStorage,
     deployment,
@@ -301,11 +299,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
       {/* Should be visible for both external and internal mode (even if one cluster already exists) */}
       {isFullDeployment && !hasMultipleClusters && (
         <>
-          <EnableNFS
-            dispatch={dispatch}
-            nfsEnabled={enableNFS}
-            backingStorageType={type}
-          />
           <SetCephRBDStorageClassDefault
             dispatch={dispatch}
             isRBDStorageClassDefault={isRBDStorageClassDefault}
