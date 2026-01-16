@@ -76,7 +76,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               selectableActionId: 'ceph-cluster',
             }}
           >
-            <CardTitle>{t('RedHat/IBM Ceph Cluster')}</CardTitle>
+            <CardTitle>{t('Red Hat/IBM Ceph Cluster')}</CardTitle>
           </CardHeader>
           <CardBody>
             <Flex direction={{ default: 'row' }}>
