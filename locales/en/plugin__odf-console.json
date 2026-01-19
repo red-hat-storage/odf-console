@@ -2390,7 +2390,7 @@
   "You need to clean up manually to begin replication after a successful failover.": "You need to clean up manually to begin replication after a successful failover.",
   "You will be signed out of this account.": "You will be signed out of this account.",
   "You will be signed out of your current account.": "You will be signed out of your current account.",
-  "Your application <2>{{resourceName}}</2> will lose disaster recovery protection, reventing volume synchronization (replication) between clusters.": "Your application <2>{{resourceName}}</2> will lose disaster recovery protection, reventing volume synchronization (replication) between clusters.",
+  "Your application <2>{{resourceName}}</2> will lose disaster recovery protection, preventing volume synchronization (replication) between clusters.": "Your application <2>{{resourceName}}</2> will lose disaster recovery protection, preventing volume synchronization (replication) between clusters.",
   "Your application will lose disaster recovery protection, preventing volume synchronization (replication) between clusters.": "Your application will lose disaster recovery protection, preventing volume synchronization (replication) between clusters.",
   "Your bucket is currently publicly accessible.": "Your bucket is currently publicly accessible.",
   "Your bucket is now empty. If you want to delete this bucket, click Delete bucket": "Your bucket is now empty. If you want to delete this bucket, click Delete bucket",
