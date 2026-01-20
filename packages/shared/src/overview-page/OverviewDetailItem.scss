@@ -1,9 +1,9 @@
-@import '@odf/shared/styles/skeleton';
+@use '@odf/shared/styles/skeleton' as sk;
 
 .odf-overview-details-card__skeleton-text {
-  animation: $skeleton-animation;
-  background: $skeleton-color;
-  height: $skeleton-bone-height-1line;
+  animation: sk.$skeleton-animation;
+  background: sk.$skeleton-color;
+  height: sk.$skeleton-bone-height-1line;
   opacity: 0;
   &::after {
     background-repeat: no-repeat;

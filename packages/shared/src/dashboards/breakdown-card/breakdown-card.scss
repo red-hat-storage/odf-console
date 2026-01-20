@@ -1,4 +1,4 @@
-@import '../../styles/skeleton';
+@use '../../styles/skeleton' as sk;
 
 .capacity-breakdown-card__available-body {
   float: right;
@@ -27,8 +27,8 @@
 }
 
 .skeleton-activity {
-  animation: $skeleton-animation;
-  background: $skeleton-color;
+  animation: sk.$skeleton-animation;
+  background: sk.$skeleton-color;
   opacity: 0;
   border-radius: 6px;
   margin: 0.5rem 0.7em 0.5rem 0.7em;

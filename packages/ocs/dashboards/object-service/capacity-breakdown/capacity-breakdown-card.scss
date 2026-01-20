@@ -1,4 +1,4 @@
-@import '@patternfly/patternfly/sass-utilities/all';
+@use '@patternfly/patternfly/sass-utilities/all' as pf ;
 
 .nb-capacity-breakdown-card__body {
   padding-top: 24px;
@@ -10,7 +10,7 @@
 }
 
 .nb-capacity-breakdown-card-header__dropdown {
-  @media screen and (min-width: $pf-v5-global--breakpoint--lg) {
+  @media screen and (min-width: pf.$pf-v5-global--breakpoint--lg) {
     max-width: 12em;
     min-width: 12em;
   }

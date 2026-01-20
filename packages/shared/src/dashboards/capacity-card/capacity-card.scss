@@ -1,4 +1,4 @@
-@import '../../styles/skeleton';
+@use '../../styles/skeleton' as sk;
 
 .o-capacityCard {
   min-height: 215px;
@@ -40,8 +40,8 @@
   justify-content: space-evenly;
 
   &-item__element {
-    animation: $skeleton-animation;
-    background: $skeleton-color;
+    animation: sk.$skeleton-animation;
+    background: sk.$skeleton-color;
     display: flex;
     flex-grow: 1;
     height: 20px;

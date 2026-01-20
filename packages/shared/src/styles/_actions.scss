@@ -1,12 +1,15 @@
+@use './vars' as vars;
+@use '@patternfly/patternfly/sass-utilities/all' as pf ;
+
 .odf-actions {
   align-items: flex-end;
   display: flex;
-  @media (max-width: $screen-xs) {
+  @media (max-width: vars.$screen-xs) {
     flex-direction: column;
   }
 }
 
-@media (max-width: $screen-xs) {
+@media (max-width:  vars.$screen-xs) {
   .odf-action-buttons__btn {
     margin-bottom: 10px;
   }
@@ -18,15 +21,15 @@
 }
 
 .odf-m-nav-title {
-  margin-top: $pf-v5-global-gutter--md;
-  padding: 0 $pf-v5-global-gutter 0;
-  @media (min-width: $pf-v5-global--breakpoint--xl) {
-    padding-left: $pf-v5-global-gutter--md;
-    padding-right: $pf-v5-global-gutter--md;
+  margin-top: vars.$pf-v5-global-gutter--md;
+  padding: 0 vars.$pf-v5-global-gutter 0;
+  @media (min-width: pf.$pf-v5-global--breakpoint--xl) {
+    padding-left: vars.$pf-v5-global-gutter--md;
+    padding-right: vars.$pf-v5-global-gutter--md;
   }
 
   &--row {
-    @media (min-width: $screen-sm) {
+    @media (min-width: vars.$screen-sm) {
       display: flex;
       flex-direction: row;
       justify-content: space-between;

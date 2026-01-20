@@ -1,4 +1,4 @@
-@import '@odf/shared/styles/skeleton';
+@use '@odf/shared/styles/skeleton' as sk;
 
 .mco-dashboard {
     &__title {
@@ -36,16 +36,16 @@
 
 .mco-dashboard-loading {
     &__singleBlock {
-        animation: $skeleton-animation;
-        background: $skeleton-color;
+        animation: sk.$skeleton-animation;
+        background: sk.$skeleton-color;
         height: 35rem;
         width: 93rem;
         margin: 2rem;
     }
 
     &__singleBlockSmall {
-        animation: $skeleton-animation;
-        background: $skeleton-color;
+        animation: sk.$skeleton-animation;
+        background: sk.$skeleton-color;
         height: 10rem;
         width: 8rem;
         // margin: 2rem;
