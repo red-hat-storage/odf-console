@@ -170,7 +170,7 @@ const RemoveDisasterRecoveryModal: React.FC<
         <Trans t={t}>
           Your application{' '}
           <strong>{{ resourceName: getName(application) }}</strong> will lose
-          disaster recovery protection, reventing volume synchronization
+          disaster recovery protection, preventing volume synchronization
           (replication) between clusters.
         </Trans>
         {!!error && (
