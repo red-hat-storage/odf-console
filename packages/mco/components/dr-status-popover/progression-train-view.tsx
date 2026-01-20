@@ -42,38 +42,36 @@ type ProgressionStep = {
   status: StepStatus;
 };
 
-export const ProgressionStatus = {
+export enum ProgressionStatus {
   // Preparing
-  CHECKING_PREREQS: 'CheckingFailoverPrerequisites',
-  WAIT_FENCING: 'WaitForFencing',
-  WAIT_MAINTENANCE: 'WaitForStorageMaintenanceActivation',
-  PREPARING_SYNC: 'PreparingFinalSync',
-  CLEARING_PLACEMENT: 'ClearingPlacement',
+  CHECKING_PREREQS = 'CheckingFailoverPrerequisites',
+  WAIT_FENCING = 'WaitForFencing',
+  WAIT_MAINTENANCE = 'WaitForStorageMaintenanceActivation',
+  PREPARING_SYNC = 'PreparingFinalSync',
+  CLEARING_PLACEMENT = 'ClearingPlacement',
 
   // Failover
-  FAILING_OVER: 'FailingOverToCluster',
-  RUNNING_FINAL_SYNC: 'RunningFinalSync',
-  FINAL_SYNC_COMPLETE: 'FinalSyncComplete',
-  ENSURING_SECONDARY: 'EnsuringVolumesAreSecondary',
+  FAILING_OVER = 'FailingOverToCluster',
+  RUNNING_FINAL_SYNC = 'RunningFinalSync',
+  FINAL_SYNC_COMPLETE = 'FinalSyncComplete',
+  ENSURING_SECONDARY = 'EnsuringVolumesAreSecondary',
 
   // Syncing
-  ENSURING_VOLSYNC: 'EnsuringVolSyncSetup',
-  SETUP_VOLSYNC_DEST: 'SettingUpVolSyncDest',
+  ENSURING_VOLSYNC = 'EnsuringVolSyncSetup',
+  SETUP_VOLSYNC_DEST = 'SettingUpVolSyncDest',
 
   // Restoring
-  WAIT_RESTORE: 'WaitingForResourceRestore',
-  WAIT_READINESS: 'WaitForReadiness',
-  UPDATED_PLACEMENT: 'UpdatedPlacement',
-  CREATING_MW: 'CreatingMW',
-  UPDATING_PL_RULE: 'UpdatingPlRule',
+  WAIT_RESTORE = 'WaitingForResourceRestore',
+  WAIT_READINESS = 'WaitForReadiness',
+  UPDATED_PLACEMENT = 'UpdatedPlacement',
+  CREATING_MW = 'CreatingMW',
+  UPDATING_PL_RULE = 'UpdatingPlRule',
 
-  // Cleanup
-  CLEANING_UP: Progression.CleaningUp,
-  WAIT_USER_CLEANUP: Progression.WaitOnUserToCleanUp,
-} as const;
+  CLEANING_UP = 'Cleaning Up',
+  WAIT_USER_CLEANUP = 'WaitOnUserToCleanUp',
+}
 
-export type ProgressionStatusValue =
-  (typeof ProgressionStatus)[keyof typeof ProgressionStatus];
+export type ProgressionStatusValue = ProgressionStatus;
 
 export type StepConfig = {
   label: TrainStep;
@@ -203,7 +201,7 @@ export const RELOCATE_DISCOVERED_FLOW: StepConfig[] = [
 ];
 
 const getCurrentStepFromFlow = (
-  progression: string,
+  progression: string | undefined,
   flow: StepConfig[]
 ): TrainStep => {
   // If progression is "Completed", all steps should be completed
@@ -212,18 +210,22 @@ const getCurrentStepFromFlow = (
     return flow[flow.length - 1].label; // Clean up (last step)
   }
 
-  // Use case-insensitive comparison for robustness
+  // If progression is empty/undefined, return first step (transition state)
+  if (!progression) {
+    return flow[0].label;
+  }
+
   const stepConfig = flow.find((config) =>
-    config.statuses.some((status) =>
-      progression.toLowerCase().includes(status.toLowerCase())
-    )
+    config.statuses.includes(progression as ProgressionStatus)
   );
+
+  // Fallback to first step if progression not recognized
   return stepConfig?.label || flow[0].label;
 };
 
 export const getTrainSteps = (
   action: DRActionType,
-  currentProgression: string,
+  currentProgression?: string,
   isDiscoveredApp?: boolean
 ): ProgressionStep[] => {
   const flow =
@@ -249,7 +251,7 @@ export const getTrainSteps = (
 
 type ProgressionTrainViewProps = {
   action: DRActionType;
-  currentProgression: string;
+  currentProgression?: string;
   applicationName: string;
   actionStartTime?: string;
   progressionDetails?: string[];
