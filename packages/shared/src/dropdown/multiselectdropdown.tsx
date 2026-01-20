@@ -34,6 +34,9 @@ export type MultiSelectDropdownProps = Omit<
   variant?: 'typeahead' | 'checkbox';
   popperProps?: SelectProps['popperProps'];
   hasInlineFilter?: boolean;
+  onClear?: () => void;
+  'aria-label'?: string;
+  'data-test'?: string;
 };
 
 type Option = {
@@ -56,6 +59,8 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   variant = 'typeahead',
   popperProps,
   hasInlineFilter,
+  onClear,
+  ...props
 }) => {
   const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
@@ -176,8 +181,9 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   };
 
   const onClearAll = () => {
-    onChange([]);
     setFilterValue('');
+    if (onClear) onClear();
+    else onChange([]);
   };
 
   const onInputClick = () => {
@@ -203,7 +209,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         onClick={onToggleClick}
         isFullWidth
         innerRef={toggleRef}
-        aria-label={t('Multi-select typeahead')}
+        aria-label={props['aria-label'] || t('Multi-select typeahead')}
         isDisabled={isDisabled}
         status={status}
         className={
@@ -294,6 +300,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       toggle={toggle}
       isDisabled={isDisabled}
       popperProps={popperProps}
+      data-test={props['data-test']}
     >
       <SelectList isAriaMultiselectable={variant === 'typeahead'}>
         {options()}
