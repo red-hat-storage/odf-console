@@ -200,11 +200,11 @@ const CreateCephCluster: React.FC = () => {
 
   return (
     <>
-      <PageHeading title={t('Connect RedHat Ceph storage')}>
+      <PageHeading title={t('Connect Red Hat Ceph storage')}>
         <TextContent>
           <Text component={TextVariants.small}>
             {t(
-              'Connect to a RedHat Ceph cluster to unify and scale your block, file, and object storage with Data Foundation'
+              'Connect to a Red Hat Ceph cluster to unify and scale your block, file, and object storage with Data Foundation'
             )}
           </Text>
         </TextContent>
