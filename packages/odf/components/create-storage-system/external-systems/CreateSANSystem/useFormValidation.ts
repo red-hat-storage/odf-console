@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { createUniquenessValidator } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
 import { formSettings, useYupValidationResolver } from '@odf/shared';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import validationRegEx from '@odf/shared/utils/validation';
 import {
   useForm,
   Control,
@@ -36,30 +36,45 @@ export type SANSystemFormValidation = {
   getValues: UseFormGetValues<SANSystemFormData>;
 };
 
-const useSANSystemFormValidation = (): SANSystemFormValidation => {
+const useSANSystemFormValidation = (
+  existingNames?: Set<string>
+): SANSystemFormValidation => {
   const { t } = useCustomTranslation();
 
   const { formSchema, fieldRequirements } = React.useMemo(() => {
-    // LUN group name validation - Kubernetes resource name validation
-    const lunGroupNameFieldRequirements = [
-      fieldRequirementsTranslations.maxChars(t, LUN_GROUP_NAME_MAX_LENGTH),
-      fieldRequirementsTranslations.startAndEndName(t),
-      fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
-      fieldRequirementsTranslations.cannotBeEmpty(t),
-    ];
+    // LUN group name validation - use object for robust mapping
+    const lunGroupNameFieldRequirements = {
+      maxChars: fieldRequirementsTranslations.maxChars(
+        t,
+        LUN_GROUP_NAME_MAX_LENGTH
+      ),
+      minChars: fieldRequirementsTranslations.minChars(
+        t,
+        LUN_GROUP_NAME_MIN_LENGTH
+      ),
+      cannotBeEmpty: fieldRequirementsTranslations.cannotBeEmpty(t),
+      mustBeUnique: t('Name must be unique'),
+      mustBeLowercase: t(
+        "Must consist of lower case alphanumeric characters or '-'"
+      ),
+      startEndAlphanumeric: t(
+        'Must start and end with an alphanumeric character'
+      ),
+    };
 
     const formSchema = Yup.object({
       lunGroupName: Yup.string()
         .required(t('LUN group name is required'))
-        .max(LUN_GROUP_NAME_MAX_LENGTH, lunGroupNameFieldRequirements[0])
-        .min(LUN_GROUP_NAME_MIN_LENGTH, lunGroupNameFieldRequirements[3])
+        .max(LUN_GROUP_NAME_MAX_LENGTH, lunGroupNameFieldRequirements.maxChars)
+        .min(LUN_GROUP_NAME_MIN_LENGTH, lunGroupNameFieldRequirements.minChars)
         .matches(
-          validationRegEx.startAndEndsWithAlphanumerics,
-          lunGroupNameFieldRequirements[1]
+          /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+          lunGroupNameFieldRequirements.mustBeLowercase
         )
-        .matches(
-          validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
-          lunGroupNameFieldRequirements[2]
+        .test(
+          'unique-name',
+          lunGroupNameFieldRequirements.mustBeUnique,
+          createUniquenessValidator(existingNames)
         )
         .transform((value: string) => (!!value ? value : '')),
     });
@@ -67,10 +82,10 @@ const useSANSystemFormValidation = (): SANSystemFormValidation => {
     return {
       formSchema: formSchema as unknown as SANSystemFormSchema,
       fieldRequirements: {
-        lunGroupName: lunGroupNameFieldRequirements,
+        lunGroupName: Object.values(lunGroupNameFieldRequirements),
       },
     };
-  }, [t]);
+  }, [t, existingNames]);
 
   const resolver = useYupValidationResolver(formSchema) as any;
 
