@@ -1,72 +1,152 @@
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
-export type FileSystemKind = K8sResourceCommon & {
-  spec: {
-    local?: {
-      replication: '1-way';
-      type: 'shared';
-      pools: {
-        blockSize: '4M';
-        disks: string[];
-        name: string;
-      }[];
-    };
-    remote?: {
-      cluster: string;
-      fs: string;
-    };
-    seLinuxOptions?: Record<string, any>;
-  };
-  status?: {
-    conditions: [
-      {
-        type: string;
-        status: string;
-        lastTransitionTime: string;
-        reason: string;
-        message: string;
-      },
-    ];
-  };
+export type LabelMap = Record<string, string>;
+
+export type IntOrString = number | string;
+
+export type Toleration = {
+  key?: string;
+  operator?: 'Exists' | 'Equal';
+  value?: string;
+  effect?: 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
+  tolerationSeconds?: number;
+};
+
+export type ResourceRequirements = {
+  cpu?: string;
+  memory?: string;
+};
+
+export type ContainerResources = {
+  limits?: Record<string, IntOrString>;
+  requests?: Record<string, IntOrString>;
 };
 
 export type ClusterKind = K8sResourceCommon & {
   spec: {
-    daemon: {
+    license: {
+      accept: boolean;
+      license: 'data-access' | 'data-management' | 'erasure-code';
+    };
+
+    site: {
+      name: string;
+      zone: string;
+    };
+
+    networkPolicy?: Record<string, any>;
+
+    daemon?: {
+      clusterNameOverride?: string;
+
       hostAliases?: {
         hostname: string;
         ip: string;
       }[];
+
+      nodeSelector?: LabelMap;
+
+      nodeSelectorExpressions?: {
+        key: string;
+        operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist' | 'Gt' | 'Lt';
+        values?: string[];
+      }[];
+
+      tolerations?: Toleration[];
+
+      nsdDevicesConfig?: {
+        bypassDiscovery?: boolean;
+        localDevicePaths?: {
+          devicePath?: string;
+          deviceType?: string;
+        }[];
+      };
+
+      update?: {
+        maxUnavailable?: IntOrString;
+        paused?: boolean;
+        pools?: {
+          name: string;
+          maxUnavailable?: IntOrString;
+          paused?: boolean;
+          nodeSelector?: {
+            matchLabels?: LabelMap;
+            matchExpressions?: {
+              key: string;
+              operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
+              values?: string[];
+            }[];
+          };
+        }[];
+      };
+
       clusterProfile?: {
-        controlSetxattrImmutableSELinux?: 'yes' | 'no';
-        enforceFilesetQuotaOnRoot?: 'yes' | 'no';
-        ignorePrefetchLUNCount?: 'yes' | 'no';
-        initPrefetchBuffers?: string;
-        maxblocksize?: string;
-        prefetchPct?: string;
-        prefetchTimeout?: string;
+        verbsRdma?: 'enable' | 'disable';
+        verbsRdmaSend?: 'yes' | 'no';
+        verbsRdmaCm?: 'enable' | 'disable';
+        proactiveReconnect?: 'yes' | 'no';
+        ignoreReplicationForQuota?: 'yes' | 'no';
+        ignoreReplicationOnStatfs?: 'yes' | 'no';
+        readReplicaPolicy?: 'default' | 'local' | 'fastest';
+        traceGenSubDir?: '/var/mmfs/tmp/traces';
+        cloudEnv?: 'general';
+        [key: string]: string | undefined;
       };
-      nodeSelector?: {
-        'scale.spectrum.ibm.com/daemon-selector'?: string;
-      };
-      roles: {
-        name: string;
-        resources?: {
-          cpu?: string;
-          memory?: string;
+
+      roles?: {
+        name: 'afm' | 'storage' | 'client';
+        limits?: ResourceRequirements;
+        resources?: ResourceRequirements;
+        profile?: {
+          verbsRdma?: 'enable' | 'disable';
+          verbsRdmaSend?: 'yes' | 'no';
+          proactiveReconnect?: 'yes' | 'no';
+          [key: string]: string | undefined;
         };
       }[];
     };
-    grafanaBridge?: Record<string, any>;
-    license: {
-      accept: boolean;
-      license: 'data-access' | 'data-management';
+
+    grafanaBridge?: {
+      enablePrometheusExporter?: boolean;
+      nodeSelector?: LabelMap;
+      tolerations?: Toleration[];
     };
-    networkPolicy?: Record<string, any>;
+
+    regionalDR?: {
+      nodeSelector?: LabelMap;
+      tolerations?: Toleration[];
+    };
+
+    pmcollector?: {
+      nodeSelector?: LabelMap;
+      storageClass?: string;
+      tolerations?: Toleration[];
+      pmcollectorContainerResources?: {
+        name: 'sysmon' | 'pmcollector';
+        resources: ContainerResources;
+      }[];
+    };
+
+    csi?: {
+      sidecar?: {
+        nodeSelector?: LabelMap;
+      };
+    };
+
+    gui?: {
+      enableSessionIPCheck?: boolean;
+      nodeSelector?: LabelMap;
+      tolerations?: Toleration[];
+      containerResources?: {
+        name: 'liberty' | 'postgres';
+        resources: ContainerResources;
+      }[];
+    };
   };
+
   status?: {
     conditions?: {
-      lastTransitionTime: string; // date-time
+      lastTransitionTime: string;
       message: string;
       observedGeneration?: number;
       reason: string;
@@ -76,7 +156,7 @@ export type ClusterKind = K8sResourceCommon & {
   };
 };
 
-export type FilesystemKind = K8sResourceCommon & {
+export type FileSystemKind = K8sResourceCommon & {
   apiVersion: 'scale.spectrum.ibm.com/v1beta1';
   kind: 'Filesystem';
   spec: {
@@ -107,7 +187,7 @@ export type FilesystemKind = K8sResourceCommon & {
       replication: '1-way' | '2-way' | '3-way';
       type: 'shared' | 'unshared';
     };
-    remote: {
+    remote?: {
       cluster: string;
       fs: string;
     };
@@ -899,27 +979,78 @@ export type DaemonKind = K8sResourceCommon & {
   };
 };
 
+export type LabelSelectorRequirement = {
+  key: string;
+  operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
+  values?: string[];
+};
+
+export type LabelSelector = {
+  matchLabels?: LabelMap;
+  matchExpressions?: LabelSelectorRequirement[];
+};
+
+export type Condition = {
+  lastTransitionTime: string; // RFC3339 date-time
+  message: string;
+  observedGeneration?: number;
+  reason: string;
+  status: 'True' | 'False' | 'Unknown';
+  type: string;
+};
+
 export type LocalDiskKind = K8sResourceCommon & {
   spec: {
+    /** Device path at creation time (e.g. /dev/sdb) */
     device: string;
-    wwn: string;
-    capacity?: string; // optional, e.g., "1Ti"
-    node?: string; // optional node where disk resides
-    // any additional spec fields can be added here
-    [key: string]: any;
+
+    /** Kubernetes node name where the device path was discovered */
+    node: string;
+
+    /** Skip verification of existing Spectrum Scale data */
+    existingDataSkipVerify?: boolean;
+
+    /** Failure group number (stringified integer) */
+    failureGroup?: string;
+
+    /**
+     * Selects nodes expected to have physical access to the disk.
+     * Must not be set for unshared disks.
+     */
+    nodeConnectionSelector?: LabelSelector;
+
+    /** Space reclaim disk type */
+    thinDiskType?: 'no' | 'nvme' | 'scsi' | 'auto';
   };
+
   status?: {
-    conditions: [
-      {
-        type: string; // e.g., "Ready"
-        status: 'True' | 'False' | 'Unknown';
-        lastTransitionTime: string; // ISO date string
-        reason: string; // e.g., "DiskAvailable"
-        message: string; // human-readable message
-      },
-    ];
-    state?: string; // optional field to capture overall state
-    [key: string]: any;
+    conditions?: Condition[];
+
+    /** Assigned failure group number */
+    failuregroup: string;
+
+    /** Mapping target for automatic failure group assignment */
+    failuregroupMapping?: string;
+
+    /** Filesystem using this disk (empty if unused) */
+    filesystem: string;
+
+    /** Nodes that have a physical connection to the disk */
+    nodeConnections: string;
+
+    /** Filesystem pool using this disk (empty if unused) */
+    pool: string;
+
+    /** Size of the local disk */
+    size: string;
+
+    /**
+     * Disk connectivity type
+     * - shared
+     * - partially-shared
+     * - unshared
+     */
+    type: 'shared' | 'partially-shared' | 'unshared';
   };
 };
 

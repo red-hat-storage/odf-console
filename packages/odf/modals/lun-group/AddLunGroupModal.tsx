@@ -7,9 +7,11 @@ import {
 import { useDeviceFinder } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useDeviceFinder';
 import { filterUsedDiscoveredDevices } from '@odf/core/components/utils';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
+import { fieldRequirementsTranslations } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { LocalDiskModel } from '@odf/shared/models/scale';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import validationRegEx from '@odf/shared/utils/validation';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
@@ -20,6 +22,9 @@ import {
   Modal,
   ModalVariant,
   TextInput,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 
 type AddLunGroupModalProps = {
@@ -28,6 +33,31 @@ type AddLunGroupModalProps = {
   onSubmit: () => void;
   inProgress: boolean;
   error: string;
+};
+
+const LUN_GROUP_NAME_MAX_LENGTH = 63;
+const LUN_GROUP_NAME_MIN_LENGTH = 1;
+
+const validateLunGroupName = (
+  name: string,
+  t: (key: string, options?: any) => string
+): string | null => {
+  if (!name || name.trim().length === 0) {
+    return null; // Empty is handled by required check
+  }
+  if (name.length < LUN_GROUP_NAME_MIN_LENGTH) {
+    return fieldRequirementsTranslations.minChars(t, LUN_GROUP_NAME_MIN_LENGTH);
+  }
+  if (name.length > LUN_GROUP_NAME_MAX_LENGTH) {
+    return fieldRequirementsTranslations.maxChars(t, LUN_GROUP_NAME_MAX_LENGTH);
+  }
+  if (!validationRegEx.startAndEndsWithAlphanumerics.test(name)) {
+    return fieldRequirementsTranslations.startAndEndName(t);
+  }
+  if (!validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive.test(name)) {
+    return fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t);
+  }
+  return null;
 };
 
 const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
@@ -41,6 +71,9 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   );
   const [inProgress, setInProgress] = React.useState(false);
   const [error, setError] = React.useState<Error>(undefined);
+  const [nameValidationError, setNameValidationError] = React.useState<
+    string | null
+  >(null);
   const { deviceFinderLoading, sharedDevices } = useDeviceFinder();
   const [disks] = useK8sWatchResource<LocalDiskKind[]>({
     groupVersionKind: {
@@ -56,8 +89,30 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
     [sharedDevices, disks]
   );
 
+  const isValidName = () => {
+    if (!lunGroupName || lunGroupName.trim().length === 0) {
+      return false;
+    }
+    return validateLunGroupName(lunGroupName, t) === null;
+  };
+
+  const isFormValid = isValidName && selectedLUNs.size > 0;
+
+  const handleNameChange = (
+    _event: React.FormEvent<HTMLInputElement>,
+    value: string
+  ) => {
+    setLunGroupName(value);
+    const validationError = validateLunGroupName(value, t);
+    setNameValidationError(validationError);
+  };
+
   const createLunGroup = async () => {
+    if (!isFormValid) {
+      return;
+    }
     setInProgress(true);
+    setError(undefined);
     const selectedLUNsWWNArray = Array.from(selectedLUNs);
     const selectedLUNsData: DiscoveredDevice[] = filteredDevices.filter(
       (device) => selectedLUNsWWNArray.includes(device.WWN)
@@ -66,9 +121,13 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
       const localDisks = await createLocalDisks(selectedLUNsData, t);
       await createLocalFileSystem(lunGroupName, localDisks, t);
       setInProgress(false);
+      setLunGroupName('');
+      setSelectedLUNs(new Set());
+      setNameValidationError(null);
       onClose();
     } catch (err) {
       setError(err);
+      setInProgress(false);
     }
   };
 
@@ -90,9 +149,7 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
             <Button
               variant={ButtonVariant.primary}
               onClick={createLunGroup}
-              isDisabled={
-                inProgress || _.isEmpty(selectedLUNs) || !lunGroupName
-              }
+              isDisabled={inProgress || !isFormValid}
               isLoading={inProgress}
             >
               {t('Connect and create')}
@@ -105,11 +162,32 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
       ]}
     >
       <Form>
-        <FormGroup label={t('LUN group name')} fieldId="lun-group-name">
+        <FormGroup
+          label={t('LUN group name')}
+          fieldId="lun-group-name"
+          isRequired
+        >
           <TextInput
             value={lunGroupName}
-            onChange={(_event, value) => setLunGroupName(value)}
+            onChange={handleNameChange}
+            validated={nameValidationError ? 'error' : 'default'}
+            aria-describedby={
+              nameValidationError ? 'lun-group-name-helper' : undefined
+            }
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem
+                variant={nameValidationError ? 'error' : 'default'}
+              >
+                {nameValidationError
+                  ? nameValidationError
+                  : lunGroupName
+                    ? `${t('Example')}: lun-group-a`
+                    : ''}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
         <FormGroup label={t('Disks')} fieldId="disks">
           <LUNsTable
