@@ -14,6 +14,11 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
   const patch: Patch[] = [
     {
       op: 'add',
+      path: '/metadata/labels',
+      value: {},
+    },
+    {
+      op: 'add',
       path: labelPath,
       value: '',
     },
@@ -26,9 +31,7 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
   return () => Promise.all(requests);
 };
 
-export const createScaleLocalClusterPayload = (
-  isEncryptionEnabled?: boolean
-) => {
+export const createScaleLocalClusterPayload = () => {
   const payload: ClusterKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
     kind: 'Cluster',
@@ -53,7 +56,11 @@ export const createScaleLocalClusterPayload = (
       },
       license: {
         accept: true,
-        license: isEncryptionEnabled ? 'data-management' : 'data-access',
+        license: 'data-management',
+      },
+      site: {
+        name: '',
+        zone: '',
       },
     },
   };

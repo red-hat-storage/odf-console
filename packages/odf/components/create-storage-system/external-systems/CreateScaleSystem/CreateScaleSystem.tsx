@@ -154,9 +154,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
       const patchNodes = labelNodes(componentState.selectedNodes);
       if (!isLocalClusterConfigured) {
         await patchNodes();
-        const localClusterPromise = createScaleLocalClusterPayload(
-          componentState.encryptionEnabled
-        );
+        const localClusterPromise = createScaleLocalClusterPayload();
         await localClusterPromise();
       }
       const secretPromise = createScaleCaCertSecretPayload(
