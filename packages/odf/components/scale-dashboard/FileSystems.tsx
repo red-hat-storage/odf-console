@@ -27,6 +27,7 @@ import {
 } from '@patternfly/react-core';
 import { CubesIcon } from '@patternfly/react-icons';
 import { Thead, Tr, Th, Tbody, Table, Td } from '@patternfly/react-table';
+import { filterScaleFileSystems } from '../ibm-common/utils';
 
 const resource = {
   kind: referenceForModel(FileSystemModel),
@@ -72,7 +73,8 @@ const FileSystemsTable: React.FC = () => {
   const { t } = useCustomTranslation();
   const [fileSystems, fileSystemsLoaded, fileSystemsLoadError] =
     useK8sWatchResource<FileSystemKind[]>(resource);
-  const connectedFileSystems = fileSystems?.filter((fileSystem) =>
+  const filteredFileSystems = filterScaleFileSystems(fileSystems);
+  const connectedFileSystems = filteredFileSystems?.filter((fileSystem) =>
     isConnected(fileSystem)
   );
   const location = useLocation();
@@ -84,7 +86,7 @@ const FileSystemsTable: React.FC = () => {
         <Text component={TextVariants.h2}>
           <span className="pf-v5-u-mr-sm">
             <FileSystemStatusIcon
-              fileSystems={fileSystems}
+              fileSystems={filteredFileSystems}
               loading={!fileSystemsLoaded}
               loadError={fileSystemsLoadError}
             />
@@ -97,7 +99,7 @@ const FileSystemsTable: React.FC = () => {
           })}
         </Text>
       </TextContent>
-      {fileSystems?.length > 0 ? (
+      {filteredFileSystems?.length > 0 ? (
         <Table aria-label={t('File systems table')} variant="compact">
           <Thead>
             <Tr>
@@ -106,7 +108,7 @@ const FileSystemsTable: React.FC = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {fileSystems?.map((fileSystem: FileSystemKind) => (
+            {filteredFileSystems?.map((fileSystem: FileSystemKind) => (
               <Tr key={fileSystem.metadata.uid}>
                 <Td>
                   <Link
