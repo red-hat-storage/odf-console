@@ -2326,6 +2326,8 @@
   "Volume and Kubernetes object replication": "Volume and Kubernetes object replication",
   "Volume Binding Mode": "Volume Binding Mode",
   "Volume consistency groups": "Volume consistency groups",
+  "Volume Consistency groups": "Volume Consistency groups",
+  "Volume consistency groups modal": "Volume consistency groups modal",
   "Volume group replication: ": "Volume group replication: ",
   "Volume last synced on:": "Volume last synced on:",
   "Volume mode": "Volume mode",
