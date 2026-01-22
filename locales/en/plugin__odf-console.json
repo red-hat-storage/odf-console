@@ -778,7 +778,7 @@
   "Delete Storage Pool": "Delete Storage Pool",
   "Delete StorageConsumer": "Delete StorageConsumer",
   "Delete the access key? All policies and permissions under this access key will be deleted.": "Delete the access key? All policies and permissions under this access key will be deleted.",
-  "Delete the IAM user permanently? All user data, access keys, secret keys and inline policies related to this user will also be deleted": "Delete the IAM user permanently? All user data, access keys, secret keys and inline policies related to this user will also be deleted",
+  "Delete the IAM user permanently? All user data, access keys, secret keys, attached policies and inline policies related to this user will also be deleted": "Delete the IAM user permanently? All user data, access keys, secret keys, attached policies and inline policies related to this user will also be deleted",
   "Delete this marker to restore object": "Delete this marker to restore object",
   "Delete this version": "Delete this version",
   "Delete user": "Delete user",

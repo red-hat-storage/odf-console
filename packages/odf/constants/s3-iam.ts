@@ -15,6 +15,7 @@ export const DELETE_ACCESS_KEY_CLEANUP_MUTATION_KEY =
   'delete-access-key-cleanup';
 export const DELETE_USER_POLICY_CLEANUP_MUTATION_KEY =
   'delete-user-policy-cleanup';
+export const CLEANUP_ALL_POLICIES_MUTATION_KEY = 'cleanup-all-policies';
 export const DELETE_IAM_USER_CLEANUP_MUTATION_KEY = 'delete-iam-user-cleanup';
 
 export const MAX_USERS = 50;
