@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useExistingFileSystemNames } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
 import {
   PageHeading,
   useCustomTranslation,
@@ -61,6 +62,8 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const localCluster = useIsLocalClusterConfigured();
   const isLocalClusterConfigured = !_.isEmpty(localCluster);
 
+  const existingFileSystemNames = useExistingFileSystemNames();
+
   const {
     fieldRequirements,
     control,
@@ -68,7 +71,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     formState: { isSubmitted },
     watch,
     getValues,
-  } = useScaleSystemFormValidation();
+  } = useScaleSystemFormValidation(existingFileSystemNames);
 
   // Watch only specific fields instead of all form values to prevent excessive re-renders
   const name = watch('name');
