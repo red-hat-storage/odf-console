@@ -31,6 +31,7 @@ import {
 } from '../../hooks';
 import { DRPlacementControlKind } from '../../types';
 import { DRPlacementControlParser as DRStatusPopover } from '../dr-status-popover/parsers';
+import { getMCVName } from '../modals/app-manage-policies/helper/consistency-groups';
 import {
   AlertMessages,
   EmptyRowMessage,
@@ -133,7 +134,7 @@ const ProtectedAppsTableRow: React.FC<
       {isExpanded && (
         <Tr>
           <Td colSpan={Object.keys(columnNames).length + 1}>
-            <NamespacesDetails view={pav} />
+            <NamespacesDetails view={pav} mcvName={getMCVName(drpc)} />
           </Td>
         </Tr>
       )}

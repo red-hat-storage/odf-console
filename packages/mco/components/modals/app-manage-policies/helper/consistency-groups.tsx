@@ -228,8 +228,11 @@ const buildConsistencyGroupMap = (
     );
     const isSynced = healthStatus === VolumeReplicationHealth.HEALTHY;
 
-    if (!cgMap.has(cgName)) {
-      cgMap.set(cgName, {
+    // Use composite key to support consistency groups across multiple namespaces
+    const cgKey = `${pvc.namespace}/${cgName}`;
+
+    if (!cgMap.has(cgKey)) {
+      cgMap.set(cgKey, {
         name: cgName,
         pvcs: [],
         namespace: pvc.namespace,
@@ -238,7 +241,7 @@ const buildConsistencyGroupMap = (
       });
     }
 
-    cgMap.get(cgName).pvcs.push(pvc.name);
+    cgMap.get(cgKey).pvcs.push(pvc.name);
   });
 
   return cgMap;
