@@ -78,6 +78,15 @@ export const hasAnyInternalOCS = (
   systemFlags: ODFSystemFlagsPayload['systemFlags']
 ): boolean => _.some(systemFlags, (flags) => !!flags.isInternalMode);
 
+// Returns true if there's at least one internal mode cluster with Ceph (not MCG standalone)
+export const hasAnyInternalCeph = (
+  systemFlags: ODFSystemFlagsPayload['systemFlags']
+): boolean =>
+  _.some(
+    systemFlags,
+    (flags) => !!flags.isInternalMode && !flags.isNoobaaStandalone
+  );
+
 export const hasAnyCeph = (
   systemFlags: ODFSystemFlagsPayload['systemFlags']
 ): boolean => _.some(systemFlags, (flags) => !!flags.isCephAvailable);
