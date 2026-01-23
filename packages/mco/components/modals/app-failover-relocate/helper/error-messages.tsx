@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { docLinks } from '@odf/mco/constants/doc';
 import { ViewDocumentation } from '@odf/shared/utils';
+import { K8sResourceCondition } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
 import { AlertVariant } from '@patternfly/react-core';
@@ -9,6 +10,7 @@ export enum ErrorMessageType {
   // Priority wise error messages
   DR_IS_NOT_ENABLED_FAILOVER = 1,
   DR_IS_NOT_ENABLED_RELOCATE,
+  DR_IS_INVALID,
   FAILOVER_READINESS_CHECK_FAILED,
   RELOCATE_READINESS_CHECK_FAILED,
   MANAGED_CLUSTERS_ARE_DOWN,
@@ -36,7 +38,8 @@ type ErrorMessagesType = {
 export const ErrorMessages = (
   t: TFunction,
   mcoDocVersion: string,
-  acmDocVersion: string
+  acmDocVersion: string,
+  invalidDRPolicy?: K8sResourceCondition
 ): ErrorMessagesType => ({
   [ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER]: {
     title: t('No DRPolicy found.'),
@@ -284,6 +287,11 @@ export const ErrorMessages = (
       "One or more volumes for this application may not be replicating at all or replication is taking longer than the replication interval as defined in the assigned data policy. If either managed cluster's replication services are offline or unreachable, this is an expected condition. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
     ),
     variant: AlertVariant.warning,
+  },
+  [ErrorMessageType.DR_IS_INVALID]: {
+    title: invalidDRPolicy?.reason || t('Invalid DR Policy'),
+    message: invalidDRPolicy?.message || t('The DR Policy validation failed'),
+    variant: AlertVariant.danger,
   },
 });
 
