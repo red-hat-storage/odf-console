@@ -43,3 +43,6 @@ export const fsTypeDropdownItems = Object.freeze({
   EXT3: 'ext3',
   XFS: 'xfs',
 });
+
+export const lsoInstallationPage =
+  '/catalog/ns/default?selectedId=local-storage-operator-redhat-operators-openshift-marketplace';
