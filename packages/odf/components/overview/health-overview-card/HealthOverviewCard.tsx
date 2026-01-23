@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { HEALTH_SCORE_QUERY } from '@odf/core/components/odf-dashboard/queries';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { TWENTY_FOUR_HOURS } from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
@@ -38,7 +39,12 @@ import {
   Text,
   TextVariants,
 } from '@patternfly/react-core';
-import { ArrowRightIcon, SpaceShuttleIcon } from '@patternfly/react-icons';
+import {
+  ArrowRightIcon,
+  CubesIcon,
+  SpaceShuttleIcon,
+} from '@patternfly/react-icons';
+import { hasAnyCeph } from '../../../utils';
 import {
   useHealthAlerts,
   useSilencedAlerts,
@@ -57,6 +63,10 @@ export const HealthOverviewCard: React.FC = () => {
   const navigate = useNavigate();
   const [chartRef, chartWidth] = useRefWidth();
   const basePath = usePrometheusBasePath();
+
+  // Check if Ceph/OSDs are available in any storage cluster
+  const { systemFlags, areFlagsSafe } = useODFSystemFlagsSelector();
+  const isCephAvailable = hasAnyCeph(systemFlags);
 
   // Fetch health score metric over time (range query)
   const [healthScoreData, healthScoreError, healthScoreLoading] =
@@ -139,6 +149,10 @@ export const HealthOverviewCard: React.FC = () => {
 
   const hasError = healthScoreError || healthAlertsError || silencedAlertsError;
   const hasNoData = chartData.length === 0;
+
+  // Determine if Ceph is unavailable (flags loaded and no Ceph found)
+  const isCephUnavailable = areFlagsSafe && !isCephAvailable;
+
   const showEmptyState = isLoading || hasError || hasNoData;
 
   // Determine specific error message
@@ -158,6 +172,31 @@ export const HealthOverviewCard: React.FC = () => {
   };
 
   const cardTitle = t('Infrastructure health');
+
+  // Show unavailable state when no Ceph/OSDs are present
+  if (isCephUnavailable) {
+    return (
+      <Card isFlat>
+        <CardHeader>
+          <CardTitle>{cardTitle}</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <EmptyState variant={EmptyStateVariant.lg}>
+            <EmptyStateHeader
+              titleText={t('Health checks unavailable')}
+              icon={<EmptyStateIcon icon={CubesIcon} />}
+              headingLevel="h4"
+            />
+            <EmptyStateBody>
+              {t(
+                'Infrastructure health monitoring is unavailable because no OSDs are present in the cluster.'
+              )}
+            </EmptyStateBody>
+          </EmptyState>
+        </CardBody>
+      </Card>
+    );
+  }
 
   if (showEmptyState) {
     return (
