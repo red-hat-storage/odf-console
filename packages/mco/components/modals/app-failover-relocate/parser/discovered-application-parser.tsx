@@ -14,6 +14,7 @@ import {
   checkDRActionReadiness,
   filterManagedClusterUsingDRClusters,
   findCluster,
+  getInvalidDRPolicyCondition,
   getPrimaryClusterName,
   getReplicationType,
   isDRClusterFenced,
@@ -159,6 +160,7 @@ export const DRPlacementControlParser: React.FC<
           snapshotTakenTime: drPlacementControl?.status?.lastGroupSyncTime,
           replicationType: getReplicationType(drPolicy),
           schedulingInterval: drPolicy?.spec?.schedulingInterval,
+          invalidDRPolicy: getInvalidDRPolicyCondition(drPolicy),
         },
       ];
     }

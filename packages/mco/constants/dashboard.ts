@@ -21,3 +21,5 @@ export const LEAST_SECONDS_IN_PROMETHEUS = 1697788182;
 
 export const GETTING_STARTED_USER_SETTINGS_KEY_OVERVIEW_DASHBOARD =
   '"mcoConsole.overviewDashboard.gettingStarted.expanded"';
+
+export const VALIDATED = 'Validated';

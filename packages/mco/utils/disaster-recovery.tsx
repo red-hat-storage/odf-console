@@ -3,6 +3,7 @@ import {
   ACMPlacementModel,
   ACMPlacementRuleModel,
   DRVolumeReplicationGroup,
+  K8sResourceConditionStatus,
 } from '@odf/shared';
 import {
   daysToSeconds,
@@ -46,6 +47,7 @@ import {
   MCV_NAME_TEMPLATE,
   NAME_NAMESPACE_SPLIT_CHAR,
   LEAST_SECONDS_IN_PROMETHEUS,
+  VALIDATED,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -558,6 +560,15 @@ export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
   drPolicy?.status?.conditions?.some(
     (condition) =>
       condition?.type === 'Validated' && condition?.status === 'True'
+  );
+
+export const getInvalidDRPolicyCondition = (
+  drPolicy: DRPolicyKind
+): K8sResourceCondition | undefined =>
+  drPolicy?.status?.conditions?.find(
+    (condition) =>
+      condition.type === VALIDATED &&
+      condition.status === K8sResourceConditionStatus.False
   );
 
 // Finding placement from application generators

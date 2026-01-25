@@ -12,6 +12,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   StatusIconAndText,
   K8sModel,
+  K8sResourceCondition,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Flex,
@@ -82,6 +83,10 @@ const validatePlacement = (
 ): ErrorMessageType => {
   const isFailoverAction = action === DRActionType.FAILOVER;
 
+  // Check if DR is invalid
+  if (placementControl?.invalidDRPolicy) {
+    return ErrorMessageType.DR_IS_INVALID;
+  }
   // Check if DR is disabled
   if (!placementControl?.drPlacementControlName) {
     return isFailoverAction
@@ -324,7 +329,12 @@ export const FailoverRelocateModalBody: React.FC<
         {evaluateErrorMessage(errorMessage, true) > -1 && (
           <MessageStatus
             message={
-              ErrorMessages(t, mcoDocVersion, acmDocVersion)[errorMessage]
+              ErrorMessages(
+                t,
+                mcoDocVersion,
+                acmDocVersion,
+                placement?.invalidDRPolicy
+              )[errorMessage]
             }
           />
         )}
@@ -349,6 +359,7 @@ export type PlacementControlProps = Partial<{
   areSiblingApplicationsFound: boolean;
   kubeObjectLastSyncTime: string;
   schedulingInterval: string;
+  invalidDRPolicy: K8sResourceCondition;
 }>;
 
 export type ApplicationProps = {

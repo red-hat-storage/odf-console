@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createUniquenessValidator } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
 import { formSettings, useYupValidationResolver } from '@odf/shared';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -79,7 +80,9 @@ export type ScaleSystemFormValidation = {
   getValues: any;
 };
 
-const useScaleSystemFormValidation = (): ScaleSystemFormValidation => {
+const useScaleSystemFormValidation = (
+  existingFileSystemNames?: Set<string>
+): ScaleSystemFormValidation => {
   const { t } = useCustomTranslation();
 
   const { formSchema, fieldRequirements } = React.useMemo(() => {
@@ -150,6 +153,7 @@ const useScaleSystemFormValidation = (): ScaleSystemFormValidation => {
       fieldRequirementsTranslations.minChars(t, SYSTEM_NAME_MIN_LENGTH),
       fieldRequirementsTranslations.startAndEndName(t),
       fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+      t('Name must be unique'),
     ];
 
     // Tenant ID validation
@@ -262,6 +266,11 @@ const useScaleSystemFormValidation = (): ScaleSystemFormValidation => {
           validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
           fileSystemNameFieldRequirements[3]
         )
+        .test(
+          'unique-filesystem-name',
+          fileSystemNameFieldRequirements[4],
+          createUniquenessValidator(existingFileSystemNames)
+        )
         .transform((value: string) => (!!value ? value : '')),
 
       encryptionUserName: Yup.string()
@@ -324,7 +333,7 @@ const useScaleSystemFormValidation = (): ScaleSystemFormValidation => {
         serverInfo: serverInfoFieldRequirements,
       },
     };
-  }, [t]);
+  }, [t, existingFileSystemNames]);
 
   const resolver = useYupValidationResolver(formSchema) as any;
 

@@ -1,12 +1,15 @@
 import * as React from 'react';
+import { useBucketOrigin } from '@odf/core/components/s3-browser/bucket-overview/useBucketOrigin';
 import {
   BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
   LIST_VERSIONED_OBJECTS,
 } from '@odf/core/constants';
+import { ODF_ADMIN } from '@odf/core/features';
 import { useUserSettingsLocalStorage } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -76,6 +79,9 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
     true,
     []
   );
+  const isAdmin = useFlag(ODF_ADMIN);
+  // "isCreatedByOBC" denotes whether bucket is created via OBC or S3 endpoint (will be false if we are inside folder view)
+  const { isCreatedByOBC } = useBucketOrigin(bucketName, null, isAdmin);
 
   const onDelete = async (event) => {
     event.preventDefault();
@@ -182,6 +188,18 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
           )}
         </Text>
       </TextContent>
+      {isCreatedByOBC && (
+        <Alert
+          title={t('Delete OBC')}
+          variant={AlertVariant.warning}
+          className="pf-v5-u-mt-md"
+          isInline
+        >
+          {t(
+            'NooBaa does not automatically delete the OBC if a bucket is deleted. Make sure you delete the corresponding OBC'
+          )}
+        </Alert>
+      )}
 
       <FormGroup
         label={getTextInputLabel(t, bucketName)}

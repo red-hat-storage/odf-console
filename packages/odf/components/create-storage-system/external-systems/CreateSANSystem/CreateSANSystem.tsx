@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useExistingFileSystemNames } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
 import { filterUsedDiscoveredDevices } from '@odf/core/components/utils';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
 import {
@@ -58,12 +59,23 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
   const localCluster = useIsLocalClusterConfigured();
   const isLocalClusterConfigured = !_.isEmpty(localCluster);
 
+  const [disks] = useK8sWatchResource<LocalDiskKind[]>({
+    groupVersionKind: {
+      group: LocalDiskModel.apiGroup,
+      version: LocalDiskModel.apiVersion,
+      kind: LocalDiskModel.kind,
+    },
+    isList: true,
+  });
+
+  const existingFileSystemNames = useExistingFileSystemNames();
+
   const {
     fieldRequirements,
     control,
     formState: { isSubmitted },
     watch,
-  } = useSANSystemFormValidation();
+  } = useSANSystemFormValidation(existingFileSystemNames);
 
   const selectedNodes = componentState.selectedNodes;
 
@@ -76,6 +88,11 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     lunGroupName &&
     componentState.selectedNodes.length > 0 &&
     componentState.selectedLUNs.size > 0
+  );
+
+  const filteredSharedDevices = filterUsedDiscoveredDevices(
+    sharedDevices,
+    disks
   );
 
   const onCreate = React.useCallback(async () => {
@@ -117,20 +134,6 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     navigate,
     t,
   ]);
-
-  const [disks] = useK8sWatchResource<LocalDiskKind[]>({
-    groupVersionKind: {
-      group: LocalDiskModel.apiGroup,
-      version: LocalDiskModel.apiVersion,
-      kind: LocalDiskModel.kind,
-    },
-    isList: true,
-  });
-
-  const filteredSharedDevices = filterUsedDiscoveredDevices(
-    sharedDevices,
-    disks
-  );
 
   return (
     <Form isWidthLimited>
