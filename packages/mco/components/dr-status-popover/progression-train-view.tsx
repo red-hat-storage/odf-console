@@ -161,12 +161,8 @@ export const RELOCATE_FLOW: StepConfig[] = [
   },
 ];
 
-// Relocate flow for discovered apps (cleanup happens FIRST, before syncing/restoring)
+// Relocate flow for discovered apps (cleanup happens after preparing)
 export const RELOCATE_DISCOVERED_FLOW: StepConfig[] = [
-  {
-    label: TrainStep.CleanUp,
-    statuses: [ProgressionStatus.WAIT_USER_CLEANUP],
-  },
   {
     label: TrainStep.Preparing,
     statuses: [
@@ -176,6 +172,10 @@ export const RELOCATE_DISCOVERED_FLOW: StepConfig[] = [
       ProgressionStatus.PREPARING_SYNC,
       ProgressionStatus.CLEARING_PLACEMENT,
     ],
+  },
+  {
+    label: TrainStep.CleanUp,
+    statuses: [ProgressionStatus.WAIT_USER_CLEANUP],
   },
   {
     label: TrainStep.Syncing,
