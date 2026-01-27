@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DRApplication, DRPCStatus } from '@odf/mco/constants';
+import { DRApplication } from '@odf/mco/constants';
 import {
   SubscriptionGroupType,
   useDisasterRecoveryResourceWatch,
@@ -12,6 +12,7 @@ import {
   DRClusterKind,
   PlacementControlInfo,
   ProtectedAppsMap,
+  Phase,
 } from '@odf/mco/types';
 import {
   getProtectedPVCsFromDRPC,
@@ -45,7 +46,7 @@ const createPlacementControlInfoList = (
         failoverCluster: drPlacementControl?.spec?.failoverCluster,
         preferredCluster: drPlacementControl?.spec?.preferredCluster,
         lastVolumeGroupSyncTime: drPlacementControl?.status?.lastGroupSyncTime,
-        status: drPlacementControl?.status?.phase as DRPCStatus,
+        status: drPlacementControl?.status?.phase as Phase,
         subscriptions: subscriptionGroup?.subscriptions?.map((subs) =>
           getName(subs)
         ),

@@ -45,14 +45,6 @@ export enum ReplicationType {
   SYNC = 'sync',
 }
 
-// DR status
-export enum DRPCStatus {
-  FailedOver = 'FailedOver',
-  Relocating = 'Relocating',
-  FailingOver = 'FailingOver',
-  Relocated = 'Relocated',
-}
-
 // DR cluster type
 export enum DRReplicationState {
   PrimaryState = 'Primary',
