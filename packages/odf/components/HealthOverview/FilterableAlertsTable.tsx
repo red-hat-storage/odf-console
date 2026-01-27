@@ -102,15 +102,21 @@ export const FilterableAlertsTable: React.FC<FilterableAlertsTableProps> = ({
     );
   }, [filteredAlerts, selectedAlerts]);
 
+  // Filter out already-ended alerts - only active (firing) alerts can be silenced
+  const silenceableAlerts = React.useMemo(
+    () => validSelectedAlerts.filter((alert) => !alert.endTime),
+    [validSelectedAlerts]
+  );
+
   // Callbacks
   const handleSilenceClick = React.useCallback(() => {
-    if (validSelectedAlerts.length > 0 && onSilenceClick) {
-      onSilenceClick(validSelectedAlerts);
+    if (silenceableAlerts.length > 0 && onSilenceClick) {
+      onSilenceClick(silenceableAlerts);
       // Clear selections immediately to disable the button
       // to make sure user cannot click the button multiple times
       setSelectedAlerts([]);
     }
-  }, [validSelectedAlerts, onSilenceClick]);
+  }, [silenceableAlerts, onSilenceClick]);
 
   // Effects - Notify parent when filtered alerts change
   React.useEffect(() => {
@@ -131,7 +137,7 @@ export const FilterableAlertsTable: React.FC<FilterableAlertsTableProps> = ({
     }
   }, [filteredAlerts, onFilteredAlertsChange]);
 
-  const isSilenceEnabled = validSelectedAlerts.length > 0;
+  const isSilenceEnabled = silenceableAlerts.length > 0;
 
   return (
     <>
