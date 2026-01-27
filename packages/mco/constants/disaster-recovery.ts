@@ -47,6 +47,11 @@ export enum ReplicationType {
 
 // DR status
 export enum DRPCStatus {
+  Deploying = 'Deploying',
+  Deployed = 'Deployed',
+  Initiating = 'Initiating',
+  Deleting = 'Deleting',
+  WaitForUser = 'WaitForUser',
   FailedOver = 'FailedOver',
   Relocating = 'Relocating',
   FailingOver = 'FailingOver',
