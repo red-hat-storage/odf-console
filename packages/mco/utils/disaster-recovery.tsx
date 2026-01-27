@@ -37,7 +37,6 @@ import { DRPlacementControlType } from '../components/modals/app-manage-policies
 import {
   VolumeReplicationHealth,
   DR_SECHEDULER_NAME,
-  DRPCStatus,
   THRESHOLD,
   DRActionType,
   LABEL_SPLIT_CHAR,
@@ -59,7 +58,7 @@ import {
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
 } from '../constants';
 import { DisasterRecoveryFormatted } from '../hooks';
-import { DRPlacementControlConditionType } from '../types';
+import { DRPlacementControlConditionType, Phase } from '../types';
 import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,
@@ -447,10 +446,11 @@ export const getProtectedPVCsFromDRPC = (
 
 export const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
   drpcList.reduce((prevStatus, drpc) => {
-    const newStatus = DRPCStatus[drpc?.status?.phase] || '';
-    return [DRPCStatus.Relocating, DRPCStatus.FailingOver].includes(newStatus)
+    const newStatus = drpc?.status?.phase;
+    return newStatus &&
+      [Phase.Relocating, Phase.FailingOver].includes(newStatus)
       ? newStatus
-      : prevStatus || newStatus;
+      : prevStatus || newStatus || '';
   }, '');
 
 export const getDRStatus = ({
@@ -465,8 +465,8 @@ export const getDRStatus = ({
   t: TFunction;
 }) => {
   switch (currentStatus) {
-    case DRPCStatus.Relocating:
-    case DRPCStatus.FailingOver:
+    case Phase.Relocating:
+    case Phase.FailingOver:
       return {
         text: customText || currentStatus,
         icon: <InProgressIcon />,
@@ -477,8 +477,8 @@ export const getDRStatus = ({
           </>
         ),
       };
-    case DRPCStatus.Relocated:
-    case DRPCStatus.FailedOver:
+    case Phase.Relocated:
+    case Phase.FailedOver:
       return {
         text: customText || currentStatus,
         icon: <GreenCheckCircleIcon />,
@@ -661,9 +661,9 @@ export const getPrimaryClusterName = (
   }
 
   switch (drPlacementControl.status.phase) {
-    case DRPCStatus.FailedOver:
+    case Phase.FailedOver:
       return drPlacementControl.spec.failoverCluster;
-    case DRPCStatus.Relocated:
+    case Phase.Relocated:
       return drPlacementControl.spec.preferredCluster;
     default:
       return getLastAppDeploymentClusterName(drPlacementControl);
@@ -708,6 +708,16 @@ export const getProtectedCondition = (
 ): K8sResourceCondition | undefined => {
   const condition = drpc?.status?.conditions?.find(
     (condition) => condition.type === DRPlacementControlConditionType.Protected
+  );
+  if (!condition) return undefined;
+  return condition;
+};
+
+export const getAvailableCondition = (
+  drpc: DRPlacementControlKind
+): K8sResourceCondition | undefined => {
+  const condition = drpc?.status?.conditions?.find(
+    (condition) => condition.type === DRPlacementControlConditionType.Available
   );
   if (!condition) return undefined;
   return condition;
