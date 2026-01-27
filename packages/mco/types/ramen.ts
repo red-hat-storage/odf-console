@@ -87,7 +87,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
         pvcgroups?: Groups[];
       };
     };
-    phase: string;
+    phase: Phase;
     progression?: Progression;
     actionStartTime?: string;
     // The time of the most recent successful synchronization of all PVCs.
@@ -150,9 +150,25 @@ export enum Progression {
   WaitForUserAction = 'WaitForUserAction',
 }
 
+// DRPC phases (from Ramen)
+export enum Phase {
+  Initiating = 'Initiating',
+  Deploying = 'Deploying',
+  Deployed = 'Deployed',
+  FailingOver = 'FailingOver',
+  Relocating = 'Relocating',
+  FailedOver = 'FailedOver',
+  FailedToFailover = 'FailedToFailover',
+  Relocated = 'Relocated',
+  FailedToRelocate = 'FailedToRelocate',
+  Deleting = 'Deleting',
+  WaitForUser = 'WaitForUser',
+}
+
 // DRPC condition types
 export enum DRPlacementControlConditionType {
   Protected = 'Protected',
+  Available = 'Available',
 }
 
 // DRPC Protected condition reasons
