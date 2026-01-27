@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DeploymentType } from '@odf/core/types';
+import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import {
   ListKind,
   StorageClassResourceKind,
@@ -21,6 +21,8 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   dispatch,
   hasOCS,
   hasMultipleClusters,
+  deployment,
+  backingStorageType,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -28,10 +30,8 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     isRBDStorageClassDefault,
     externalPostgres,
     useExternalPostgres,
-    deployment,
     isDbBackup,
     dbBackup,
-    type: backingStorageType,
   } = state;
 
   const [sc, scLoaded] =
@@ -80,7 +80,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             isChecked={useExternalPostgres}
             onChange={() =>
               dispatch({
-                type: 'backingStorage/useExternalPostgres',
+                type: 'advancedSettings/useExternalPostgres',
                 payload: !useExternalPostgres,
               })
             }
@@ -119,7 +119,9 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
 
 type AdvancedSettingsProps = {
   dispatch: WizardDispatch;
-  state: WizardState['backingStorage'];
+  state: WizardState['advancedSettings'];
   hasOCS: boolean;
   hasMultipleClusters: boolean;
+  deployment: DeploymentType;
+  backingStorageType: BackingStorageType;
 };

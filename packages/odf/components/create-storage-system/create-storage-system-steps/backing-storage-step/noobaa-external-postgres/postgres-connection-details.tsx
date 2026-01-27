@@ -18,14 +18,14 @@ import '../backing-storage-step.scss';
 
 const updatePrivateTlsFile = (dispatch: WizardDispatch, file: File) => {
   dispatch({
-    type: 'backingStorage/externalPostgres/tls/keys/setPrivateKey',
+    type: 'advancedSettings/externalPostgres/tls/keys/setPrivateKey',
     payload: file,
   });
 };
 
 const updatePublicTlsFile = (dispatch: WizardDispatch, file: File) => {
   dispatch({
-    type: 'backingStorage/externalPostgres/tls/keys/setPublicKey',
+    type: 'advancedSettings/externalPostgres/tls/keys/setPublicKey',
     payload: file,
   });
 };
@@ -85,7 +85,7 @@ export const PostgresConnectionDetails: React.FC<
               value={username}
               onChange={(_event, newUsername: string) => {
                 dispatch({
-                  type: 'backingStorage/externalPostgres/setUsername',
+                  type: 'advancedSettings/externalPostgres/setUsername',
                   payload: newUsername,
                 });
               }}
@@ -105,7 +105,7 @@ export const PostgresConnectionDetails: React.FC<
               value={password}
               onChange={(newPassword: string) => {
                 dispatch({
-                  type: 'backingStorage/externalPostgres/setPassword',
+                  type: 'advancedSettings/externalPostgres/setPassword',
                   payload: newPassword,
                 });
               }}
@@ -126,7 +126,7 @@ export const PostgresConnectionDetails: React.FC<
               value={serverName}
               onChange={(_event, newServer: string) => {
                 dispatch({
-                  type: 'backingStorage/externalPostgres/setServerName',
+                  type: 'advancedSettings/externalPostgres/setServerName',
                   payload: newServer,
                 });
               }}
@@ -146,7 +146,7 @@ export const PostgresConnectionDetails: React.FC<
               value={port}
               onChange={(_event, newPort: string) => {
                 dispatch({
-                  type: 'backingStorage/externalPostgres/setPort',
+                  type: 'advancedSettings/externalPostgres/setPort',
                   payload: newPort,
                 });
               }}
@@ -167,7 +167,7 @@ export const PostgresConnectionDetails: React.FC<
               value={databaseName}
               onChange={(_event, newDatabase: string) => {
                 dispatch({
-                  type: 'backingStorage/externalPostgres/setDatabaseName',
+                  type: 'advancedSettings/externalPostgres/setDatabaseName',
                   payload: newDatabase,
                 });
               }}
@@ -188,12 +188,12 @@ export const PostgresConnectionDetails: React.FC<
               onChange={() => {
                 const isTLSEnabled = !tlsEnabled;
                 dispatch({
-                  type: 'backingStorage/externalPostgres/tls/enableTLS',
+                  type: 'advancedSettings/externalPostgres/tls/enableTLS',
                   payload: !tlsEnabled,
                 });
 
                 dispatch({
-                  type: 'backingStorage/externalPostgres/tls/allowSelfSignedCerts',
+                  type: 'advancedSettings/externalPostgres/tls/allowSelfSignedCerts',
                   payload:
                     !isTLSEnabled && allowSelfSignedCerts
                       ? false
@@ -201,7 +201,7 @@ export const PostgresConnectionDetails: React.FC<
                 });
 
                 dispatch({
-                  type: 'backingStorage/externalPostgres/tls/enableClientSideCerts',
+                  type: 'advancedSettings/externalPostgres/tls/enableClientSideCerts',
                   payload:
                     !isTLSEnabled && enableClientSideCerts
                       ? false
@@ -221,7 +221,7 @@ export const PostgresConnectionDetails: React.FC<
                   isChecked={allowSelfSignedCerts}
                   onChange={() =>
                     dispatch({
-                      type: 'backingStorage/externalPostgres/tls/allowSelfSignedCerts',
+                      type: 'advancedSettings/externalPostgres/tls/allowSelfSignedCerts',
                       payload: !allowSelfSignedCerts,
                     })
                   }
@@ -235,17 +235,17 @@ export const PostgresConnectionDetails: React.FC<
                   isChecked={enableClientSideCerts}
                   onChange={() => {
                     dispatch({
-                      type: 'backingStorage/externalPostgres/tls/enableClientSideCerts',
+                      type: 'advancedSettings/externalPostgres/tls/enableClientSideCerts',
                       payload: !enableClientSideCerts,
                     });
 
                     dispatch({
-                      type: 'backingStorage/externalPostgres/tls/keys/setPrivateKey',
+                      type: 'advancedSettings/externalPostgres/tls/keys/setPrivateKey',
                       payload: null,
                     });
 
                     dispatch({
-                      type: 'backingStorage/externalPostgres/tls/keys/setPublicKey',
+                      type: 'advancedSettings/externalPostgres/tls/keys/setPublicKey',
                       payload: null,
                     });
                   }}
@@ -277,13 +277,13 @@ export const PostgresConnectionDetails: React.FC<
 
 type PostgresConnectionDetailsProps = {
   dispatch: WizardDispatch;
-  username: WizardState['backingStorage']['externalPostgres']['username'];
-  password: WizardState['backingStorage']['externalPostgres']['password'];
-  serverName: WizardState['backingStorage']['externalPostgres']['serverName'];
-  port: WizardState['backingStorage']['externalPostgres']['port'];
-  databaseName: WizardState['backingStorage']['externalPostgres']['databaseName'];
-  tlsEnabled: WizardState['backingStorage']['externalPostgres']['tls']['enabled'];
-  allowSelfSignedCerts: WizardState['backingStorage']['externalPostgres']['tls']['allowSelfSignedCerts'];
-  enableClientSideCerts: WizardState['backingStorage']['externalPostgres']['tls']['enableClientSideCerts'];
+  username: WizardState['advancedSettings']['externalPostgres']['username'];
+  password: WizardState['advancedSettings']['externalPostgres']['password'];
+  serverName: WizardState['advancedSettings']['externalPostgres']['serverName'];
+  port: WizardState['advancedSettings']['externalPostgres']['port'];
+  databaseName: WizardState['advancedSettings']['externalPostgres']['databaseName'];
+  tlsEnabled: WizardState['advancedSettings']['externalPostgres']['tls']['enabled'];
+  allowSelfSignedCerts: WizardState['advancedSettings']['externalPostgres']['tls']['allowSelfSignedCerts'];
+  enableClientSideCerts: WizardState['advancedSettings']['externalPostgres']['tls']['enableClientSideCerts'];
   tlsFiles: File[];
 };

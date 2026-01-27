@@ -203,10 +203,12 @@ const CreateStorageSystem: React.FC<{}> = () => {
       name: StepsName(t)[Steps.AdvancedSettings],
       component: (
         <AdvancedSettings
-          state={state.backingStorage}
+          state={state.advancedSettings}
           dispatch={dispatch}
           hasOCS={hasOCS}
           hasMultipleClusters={hasMultipleClusters}
+          deployment={state.backingStorage.deployment}
+          backingStorageType={state.backingStorage.type}
         />
       ),
       canJumpTo: true,
