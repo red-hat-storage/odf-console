@@ -109,11 +109,16 @@ export const useWatchStorageSystems = (
     sanClusters?.loaded && !sanClusters?.loadError
       ? sanClustersData?.map(mapSANClusterToStorageSystem)
       : [];
+
+  // Only show SAN_Storage (LocalCluster) if no RemoteCluster exists
+  const shouldShowSANStorage =
+    !remoteClusterClientsData || remoteClusterClientsData.length === 0;
+
   const aggregatedStorageSystems = [
     ...storageSystems,
     ...flashSystemClustersList,
     ...remoteClusterClientsList,
-    ...sanClustersList,
+    ...(shouldShowSANStorage ? sanClustersList : []),
   ];
   const memoizedStorageSystems = useDeepCompareMemoize(
     aggregatedStorageSystems,
