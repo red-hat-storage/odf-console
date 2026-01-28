@@ -1,7 +1,10 @@
 import * as React from 'react';
+import { IBM_SCALE_LOCAL_CLUSTER_NAME } from '@odf/core/constants';
 import { FDF_FLAG } from '@odf/core/redux';
 import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
+import { ClusterKind } from '@odf/core/types/scale';
 import {
+  ClusterModel,
   DEFAULT_INFRASTRUCTURE,
   InfrastructureKind,
   InfrastructureModel,
@@ -10,7 +13,10 @@ import {
   useK8sGet,
 } from '@odf/shared';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useFlag,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -52,6 +58,18 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     InfrastructureModel,
     DEFAULT_INFRASTRUCTURE
   );
+
+  const [localCluster, localClusterLoaded] = useK8sWatchResource<ClusterKind>({
+    groupVersionKind: {
+      group: ClusterModel.apiGroup,
+      version: ClusterModel.apiVersion,
+      kind: ClusterModel.kind,
+    },
+    isList: false,
+    name: IBM_SCALE_LOCAL_CLUSTER_NAME,
+  });
+
+  const isLocalClusterPresent = localClusterLoaded && !!localCluster;
 
   const externalClusterDetails = useGetExternalClusterDetails();
   const hasExternalStorageClusters = externalClusterDetails.clusterName !== '';
@@ -143,7 +161,11 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
       {isFDF && (
         <>
           <FlexItem>
-            <Card id="setup-scale-storage" isClickable>
+            <Card
+              id="setup-scale-storage"
+              isClickable={!isLocalClusterPresent}
+              isDisabled={isLocalClusterPresent}
+            >
               <CardHeader
                 selectableActions={{
                   selectableActionId: 'scale-storage',
@@ -167,6 +189,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                   <FlexItem align={{ default: 'alignRight' }}>
                     <Radio
                       isChecked={selectedOption === ExternalSystemOption.Scale}
+                      isDisabled={isLocalClusterPresent}
                       onChange={() =>
                         setSelectedOption(ExternalSystemOption.Scale)
                       }
