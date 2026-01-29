@@ -14,6 +14,7 @@ describe('Setting Ceph RBD StorageClass as default, during installation', () => 
           doesDefaultSCAlreadyExists={true}
           isRBDStorageClassDefault={isRBDStorageClassDefault}
           dispatch={dispatchWrapper}
+          scLoaded={true}
         />
       );
     };
@@ -49,6 +50,7 @@ describe('Setting Ceph RBD StorageClass as default, during installation', () => 
           doesDefaultSCAlreadyExists={false}
           isRBDStorageClassDefault={isRBDStorageClassDefault}
           dispatch={dispatchWrapper}
+          scLoaded={true}
         />
       );
     };
