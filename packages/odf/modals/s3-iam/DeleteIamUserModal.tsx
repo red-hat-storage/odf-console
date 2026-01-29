@@ -196,7 +196,9 @@ export const DeleteIamUserModal: React.FC<
               className="pf-v5-u-mr-xs"
               variant={ButtonVariant.danger}
               isLoading={inProgress}
-              isDisabled={deleteText !== t('delete') || inProgress}
+              isDisabled={
+                deleteText !== t('delete') || inProgress || !deleteSuccess
+              }
               onClick={onDelete}
             >
               {t('Delete user')}
