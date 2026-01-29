@@ -28,6 +28,7 @@ import {
   isDRClusterFenced,
   findPlacementNameFromAppSet,
   getReplicationType,
+  getInvalidDRPolicyCondition,
 } from '../../../../utils';
 import { FailoverRelocateModal } from '../failover-relocate-modal';
 import { PlacementControlProps } from '../failover-relocate-modal-body';
@@ -160,6 +161,7 @@ export const ArogoApplicationSetParser = (
             isPrimaryClusterFenced: isDRClusterFenced(primaryDRCluster),
             areSiblingApplicationsFound: !!siblingApplications?.length,
             schedulingInterval: drPolicy?.spec?.schedulingInterval,
+            invalidDRPolicy: getInvalidDRPolicyCondition(drPolicy),
           },
         ]
       : [];

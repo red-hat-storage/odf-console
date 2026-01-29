@@ -2,11 +2,7 @@ reviewers:
   - bipuladh
   - SanjalKatiyar
   - vbnrh
-  - GowthamShanmugam
-  - alfonsomthd
 approvers:
   - bipuladh
   - SanjalKatiyar
-  - GowthamShanmugam
-  - alfonsomthd
 component: ODF Console
