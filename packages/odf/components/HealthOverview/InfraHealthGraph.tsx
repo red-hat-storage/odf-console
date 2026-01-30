@@ -41,22 +41,33 @@ const getScoreSeries = (
   }));
 };
 
-const getAlertSeries = (alerts: AlertRowData[]) => {
+// Fixed Y positions for each severity lane (grouped by severity)
+const SEVERITY_LANE_Y: Record<string, number> = {
+  critical: 15,
+  warning: 30,
+  info: 45,
+};
+
+const getSeverityLaneY = (severity: string): number => {
+  const normalizedSeverity = severity?.toLowerCase();
+  return SEVERITY_LANE_Y[normalizedSeverity] ?? SEVERITY_LANE_Y.info;
+};
+
+type TimeWindow = {
+  now: Date;
+  twentyFourHoursAgo: Date;
+};
+
+const getAlertSeries = (alerts: AlertRowData[], timeWindow: TimeWindow) => {
   if (!alerts.length) {
     return [];
   }
 
-  const MIN_Y = 10;
-  const MAX_Y = 100;
-  const bandHeight = MAX_Y - MIN_Y;
-  const laneCount = alerts.length;
-  const gap = bandHeight / (laneCount + 1);
+  const { now, twentyFourHoursAgo } = timeWindow;
 
-  const now = new Date();
-  const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS);
-
-  return alerts.map((alert, index) => {
-    const laneY = MIN_Y + gap * (index + 1);
+  return alerts.map((alert) => {
+    // Use fixed Y position based on severity (not array index)
+    const laneY = getSeverityLaneY(alert.severity);
 
     // Clamp start time to the 24-hour window
     const start = new Date(
@@ -97,7 +108,23 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
     [scoreResponse]
   );
 
-  const alertSeries = React.useMemo(() => getAlertSeries(alerts), [alerts]);
+  // Stable time window - updates when alerts or score data changes
+  // This ensures consistent time boundaries across the chart and alert series
+  // while still advancing the graph as real time progresses via polling intervals
+  const timeWindow = React.useMemo<TimeWindow>(
+    () => {
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS);
+      return { now, twentyFourHoursAgo };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [alerts, scoreResponse]
+  );
+
+  const alertSeries = React.useMemo(
+    () => getAlertSeries(alerts, timeWindow),
+    [alerts, timeWindow]
+  );
 
   const scoreHasData = scoreSeries?.length > 0;
   const alertsHaveData = alertSeries?.length > 0;
@@ -120,8 +147,8 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
   } else if (!scoreHasData && !alertsHaveData) {
     content = <GraphEmpty height={250} loading={false} />;
   } else {
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS);
+    // Use stable time window for chart domain (same as alert series)
+    const { now, twentyFourHoursAgo } = timeWindow;
 
     content = (
       <Chart
@@ -220,7 +247,7 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
                 alertname: alert.alertname,
                 severity: alert.severity,
                 startTime: alert.startTime,
-                endTime: alert.endTime ?? new Date(),
+                endTime: alert.endTime ?? now,
               }))}
               style={{
                 data: {
