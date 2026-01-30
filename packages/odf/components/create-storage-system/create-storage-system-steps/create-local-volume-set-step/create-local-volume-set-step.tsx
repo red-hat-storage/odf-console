@@ -22,13 +22,10 @@ import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isCSVSucceeded } from '@odf/shared/utils';
 import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  WizardContext,
-  WizardContextType,
-} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
+import { useWizardContext } from '@patternfly/react-core';
 import {
   Alert,
   AlertVariant,
@@ -93,8 +90,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   nodes,
 }) => {
   const { t } = useCustomTranslation();
-  const { onNext, activeStep } =
-    React.useContext<WizardContextType>(WizardContext);
+  const { goToNextStep, activeStep } = useWizardContext();
 
   const cancel = () => {
     dispatch({
@@ -109,7 +105,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       type: 'wizard/setStepIdReached',
       payload: stepIdReached <= stepId ? stepId + 1 : stepIdReached,
     });
-    onNext();
+    goToNextStep();
   };
 
   const makeLVSCall = () => {
