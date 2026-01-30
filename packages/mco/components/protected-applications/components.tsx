@@ -298,9 +298,14 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   const destinationNamespace =
     !isDiscovered && view?.status?.applicationInfo?.destinationNamespace;
   const enrolledNamespaces = view?.status?.drInfo?.protectedNamespaces || [];
+  const namespaces = isDiscovered
+    ? enrolledNamespaces
+    : destinationNamespace
+      ? [destinationNamespace]
+      : [];
 
   const mcvResources: Record<string, WatchK8sResource> = {};
-  if (isDiscovered && clusterName && mcvName) {
+  if (clusterName && mcvName) {
     mcvResources[mcvName] = buildMCVResource(clusterName, mcvName);
   }
   const mcvs = useK8sWatchResources(mcvResources);
@@ -331,10 +336,7 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
     return <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />;
   }
 
-  const hasData =
-    applicationType &&
-    ((isDiscovered && enrolledNamespaces.length > 0) ||
-      (!isDiscovered && destinationNamespace));
+  const hasData = applicationType && namespaces.length > 0;
 
   if (!hasData) {
     return <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />;
@@ -352,88 +354,62 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
 
   return (
     <>
-      {isDiscovered ? (
-        <Grid hasGutter>
-          <GridItem span={3} className="pf-v5-u-text-align-center">
-            <Text component="h6" className="pf-v5-u-font-weight-bold">
-              {t('Application type')}
-            </Text>
-          </GridItem>
-          <GridItem span={6} className="pf-v5-u-text-align-center">
-            <Text component="h6" className="pf-v5-u-font-weight-bold">
-              {t('Protected namespaces')}
-            </Text>
-          </GridItem>
-          <GridItem span={3} className="pf-v5-u-text-align-center">
-            <Text component="h6" className="pf-v5-u-font-weight-bold">
-              {t('Volume Consistency groups')}
-            </Text>
-          </GridItem>
+      <Grid hasGutter>
+        <GridItem span={3} className="pf-v5-u-text-align-center">
+          <Text component="h6" className="pf-v5-u-font-weight-bold">
+            {t('Application type')}
+          </Text>
+        </GridItem>
+        <GridItem span={6} className="pf-v5-u-text-align-center">
+          <Text component="h6" className="pf-v5-u-font-weight-bold">
+            {isDiscovered
+              ? t('Protected namespaces')
+              : t('Destination namespace')}
+          </Text>
+        </GridItem>
+        <GridItem span={3} className="pf-v5-u-text-align-center">
+          <Text component="h6" className="pf-v5-u-font-weight-bold">
+            {t('Volume Consistency groups')}
+          </Text>
+        </GridItem>
 
-          <GridItem span={3} className="pf-v5-u-text-align-center">
-            <Text>{applicationType}</Text>
-          </GridItem>
-          <GridItem
-            span={6}
-            className="pf-v5-u-text-align-center pf-v5-u-mx-auto"
-          >
-            {enrolledNamespaces.map((namespace: string) => (
-              <div key={namespace} className="pf-v5-u-mb-sm">
-                <ResourceNameWIcon
-                  resourceModel={NamespaceModel}
-                  resourceName={namespace}
-                />
-              </div>
-            ))}
-          </GridItem>
-          <GridItem span={3} className="pf-v5-u-text-align-center ">
-            {enrolledNamespaces.map((namespace: string) => (
-              <div key={namespace} className="pf-v5-u-mb-sm">
-                {consistencyGroupsCount?.[namespace] ? (
-                  <Button
-                    variant={ButtonVariant.link}
-                    aria-label={t(`View details for ${namespace}`, {
-                      namespace,
-                    })}
-                    onClick={() => openModal(namespace)}
-                    isInline
-                  >
-                    {consistencyGroupsCount[namespace]}
-                  </Button>
-                ) : (
-                  <Text className="pf-v5-u-color-200">-</Text>
-                )}
-              </div>
-            ))}
-          </GridItem>
-        </Grid>
-      ) : (
-        <Grid hasGutter>
-          <GridItem span={6} className="pf-v5-u-text-align-center">
-            <Text component="h6" className="pf-v5-u-font-weight-bold">
-              {t('Application type')}
-            </Text>
-          </GridItem>
-          <GridItem span={6} className="pf-v5-u-text-align-center">
-            <Text component="h6" className="pf-v5-u-font-weight-bold">
-              {t('Destination namespace')}
-            </Text>
-          </GridItem>
-
-          <GridItem span={6} className="pf-v5-u-text-align-center">
-            <Text>{applicationType}</Text>
-          </GridItem>
-          <GridItem
-            span={6}
-            className="pf-v5-u-text-align-center pf-v5-u-mx-auto"
-          >
-            <ResourceNameWIcon
-              resourceModel={NamespaceModel}
-              resourceName={destinationNamespace}
-            />
-          </GridItem>
-        </Grid>
-      )}
+        <GridItem span={3} className="pf-v5-u-text-align-center">
+          <Text>{applicationType}</Text>
+        </GridItem>
+        <GridItem
+          span={6}
+          className="pf-v5-u-text-align-center pf-v5-u-mx-auto"
+        >
+          {namespaces.map((namespace: string) => (
+            <div key={namespace} className="pf-v5-u-mb-sm">
+              <ResourceNameWIcon
+                resourceModel={NamespaceModel}
+                resourceName={namespace}
+              />
+            </div>
+          ))}
+        </GridItem>
+        <GridItem span={3} className="pf-v5-u-text-align-center">
+          {namespaces.map((namespace: string) => (
+            <div key={namespace} className="pf-v5-u-mb-sm">
+              {consistencyGroupsCount?.[namespace] ? (
+                <Button
+                  variant={ButtonVariant.link}
+                  aria-label={t(`View details for ${namespace}`, {
+                    namespace,
+                  })}
+                  onClick={() => openModal(namespace)}
+                  isInline
+                >
+                  {consistencyGroupsCount[namespace]}
+                </Button>
+              ) : (
+                <Text className="pf-v5-u-color-200">-</Text>
+              )}
+            </div>
+          ))}
+        </GridItem>
+      </Grid>
 
       {selectedNamespace && (
         <ConsistencyGroupsModal
