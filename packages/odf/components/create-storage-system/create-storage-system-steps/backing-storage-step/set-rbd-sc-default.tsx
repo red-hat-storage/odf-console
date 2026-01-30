@@ -11,6 +11,7 @@ export const SetCephRBDStorageClassDefault: React.FC<
   dispatch,
   isRBDStorageClassDefault,
   doesDefaultSCAlreadyExists,
+  scLoaded,
   className,
 }) => {
   const { t } = useCustomTranslation();
@@ -49,6 +50,7 @@ export const SetCephRBDStorageClassDefault: React.FC<
           'odf-backing-store__radio--margin-bottom',
           className
         )}
+        isDisabled={!scLoaded}
       />
     </FormGroup>
   );
@@ -58,5 +60,6 @@ type SetCephRBDStorageClassDefaultProps = {
   dispatch: WizardDispatch;
   isRBDStorageClassDefault: WizardState['backingStorage']['isRBDStorageClassDefault'];
   doesDefaultSCAlreadyExists: boolean | null;
+  scLoaded?: boolean;
   className?: string;
 };
