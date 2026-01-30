@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DeploymentType } from '@odf/core/types';
+import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import {
   ListKind,
   StorageClassResourceKind,
@@ -14,6 +14,7 @@ import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from '../backing-storage-step/enable-nfs';
 import { PostgresConnectionDetails } from '../backing-storage-step/noobaa-external-postgres/postgres-connection-details';
 import { SetCephRBDStorageClassDefault } from '../backing-storage-step/set-rbd-sc-default';
+import SetVirtualizeSCDefault from '../backing-storage-step/set-virtualize-sc-default';
 import { AutomaticBackup } from './automatic-backup/automatic-backup';
 
 export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
@@ -21,6 +22,8 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   dispatch,
   hasOCS,
   hasMultipleClusters,
+  deployment,
+  backingStorageType,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -28,10 +31,8 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     isRBDStorageClassDefault,
     externalPostgres,
     useExternalPostgres,
-    deployment,
     isDbBackup,
     dbBackup,
-    type: backingStorageType,
   } = state;
 
   const [sc, scLoaded] =
@@ -62,6 +63,14 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             />
           </>
         )}
+        {isFullDeployment && !hasMultipleClusters && (
+          <SetVirtualizeSCDefault
+            dispatch={dispatch}
+            isVirtualizeStorageClassDefault={
+              state.isVirtualizeStorageClassDefault
+            }
+          />
+        )}
         {/* Should be visible for both external and internal mode (but only single NooBaa is allowed, so should be hidden if any cluster already exists) */}
         {!hasOCS && (
           <Checkbox
@@ -80,7 +89,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             isChecked={useExternalPostgres}
             onChange={() =>
               dispatch({
-                type: 'backingStorage/useExternalPostgres',
+                type: 'advancedSettings/useExternalPostgres',
                 payload: !useExternalPostgres,
               })
             }
@@ -119,7 +128,9 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
 
 type AdvancedSettingsProps = {
   dispatch: WizardDispatch;
-  state: WizardState['backingStorage'];
+  state: WizardState['advancedSettings'];
   hasOCS: boolean;
   hasMultipleClusters: boolean;
+  deployment: DeploymentType;
+  backingStorageType: BackingStorageType;
 };

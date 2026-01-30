@@ -37,7 +37,6 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
-import SetVirtualizeSCDefault from './set-virtualize-sc-default';
 import './backing-storage-step.scss';
 
 // ODF watches only 2 namespaces (other one is operator install namespace)
@@ -105,7 +104,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   hasOCS,
   hasExternal,
   hasInternal,
-  hasMultipleClusters,
   infraType,
   error,
   loaded,
@@ -281,14 +279,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           className="odf-backing-store__radio--margin-bottom"
         />
       </FormGroup>
-      {isFullDeployment && !hasMultipleClusters && (
-        <SetVirtualizeSCDefault
-          dispatch={dispatch}
-          isVirtualizeStorageClassDefault={
-            state.isVirtualizeStorageClassDefault
-          }
-        />
-      )}
     </Form>
   );
 };
@@ -299,7 +289,6 @@ type BackingStorageProps = {
   hasOCS: boolean;
   hasExternal: boolean;
   hasInternal: boolean;
-  hasMultipleClusters: boolean;
   storageClass: WizardState['storageClass'];
   stepIdReached: WizardState['stepIdReached'];
   infraType: InfraProviders;
