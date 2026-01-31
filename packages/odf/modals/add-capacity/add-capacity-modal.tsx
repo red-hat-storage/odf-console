@@ -74,6 +74,7 @@ import {
   getSCAvailablePVs,
   isArbiterSC,
   isValidTopology,
+  noDeviceClassKey,
 } from '../../utils/ocs';
 import { PVsAvailableCapacity } from './pvs-available-capacity';
 import './add-capacity-modal.scss';
@@ -123,8 +124,11 @@ export const DeviceClassDropdown: React.FC<DeviceClassDropdownProps> = ({
   const { t } = useCustomTranslation();
 
   const deviceClassOptions = deviceClasses.map((cls) => (
-    <SelectOption key={cls} value={cls}>
-      {cls}
+    <SelectOption
+      key={!cls ? noDeviceClassKey : cls}
+      value={!cls ? noDeviceClassKey : cls}
+    >
+      {!cls ? t('None (no device class)') : cls}
     </SelectOption>
   ));
 
@@ -325,13 +329,21 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   );
 
   const deviceClasses = getDeviceClassesForSC(deviceSets, selectedSCName);
-
   const hasMultiDeviceClasses = deviceClasses.length > 1;
+
+  React.useEffect(() => {
+    if (deviceClasses.length === 1) {
+      setDeviceClass(deviceClasses[0] || noDeviceClassKey);
+    } else if (deviceClasses.length > 1) {
+      // Multiple device classes - reset so user MUST choose from dropdown
+      setDeviceClass('');
+    }
+  }, [deviceClasses]);
 
   const deviceSetIndex: number = getCurrentDeviceSetIndex(
     deviceSets,
     selectedSCName,
-    hasMultiDeviceClasses ? deviceClass : null
+    deviceClass
   );
 
   // Stops users from moving from no-prov SC to prov SC. (Bug 2213183)
