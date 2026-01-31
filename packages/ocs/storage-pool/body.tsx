@@ -127,6 +127,9 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
 
   const [isReplicaOpen, setReplicaOpen] = React.useState(false);
 
+  // Filesystem pools always need prefix, other pools use the explicit usePrefix prop
+  const shouldUsePrefix = usePrefix || poolType === PoolType.FILESYSTEM;
+
   const poolNameMaxLength = 253;
   const { schema, fieldRequirements } = React.useMemo(() => {
     const translationFieldRequirements = [
@@ -153,7 +156,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           translationFieldRequirements[3],
           (value: string) =>
             !existingNames.includes(
-              usePrefix ? `${prefixName}-${value}` : value
+              shouldUsePrefix ? `${prefixName}-${value}` : value
             )
         ),
     });
@@ -162,7 +165,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       schema: validationSchema,
       fieldRequirements: translationFieldRequirements,
     };
-  }, [prefixName, usePrefix, existingNames, t]);
+  }, [prefixName, shouldUsePrefix, existingNames, t]);
 
   const resolver = useYupValidationResolver(schema);
   const {
@@ -179,13 +182,13 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   React.useEffect(() => {
     // Update pool name: set empty on validation error.
     const possiblyPrefixedPoolName =
-      usePrefix && poolName ? `${prefixName}-${poolName}` : poolName;
+      shouldUsePrefix && poolName ? `${prefixName}-${poolName}` : poolName;
     const payload = errors?.newPoolName ? '' : possiblyPrefixedPoolName;
     dispatch({
       type: StoragePoolActionType.SET_POOL_NAME,
       payload: payload,
     });
-  }, [poolName, dispatch, errors?.newPoolName, prefixName, usePrefix]);
+  }, [poolName, dispatch, errors?.newPoolName, prefixName, shouldUsePrefix]);
 
   // Failure Domain
   React.useEffect(() => {
@@ -331,7 +334,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           isDisabled: isUpdate,
         }}
         infoElement={
-          (usePrefix || poolType === PoolType.FILESYSTEM) && (
+          shouldUsePrefix && (
             <>
               <Icon status="info">
                 <InfoCircleIcon />
@@ -345,7 +348,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           )
         }
         inputPrefixElement={
-          (usePrefix || poolType === PoolType.FILESYSTEM) && (
+          shouldUsePrefix && (
             <>
               <TextInput
                 id="pool-prefix"
