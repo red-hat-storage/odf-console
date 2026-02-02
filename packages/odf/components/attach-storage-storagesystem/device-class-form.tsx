@@ -3,6 +3,7 @@ import {
   fieldRequirementsTranslations,
   formSettings,
 } from '@odf/shared/constants';
+import { DEFAULT_DEVICECLASS } from '@odf/shared/constants';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { DeviceSet } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -39,9 +40,9 @@ const DeviceClassForm: React.FC<DeviceClassFormProps> = ({
       .filter(
         (ds) =>
           ds.dataPVCTemplate?.spec?.storageClassName ===
-            state.lsoStorageClassName && ds.deviceClass
+          state.lsoStorageClassName
       )
-      .map((ds) => ds.deviceClass);
+      .map((ds) => ds.deviceClass || DEFAULT_DEVICECLASS);
   }, [deviceSets, state.lsoStorageClassName]);
 
   const deviceClassMaxLength = 253;
@@ -124,7 +125,6 @@ const DeviceClassForm: React.FC<DeviceClassFormProps> = ({
       fieldRequirements={fieldRequirements}
       popoverProps={{
         headerContent: t('Device class requirements'),
-        footerContent: t('Example: ssd'),
       }}
       formGroupProps={{
         label: t('Device class'),
