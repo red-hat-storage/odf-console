@@ -64,10 +64,33 @@ const validateBackingStorageStep = (
   backingStorage: WizardState['backingStorage'],
   sc: WizardState['storageClass']
 ) => {
-  const { type, enableNFS, externalStorage, deployment } = backingStorage;
+  const { type, externalStorage, deployment } = backingStorage;
 
-  const { useExternalPostgres, externalPostgres, isDbBackup, dbBackup } =
-    backingStorage;
+  switch (type) {
+    case BackingStorageType.EXISTING:
+      return !!sc.name && !!deployment;
+    case BackingStorageType.EXTERNAL:
+      return !!externalStorage;
+    case BackingStorageType.LOCAL_DEVICES:
+      return !!deployment;
+    default:
+      return false;
+  }
+};
+
+const validateAdvancedSettingsStep = (
+  advancedSettings: WizardState['advancedSettings'],
+  sc: WizardState['storageClass'],
+  deployment: DeploymentType,
+  type: BackingStorageType
+) => {
+  const {
+    enableNFS,
+    useExternalPostgres,
+    externalPostgres,
+    isDbBackup,
+    dbBackup,
+  } = advancedSettings;
 
   const {
     username,
@@ -102,7 +125,6 @@ const validateBackingStorageStep = (
       );
     case BackingStorageType.EXTERNAL:
       return (
-        !!externalStorage &&
         !enableNFS &&
         !hasPGEnabledButNoFields &&
         !hasClientCertsEnabledButNoKeys &&
@@ -119,7 +141,6 @@ const validateBackingStorageStep = (
       return false;
   }
 };
-
 const canJumpToNextStep = (
   name: string,
   state: WizardState,
@@ -135,6 +156,7 @@ const canJumpToNextStep = (
     securityAndNetwork,
     connectionDetails,
     nodes,
+    advancedSettings,
   } = state;
   const { type, externalStorage } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
@@ -176,7 +198,12 @@ const canJumpToNextStep = (
     case StepsName(t)[Steps.BackingStorage]:
       return validateBackingStorageStep(backingStorage, storageClass);
     case StepsName(t)[Steps.AdvancedSettings]:
-      return validateBackingStorageStep(backingStorage, storageClass);
+      return validateAdvancedSettingsStep(
+        advancedSettings,
+        storageClass,
+        backingStorage.deployment,
+        backingStorage.type
+      );
     case StepsName(t)[Steps.CreateStorageClass]:
       return (
         !!storageClass.name &&
@@ -235,13 +262,8 @@ const handleReviewAndCreateNext = async (
   existingNamespaces: K8sResourceCommon[]
 ) => {
   const { nodes, capacityAndNodes } = state;
-  const {
-    systemNamespace,
-    deployment,
-    type,
-    useExternalPostgres,
-    externalPostgres,
-  } = state.backingStorage;
+  const { systemNamespace, deployment, type } = state.backingStorage;
+  const { useExternalPostgres, externalPostgres } = state.advancedSettings;
   const { encryption, kms } = state.securityAndNetwork;
   const isMCG: boolean = deployment === DeploymentType.MCG;
   const nsAlreadyExists = !!existingNamespaces.find(
@@ -380,8 +402,8 @@ export const CreateStorageSystemFooter: React.FC<
   const [showErrorAlert, setShowErrorAlert] = React.useState(false);
 
   const stepName = activeStep.name as string;
-
-  const { deployment, isDbBackup } = state.backingStorage;
+  const { deployment } = state.backingStorage;
+  const { isDbBackup } = state.advancedSettings;
   const isMCG: boolean = deployment === DeploymentType.MCG;
 
   const jumpToNextStep = canJumpToNextStep(
@@ -412,7 +434,7 @@ export const CreateStorageSystemFooter: React.FC<
         // Auto-select the RBD VolumeSnapshotClass for internal mode when automatic backup is enabled.
         if (isDbBackup && !isMCG) {
           dispatch({
-            type: 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass',
+            type: 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
             payload: NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS,
           });
         }
