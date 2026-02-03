@@ -149,14 +149,14 @@ const advancedSettingsReducer = (
 ): AdvancedSettingsState => {
   switch (action.type) {
     // Backup actions
-    case 'backingStorage/setDbBackup':
+    case 'advancedSettings/setDbBackup':
       return { ...state, isDbBackup: action.payload };
-    case 'backingStorage/dbBackup/schedule':
+    case 'advancedSettings/dbBackup/schedule':
       return {
         ...state,
         dbBackup: { ...state.dbBackup, schedule: action.payload },
       };
-    case 'backingStorage/dbBackup/volumeSnapshot/maxSnapshots':
+    case 'advancedSettings/dbBackup/volumeSnapshot/maxSnapshots':
       return {
         ...state,
         dbBackup: {
@@ -167,7 +167,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass':
+    case 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass':
       return {
         ...state,
         dbBackup: {
@@ -179,9 +179,9 @@ const advancedSettingsReducer = (
         },
       };
     // Postgres actions
-    case 'backingStorage/useExternalPostgres':
+    case 'advancedSettings/useExternalPostgres':
       return { ...state, useExternalPostgres: action.payload };
-    case 'backingStorage/externalPostgres/setUsername':
+    case 'advancedSettings/externalPostgres/setUsername':
       return {
         ...state,
         externalPostgres: {
@@ -189,7 +189,7 @@ const advancedSettingsReducer = (
           username: action.payload,
         },
       };
-    case 'backingStorage/externalPostgres/setPassword':
+    case 'advancedSettings/externalPostgres/setPassword':
       return {
         ...state,
         externalPostgres: {
@@ -197,7 +197,7 @@ const advancedSettingsReducer = (
           password: action.payload,
         },
       };
-    case 'backingStorage/externalPostgres/setServerName':
+    case 'advancedSettings/externalPostgres/setServerName':
       return {
         ...state,
         externalPostgres: {
@@ -205,12 +205,12 @@ const advancedSettingsReducer = (
           serverName: action.payload,
         },
       };
-    case 'backingStorage/externalPostgres/setPort':
+    case 'advancedSettings/externalPostgres/setPort':
       return {
         ...state,
         externalPostgres: { ...state.externalPostgres, port: action.payload },
       };
-    case 'backingStorage/externalPostgres/setDatabaseName':
+    case 'advancedSettings/externalPostgres/setDatabaseName':
       return {
         ...state,
         externalPostgres: {
@@ -218,7 +218,7 @@ const advancedSettingsReducer = (
           databaseName: action.payload,
         },
       };
-    case 'backingStorage/externalPostgres/tls/enableTLS':
+    case 'advancedSettings/externalPostgres/tls/enableTLS':
       return {
         ...state,
         externalPostgres: {
@@ -229,7 +229,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'backingStorage/externalPostgres/tls/allowSelfSignedCerts':
+    case 'advancedSettings/externalPostgres/tls/allowSelfSignedCerts':
       return {
         ...state,
         externalPostgres: {
@@ -240,7 +240,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'backingStorage/externalPostgres/tls/enableClientSideCerts':
+    case 'advancedSettings/externalPostgres/tls/enableClientSideCerts':
       return {
         ...state,
         externalPostgres: {
@@ -251,7 +251,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'backingStorage/externalPostgres/tls/keys/setPrivateKey':
+    case 'advancedSettings/externalPostgres/tls/keys/setPrivateKey':
       return {
         ...state,
         externalPostgres: {
@@ -265,7 +265,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'backingStorage/externalPostgres/tls/keys/setPublicKey':
+    case 'advancedSettings/externalPostgres/tls/keys/setPublicKey':
       return {
         ...state,
         externalPostgres: {
@@ -446,7 +446,7 @@ const CreateCephCluster: React.FC = () => {
             isChecked={useExternalPostgres}
             onChange={(_event, checked: boolean) =>
               advancedDispatch({
-                type: 'backingStorage/useExternalPostgres',
+                type: 'advancedSettings/useExternalPostgres',
                 payload: checked,
               })
             }
