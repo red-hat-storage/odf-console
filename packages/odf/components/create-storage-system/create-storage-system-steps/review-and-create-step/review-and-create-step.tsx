@@ -51,6 +51,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     securityAndNetwork,
     createLocalVolumeSet,
     backingStorage,
+    advancedSettings,
     connectionDetails,
     createStorageClass,
     nodes,
@@ -58,13 +59,8 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const { capacity, arbiterLocation, enableTaint, enableArbiter } =
     capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
-  const {
-    deployment,
-    externalStorage,
-    type,
-    enableNFS,
-    isRBDStorageClassDefault,
-  } = backingStorage;
+  const { deployment, externalStorage, type } = backingStorage;
+  const { isDbBackup, enableNFS, isRBDStorageClassDefault } = advancedSettings;
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
@@ -96,8 +92,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const isCephRBDSetAsDefault = isRBDStorageClassDefault
     ? t('Enabled')
     : t('Disabled');
+  const isDbBackupEnabled = isDbBackup ? t('Enabled') : t('Disabled');
   const isVirtualizeStorageClassDefault =
-    backingStorage.isVirtualizeStorageClassDefault
+    advancedSettings.isVirtualizeStorageClassDefault
       ? t('Enabled')
       : t('Disabled');
 
@@ -119,6 +116,22 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             })}
           </ListItem>
         )}
+        {!isRhcs && (
+          <ListItem>
+            {t('Backing storage type: {{name}}', {
+              name: storageClass.name || createLocalVolumeSet.volumeSetName,
+            })}
+          </ListItem>
+        )}
+        {type === BackingStorageType.EXTERNAL && (
+          <ListItem>
+            {t('External storage platform: {{storagePlatform}}', {
+              storagePlatform,
+            })}
+          </ListItem>
+        )}
+      </ReviewItem>
+      <ReviewItem title={t('Advanced settings')}>
         {deployment === DeploymentType.FULL &&
           type !== BackingStorageType.EXTERNAL && (
             <ListItem>
@@ -147,17 +160,10 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             </ListItem>
           </>
         )}
-        {!isRhcs && (
+        {isDbBackup && (
           <ListItem>
-            {t('Backing storage type: {{name}}', {
-              name: storageClass.name || createLocalVolumeSet.volumeSetName,
-            })}
-          </ListItem>
-        )}
-        {type === BackingStorageType.EXTERNAL && (
-          <ListItem>
-            {t('External storage platform: {{storagePlatform}}', {
-              storagePlatform,
+            {t('Automatic backup: {{isDbBackupEnabled}}', {
+              isDbBackupEnabled,
             })}
           </ListItem>
         )}
