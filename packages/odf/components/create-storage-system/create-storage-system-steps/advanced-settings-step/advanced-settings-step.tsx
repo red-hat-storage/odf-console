@@ -1,14 +1,7 @@
 import * as React from 'react';
 import { DeploymentType } from '@odf/core/types';
-import {
-  ListKind,
-  StorageClassResourceKind,
-  TechPreviewBadge,
-  useK8sGet,
-} from '@odf/shared';
-import { StorageClassModel } from '@odf/shared/models';
+import { TechPreviewBadge } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { isDefaultClass } from '@odf/shared/utils';
 import { Form, FormGroup, Checkbox } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from '../backing-storage-step/enable-nfs';
@@ -34,14 +27,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     type: backingStorageType,
   } = state;
 
-  const [sc, scLoaded] =
-    useK8sGet<ListKind<StorageClassResourceKind>>(StorageClassModel);
-
   const isFullDeployment = deployment === DeploymentType.FULL;
-  // Return true while loading to prevent auto-check, then actual value once loaded
-  const doesDefaultSCAlreadyExists = scLoaded
-    ? sc?.items?.some((item) => isDefaultClass(item)) || false
-    : true;
 
   const isMCG = deployment === DeploymentType.MCG;
   return (
@@ -58,7 +44,6 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             <SetCephRBDStorageClassDefault
               dispatch={dispatch}
               isRBDStorageClassDefault={isRBDStorageClassDefault}
-              doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
             />
           </>
         )}
@@ -85,6 +70,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
               })
             }
             className="odf-backing-store__radio--margin-bottom"
+            isDisabled={isDbBackup}
           />
         )}
         {useExternalPostgres && !hasOCS && (
@@ -110,6 +96,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             dispatch={dispatch}
             isMCG={isMCG}
             dbBackup={dbBackup}
+            isExternalPostgresEnabled={useExternalPostgres}
           />
         )}
       </FormGroup>
