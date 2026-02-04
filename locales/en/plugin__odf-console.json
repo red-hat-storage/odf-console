@@ -349,6 +349,7 @@
   "Authentication Path": "Authentication Path",
   "authentication-method": "authentication-method",
   "Automatic backup": "Automatic backup",
+  "Automatic backup: {{isDbBackupEnabled}}": "Automatic backup: {{isDbBackupEnabled}}",
   "Automatic capacity scaling": "Automatic capacity scaling",
   "Automatic capacity scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance.": "Automatic capacity scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance.",
   "Automatic capacity scaling cannot be disabled while scaling is in progress": "Automatic capacity scaling cannot be disabled while scaling is in progress",
