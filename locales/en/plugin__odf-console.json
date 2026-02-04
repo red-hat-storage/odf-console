@@ -495,7 +495,6 @@
   "Clean up application resources on failed cluster {{ preferredCluster }}.": "Clean up application resources on failed cluster {{ preferredCluster }}.",
   "Clean up application resources on failed cluster {{cluster}}.": "Clean up application resources on failed cluster {{cluster}}.",
   "Clean up application resources on the primary cluster {{cluster}} to start relocating.": "Clean up application resources on the primary cluster {{cluster}} to start relocating.",
-  "Cleanup errors:": "Cleanup errors:",
   "Cleanup Pending": "Cleanup Pending",
   "Clear": "Clear",
   "Clear all filters": "Clear all filters",
