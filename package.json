@@ -68,6 +68,7 @@
     "@remix-run/router": "1.23.2",
     "brace-expansion@1.1.7": "1.1.12",
     "brace-expansion@2.0.1": "2.0.2",
+    "fast-xml-parser": "5.3.4",
     "follow-redirects": "^1.15.11",
     "js-yaml": "4.1.1",
     "lodash": "4.17.23",
