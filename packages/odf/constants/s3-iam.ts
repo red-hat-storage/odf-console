@@ -9,13 +9,6 @@ export const LIST_IAM_USER_ACCESS_KEYS = 'LIST_IAM_USER_ACCESS_KEYS_CACHE_KEY';
 
 // SWR mutation keys
 export const CREATE_IAM_USER_MUTATION_KEY = 'create-iam-user';
-export const UPDATE_ACCESS_KEY_CLEANUP_MUTATION_KEY =
-  'update-access-key-cleanup';
-export const DELETE_ACCESS_KEY_CLEANUP_MUTATION_KEY =
-  'delete-access-key-cleanup';
-export const DELETE_USER_POLICY_CLEANUP_MUTATION_KEY =
-  'delete-user-policy-cleanup';
-export const DELETE_IAM_USER_CLEANUP_MUTATION_KEY = 'delete-iam-user-cleanup';
 
 export const MAX_USERS = 50;
 export const MAX_ACCESS_KEYS = 2;
