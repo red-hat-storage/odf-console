@@ -107,7 +107,7 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
   }, [data, loadError, loaded, t]);
 
   const resolver = useYupValidationResolver(schema);
-  const { control, trigger } = useForm({
+  const { control, trigger, setValue } = useForm({
     ...formSettings,
     resolver,
   });
@@ -260,6 +260,11 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
             'data-test': 'attach-storage-storageclass-name',
             isRequired: true,
             onChange: async (_event, val) => {
+              // First set the value in the form state
+              setValue('attach-storage-storageclass-name', val, {
+                shouldValidate: true,
+              });
+              // Then trigger validation to get the result
               const isFieldValid = await trigger(
                 'attach-storage-storageclass-name'
               );
