@@ -472,30 +472,24 @@ export const assignPromisesForDiscovered = async (
     replication: { k8sSyncInterval, policy },
   } = state;
   const drpcName = `${protectionName}-drpc`;
-
   const clusterName = placements[0]?.deploymentClusters?.[0];
 
-  // Step 1 & 2: Label VM and PVCs
-  await Promise.all([
-    updateVMLabels(vmName, vmNamespace, protectionName, clusterName, t),
-    updatePVCLabels(
-      discoveredVMPVCs,
-      vmNamespace,
-      protectionName,
-      clusterName,
-      t
-    ),
-  ]);
+  const placementName = `${protectionName}-placement-1`;
 
   if (protectionType === VMProtectionType.STANDALONE) {
-    // Step 3: Create DRPC after labeling is successful
-    const placementName = `${protectionName}-placement-1`;
-    await Promise.all([
-      k8sCreate({
+    let placementCreated = false;
+    let drpcCreated = false;
+    let vmLabeled = false;
+    let pvcsLabeled = false;
+
+    try {
+      await k8sCreate({
         model: ACMPlacementModel,
         data: getPlacementKindObj(placementName),
-      }),
-      k8sCreate({
+      });
+      placementCreated = true;
+
+      await k8sCreate({
         model: DRPlacementControlModel,
         data: getDiscoveredDRPCKindObj({
           name: drpcName,
@@ -514,10 +508,61 @@ export const assignPromisesForDiscovered = async (
             [PROTECTED_VMS]: [vmName],
           },
         }),
-      }),
-    ]);
+      });
+      drpcCreated = true;
+
+      await updateVMLabels(vmName, vmNamespace, protectionName, clusterName, t);
+      vmLabeled = true;
+
+      await updatePVCLabels(
+        discoveredVMPVCs,
+        vmNamespace,
+        protectionName,
+        clusterName,
+        t
+      );
+      pvcsLabeled = true;
+    } catch (error) {
+      const cleanupPromises: Promise<unknown>[] = [];
+      if (drpcCreated) {
+        cleanupPromises.push(deleteDRPC(drpcName, DISCOVERED_APP_NS));
+      }
+      if (placementCreated) {
+        cleanupPromises.push(deleteDummyPlacement(placementName));
+      }
+      if (vmLabeled) {
+        cleanupPromises.push(
+          updateVMLabels(
+            vmName,
+            vmNamespace,
+            protectionName,
+            clusterName,
+            t,
+            true
+          )
+        );
+      }
+      if (pvcsLabeled) {
+        cleanupPromises.push(
+          updatePVCLabels(
+            discoveredVMPVCs,
+            vmNamespace,
+            protectionName,
+            clusterName,
+            t,
+            true
+          )
+        );
+      }
+      if (cleanupPromises.length > 0) {
+        await Promise.all(cleanupPromises);
+      }
+      throw error;
+    }
   } else {
-    // Step 3: Update DRPC after labeling is successful
+    let vmLabeled = false;
+    let pvcsLabeled = false;
+
     const patch = [
       {
         op: 'add',
@@ -535,6 +580,65 @@ export const assignPromisesForDiscovered = async (
       },
       data: patch,
     });
+
+    try {
+      await updateVMLabels(vmName, vmNamespace, protectionName, clusterName, t);
+      vmLabeled = true;
+
+      await updatePVCLabels(
+        discoveredVMPVCs,
+        vmNamespace,
+        protectionName,
+        clusterName,
+        t
+      );
+      pvcsLabeled = true;
+    } catch (error) {
+      const cleanupPromises: Promise<unknown>[] = [
+        k8sPatch({
+          model: DRPlacementControlModel,
+          resource: {
+            metadata: {
+              name: drpcName,
+              namespace: DISCOVERED_APP_NS,
+            },
+          },
+          data: [
+            {
+              op: 'replace',
+              path: `/spec/kubeObjectProtection/recipeParameters/${PROTECTED_VMS}`,
+              value: protectedVMNames,
+            },
+          ],
+        }),
+      ];
+      if (vmLabeled) {
+        cleanupPromises.push(
+          updateVMLabels(
+            vmName,
+            vmNamespace,
+            protectionName,
+            clusterName,
+            t,
+            true
+          )
+        );
+      }
+      if (pvcsLabeled) {
+        cleanupPromises.push(
+          updatePVCLabels(
+            discoveredVMPVCs,
+            vmNamespace,
+            protectionName,
+            clusterName,
+            t,
+            true
+          )
+        );
+      }
+      await Promise.all(cleanupPromises);
+      throw error;
+    }
   }
 };
 
