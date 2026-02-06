@@ -37,9 +37,9 @@ import {
   CheckCircleIcon,
 } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
-import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens';
-import { global_success_color_100 as successColor } from '@patternfly/react-tokens';
-import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens';
+import { t_global_color_status_warning_default as warningColor } from '@patternfly/react-tokens';
+import { t_global_color_status_success_default as successColor } from '@patternfly/react-tokens';
+import { t_global_color_status_danger_default as dangerColor } from '@patternfly/react-tokens';
 import { PoolType } from '../../../constants';
 import {
   POOL_NEAR_FULL_THRESHOLD,
@@ -106,7 +106,7 @@ const PoolRowRenderer: React.FC<RowProps<StoragePoolTableData, CustomData>> = ({
           <Flex
             alignItems={{ default: 'alignItemsCenter' }}
             spaceItems={{ default: 'spaceItemsSm' }}
-            className="pf-v5-u-cursor-pointer"
+            className="pf-v6-u-cursor-pointer"
           >
             <Icon style={{ color: iconColor }} />
             <span>
@@ -334,15 +334,15 @@ export const PoolUtilizationCard: React.FC = () => {
             <Flex
               alignItems={{ default: 'alignItemsCenter' }}
               spaceItems={{ default: 'spaceItemsSm' }}
-              className="pf-v5-u-mb-sm"
+              className="pf-v6-u-mb-sm"
             >
-              <SeverityImportantIcon className="pf-v5-u-warning-color-100 pf-v5-u-font-size-lg" />
-              <span className="pf-v5-u-font-size-2xl pf-v5-u-font-weight-bold pf-v5-u-warning-color-100">
+              <SeverityImportantIcon className="pf-v6-u-warning-color-100 pf-v6-u-font-size-lg" />
+              <span className="pf-v6-u-font-size-2xl pf-v6-u-font-weight-bold pf-v6-u-warning-color-100">
                 {poolsNeedingAttention.length}
               </span>
               <span>{t('needs attention')}</span>
             </Flex>
-            <p className="pf-v5-u-color-200 pf-v5-u-mb-md">
+            <p className="pf-v6-u-color-200 pf-v6-u-mb-md">
               {t(
                 'Pools with usage over {{threshold}}% may require immediate action to prevent issues.',
                 { threshold: POOL_FULL_THRESHOLD }
@@ -361,7 +361,7 @@ export const PoolUtilizationCard: React.FC = () => {
           </>
         )}
         {loading && (
-          <div className="pf-v5-u-text-align-center pf-v5-u-p-xl pf-v5-u-color-200">
+          <div className="pf-v6-u-text-align-center pf-v6-u-p-xl pf-v6-u-color-200">
             <Skeleton
               height="40%"
               screenreaderText={t('Loading pool utilization...')}
@@ -369,7 +369,7 @@ export const PoolUtilizationCard: React.FC = () => {
           </div>
         )}
         {!loading && !_.isEmpty(error) && (
-          <div className="pf-v5-u-text-align-center pf-v5-u-p-xl pf-v5-u-danger-color-100">
+          <div className="pf-v6-u-text-align-center pf-v6-u-p-xl pf-v6-u-danger-color-100">
             {t('Error loading pool utilization data')}
           </div>
         )}
@@ -378,14 +378,14 @@ export const PoolUtilizationCard: React.FC = () => {
             direction={{ default: 'column' }}
             alignItems={{ default: 'alignItemsCenter' }}
             justifyContent={{ default: 'justifyContentCenter' }}
-            className="pf-v5-u-p-2xl"
+            className="pf-v6-u-p-2xl"
             style={{ minHeight: '200px' }}
           >
             <CheckCircleIcon
-              className="pf-v5-u-mb-md"
+              className="pf-v6-u-mb-md"
               style={{ color: successColor.value, fontSize: '3rem' }}
             />
-            <p className="pf-v5-u-font-size-xl pf-v5-u-color-100 pf-v5-u-m-0">
+            <p className="pf-v6-u-font-size-xl pf-v6-u-color-100 pf-v6-u-m-0">
               {t('Utilization is good!')}
             </p>
           </Flex>

@@ -25,7 +25,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { Modal, ModalVariant } from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { PoolState, PoolProgress, PoolType } from '../../constants';
 import { StoragePoolStatus, StoragePoolBody } from '../../storage-pool/body';
 import {

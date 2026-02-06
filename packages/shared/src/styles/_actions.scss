@@ -1,5 +1,5 @@
 @use './vars' as vars;
-@use '@patternfly/patternfly/sass-utilities/all' as pf ;
+@use '@patternfly/patternfly/sass-utilities' as pf ;
 
 .odf-actions {
   align-items: flex-end;
@@ -23,7 +23,7 @@
 .odf-m-nav-title {
   margin-top: vars.$pf-v5-global-gutter--md;
   padding: 0 vars.$pf-v5-global-gutter 0;
-  @media (min-width: pf.$pf-v5-global--breakpoint--xl) {
+  @media (min-width: pf.$pf-v6-global--breakpoint--xl) {
     padding-left: vars.$pf-v5-global-gutter--md;
     padding-right: vars.$pf-v5-global-gutter--md;
   }

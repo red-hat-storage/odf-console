@@ -392,11 +392,10 @@ const SystemCapacityCard: React.FC = () => {
               onChange={(_event, searchValue: string) => onChange(searchValue)}
             />
             <Button
+              icon={<SearchIcon />}
               variant={ButtonVariant.control}
               aria-label={t('cluster name search button')}
-            >
-              <SearchIcon />
-            </Button>
+            ></Button>
           </FlexItem>
         </Flex>
       </CardHeader>

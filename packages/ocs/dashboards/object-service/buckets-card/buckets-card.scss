@@ -1,22 +1,20 @@
-@use '@patternfly/patternfly/sass-utilities/colors' as colors;
-
 .nb-buckets-card__buckets-failure-status {
   display: flex;
   flex-shrink: 0;
 }
 
 .nb-buckets-card__buckets-failure-status-count {
-  color: colors.$pf-v5-color-blue-300;
-  margin-left: var(--pf-v5-global--spacer--xs);
+  color: var(--pf-t--color--blue--30);
+  margin-left: var(--pf-t--global--spacer--xs);
 }
 
 .nb-buckets-card__buckets-failure-status-item {
-  margin-left: var(--pf-v5-global--spacer--sm);
+  margin-left: var(--pf-t--global--spacer--sm);
   .nb-buckets-card__buckets-failure-status-item--link {
     text-decoration: none;
   }
 }
 
 .nb-buckets-card__buckets-status-title {
-  margin-right: var(--pf-v5-global--spacer--sm);
+  margin-right: var(--pf-t--global--spacer--sm);
 }

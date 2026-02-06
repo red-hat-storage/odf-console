@@ -169,6 +169,9 @@ type EditButtonProps = {
 const EditButton: React.FC<EditButtonProps> = (props) => {
   return (
     <Button
+      icon={
+        <PencilAltIcon className="co-icon-space-l pf-v5-c-button-icon--plain" />
+      }
       type="button"
       variant="link"
       isInline
@@ -180,7 +183,6 @@ const EditButton: React.FC<EditButtonProps> = (props) => {
       }
     >
       {props.children}
-      <PencilAltIcon className="co-icon-space-l pf-v5-c-button-icon--plain" />
     </Button>
   );
 };
@@ -354,6 +356,9 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
         >
           {canUpdate && !!launchModal ? (
             <Button
+              icon={
+                <PencilAltIcon className="co-icon-space-l pf-v5-c-button-icon--plain" />
+              }
               data-test="edit-annotations"
               type="button"
               isInline
@@ -371,7 +376,6 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
               {t('{{count}} annotation', {
                 count: _.size(metadata.annotations),
               })}
-              <PencilAltIcon className="co-icon-space-l pf-v5-c-button-icon--plain" />
             </Button>
           ) : (
             t('{{count}} annotation', {

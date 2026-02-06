@@ -116,7 +116,7 @@ const UserOverviewContent: React.FC<UserOverviewContentProps> = ({
     () => (
       <>
         <Button
-          className="pf-v5-u-mr-md pf-v5-u-mb-xs"
+          className="pf-v6-u-mr-md pf-v6-u-mb-xs"
           variant={ButtonVariant.link}
           icon={<BlueSyncIcon />}
           onClick={triggerRefresh}
@@ -151,7 +151,7 @@ const UserOverviewContent: React.FC<UserOverviewContentProps> = ({
         breadcrumbs={breadcrumbs}
         title={userName}
         actions={() => renderActions}
-        className="pf-v5-u-mt-md"
+        className="pf-v6-u-mt-md"
       />
       <Tabs id="iam-overview" tabs={navPages} customData={customData} />
     </>

@@ -4,11 +4,10 @@ import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
-  Modal,
-  ModalVariant,
   Button,
   ButtonVariant,
   Alert,
@@ -144,14 +143,14 @@ const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
               variant={ButtonVariant.primary}
               onClick={onCreate}
               isDisabled={!folderName || containsForwardSlash || !!error}
-              className="pf-v5-u-mr-xs"
+              className="pf-v6-u-mr-xs"
             >
               {t('Create')}
             </Button>
             <Button
               variant={ButtonVariant.secondary}
               onClick={closeModal}
-              className="pf-v5-u-ml-xs"
+              className="pf-v6-u-ml-xs"
             >
               {t('Cancel')}
             </Button>
@@ -161,7 +160,7 @@ const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
     >
       <Alert
         variant={AlertVariant.info}
-        className="pf-v5-u-mb-sm"
+        className="pf-v6-u-mb-sm"
         isInline
         title={t(
           'Folders help structure and group objects logically by using prefixes in object keys, without enforcing any physical hierarchy.'

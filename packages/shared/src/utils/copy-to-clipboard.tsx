@@ -61,6 +61,12 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
         >
           <CTC text={props.value} onCopy={() => setCopied(true)}>
             <Button
+              icon={
+                <>
+                  <CopyIcon />
+                  <span className="sr-only">{t('Copy to clipboard')}</span>
+                </>
+              }
               variant="plain"
               onMouseEnter={() => setCopied(false)}
               className={cn(
@@ -70,10 +76,7 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
               )}
               type="button"
               data-test="copy-to-clipboard-btn"
-            >
-              <CopyIcon />
-              <span className="sr-only">{t('Copy to clipboard')}</span>
-            </Button>
+            />
           </CTC>
         </Tooltip>
       </CopyToClipboardWrapper>

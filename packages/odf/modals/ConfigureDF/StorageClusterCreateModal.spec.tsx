@@ -119,15 +119,15 @@ describe('ConfigureDFSelections', () => {
     render(<ConfigureDFSelections closeModal={mockCloseModal} />);
 
     expect(
-      screen.getByText('Create Storage Cluster').closest('.pf-v5-c-card')
+      screen.getByText('Create Storage Cluster').closest('.pf-v6-c-card')
     ).toHaveAttribute('id', 'setup-storage-cluster');
     expect(
-      screen.getByText('Connect to an external system').closest('.pf-v5-c-card')
+      screen.getByText('Connect to an external system').closest('.pf-v6-c-card')
     ).toHaveAttribute('id', 'connect-external-system');
     expect(
       screen
         .getByText('Setup Multicloud Object Gateway')
-        .closest('.pf-v5-c-card')
+        .closest('.pf-v6-c-card')
     ).toHaveAttribute('id', 'setup-object-storage');
   });
 
@@ -136,13 +136,13 @@ describe('ConfigureDFSelections', () => {
 
     const storageClusterCard = screen
       .getByText('Create Storage Cluster')
-      .closest('.pf-v5-c-card');
+      .closest('.pf-v6-c-card');
     const externalSystemCard = screen
       .getByText('Connect to an external system')
-      .closest('.pf-v5-c-card');
+      .closest('.pf-v6-c-card');
     const mcgCard = screen
       .getByText('Setup Multicloud Object Gateway')
-      .closest('.pf-v5-c-card');
+      .closest('.pf-v6-c-card');
 
     expect(storageClusterCard).toHaveClass('pf-m-clickable');
     expect(externalSystemCard).toHaveClass('pf-m-clickable');

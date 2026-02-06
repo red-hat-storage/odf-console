@@ -452,7 +452,7 @@ const BreakdownCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="pf-v5-u-display-flex pf-v5-u-justify-content-space-between">
+        <div className="pf-v6-u-display-flex pf-v6-u-justify-content-space-between">
           <CardTitle>
             {t('Capacity breakdown')}
             <FieldLevelHelp>

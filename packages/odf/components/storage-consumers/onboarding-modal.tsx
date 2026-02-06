@@ -32,12 +32,11 @@ import {
   StatusIconAndText,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Base64 } from 'js-base64';
 import { TFunction, Trans } from 'react-i18next';
 import {
-  Modal,
   Button,
-  ModalVariant,
   FlexItem,
   Flex,
   Alert,
@@ -278,7 +277,7 @@ export const StorageQuotaBody: React.FC<StorageQuotaBodyProps> = ({
           isUnlimitedQuota(quota) ? unlimitedQuotaTypeText : customQuotaTypeText
         }`}
         labelInfo={capacityInfo}
-        className="pf-v5-u-font-size-md odf-onboarding-modal__quota-desc"
+        className="pf-v6-u-font-size-md odf-onboarding-modal__quota-desc"
       >
         <Radio
           label={unlimitedQuotaTypeText}
@@ -299,7 +298,7 @@ export const StorageQuotaBody: React.FC<StorageQuotaBodyProps> = ({
           description={t(
             'Limit the amount of storage that a client cluster can consume.'
           )}
-          className="pf-v5-u-mt-lg"
+          className="pf-v6-u-mt-lg"
           isChecked={!isUnlimitedQuota(quota)}
           isDisabled={initialQuota && isUnlimitedQuota(initialQuota)}
           onChange={() => {
@@ -308,8 +307,8 @@ export const StorageQuotaBody: React.FC<StorageQuotaBodyProps> = ({
         />
       </FormGroup>
       {!isUnlimitedQuota(quota) && (
-        <div className="pf-v5-u-ml-lg pf-v5-u-mt-md">
-          <span className="pf-v5-u-font-weight-bold">
+        <div className="pf-v6-u-ml-lg pf-v6-u-mt-md">
+          <span className="pf-v6-u-font-weight-bold">
             {t('Allocate quota')}
           </span>
           <RequestSizeInput
@@ -382,17 +381,17 @@ const TokenViewBody: React.FC<TokenViewBodyProps> = ({
     <Flex direction={{ default: 'column' }}>
       <FlexItem>
         <Level>
-          <LevelItem className="pf-v5-u-font-weight-bold">
+          <LevelItem className="pf-v6-u-font-weight-bold">
             {t('Onboarding token')}
             <FieldLevelHelp position="right">
               {onboardingTokenTooltip(t)}
             </FieldLevelHelp>
           </LevelItem>
           <LevelItem>
-            <span className="pf-v5-u-font-size-sm pf-v5-u-color-200">
+            <span className="pf-v6-u-font-size-sm pf-v6-u-color-200">
               {t('Generated on')}: {tokenGenerationTimestamp}
             </span>
-            <span className="pf-v5-u-ml-sm odf-onboarding-modal__timestamp-icon">
+            <span className="pf-v6-u-ml-sm odf-onboarding-modal__timestamp-icon">
               <GreenCheckCircleIcon />
             </span>
           </LevelItem>
@@ -407,7 +406,7 @@ const TokenViewBody: React.FC<TokenViewBodyProps> = ({
           resizeOrientation="vertical"
         />
       </FlexItem>
-      <FlexItem className="pf-v5-u-mb-lg">
+      <FlexItem className="pf-v6-u-mb-lg">
         <Trans t={t} ns="plugin__odf-console">
           On an OpenShift cluster, deploy the Data Foundation client operator
           using the generated token.
@@ -415,12 +414,12 @@ const TokenViewBody: React.FC<TokenViewBodyProps> = ({
       </FlexItem>
       <FlexItem>
         <Button
+          icon={<CopyIcon className="pf-v6-u-ml-md pf-v6-u-mr-sm" />}
           type="button"
           onClick={onCopyToClipboard}
           variant={ButtonVariant.primary}
           className="odf-onboarding-modal__clipboard"
         >
-          <CopyIcon className="pf-v5-u-ml-md pf-v5-u-mr-sm" />
           {t('Copy to clipboard')}
         </Button>
       </FlexItem>

@@ -3,7 +3,7 @@ import { getTotalCpu, getTotalMemory } from '@odf/core/components/utils';
 import { getAllZone } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
-import { TextContent, Text } from '@patternfly/react-core';
+import { Content } from '@patternfly/react-core';
 import { WizardNodeState } from '../reducer';
 
 export const SelectNodesTableFooter: React.FC<SelectNodesDetailsProps> =
@@ -15,8 +15,8 @@ export const SelectNodesTableFooter: React.FC<SelectNodesDetailsProps> =
     const zones = getAllZone(nodes);
 
     return (
-      <TextContent>
-        <Text data-test-id="nodes-selected">
+      <Content>
+        <Content component="p" data-test-id="nodes-selected">
           {t('{{nodeCount, number}} node', {
             nodeCount: nodes.length,
             count: nodes.length,
@@ -30,8 +30,8 @@ export const SelectNodesTableFooter: React.FC<SelectNodesDetailsProps> =
             count: zones.size,
           })}
           {')'}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
     );
   });
 SelectNodesTableFooter.displayName = 'SelectNodesTableFooter';

@@ -3,6 +3,7 @@ import { useCustomTranslation } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { IamCommands } from '@odf/shared/iam';
 import { CommonModalProps } from '@odf/shared/modals';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
   Button,
   ButtonVariant,
@@ -13,8 +14,6 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
-  Modal,
-  ModalVariant,
   TextInput,
   TextInputTypes,
   ValidatedOptions,
@@ -99,7 +98,7 @@ const EditDescriptionTagModal: React.FC<
       }
       actions={[
         <ButtonBar
-          className="pf-v5-u-w-100"
+          className="pf-v6-u-w-100"
           inProgress={inProgress}
           errorMessage={error ? error?.message || JSON.stringify(error) : ''}
         >
@@ -118,12 +117,11 @@ const EditDescriptionTagModal: React.FC<
             </FlexItem>
             <FlexItem>
               <Button
+                icon={t('Cancel')}
                 variant={ButtonVariant.plain}
                 onClick={closeModal}
                 isDisabled={inProgress}
-              >
-                {t('Cancel')}
-              </Button>
+              />
             </FlexItem>
           </Flex>
         </ButtonBar>,
@@ -135,7 +133,7 @@ const EditDescriptionTagModal: React.FC<
             type={TextInputTypes.text}
             placeholder={t('Input field')}
             value={descriptionTagValue}
-            className="pf-v5-u-w-50"
+            className="pf-v6-u-w-50"
             validated={validationVariant}
             onChange={(_event, value) => {
               setDescriptionTagValue(value);

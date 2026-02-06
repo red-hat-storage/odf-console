@@ -14,6 +14,7 @@ import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { CommonModalProps } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { useForm, FieldValues, Control } from 'react-hook-form';
 import * as Yup from 'yup';
 import {
@@ -22,8 +23,6 @@ import {
   Flex,
   FlexItem,
   Form,
-  Modal,
-  ModalVariant,
 } from '@patternfly/react-core';
 
 const FILESYSTEM_NAME_MAX_LENGTH = 63;

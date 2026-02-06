@@ -9,9 +9,7 @@ import { Link } from 'react-router-dom-v5-compat';
 import {
   EmptyState,
   EmptyStateVariant,
-  EmptyStateIcon,
   EmptyStateBody,
-  EmptyStateHeader,
   Spinner,
   Label,
 } from '@patternfly/react-core';
@@ -259,21 +257,21 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
             to={`${getBucketOverviewBaseRoute(bucketName, providerType)}?${PREFIX}=${prefix}`}
           >
             <span>
-              <FolderIcon className="pf-v5-u-mr-xs" />
+              <FolderIcon className="pf-v6-u-mr-xs" />
               {name}
             </span>
           </Link>
         ) : (
           <span>
-            <FileIcon className="pf-v5-u-mr-xs" />
+            <FileIcon className="pf-v6-u-mr-xs" />
             {name}
             {isLatest && (
-              <Label color="purple" className="pf-v5-u-ml-xs" isCompact>
+              <Label color="purple" className="pf-v6-u-ml-xs" isCompact>
                 {t('Latest')}
               </Label>
             )}
             {isDeleteMarker && (
-              <Label color="purple" className="pf-v5-u-ml-xs" isCompact>
+              <Label color="purple" className="pf-v6-u-ml-xs" isCompact>
                 {t('Delete marker')}
               </Label>
             )}
@@ -305,12 +303,12 @@ export const EmptyPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
   return (
-    <EmptyState variant={EmptyStateVariant.lg}>
-      <EmptyStateHeader
-        titleText={t('No objects found')}
-        icon={<EmptyStateIcon icon={CubesIcon} />}
-        headingLevel="h4"
-      />
+    <EmptyState
+      headingLevel="h4"
+      icon={CubesIcon}
+      titleText={t('No objects found')}
+      variant={EmptyStateVariant.lg}
+    >
       <EmptyStateBody>
         {t('You do not have any objects in this bucket')}
       </EmptyStateBody>

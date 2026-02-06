@@ -40,23 +40,23 @@ import { SelectNodesTableFooter } from './select-nodes-table-footer';
 import './select-nodes-table.scss';
 
 const tableColumnClasses = {
-  name: classNames('pf-v5-u-w-33-on-md', 'pf-v5-u-w-50-on-sm'),
+  name: classNames('pf-v6-u-w-33-on-md', 'pf-v6-u-w-50-on-sm'),
   role: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
-    'pf-v5-u-w-inherit-on-xl'
+    'pf-v6-u-w-inherit-on-xl'
   ),
   cpu: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
-    'pf-v5-u-w-inherit-on-xl'
+    'pf-v6-u-w-inherit-on-xl'
   ),
   memory: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
-    'pf-v5-u-w-inherit-on-xl'
+    'pf-v6-u-w-inherit-on-xl'
   ),
-  zone: classNames('pf-v5-u-w-inherit'),
+  zone: classNames('pf-v6-u-w-inherit'),
 };
 
 const NodeRow: React.FC<RowComponentType<NodeData>> = ({ row: node }) => {

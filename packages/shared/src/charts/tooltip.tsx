@@ -1,25 +1,25 @@
 // Mostly just a copy-paste from patternfly.
 import * as React from 'react';
-import { ChartLegendTooltipStyles } from '@patternfly/react-charts/dist/js/components/ChartTheme/ChartStyles';
+import { ChartLegendTooltipStyles } from '@patternfly/react-charts/dist/js/victory/components/ChartTheme/ChartStyles';
 import {
   getLegendTooltipSize,
   getLegendTooltipDataProps,
   getLegendTooltipVisibleData,
   getLegendTooltipVisibleText,
-} from '@patternfly/react-charts/dist/js/components/ChartUtils/chart-tooltip';
-import { defaults } from 'lodash-es';
-//@ts-ignore
-import { Helpers } from 'victory-core';
+} from '@patternfly/react-charts/dist/js/victory/components/ChartUtils/chart-tooltip';
 import {
   ChartLegend,
   ChartLabel,
   getTheme,
-  ChartLegendTooltipContentProps,
-  ChartLegendTooltipProps,
   ChartCursorTooltip,
   ChartTooltip,
+  ChartLegendTooltipContentProps,
+  ChartLegendTooltipProps,
   ChartLegendTooltipLabelProps,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
+import { defaults } from 'lodash-es';
+//@ts-ignore
+import { Helpers } from 'victory-core';
 import { DataPoint } from '../utils';
 
 export const ChartLegendTooltipContent: React.FunctionComponent<

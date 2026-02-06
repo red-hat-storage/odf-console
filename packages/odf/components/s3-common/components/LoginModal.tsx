@@ -4,9 +4,8 @@ import { CommonModalProps } from '@odf/shared/modals';
 import { SecretModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
-  Modal,
-  ModalVariant,
   Button,
   ButtonVariant,
   Alert,
@@ -94,14 +93,14 @@ const LoginModal: React.FC<CommonModalProps<LoginFormProps>> = ({
               variant={ButtonVariant.primary}
               onClick={storeCredentials}
               isDisabled={!secretRef.name || !secretRef.namespace || isLoading}
-              className="pf-v5-u-mr-xs"
+              className="pf-v6-u-mr-xs"
             >
               {t('Sign in')}
             </Button>
             <Button
               variant={ButtonVariant.link}
               onClick={closeModal}
-              className="pf-v5-u-ml-xs"
+              className="pf-v6-u-ml-xs"
             >
               {t('Cancel')}
             </Button>
@@ -120,10 +119,10 @@ const LoginModal: React.FC<CommonModalProps<LoginFormProps>> = ({
           variant={AlertVariant.danger}
           title={error}
           isInline
-          className="pf-v5-u-my-md"
+          className="pf-v6-u-my-md"
         />
       )}
-      <Label color="gold" className="pf-v5-u-my-lg">
+      <Label color="yellow" className="pf-v6-u-my-lg">
         {getProviderLabel(providerType)}
       </Label>
       <LoginBody

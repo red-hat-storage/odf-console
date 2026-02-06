@@ -209,19 +209,19 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
 
   return (
     <Level hasGutter>
-      <LevelItem className="pf-v5-u-w-50">
-        <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
+      <LevelItem className="pf-v6-u-w-50">
+        <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-row">
           <SearchObjects
             foldersPath={foldersPath}
             bucketName={bucketName}
             providerType={providerType}
             searchInput={searchInput}
             setSearchInput={setSearchInput}
-            className="pf-v5-u-mr-sm"
+            className="pf-v6-u-mr-sm"
           />
           <Button
             variant={ButtonVariant.secondary}
-            className="pf-v5-u-mr-sm"
+            className="pf-v6-u-mr-sm"
             isDisabled={anySelection || !loadedWOError}
             onClick={() =>
               launcher(LazyCreateFolderModal, {
@@ -247,7 +247,7 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
               allowVersioning
             )}
             actionsToggle={CustomActionsToggle}
-            className="pf-v5-u-ml-sm"
+            className="pf-v6-u-ml-sm"
           />
         </div>
       </LevelItem>
@@ -256,7 +256,6 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
           <Switch
             id="list-versions-switch"
             label={t('List all versions')}
-            labelOff={t('List all versions')}
             isChecked={listAllVersions}
             onChange={versioningOnChange}
           />
@@ -325,7 +324,7 @@ export const DeletionAlerts: React.FC<DeletionAlertsProps> = ({
             false
           )}
           isInline
-          className="pf-v5-u-mb-sm pf-v5-u-mt-lg"
+          className="pf-v6-u-mb-sm pf-v6-u-mt-lg"
           actionClose={
             <AlertActionCloseButton onClose={() => setErrorResponse([])} />
           }
@@ -363,7 +362,7 @@ export const DeletionAlerts: React.FC<DeletionAlertsProps> = ({
             false
           )}
           isInline
-          className="pf-v5-u-mb-lg pf-v5-u-mt-sm"
+          className="pf-v6-u-mb-lg pf-v6-u-mt-sm"
           actionClose={
             <AlertActionCloseButton onClose={() => setSuccessResponse([])} />
           }
@@ -455,8 +454,8 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
   }, [foldersPath, searchQuery, listAllVersions]);
 
   return (
-    <div className="pf-v5-u-m-lg">
-      <p className="pf-v5-u-mb-sm">
+    <div className="pf-v6-u-m-lg">
+      <p className="pf-v6-u-mb-sm">
         {t('Objects are the fundamental entities stored in buckets.')}
       </p>
       <DeletionAlerts
@@ -495,12 +494,12 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
               versions, or permanently delete objects.
             </Trans>
           }
-          className="pf-v5-u-mt-sm"
+          className="pf-v6-u-mt-sm"
         />
       )}
       <SelectableTable
         key={listAllVersions ? 'versioned-list' : 'unversioned-list'}
-        className="pf-v5-u-mt-lg"
+        className="pf-v6-u-mt-lg"
         columns={getColumns(t, listAllVersions)}
         rows={structuredObjects}
         RowComponent={TableRow}

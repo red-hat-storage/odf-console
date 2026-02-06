@@ -15,13 +15,8 @@ import {
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { k8sUpdate } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  ActionGroup,
-  Alert,
-  Button,
-  Modal,
-  ModalVariant,
-} from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import { ActionGroup, Alert, Button } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../../constants';
 import {
   BackingStoreKind,

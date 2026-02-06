@@ -3,10 +3,9 @@ import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction, Trans } from 'react-i18next';
 import {
-  Modal,
-  ModalVariant,
   Button,
   ButtonVariant,
   TextInput,
@@ -84,14 +83,14 @@ const DeleteBucketPolicyModal: React.FC<
               variant={ButtonVariant.danger}
               onClick={onDelete}
               isDisabled={deleteText !== DELETE || !!error}
-              className="pf-v5-u-mr-xs"
+              className="pf-v6-u-mr-xs"
             >
               {t('Confirm delete')}
             </Button>
             <Button
               variant={ButtonVariant.link}
               onClick={closeModal}
-              className="pf-v5-u-ml-xs"
+              className="pf-v6-u-ml-xs"
             >
               {t('Cancel')}
             </Button>
@@ -102,7 +101,7 @@ const DeleteBucketPolicyModal: React.FC<
       <FormGroup
         label={getTextInputLabel(t)}
         fieldId="delete-objects"
-        className="pf-v5-u-mt-lg pf-v5-u-mb-sm"
+        className="pf-v6-u-mt-lg pf-v6-u-mb-sm"
       >
         <TextInput
           value={deleteText}

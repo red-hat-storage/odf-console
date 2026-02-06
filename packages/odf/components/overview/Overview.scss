@@ -1,27 +1,27 @@
 @use '@odf/shared/style.scss' as shared;
 
 .odf-general-overview__grid {
-  padding-left: shared.$pf-v5-global-gutter;
-  padding-right: shared.$pf-v5-global-gutter;
+  padding-left: var(--pf-t--global--spacer--gutter--default);
+  padding-right: var(--pf-t--global--spacer--gutter--default);
 
-  @media screen and (min-width: shared.$pf-v5-global--breakpoint--2xl) {
+  @media screen and (min-width: shared.$pf-v6-global--breakpoint--2xl) {
     padding-left: shared.$pf-v5-global-gutter--md;
     padding-right: shared.$pf-v5-global-gutter--md;
   }
 
-  .pf-v5-c-card {
+  .pf-v6-c-card {
     border-radius: 15px;
     height: 100%;
-    @media screen and (min-width: shared.$pf-v5-global--breakpoint--2xl) {
+    @media screen and (min-width: shared.$pf-v6-global--breakpoint--2xl) {
       min-height: 30vh;
     }
   }
 
-  .pf-v5-c-card__title-text {
-    font-size: var(--pf-v5-global--FontSize--lg);
+  .pf-v6-c-card__title-text {
+    font-size: var(--pf-t--global--font--size--lg);
   }
 
-  .pf-v5-c-description-list {
-    --pf-v5-c-description-list__term--FontWeight: 500;
+  .pf-v6-c-description-list {
+    --pf-v6-c-description-list__term--FontWeight: 500;
   }
 }

@@ -29,15 +29,13 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
   Alert,
   AlertVariant,
   Button,
   ButtonVariant,
-  Modal,
-  ModalVariant,
-  Text,
-  TextContent,
+  Content,
 } from '@patternfly/react-core';
 import { SelectNodesTable } from '../../components/create-storage-system/select-nodes-table/select-nodes-table';
 import './configure-performance-modal.scss';
@@ -75,9 +73,13 @@ const ProfileRequirementsModalText: React.FC<
     osdAmount
   );
   return (
-    <TextContent>
-      <Text id="resource-requirements" className="pf-v5-u-font-size-md">
-        <span className="pf-v5-u-mr-sm">
+    <Content>
+      <Content
+        component="p"
+        id="resource-requirements"
+        className="pf-v6-u-font-size-md"
+      >
+        <span className="pf-v6-u-mr-sm">
           {t(
             'The aggregate resource requirements for {{selectedProfile}} mode is',
             {
@@ -85,18 +87,18 @@ const ProfileRequirementsModalText: React.FC<
             }
           )}
         </span>
-        <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md">
+        <span className="pf-v6-u-font-weight-bold pf-v6-u-font-size-md">
           {minCpu} {t('CPUs')}
         </span>{' '}
         {t('and')}{' '}
-        <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md pf-v5-u-mr-xs">
+        <span className="pf-v6-u-font-weight-bold pf-v6-u-font-size-md pf-v6-u-mr-xs">
           {minMem} {t('GiB RAM')}
         </span>
         {selectedProfile === ResourceProfile.Performance && (
           <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
         )}
-      </Text>
-    </TextContent>
+      </Content>
+    </Content>
   );
 };
 
@@ -209,12 +211,12 @@ const ConfigurePerformanceModal: React.FC<StorageClusterActionModalProps> = ({
             osdAmount={osdAmount}
             key={validation}
             validation={validation}
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
           />
         )}
         {errorMessage && (
           <Alert
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
             isInline
             variant={AlertVariant.danger}
             title={t('An error occurred')}

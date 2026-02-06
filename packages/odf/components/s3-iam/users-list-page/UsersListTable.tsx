@@ -71,13 +71,13 @@ const getHeaderColumns = (t: TFunction<string>, favorites: string[]) => {
     {
       columnName: columnNames[2],
       thProps: {
-        className: 'pf-v5-u-w-16-on-lg',
+        className: 'pf-v6-u-w-16-on-lg',
       },
     },
     {
       columnName: columnNames[3],
       thProps: {
-        className: 'pf-v5-u-w-16-on-lg',
+        className: 'pf-v6-u-w-16-on-lg',
       },
     },
     {
@@ -89,7 +89,7 @@ const getHeaderColumns = (t: TFunction<string>, favorites: string[]) => {
 const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <Bullseye className="pf-v5-u-mt-xl">{t('No IAM users found')}</Bullseye>
+    <Bullseye className="pf-v6-u-mt-xl">{t('No IAM users found')}</Bullseye>
   );
 };
 

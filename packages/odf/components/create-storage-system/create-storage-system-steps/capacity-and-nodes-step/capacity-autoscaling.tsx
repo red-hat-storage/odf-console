@@ -106,7 +106,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
   return (
     <div className={className}>
       {!isEditView && (
-        <div className="pf-v5-u-font-family-heading pf-v5-u-mb-sm">
+        <div className="pf-v6-u-font-family-heading pf-v6-u-mb-sm">
           {t('Automatic capacity scaling')}
         </div>
       )}
@@ -116,8 +116,8 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
             {t('Enable automatic capacity scaling for your cluster')}
             {isEditView && (
               <Label
-                color="cyan"
-                className="pf-v5-u-ml-sm pf-v5-u-font-size-sm"
+                color="teal"
+                className="pf-v6-u-ml-sm pf-v6-u-font-size-sm"
                 icon={<InfoCircleIcon />}
                 isCompact
               >
@@ -138,7 +138,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
               )}
               footerContent={
                 <>
-                  <span className="pf-v5-u-font-weight-bold pf-v5-u-mr-xs">
+                  <span className="pf-v6-u-font-weight-bold pf-v6-u-mr-xs">
                     {t('Note:')}
                   </span>
                   {t(
@@ -153,7 +153,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
               }
             >
               <Button
-                className="odf-capacity-autoscaling__popover-link pf-v5-u-font-size-sm"
+                className="odf-capacity-autoscaling__popover-link pf-v6-u-font-size-sm"
                 variant={ButtonVariant.link}
               >
                 {t('How does it work?')}
@@ -175,7 +175,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
             )}
             variant={AlertVariant.info}
           />
-          <div className="pf-v5-u-font-family-heading">
+          <div className="pf-v6-u-font-family-heading">
             {t('Cluster expansion limit')}
           </div>
           <div>

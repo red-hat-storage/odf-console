@@ -1,11 +1,4 @@
 import * as React from 'react';
-import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
-import { global_disabled_color_100 as disabledColor } from '@patternfly/react-tokens/dist/js/global_disabled_color_100';
-import { global_info_color_100 as blueDefaultColor } from '@patternfly/react-tokens/dist/js/global_info_color_100';
-import { global_palette_black_600 as GrayInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_black_600';
-import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
-import { global_palette_green_500 as okColor } from '@patternfly/react-tokens/dist/js/global_palette_green_500';
-import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import {
   CheckCircleIcon,
   InfoCircleIcon,
@@ -19,6 +12,15 @@ import {
   TimesIcon,
   TimesCircleIcon,
 } from '@patternfly/react-icons';
+import {
+  t_global_icon_color_status_danger_default as dangerColor,
+  t_global_icon_color_disabled as disabledColor,
+  t_global_icon_color_brand_default as blueDefaultColor,
+  t_global_icon_color_subtle as grayInfoColor,
+  t_global_icon_color_status_info_default as blueInfoColor,
+  t_global_icon_color_status_success_default as okColor,
+  t_global_icon_color_status_warning_default as warningColor,
+} from '@patternfly/react-tokens';
 
 export type ColoredIconProps = {
   className?: string;
@@ -86,7 +88,7 @@ export const GrayInfoCircleIcon: React.FC<ColoredIconProps> = ({
   title,
 }) => (
   <InfoCircleIcon
-    color={GrayInfoColor.value}
+    color={grayInfoColor.value}
     className={className}
     title={title}
   />

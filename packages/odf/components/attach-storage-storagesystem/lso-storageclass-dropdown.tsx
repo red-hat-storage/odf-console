@@ -78,7 +78,7 @@ export const LSOStorageClassDropdown = ({
 
   return (
     <FormGroup
-      className="pf-v5-u-pt-md pf-v5-u-pb-sm"
+      className="pf-v6-u-pt-md pf-v6-u-pb-sm"
       id="lso-sc-dropdown__FormGroup"
       fieldId="lso-dropdown"
       label={t('LSO StorageClass')}
@@ -111,7 +111,7 @@ export const LSOStorageClassDropdown = ({
         <Checkbox
           id="enable-encryption-device-set"
           label={t('Enable encryption on device set')}
-          className="pf-v5-u-pt-md"
+          className="pf-v6-u-pt-md"
           isChecked={state.enableEncryptionOnDeviceSet}
           onChange={onEncryptionChange}
         />

@@ -41,7 +41,7 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
   const [isUserSelection, setIsUserSelection] = React.useState(false);
   const selectedItem = items.find((item) => item.value === selected);
   const [inputValue, setInputValue] = React.useState<string>(
-    selectedItem ? selectedItem.children : ''
+    selectedItem ? selectedItem.children.toString : ''
   );
   const [filterValue, setFilterValue] = React.useState<string>('');
   const [focusedItemIndex, setFocusedItemIndex] = React.useState<number | null>(
@@ -268,12 +268,11 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
           {...(!inputValue ? { style: { display: 'none' } } : {})}
         >
           <Button
+            icon={<TimesIcon aria-hidden />}
             variant={ButtonVariant.plain}
             onClick={onClearButtonClick}
             aria-label={t('Clear selected value')}
-          >
-            <TimesIcon aria-hidden />
-          </Button>
+          />
         </TextInputGroupUtilities>
       </TextInputGroup>
     </MenuToggle>

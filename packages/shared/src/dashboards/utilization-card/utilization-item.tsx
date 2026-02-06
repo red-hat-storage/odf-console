@@ -12,9 +12,11 @@ import {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
-import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
-import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
-import { ChartThemeColor, ChartLegend } from '@patternfly/react-charts';
+import { ChartThemeColor, ChartLegend } from '@patternfly/react-charts/victory';
+import {
+  t_global_color_status_danger_100 as dangerColor,
+  t_global_color_status_warning_100 as warningColor,
+} from '@patternfly/react-tokens';
 import { useCustomTranslation } from '../../useCustomTranslationHook';
 
 enum AreaChartStatus {

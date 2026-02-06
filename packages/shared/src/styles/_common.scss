@@ -1,5 +1,5 @@
 @use './vars' as vars;
-@use '@patternfly/patternfly/sass-utilities/all' as pf ;
+@use '@patternfly/patternfly/sass-utilities' as pf ;
 
 /* Use on the parent div/Block Element of the item which requires centering */
 .centerComponent {
@@ -61,7 +61,7 @@
 }
 
 .odf-required::after {
- color: pf.$pf-v5-color-red-200;
+  color: var(--pf-t--color--red--50);
   content: '*';
   font-size: vars.$font-size-base;
   padding-left: 3px;
@@ -71,7 +71,7 @@
 .odf-m-pane__body {
   margin: vars.$pf-v5-global-gutter--md 0 0;
   padding: 0 vars.$pf-v5-global-gutter vars.$pf-v5-global-gutter--md;
-  @media (min-width: pf.$pf-v5-global--breakpoint--xl) {
+  @media (min-width: pf.$pf-v6-global--breakpoint--xl) {
     padding-left: vars.$pf-v5-global-gutter--md;
     padding-right: vars.$pf-v5-global-gutter--md;
   }
@@ -116,7 +116,7 @@
 .odf-m-pane__body {
   margin: vars.$pf-v5-global-gutter--md 0 0;
   padding: 0 vars.$pf-v5-global-gutter vars.$pf-v5-global-gutter--md;
-  @media (min-width: pf.$pf-v5-global--breakpoint--xl) {
+  @media (min-width: pf.$pf-v6-global--breakpoint--xl) {
     padding-left: vars.$pf-v5-global-gutter--md;
     padding-right: vars.$pf-v5-global-gutter--md;
   }
@@ -143,7 +143,7 @@
 .odf-create-operand__header {
   border-bottom: var(--pf-v5-global--BorderWidth--sm) solid var(--pf-v5-global--BorderColor--100);
   padding: 0 vars.$pf-v5-global-gutter var(--pf-v5-global--spacer--lg);
-  @media (min-width: pf.$pf-v5-global--breakpoint--xl) {
+  @media (min-width: pf.$pf-v6-global--breakpoint--xl) {
     padding-left: vars.$pf-v5-global-gutter--md;
     padding-right: vars.$pf-v5-global-gutter--md;
   }

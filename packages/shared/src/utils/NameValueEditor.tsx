@@ -116,14 +116,13 @@ const PairElement: React.FC<PairElementProps> = ({
   const dragButton = (
     <div>
       <Button
+        icon={<GripVerticalIcon className="pairs-list__action-icon--reorder" />}
         type="button"
         className="pairs-list__action-icon"
         isDisabled={disableReorder}
         variant="plain"
         aria-label={t('Drag to reorder')}
-      >
-        <GripVerticalIcon className="pairs-list__action-icon--reorder" />
-      </Button>
+      />
     </div>
   );
 
@@ -186,6 +185,7 @@ const PairElement: React.FC<PairElementProps> = ({
         <div className="col-xs-1 pairs-list__action">
           <Tooltip content={toolTip || t('Remove')}>
             <Button
+              icon={deleteIcon}
               type="button"
               data-test="delete-button"
               className={classNames({
@@ -194,9 +194,7 @@ const PairElement: React.FC<PairElementProps> = ({
               onClick={onRemove}
               isDisabled={isEmpty && !alwaysAllowRemove}
               variant="plain"
-            >
-              {deleteIcon}
-            </Button>
+            />
           </Tooltip>
         </div>
       )}

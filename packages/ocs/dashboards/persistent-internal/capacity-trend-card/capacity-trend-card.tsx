@@ -20,7 +20,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytesWithNegatives, parser } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
-import { Trans } from 'react-i18next';
 import {
   Card,
   CardBody,
@@ -29,9 +28,8 @@ import {
   Flex,
   FlexItem,
   PopoverPosition,
-  Text,
-  TextContent,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import {
   CAPACITY_TREND_QUERIES,
@@ -52,37 +50,41 @@ const calculateDaysUp = (timespan: number): number | null => {
 
 const understandingToolTip = (t: TFunction) => {
   return (
-    <Trans t={t}>
-      <TextContent>
-        <Text component={TextVariants.h2}>Understand terms</Text>
-        <Text component={TextVariants.h4}>Net storage consumption</Text>
+    <>
+      <Content component={ContentVariants.h2}>{t('Understand terms')}</Content>
+      <Content component={ContentVariants.h4}>
+        {t('Net storage consumption')}
+      </Content>
 
-        <Text component={TextVariants.p}>
-          Indicates the daily net change in storage capacity.
-        </Text>
+      <Content component={ContentVariants.p}>
+        {t('Indicates the daily net change in storage capacity.')}
+      </Content>
 
-        <Text component={TextVariants.h4}>Average storage consumption </Text>
+      <Content component={ContentVariants.h4}>
+        {t('Average storage consumption')}
+      </Content>
 
-        <Text component={TextVariants.p}>
-          Refers to the amount of data used over a specified period. A positive
-          average indicates how quickly the cluster is filling up, while a
-          negative average indicates the rate at which the cluster is clearing
-          up.
-        </Text>
-        <Text component={TextVariants.h4}>Estimated days until full ** </Text>
+      <Content component={ContentVariants.p}>
+        {t(
+          'Refers to the amount of data used over a specified period. A positive average indicates how quickly the cluster is filling up, while a negative average indicates the rate at which the cluster is clearing up.'
+        )}
+      </Content>
+      <Content component={ContentVariants.h4}>
+        {t('Estimated days until full **')}
+      </Content>
 
-        <Text component={TextVariants.p}>
-          Indicates the number of days remaining before a storage system reaches
-          its maximum capacity based on current usage trends.
-        </Text>
+      <Content component={ContentVariants.p}>
+        {t(
+          'Indicates the number of days remaining before a storage system reaches its maximum capacity based on current usage trends.'
+        )}
+      </Content>
 
-        <Text component={TextVariants.small}>
-          Calculations for above metrics are based on the data gathered day to
-          day basis. **This is only a rough estimation These calculations are
-          based on the data gathered on day to day basis
-        </Text>
-      </TextContent>
-    </Trans>
+      <Content component={ContentVariants.small}>
+        {t(
+          'Calculations for above metrics are based on the data gathered day to day basis. **This is only a rough estimation These calculations are based on the data gathered on day to day basis'
+        )}
+      </Content>
+    </>
   );
 };
 
@@ -201,17 +203,17 @@ const CapacityTrendCard: React.FC = () => {
           <Flex direction={{ default: 'column' }}>
             <Flex>
               <FlexItem flex={{ default: 'flex_4' }}>
-                <TextContent>
-                  <Text component={TextVariants.h4}>
+                <Content>
+                  <Content component={ContentVariants.h4}>
                     {t('Storage consumption')}
-                  </Text>
-                  <Text component={TextVariants.small}>
+                  </Content>
+                  <Content component={ContentVariants.small}>
                     {t('Over the past {{daysUp}} ', {
                       daysUp: !!daysUp ? Math.ceil(daysUp) : null,
                     })}
                     {pluralize(Math.ceil(daysUp), t('day'), t('days'), false)}
-                  </Text>
-                </TextContent>
+                  </Content>
+                </Content>
                 <PrometheusUtilizationItem
                   title=""
                   description={t('Net storage consumption')}
@@ -239,15 +241,15 @@ const CapacityTrendCard: React.FC = () => {
             </Flex>
             <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
               <FlexItem flex={{ default: 'flex_1' }}>
-                <Text component={TextVariants.h4}>
+                <Content component={ContentVariants.h4}>
                   {t('Average storage consumption')}
-                </Text>
+                </Content>
                 {avgUtilMetricByte.string}
               </FlexItem>
               <FlexItem flex={{ default: 'flex_1' }}>
-                <Text component={TextVariants.h4}>
+                <Content component={ContentVariants.h4}>
                   {t('Estimated days until full')}
-                </Text>
+                </Content>
                 {daysLeft} {pluralize(daysLeft, t('day'), t('days'), false)}
               </FlexItem>
             </Flex>

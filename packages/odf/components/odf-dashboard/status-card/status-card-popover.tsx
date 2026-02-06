@@ -25,13 +25,13 @@ type StatusCardPopoverProps = {
 
 const healthStateToIcon = {
   [HealthState.OK]: (
-    <CheckCircleIcon color="var(--pf-v5-global--primary-color--100)" />
+    <CheckCircleIcon color="var(--pf-t--global--color--brand--default)" />
   ),
   [HealthState.WARNING]: (
-    <ExclamationTriangleIcon color="var(--pf-v5-global--warning-color--100)" />
+    <ExclamationTriangleIcon color="var(--pf-t--global--color--status--warning--default)" />
   ),
   [HealthState.ERROR]: (
-    <ExclamationCircleIcon color="var(--pf-v5-global--danger-color--100)" />
+    <ExclamationCircleIcon color="var(--pf-t--global--color--status--danger--default" />
   ),
 };
 

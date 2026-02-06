@@ -40,9 +40,8 @@ import {
   Popover,
   Button,
   ButtonVariant,
-  TextContent,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { sortable, ActionsColumn, IAction } from '@patternfly/react-table';
 import {
@@ -175,23 +174,25 @@ const RuleRow: React.FC<RowProps<LifecycleRule, CustomData>> = ({
           bodyContent={
             <>
               {expirationDays && (
-                <TextContent className="pf-v5-u-mb-sm">
-                  <Text component={TextVariants.h4}>{t('Objects')}</Text>
-                  <Text component={TextVariants.small}>
+                <Content className="pf-v6-u-mb-sm">
+                  <Content component={ContentVariants.h4}>
+                    {t('Objects')}
+                  </Content>
+                  <Content component={ContentVariants.small}>
                     {t(
                       'Delete (expire current versions) {{ days }} days after creation.',
                       { days: expirationDays }
                     )}
-                  </Text>
-                </TextContent>
+                  </Content>
+                </Content>
               )}
 
               {noncurrentVersionExpiration && (
-                <TextContent className="pf-v5-u-mb-sm">
-                  <Text component={TextVariants.h4}>
+                <Content className="pf-v6-u-mb-sm">
+                  <Content component={ContentVariants.h4}>
                     {t('Noncurrent versions of objects')}
-                  </Text>
-                  <Text component={TextVariants.small}>
+                  </Content>
+                  <Content component={ContentVariants.small}>
                     {t(
                       'Delete noncurrent versions {{ days }} days after they become noncurrent, retaining the latest {{ count }} versions.',
                       {
@@ -201,16 +202,16 @@ const RuleRow: React.FC<RowProps<LifecycleRule, CustomData>> = ({
                           0,
                       }
                     )}
-                  </Text>
-                </TextContent>
+                  </Content>
+                </Content>
               )}
 
               {abortIncompleteMultipartUpload && (
-                <TextContent className="pf-v5-u-mb-sm">
-                  <Text component={TextVariants.h4}>
+                <Content className="pf-v6-u-mb-sm">
+                  <Content component={ContentVariants.h4}>
                     {t('Incomplete multipart uploads')}
-                  </Text>
-                  <Text component={TextVariants.small}>
+                  </Content>
+                  <Content component={ContentVariants.small}>
                     {t(
                       'Abort incomplete multipart uploads after {{ days }} days.',
                       {
@@ -219,19 +220,19 @@ const RuleRow: React.FC<RowProps<LifecycleRule, CustomData>> = ({
                           0,
                       }
                     )}
-                  </Text>
-                </TextContent>
+                  </Content>
+                </Content>
               )}
 
               {expiredObjectDeleteMarker && (
-                <TextContent className="pf-v5-u-mb-sm">
-                  <Text component={TextVariants.h4}>
+                <Content className="pf-v6-u-mb-sm">
+                  <Content component={ContentVariants.h4}>
                     {t('Expired object delete markers')}
-                  </Text>
-                  <Text component={TextVariants.small}>
+                  </Content>
+                  <Content component={ContentVariants.small}>
                     {t('Remove delete markers with no noncurrent versions.')}
-                  </Text>
-                </TextContent>
+                  </Content>
+                </Content>
               )}
             </>
           }
@@ -246,7 +247,7 @@ const RuleRow: React.FC<RowProps<LifecycleRule, CustomData>> = ({
       <TableData
         id={tableColumnInfo[3]}
         activeColumnIDs={activeColumnIDs}
-        className="pf-v5-u-text-align-right"
+        className="pf-v6-u-text-align-right"
       >
         <ActionsColumn
           items={getRowActions(
@@ -346,7 +347,7 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
       <StatusBox
         loaded={loaded}
         loadError={!loaded ? '' : error}
-        skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
+        skeleton={<div className="loading-skeleton--table pf-v6-u-mt-lg" />}
       />
     );
   }

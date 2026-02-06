@@ -59,21 +59,21 @@ const getClustersStatuses = (
         <Status
           status={StorageClusterPhase.Error}
           title={String(error)}
-          className="pf-v5-u-mr-lg"
+          className="pf-v6-u-mr-lg"
         />
       )}
       {warning > 0 && (
         <StatusIconAndText
           icon={<YellowExclamationTriangleIcon />}
           title={String(warning)}
-          className="pf-v5-u-mr-lg"
+          className="pf-v6-u-mr-lg"
         />
       )}
       {healthy > 0 && (
         <Status status={StorageClusterPhase.Ready} title={String(healthy)} />
       )}
       {healthy + error + warning === 0 && (
-        <span className="pf-v5-u-disabled-color-100">
+        <span className="pf-v6-u-disabled-color-100">
           {t('No external systems connected')}
         </span>
       )}
@@ -106,21 +106,21 @@ const getScaleClustersStatuses = (
         <Status
           status={StorageClusterPhase.Error}
           title={String(error)}
-          className="pf-v5-u-mr-lg"
+          className="pf-v6-u-mr-lg"
         />
       )}
       {warning > 0 && (
         <StatusIconAndText
           icon={<YellowExclamationTriangleIcon />}
           title={String(warning)}
-          className="pf-v5-u-mr-lg"
+          className="pf-v6-u-mr-lg"
         />
       )}
       {healthy > 0 && (
         <Status status={StorageClusterPhase.Ready} title={String(healthy)} />
       )}
       {healthy + error + warning === 0 && (
-        <span className="pf-v5-u-disabled-color-100">
+        <span className="pf-v6-u-disabled-color-100">
           {t('No external systems connected')}
         </span>
       )}
@@ -155,10 +155,7 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
       : DASH;
 
   return (
-    <Card
-      className={classNames(className, 'odf-external-system-card')}
-      isFlat={true}
-    >
+    <Card className={classNames(className, 'odf-external-system-card')}>
       <CardHeader>
         <CardTitle>{t('External systems')}</CardTitle>
       </CardHeader>
@@ -198,7 +195,7 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
               variant={ButtonVariant.link}
               icon={<ArrowRightIcon />}
               iconPosition="end"
-              className="pf-v5-u-font-size-lg odf-cluster-card__storage-link"
+              className="pf-v6-u-font-size-lg odf-cluster-card__storage-link"
               onClick={() => navigate('/odf/external-systems')}
             >
               {t('View external systems')}

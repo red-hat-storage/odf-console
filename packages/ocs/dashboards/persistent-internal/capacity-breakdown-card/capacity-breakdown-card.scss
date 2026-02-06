@@ -1,4 +1,4 @@
-@use '@patternfly/patternfly/sass-utilities/all' as pf;
+@use '@patternfly/patternfly/sass-utilities' as pf;
 
 .ceph-capacity-breakdown-card__body {
   padding-top: 24px;
@@ -13,7 +13,7 @@
 
 .ceph-capacity-breakdown-card-header__dropdown {
   max-width: 30em;
-  @media screen and (min-width: pf.$pf-v5-global--breakpoint--lg) {
+  @media screen and (min-width: pf.$pf-v6-global--breakpoint--lg) {
     min-width: 12em;
   }
 }
@@ -23,7 +23,7 @@
     display: flex;
     align-items: center;
     justify-content: end;
-    padding: var(--pf-v5-global--spacer--md) var(--pf-v5-global--spacer--lg) 0;
+    padding: var(--pf-t--global--spacer--md) var(--pf-t--global--spacer--lg) 0;
   }
   &__dropdown {
     width: -webkit-fill-available;
@@ -34,15 +34,15 @@
     max-width: 30em;
     overflow: auto;
 
-    @media screen and (min-width: pf.$pf-v5-global--breakpoint--lg) {
+    @media screen and (min-width: pf.$pf-v6-global--breakpoint--lg) {
       min-width: 12em;
     }
   }
   &__title {
-    padding-right: var(--pf-v5-global--spacer--lg);
+    padding-right: var(--pf-t--global--spacer--lg);
   }
 }
 
 .odf-capacity-breakdown-card-pvc-description {
-  font-size: var(--pf-v5-global--FontSize--xs);
+  font-size: var(--pf-t--global--font--size--xs);
 }

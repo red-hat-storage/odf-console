@@ -256,7 +256,7 @@ const RuleRow: React.FC<RowProps<CORSRule, CustomData>> = ({
       <TableData
         id={tableColumnInfo[6]}
         activeColumnIDs={activeColumnIDs}
-        className="pf-v5-u-text-align-right"
+        className="pf-v6-u-text-align-right"
       >
         <ActionsColumn
           items={getRowActions(
@@ -311,7 +311,7 @@ export const CORSRulesList: React.FC<CORSRulesListProps> = ({
       <StatusBox
         loaded={loaded}
         loadError={!loaded ? '' : error}
-        skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
+        skeleton={<div className="loading-skeleton--table pf-v6-u-mt-lg" />}
       />
     );
   }

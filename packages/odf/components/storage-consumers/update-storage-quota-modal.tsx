@@ -29,11 +29,10 @@ import {
   k8sPatch,
   StatusIconAndText,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
-  Modal,
   Button,
-  ModalVariant,
   FlexItem,
   Flex,
   Alert,
@@ -185,7 +184,7 @@ const AvailableCapacity: React.FC = () => {
       <StatusIconAndText
         title={title}
         icon={icon}
-        className="text-muted pf-v5-u-font-size-sm odf-onboarding-modal__info-icon"
+        className="text-muted pf-v6-u-font-size-sm odf-onboarding-modal__info-icon"
       />
     </NamespaceSafetyBox>
   );

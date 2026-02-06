@@ -3,7 +3,7 @@
     width: 22rem;
   }
   &--spacer {
-    margin-right: var(--pf-v5-global--spacer--md);
+    margin-right: var(--pf-t--global--spacer--md);
   }
 }
 
@@ -12,18 +12,18 @@
 }
 
 .odf-backing-store__radio--margin-bottom {
-  margin-bottom: var(--pf-v5-global--spacer--md);
+  margin-bottom: var(--pf-t--global--spacer--md);
 }
 
 .odf-backing-store__dropdown--margin-top {
-  margin-top: var(--pf-v5-global--spacer--sm);
+  margin-top: var(--pf-t--global--spacer--sm);
 }
 
 .odf-backing-store__ssl {
-  padding-left: var(--pf-v5-global--spacer--xl); 
-  padding-bottom: var(--pf-v5-global--spacer--xl);  ;
+  padding-left: var(--pf-t--global--spacer--xl); 
+  padding-bottom: var(--pf-t--global--spacer--xl);  ;
 }
 
 .odf-backing-store__tls--margin-top {
-  margin-top: var(--pf-v5-global--spacer--md);
+  margin-top: var(--pf-t--global--spacer--md);
 }

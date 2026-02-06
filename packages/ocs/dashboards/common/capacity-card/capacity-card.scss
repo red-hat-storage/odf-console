@@ -4,11 +4,11 @@
   &__container {
     display: flex;
     width: 100%;
-    margin-top: var(--pf-v5-global--spacer--md);
+    margin-top: var(--pf-t--global--spacer--md);
   }
   &__legend {
     flex-grow: 1;
-    padding-top: var(--pf-v5-global--spacer--md);
+    padding-top: var(--pf-t--global--spacer--md);
   }
   &__chart {
     flex-grow: 0.12;
@@ -18,8 +18,8 @@
     margin-right: 1rem;
   }
   &--error {
-    margin-top: var(--pf-v5-global--spacer--xs);
-    margin-bottom: var(--pf-v5-global--spacer--xs);
+    margin-top: var(--pf-t--global--spacer--xs);
+    margin-bottom: var(--pf-t--global--spacer--xs);
     width: 100%;
     text-align: center;
   }

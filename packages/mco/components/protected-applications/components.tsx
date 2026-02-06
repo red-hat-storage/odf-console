@@ -17,6 +17,7 @@ import {
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
@@ -28,10 +29,8 @@ import {
   ButtonVariant,
   Grid,
   GridItem,
-  Modal,
-  ModalVariant,
   PopoverPosition,
-  Text,
+  Content,
   Tooltip,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
@@ -354,62 +353,90 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
 
   return (
     <>
-      <Grid hasGutter>
-        <GridItem span={3} className="pf-v5-u-text-align-center">
-          <Text component="h6" className="pf-v5-u-font-weight-bold">
-            {t('Application type')}
-          </Text>
-        </GridItem>
-        <GridItem span={6} className="pf-v5-u-text-align-center">
-          <Text component="h6" className="pf-v5-u-font-weight-bold">
-            {isDiscovered
-              ? t('Protected namespaces')
-              : t('Destination namespace')}
-          </Text>
-        </GridItem>
-        <GridItem span={3} className="pf-v5-u-text-align-center">
-          <Text component="h6" className="pf-v5-u-font-weight-bold">
-            {t('Volume Consistency groups')}
-          </Text>
-        </GridItem>
+      {isDiscovered ? (
+        <Grid hasGutter>
+          <GridItem span={3} className="pf-v5-u-text-align-center">
+            <Content component="h6" className="pf-v5-u-font-weight-bold">
+              {t('Application type')}
+            </Content>
+          </GridItem>
+          <GridItem span={6} className="pf-v5-u-text-align-center">
+            <Content component="h6" className="pf-v5-u-font-weight-bold">
+              {t('Protected namespaces')}
+            </Content>
+          </GridItem>
+          <GridItem span={3} className="pf-v5-u-text-align-center">
+            <Content component="h6" className="pf-v5-u-font-weight-bold">
+              {t('Volume Consistency groups')}
+            </Content>
+          </GridItem>
 
-        <GridItem span={3} className="pf-v5-u-text-align-center">
-          <Text>{applicationType}</Text>
-        </GridItem>
-        <GridItem
-          span={6}
-          className="pf-v5-u-text-align-center pf-v5-u-mx-auto"
-        >
-          {namespaces.map((namespace: string) => (
-            <div key={namespace} className="pf-v5-u-mb-sm">
-              <ResourceNameWIcon
-                resourceModel={NamespaceModel}
-                resourceName={namespace}
-              />
-            </div>
-          ))}
-        </GridItem>
-        <GridItem span={3} className="pf-v5-u-text-align-center">
-          {namespaces.map((namespace: string) => (
-            <div key={namespace} className="pf-v5-u-mb-sm">
-              {consistencyGroupsCount?.[namespace] ? (
-                <Button
-                  variant={ButtonVariant.link}
-                  aria-label={t(`View details for ${namespace}`, {
-                    namespace,
-                  })}
-                  onClick={() => openModal(namespace)}
-                  isInline
-                >
-                  {consistencyGroupsCount[namespace]}
-                </Button>
-              ) : (
-                <Text className="pf-v5-u-color-200">-</Text>
-              )}
-            </div>
-          ))}
-        </GridItem>
-      </Grid>
+          <GridItem span={3} className="pf-v5-u-text-align-center">
+            <Content component="p">{applicationType}</Content>
+          </GridItem>
+          <GridItem
+            span={6}
+            className="pf-v5-u-text-align-center pf-v5-u-mx-auto"
+          >
+            {enrolledNamespaces.map((namespace: string) => (
+              <div key={namespace} className="pf-v5-u-mb-sm">
+                <ResourceNameWIcon
+                  resourceModel={NamespaceModel}
+                  resourceName={namespace}
+                />
+              </div>
+            ))}
+          </GridItem>
+          <GridItem span={3} className="pf-v5-u-text-align-center ">
+            {enrolledNamespaces.map((namespace: string) => (
+              <div key={namespace} className="pf-v5-u-mb-sm">
+                {consistencyGroupsCount?.[namespace] ? (
+                  <Button
+                    variant={ButtonVariant.link}
+                    aria-label={t(`View details for ${namespace}`, {
+                      namespace,
+                    })}
+                    onClick={() => openModal(namespace)}
+                    isInline
+                  >
+                    {consistencyGroupsCount[namespace]}
+                  </Button>
+                ) : (
+                  <Content component="p" className="pf-v5-u-color-200">
+                    -
+                  </Content>
+                )}
+              </div>
+            ))}
+          </GridItem>
+        </Grid>
+      ) : (
+        <Grid hasGutter>
+          <GridItem span={6} className="pf-v5-u-text-align-center">
+            <Content component="h6" className="pf-v5-u-font-weight-bold">
+              {t('Application type')}
+            </Content>
+          </GridItem>
+          <GridItem span={6} className="pf-v5-u-text-align-center">
+            <Content component="h6" className="pf-v5-u-font-weight-bold">
+              {t('Destination namespace')}
+            </Content>
+          </GridItem>
+
+          <GridItem span={6} className="pf-v5-u-text-align-center">
+            <Content component="p">{applicationType}</Content>
+          </GridItem>
+          <GridItem
+            span={6}
+            className="pf-v5-u-text-align-center pf-v5-u-mx-auto"
+          >
+            <ResourceNameWIcon
+              resourceModel={NamespaceModel}
+              resourceName={destinationNamespace}
+            />
+          </GridItem>
+        </Grid>
+      )}
 
       {selectedNamespace && (
         <ConsistencyGroupsModal
