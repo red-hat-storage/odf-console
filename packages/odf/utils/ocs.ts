@@ -15,6 +15,7 @@ import {
   humanizeCpuCores,
   convertToBaseValue,
   getRack,
+  getRandomChars,
 } from '@odf/shared/utils';
 import {
   k8sPatch,
@@ -29,6 +30,8 @@ import {
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
   ZONE_LABELS,
 } from '../constants';
+
+export const noDeviceClassKey = 'no-dc-' + getRandomChars();
 
 const getPVStorageClass = (pv) => pv?.spec?.storageClassName;
 
@@ -222,11 +225,12 @@ export const getCurrentDeviceSetIndex = (
   deviceSets.findIndex((ds) => {
     const matchesSC =
       ds.dataPVCTemplate.spec.storageClassName === selectedSCName;
-    /*  No need to check "deviceClass" equality for the case where each deviceSet has its own
-    unique StorageClass (passing diviceClass as "null" as an argument in this case). */
-    const matchesDeviceClass = !!deviceClass
-      ? ds.deviceClass === deviceClass
-      : true;
+
+    /* if the deviceClass is noDeviceClassKey, we need match it with an index having empty string. */
+    const matchesDeviceClass =
+      deviceClass === noDeviceClassKey
+        ? !ds.deviceClass
+        : ds.deviceClass === deviceClass;
 
     return matchesSC && matchesDeviceClass;
   });
