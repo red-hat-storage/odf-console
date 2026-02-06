@@ -1,16 +1,16 @@
 .odf-create-s3-bucket-form__tags {
   // Display 'Tags' label description under the title.
-  .pf-v5-c-form__group-label {
+  .pf-v6-c-form__group-label {
     display: block;
   }
-  .pf-v5-c-form__group-label-info {
+  .pf-v6-c-form__group-label-info {
     margin-left: 0;
   }
 }
 
 .odf-create-s3-bucket-form__tags--empty {
   // Align NameValueEditor icon with 'no tags' text when only icon is shown.
-  .pf-v5-c-form__group-control {
+  .pf-v6-c-form__group-control {
     display: flex;
     align-items: center;
   }

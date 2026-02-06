@@ -15,7 +15,7 @@ jest.mock('@odf/core/hooks', () => ({
 
 const onResourceProfileChange = jest.fn();
 
-const errorIconSelector = '.pf-v5-c-menu-toggle__status-icon';
+const errorIconSelector = '.pf-v6-c-menu-toggle__status-icon';
 
 describe('Configure Performance', () => {
   beforeEach(() => {

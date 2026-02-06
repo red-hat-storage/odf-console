@@ -238,9 +238,11 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
                 'For standalone MCG clusters, there is no set limit.'
               )}
             >
-              <Button variant="plain" className="details-item__popover-button">
-                {t('No Limit')}
-              </Button>
+              <Button
+                icon={t('No Limit')}
+                variant="plain"
+                className="details-item__popover-button"
+              />
             </Popover>
           </span>
         )}

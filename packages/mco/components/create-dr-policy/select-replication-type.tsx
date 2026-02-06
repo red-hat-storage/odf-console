@@ -77,8 +77,8 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
     REPLICATION_DISPLAY_TEXT(t)
   ).map((key, value) => (
     <SelectOption
-      key={key}
-      id={key}
+      key={key[0]}
+      id={key[0]}
       data-test="replication-dropdown-item"
       value={value}
     >

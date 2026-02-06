@@ -25,7 +25,7 @@ import {
   GridItem,
   Pagination,
   PaginationVariant,
-  Text,
+  Content,
 } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {
@@ -90,7 +90,7 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
           getColumnHelper(ClusterListColumns.ManagedCluster, t).columnName
         }
       >
-        <Text>{getName(cluster)}</Text>
+        <Content component="p">{getName(cluster)}</Content>
       </Td>
       <Td
         dataLabel={
@@ -114,9 +114,9 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
           getColumnHelper(ClusterListColumns.DataFoundation, t).columnName
         }
       >
-        <Text className={cn({ 'text-muted': !odfVersion })}>
+        <Content component="p" className={cn({ 'text-muted': !odfVersion })}>
           {odfVersion || t('Not Installed')}
-        </Text>
+        </Content>
       </Td>
 
       <Td
@@ -124,9 +124,9 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
           getColumnHelper(ClusterListColumns.StorageClients, t).columnName
         }
       >
-        <Text className={cn({ 'text-muted': !clientName })}>
+        <Content component="p" className={cn({ 'text-muted': !clientName })}>
           {!!clientName ? clientName : t('Unavailable')}
-        </Text>
+        </Content>
       </Td>
     </>
   );

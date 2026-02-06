@@ -162,7 +162,7 @@ export const StatusCard: React.FC = () => {
       </CardHeader>
       <CardBody>
         <Gallery
-          className="odf-overview-status__health pf-v5-u-mb-sm"
+          className="odf-overview-status__health pf-v6-u-mb-sm"
           hasGutter
         >
           <GalleryItem>

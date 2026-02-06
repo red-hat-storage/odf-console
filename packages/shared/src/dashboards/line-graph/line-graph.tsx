@@ -1,12 +1,12 @@
 import * as React from 'react';
-import * as _ from 'lodash-es';
 import {
   Chart,
   ChartAxis,
   ChartGroup,
   ChartLine,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
+import * as _ from 'lodash-es';
 import { Title } from '@patternfly/react-core';
 import { HumanizeResult } from '../../types';
 import { useCustomTranslation } from '../../useCustomTranslationHook';

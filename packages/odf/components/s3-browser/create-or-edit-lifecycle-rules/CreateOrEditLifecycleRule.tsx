@@ -19,9 +19,8 @@ import { murmur3 } from 'murmurhash-js';
 import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {
-  TextVariants,
-  Text,
-  TextContent,
+  ContentVariants,
+  Content,
   Divider,
   Button,
   ButtonVariant,
@@ -164,17 +163,17 @@ const Header: React.FC<IsEditProp> = ({ isEdit }) => {
 
   return (
     <>
-      <TextContent>
-        <Text component={TextVariants.h1}>
+      <Content>
+        <Content component={ContentVariants.h1}>
           {isEdit ? t('Edit lifecycle rule') : t('Create lifecycle rule')}
-        </Text>
-        <Text component={TextVariants.small}>
+        </Content>
+        <Content component={ContentVariants.small}>
           {t(
             'To optimize the storage costs of your objects throughout their lifecycle, set up a lifecycle configuration. This configuration consists of a series of rules that determine the actions S3 takes on a specific group of objects.'
           )}
-        </Text>
-      </TextContent>
-      <Divider className="pf-v5-u-my-lg" />
+        </Content>
+      </Content>
+      <Divider className="pf-v6-u-my-lg" />
     </>
   );
 };
@@ -267,7 +266,7 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
   }
 
   return (
-    <div className="pf-v5-u-m-md">
+    <div className="pf-v6-u-m-md">
       <Header isEdit={isEdit} />
       <GeneralConfigAndFilters
         state={state}
@@ -280,21 +279,21 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
       <ButtonBar
         inProgress={inProgress}
         errorMessage={putError?.message || JSON.stringify(putError)}
-        className="pf-v5-u-mt-lg pf-v5-u-mb-md"
+        className="pf-v6-u-mt-lg pf-v6-u-mb-md"
       >
         <span>
           <Button
             variant={ButtonVariant.primary}
             onClick={onSave}
             isDisabled={inProgress}
-            className="pf-v5-u-mr-xs"
+            className="pf-v6-u-mr-xs"
           >
             {isEdit ? t('Save') : t('Create')}
           </Button>
           <Button
             variant={ButtonVariant.secondary}
             onClick={() => navigate(-1)}
-            className="pf-v5-u-ml-xs"
+            className="pf-v6-u-ml-xs"
           >
             {t('Cancel')}
           </Button>

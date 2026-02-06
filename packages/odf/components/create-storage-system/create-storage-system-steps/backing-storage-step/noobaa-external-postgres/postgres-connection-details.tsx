@@ -9,8 +9,8 @@ import {
   Form,
   GridItem,
   Grid,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Stack,
 } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../../reducer';
@@ -71,7 +71,9 @@ export const PostgresConnectionDetails: React.FC<
 
   return (
     <Form>
-      <Text component={TextVariants.h4}>{t('Connection details')}</Text>
+      <Content component={ContentVariants.h4}>
+        {t('Connection details')}
+      </Content>
       <Grid hasGutter>
         <GridItem span={6}>
           <FormGroup

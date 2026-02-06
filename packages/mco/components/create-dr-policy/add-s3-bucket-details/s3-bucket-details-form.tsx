@@ -193,12 +193,11 @@ export const ClusterS3BucketDetailsForm: React.FC<
                 </FlexItem>
                 <FlexItem>
                   <Button
+                    icon={show1 ? <EyeSlashIcon /> : <EyeIcon />}
                     variant="plain"
                     onClick={() => setShow1((s) => !s)}
                     aria-label={t('Toggle secret visibility')}
-                  >
-                    {show1 ? <EyeSlashIcon /> : <EyeIcon />}
-                  </Button>
+                  />
                 </FlexItem>
               </Flex>
             ) : (
@@ -262,13 +261,12 @@ export const ClusterS3BucketDetailsForm: React.FC<
                   onBlur={() => handleBlur(2)}
                 />
                 <Button
+                  icon={show2 ? <EyeSlashIcon /> : <EyeIcon />}
                   variant="plain"
                   onClick={() => setShow2((s) => !s)}
                   aria-label={t('Toggle secret visibility')}
                   isDisabled={useSameConnection}
-                >
-                  {show2 ? <EyeSlashIcon /> : <EyeIcon />}
-                </Button>
+                />
               </div>
             ) : (
               <TextInput

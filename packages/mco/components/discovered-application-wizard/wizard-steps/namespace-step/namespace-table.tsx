@@ -27,7 +27,7 @@ import {
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
-import { Bullseye, Grid, GridItem, Text } from '@patternfly/react-core';
+import { Bullseye, Grid, GridItem, Content } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {
   EnrollDiscoveredApplicationAction,
@@ -179,14 +179,14 @@ export const NamespaceSelectionTable: React.FC<
   return (
     <Grid>
       <GridItem span={10}>
-        <Text className="text-muted pf-v5-u-font-size-lg">
+        <Content component="p" className="text-muted pf-v5-u-font-size-lg">
           {!!clusterName
             ? t('{{count}} results found for {{clusterName}}', {
                 count: userNamespaces.length,
                 clusterName,
               })
             : t('0 results found')}
-        </Text>
+        </Content>
       </GridItem>
       <GridItem span={10}>
         <ListPageFilter
@@ -217,11 +217,11 @@ export const NamespaceSelectionTable: React.FC<
                 : NoClusterEmptyRowMessage
           }
         />
-        <Text>
+        <Content component="p">
           {t(
             'This list does not include namespaces where applications are enrolled separately under disaster recovery protection.'
           )}
-        </Text>
+        </Content>
       </GridItem>
     </Grid>
   );

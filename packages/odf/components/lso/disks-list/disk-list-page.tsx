@@ -234,7 +234,7 @@ export const NodesDisksListPage: React.FC<{ obj: NodeKind }> = ({ obj }) => {
             <Button
               isDisabled={lvdRequestInProgress}
               isLoading={lvdRequestInProgress}
-              className="pf-v5-u-mt-0"
+              className="pf-v6-u-mt-0"
               onClick={() => makeLocalVolumeDiscoverRequest(operatorNs)}
               variant="primary"
             >
