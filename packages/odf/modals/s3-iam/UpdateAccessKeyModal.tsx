@@ -16,8 +16,9 @@ import {
 export type UpdateAccessKeyModalProps = {
   name: string;
   AccessKeyId: string;
-  status: AccessKeyStatus;
+  updateStatusTo: AccessKeyStatus;
   iamClient: IamCommands;
+  refreshTokens: () => void;
 };
 
 const UpdateAccessKeyModal: React.FC<
@@ -25,7 +26,7 @@ const UpdateAccessKeyModal: React.FC<
 > = ({
   closeModal,
   isOpen,
-  extraProps: { name, AccessKeyId, status, iamClient },
+  extraProps: { name, AccessKeyId, updateStatusTo, iamClient, refreshTokens },
 }) => {
   const { t } = useCustomTranslation();
   const [inProgress, setInProgress] = React.useState<boolean>(false);
@@ -48,10 +49,11 @@ const UpdateAccessKeyModal: React.FC<
       await iamClient.updateAccessKey({
         UserName: name,
         AccessKeyId,
-        Status: status,
+        Status: updateStatusTo,
       });
       setInProgress(false);
       closeModal();
+      refreshTokens?.();
     } catch (err) {
       setInProgress(false);
       setError(err as Error);
@@ -60,7 +62,7 @@ const UpdateAccessKeyModal: React.FC<
 
   const { title, descriptionText, buttonType, buttonText } =
     React.useMemo(() => {
-      const isActivating = status === AccessKeyStatus.ACTIVE;
+      const isActivating = updateStatusTo === AccessKeyStatus.ACTIVE;
       return {
         title: t(
           isActivating ? 'Activate access key' : 'Deactivate access key'
@@ -73,7 +75,7 @@ const UpdateAccessKeyModal: React.FC<
         buttonType: isActivating ? ButtonVariant.primary : ButtonVariant.danger,
         buttonText: t(isActivating ? 'Activate' : 'Deactivate'),
       };
-    }, [status, t]);
+    }, [updateStatusTo, t]);
 
   return (
     <Modal

@@ -193,10 +193,10 @@ export const DATA_CONSUMPTION_QUERIES = {
     },
     [Breakdown.PROVIDERS]: {
       [Metrics.IOPS]: {
-        read: 'topk(5,NooBaa_providers_ops_read_num)',
-        write: 'topk(5,NooBaa_providers_ops_write_num)',
-        totalRead: 'sum(topk(5,NooBaa_providers_ops_read_num))',
-        totalWrite: 'sum(topk(5,NooBaa_providers_ops_write_num))',
+        read: 'topk(5,NooBaa_providers_ops_read_count)',
+        write: 'topk(5,NooBaa_providers_ops_write_count)',
+        totalRead: 'sum(topk(5,NooBaa_providers_ops_read_count))',
+        totalWrite: 'sum(topk(5,NooBaa_providers_ops_write_count))',
       },
       [Metrics.PHY_VS_LOG]: {
         physicalUsage: 'topk(5,NooBaa_providers_physical_size)',
@@ -206,7 +206,7 @@ export const DATA_CONSUMPTION_QUERIES = {
       },
       [Metrics.EGRESS]: {
         egress:
-          'topk(5,NooBaa_providers_bandwidth_read_size + NooBaa_providers_bandwidth_write_size)',
+          'topk(5,NooBaa_providers_bandwidth_read_size_total + NooBaa_providers_bandwidth_write_size_total)',
       },
     },
   },

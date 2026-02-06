@@ -1,4 +1,5 @@
 import { ListUsersCommandOutput } from '@aws-sdk/client-iam';
+import { IamCommands } from '@odf/shared/iam';
 import { TFunction } from 'react-i18next';
 import { ValidatedOptions } from '@patternfly/react-core';
 import {
@@ -85,4 +86,35 @@ export const getValueValidations = (
       ),
     ];
   }
+};
+
+export const cleanupAllPolicies = async (
+  iamClient: IamCommands,
+  userName: string
+): Promise<void> => {
+  // List and delete all inline user policies
+  let isTruncated = true;
+  let marker: string | undefined;
+  do {
+    // eslint-disable-next-line no-await-in-loop
+    const inlinePoliciesResponse = await iamClient.listUserPolicies({
+      UserName: userName,
+      Marker: marker,
+    });
+
+    if (inlinePoliciesResponse.PolicyNames) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.allSettled(
+        inlinePoliciesResponse.PolicyNames.map((policyName) =>
+          iamClient.deleteUserPolicy({
+            UserName: userName,
+            PolicyName: policyName,
+          })
+        )
+      );
+    }
+
+    isTruncated = inlinePoliciesResponse.IsTruncated ?? false;
+    marker = inlinePoliciesResponse.Marker;
+  } while (isTruncated);
 };

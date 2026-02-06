@@ -29,7 +29,11 @@ import {
 } from '@patternfly/react-core';
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
-import { createScaleLocalClusterPayload, labelNodes } from '../common/payload';
+import {
+  configureMetricsNamespaceLabels,
+  createScaleLocalClusterPayload,
+  labelNodes,
+} from '../common/payload';
 import {
   createScaleCaCertSecretPayload,
   createScaleRemoteClusterPayload,
@@ -159,6 +163,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         await patchNodes();
         const localClusterPromise = createScaleLocalClusterPayload();
         await localClusterPromise();
+        await configureMetricsNamespaceLabels();
       }
       const secretPromise = createScaleCaCertSecretPayload(
         formData.name,
@@ -219,7 +224,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         formData.fileSystemName
       );
 
-      if (!!componentState.caCertificate) {
+      if (componentState.caCertificate) {
         await secretPromise();
       }
       await userDetailsSecretPromise();

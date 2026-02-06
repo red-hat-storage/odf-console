@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
-import { DRPlacementControlModel } from '@odf/shared';
+import { DRPlacementControlModel, getName, getNamespace } from '@odf/shared';
 import {
   ActionDropdown,
   ToggleVariant,
@@ -12,7 +12,11 @@ import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
 import { PopoverStatus } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useK8sWatchResources,
+  useModal,
+} from '@openshift-console/dynamic-plugin-sdk';
+import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import classNames from 'classnames';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
@@ -22,15 +26,23 @@ import {
   Bullseye,
   Button,
   ButtonVariant,
-  DescriptionListDescription,
-  DescriptionListGroup,
-  DescriptionListTerm,
-  DescriptionList as PFDescriptionList,
+  Grid,
+  GridItem,
+  Modal,
+  ModalVariant,
   PopoverPosition,
+  Text,
   Tooltip,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import { DR_BASE_ROUTE, ENROLLED_APP_QUERY_PARAMS_KEY } from '../../constants';
+import { getPrimaryCluster } from '../../utils';
+import {
+  buildMCVResource,
+  ConsistencyGroupInfo,
+  ConsistencyGroupsContent,
+  extractConsistencyGroups,
+} from '../modals/app-manage-policies/helper/consistency-groups';
 import {
   FAILED_OVER_APP_QUERY_PARAM,
   FAILED_OVER_CLUSTER_QUERY_PARAM,
@@ -54,25 +66,6 @@ type SelectExpandableProps = {
   ) => void;
   buttonId: ExpandableComponentType;
   className?: string;
-};
-
-type DescriptionListProps = { columnModifier?: '1Col' | '2Col' | '3Col' };
-
-const DescriptionList: React.FC<DescriptionListProps> = ({
-  columnModifier,
-  children,
-}) => {
-  return (
-    <PFDescriptionList
-      columnModifier={{
-        default: columnModifier || '1Col',
-      }}
-      className="mco-protected-applications__description"
-      isCompact
-    >
-      {children}
-    </PFDescriptionList>
-  );
 };
 
 const EnrollApplicationNoDataButton: React.FC = () => (
@@ -290,73 +283,183 @@ export type SyncStatus = { [appName: string]: SyncStatusInfo };
 export type ExpandableComponentProps = {
   view?: ProtectedApplicationViewKind;
   syncStatusInfo?: SyncStatusInfo;
+  mcvName?: string;
 };
 
 export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   view,
+  mcvName,
 }) => {
   const { t } = useCustomTranslation();
+
+  const applicationType = view?.status?.applicationInfo?.type;
+  const isDiscovered = applicationType === 'Discovered';
+  const clusterName = view ? getPrimaryCluster(view) : '';
+  const destinationNamespace =
+    !isDiscovered && view?.status?.applicationInfo?.destinationNamespace;
+  const enrolledNamespaces = view?.status?.drInfo?.protectedNamespaces || [];
+  const namespaces = isDiscovered
+    ? enrolledNamespaces
+    : destinationNamespace
+      ? [destinationNamespace]
+      : [];
+
+  const mcvResources: Record<string, WatchK8sResource> = {};
+  if (clusterName && mcvName) {
+    mcvResources[mcvName] = buildMCVResource(clusterName, mcvName);
+  }
+  const mcvs = useK8sWatchResources(mcvResources);
+  const {
+    loaded,
+    loadError,
+    data: consistencyGroups,
+  } = extractConsistencyGroups(mcvs);
+
+  const consistencyGroupsCount = consistencyGroups?.reduce((acc, group) => {
+    const namespace = group.namespace;
+    acc[namespace] = acc[namespace] ? acc[namespace] + 1 : 1;
+    return acc;
+  }, {});
+
+  const [selectedNamespace, setSelectedNamespace] = React.useState<
+    string | null
+  >(null);
+  const openModal = (namespace: string) => {
+    setSelectedNamespace(namespace);
+  };
+
+  const closeModal = () => {
+    setSelectedNamespace(null);
+  };
 
   if (!view) {
     return <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />;
   }
 
-  const applicationType = view.status?.applicationInfo?.type;
-  const isDiscovered = applicationType === 'Discovered';
-
-  const destinationNamespace =
-    !isDiscovered && view.status?.applicationInfo?.destinationNamespace;
-  const enrolledNamespaces = view.status?.drInfo?.protectedNamespaces || [];
-
-  const hasData =
-    applicationType &&
-    ((isDiscovered && enrolledNamespaces.length > 0) ||
-      (!isDiscovered && destinationNamespace));
+  const hasData = applicationType && namespaces.length > 0;
 
   if (!hasData) {
     return <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />;
   }
 
-  return (
-    <DescriptionList columnModifier="2Col">
-      {/* Application type */}
-      <DescriptionListGroup>
-        <DescriptionListTerm>{t('Application type')}</DescriptionListTerm>
-        <DescriptionListDescription>
-          {applicationType}
-        </DescriptionListDescription>
-      </DescriptionListGroup>
+  const applicationName = getName(view);
+  const applicationNamespace = getNamespace(view);
 
-      {/* Namespace(s) based on application type */}
-      {isDiscovered ? (
-        <DescriptionListGroup>
-          <DescriptionListTerm>{t('Protected namespaces')}</DescriptionListTerm>
-          <DescriptionListDescription>
-            {enrolledNamespaces.map((namespace: string) => (
-              <div key={namespace}>
-                <ResourceNameWIcon
-                  resourceModel={NamespaceModel}
-                  resourceName={namespace}
-                />
-              </div>
-            ))}
-          </DescriptionListDescription>
-        </DescriptionListGroup>
-      ) : (
-        <DescriptionListGroup>
-          <DescriptionListTerm>
-            {t('Destination namespace')}
-          </DescriptionListTerm>
-          <DescriptionListDescription>
-            <div className="pf-v5-u-display-flex pf-v5-u-align-items-center">
+  const description = (
+    <Trans t={t}>
+      <strong>Application:</strong> {applicationName} (Namespace:{' '}
+      {applicationNamespace})
+    </Trans>
+  );
+
+  return (
+    <>
+      <Grid hasGutter>
+        <GridItem span={3} className="pf-v5-u-text-align-center">
+          <Text component="h6" className="pf-v5-u-font-weight-bold">
+            {t('Application type')}
+          </Text>
+        </GridItem>
+        <GridItem span={6} className="pf-v5-u-text-align-center">
+          <Text component="h6" className="pf-v5-u-font-weight-bold">
+            {isDiscovered
+              ? t('Protected namespaces')
+              : t('Destination namespace')}
+          </Text>
+        </GridItem>
+        <GridItem span={3} className="pf-v5-u-text-align-center">
+          <Text component="h6" className="pf-v5-u-font-weight-bold">
+            {t('Volume Consistency groups')}
+          </Text>
+        </GridItem>
+
+        <GridItem span={3} className="pf-v5-u-text-align-center">
+          <Text>{applicationType}</Text>
+        </GridItem>
+        <GridItem
+          span={6}
+          className="pf-v5-u-text-align-center pf-v5-u-mx-auto"
+        >
+          {namespaces.map((namespace: string) => (
+            <div key={namespace} className="pf-v5-u-mb-sm">
               <ResourceNameWIcon
                 resourceModel={NamespaceModel}
-                resourceName={destinationNamespace}
+                resourceName={namespace}
               />
             </div>
-          </DescriptionListDescription>
-        </DescriptionListGroup>
+          ))}
+        </GridItem>
+        <GridItem span={3} className="pf-v5-u-text-align-center">
+          {namespaces.map((namespace: string) => (
+            <div key={namespace} className="pf-v5-u-mb-sm">
+              {consistencyGroupsCount?.[namespace] ? (
+                <Button
+                  variant={ButtonVariant.link}
+                  aria-label={t(`View details for ${namespace}`, {
+                    namespace,
+                  })}
+                  onClick={() => openModal(namespace)}
+                  isInline
+                >
+                  {consistencyGroupsCount[namespace]}
+                </Button>
+              ) : (
+                <Text className="pf-v5-u-color-200">-</Text>
+              )}
+            </div>
+          ))}
+        </GridItem>
+      </Grid>
+
+      {selectedNamespace && (
+        <ConsistencyGroupsModal
+          isOpen={!!selectedNamespace}
+          description={description}
+          onClose={closeModal}
+          consistencyGroups={consistencyGroups.filter(
+            (group) => group.namespace === selectedNamespace
+          )}
+          loaded={loaded}
+          loadError={loadError}
+        />
       )}
-    </DescriptionList>
+    </>
+  );
+};
+
+type ConsistencyGroupsModalProps = {
+  isOpen: boolean;
+  description: React.ReactNode;
+  onClose: () => void;
+  consistencyGroups: ConsistencyGroupInfo[];
+  loaded: boolean;
+  loadError: any;
+};
+
+const ConsistencyGroupsModal: React.FC<ConsistencyGroupsModalProps> = ({
+  isOpen,
+  description,
+  onClose,
+  consistencyGroups,
+  loaded,
+  loadError,
+}) => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <Modal
+      variant={ModalVariant.medium}
+      title={t('Volume consistency groups')}
+      description={description}
+      isOpen={isOpen}
+      onClose={onClose}
+      aria-label={t('Volume consistency groups modal')}
+    >
+      <ConsistencyGroupsContent
+        consistencyGroups={consistencyGroups}
+        loaded={loaded}
+        loadError={loadError}
+      />
+    </Modal>
   );
 };

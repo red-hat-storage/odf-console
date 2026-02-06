@@ -9,6 +9,7 @@ import { hasAnyInternalOCS, labelOCSNamespace } from '@odf/core/utils';
 import {
   inTransitEncryptionSettingsForRHCS,
   PageHeading,
+  TechPreviewBadge,
   useCustomTranslation,
   useK8sList,
 } from '@odf/shared';
@@ -31,6 +32,7 @@ import {
   ButtonVariant,
 } from '@patternfly/react-core';
 import { AutomaticBackup } from '../../create-storage-system-steps/advanced-settings-step/automatic-backup/automatic-backup';
+import { PostgresConnectionDetails } from '../../create-storage-system-steps/backing-storage-step/noobaa-external-postgres/postgres-connection-details';
 import { SetCephRBDStorageClassDefault } from '../../create-storage-system-steps/backing-storage-step/set-rbd-sc-default';
 import { createOCSNamespace } from '../../payloads';
 import { CreateStorageSystemAction } from '../../reducer';
@@ -83,15 +85,204 @@ const OCS_MULTIPLE_CLUSTER_NS = 'openshift-storage-extended';
 const NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS =
   getRBDVolumeSnapshotClassName(OCS_EXTERNAL_CR_NAME);
 
-// Initial state for automatic backup
-const initialDbBackupState = {
-  schedule: '0 0 * * *',
-  volumeSnapshot: {
-    maxSnapshots: 5,
-    volumeSnapshotClass: '',
+// Initial state for advanced settings (backup + postgres)
+type AdvancedSettingsState = {
+  isDbBackup: boolean;
+  dbBackup: {
+    schedule: string;
+    volumeSnapshot: {
+      maxSnapshots: number;
+      volumeSnapshotClass: string;
+    };
+  };
+  useExternalPostgres: boolean;
+  externalPostgres: {
+    username: string;
+    password: string;
+    serverName: string;
+    port: string;
+    databaseName: string;
+    tls: {
+      enabled: boolean;
+      allowSelfSignedCerts: boolean;
+      enableClientSideCerts: boolean;
+      keys: {
+        private: File;
+        public: File;
+      };
+    };
+  };
+};
+
+const initialAdvancedSettingsState: AdvancedSettingsState = {
+  isDbBackup: false,
+  dbBackup: {
+    schedule: '0 0 * * *',
+    volumeSnapshot: {
+      maxSnapshots: 5,
+      volumeSnapshotClass: '',
+    },
+  },
+  useExternalPostgres: false,
+  externalPostgres: {
+    username: '',
+    password: '',
+    serverName: '',
+    port: null,
+    databaseName: '',
+    tls: {
+      enabled: false,
+      allowSelfSignedCerts: false,
+      enableClientSideCerts: false,
+      keys: {
+        private: null,
+        public: null,
+      },
+    },
   },
 };
 
+// Reducer for advanced settings
+const advancedSettingsReducer = (
+  state: AdvancedSettingsState,
+  action: CreateStorageSystemAction
+): AdvancedSettingsState => {
+  switch (action.type) {
+    // Backup actions
+    case 'advancedSettings/setDbBackup':
+      return { ...state, isDbBackup: action.payload };
+    case 'advancedSettings/dbBackup/schedule':
+      return {
+        ...state,
+        dbBackup: { ...state.dbBackup, schedule: action.payload },
+      };
+    case 'advancedSettings/dbBackup/volumeSnapshot/maxSnapshots':
+      return {
+        ...state,
+        dbBackup: {
+          ...state.dbBackup,
+          volumeSnapshot: {
+            ...state.dbBackup.volumeSnapshot,
+            maxSnapshots: action.payload,
+          },
+        },
+      };
+    case 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass':
+      return {
+        ...state,
+        dbBackup: {
+          ...state.dbBackup,
+          volumeSnapshot: {
+            ...state.dbBackup.volumeSnapshot,
+            volumeSnapshotClass: action.payload,
+          },
+        },
+      };
+    // Postgres actions
+    case 'advancedSettings/useExternalPostgres':
+      return { ...state, useExternalPostgres: action.payload };
+    case 'advancedSettings/externalPostgres/setUsername':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          username: action.payload,
+        },
+      };
+    case 'advancedSettings/externalPostgres/setPassword':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          password: action.payload,
+        },
+      };
+    case 'advancedSettings/externalPostgres/setServerName':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          serverName: action.payload,
+        },
+      };
+    case 'advancedSettings/externalPostgres/setPort':
+      return {
+        ...state,
+        externalPostgres: { ...state.externalPostgres, port: action.payload },
+      };
+    case 'advancedSettings/externalPostgres/setDatabaseName':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          databaseName: action.payload,
+        },
+      };
+    case 'advancedSettings/externalPostgres/tls/enableTLS':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          tls: {
+            ...state.externalPostgres.tls,
+            enabled: action.payload,
+          },
+        },
+      };
+    case 'advancedSettings/externalPostgres/tls/allowSelfSignedCerts':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          tls: {
+            ...state.externalPostgres.tls,
+            allowSelfSignedCerts: action.payload,
+          },
+        },
+      };
+    case 'advancedSettings/externalPostgres/tls/enableClientSideCerts':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          tls: {
+            ...state.externalPostgres.tls,
+            enableClientSideCerts: action.payload,
+          },
+        },
+      };
+    case 'advancedSettings/externalPostgres/tls/keys/setPrivateKey':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          tls: {
+            ...state.externalPostgres.tls,
+            keys: {
+              ...state.externalPostgres.tls.keys,
+              private: action.payload,
+            },
+          },
+        },
+      };
+    case 'advancedSettings/externalPostgres/tls/keys/setPublicKey':
+      return {
+        ...state,
+        externalPostgres: {
+          ...state.externalPostgres,
+          tls: {
+            ...state.externalPostgres.tls,
+            keys: {
+              ...state.externalPostgres.tls.keys,
+              public: action.payload,
+            },
+          },
+        },
+      };
+    default:
+      return state;
+  }
+};
 const CreateCephCluster: React.FC = () => {
   const { t } = useCustomTranslation();
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
@@ -101,8 +292,16 @@ const CreateCephCluster: React.FC = () => {
     React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
-  const [isDbBackup, setIsDbBackup] = React.useState(false);
-  const [dbBackup, setDbBackup] = React.useState(initialDbBackupState);
+
+  // Single reducer for advanced settings (backup + postgres)
+  const [advancedSettings, advancedDispatch] = React.useReducer(
+    advancedSettingsReducer,
+    initialAdvancedSettingsState
+  );
+
+  const { isDbBackup, dbBackup, useExternalPostgres, externalPostgres } =
+    advancedSettings;
+
   const navigate = useNavigate();
   const redirectPath = '/odf/external-systems';
 
@@ -118,42 +317,6 @@ const CreateCephCluster: React.FC = () => {
   const setFormState: RHCSDispatch = React.useCallback((key, value) => {
     dispatch({ type: 'SET_FIELD', payload: { key, value } });
   }, []);
-
-  // Create a dispatch function for AutomaticBackup component
-  const backupDispatch = React.useCallback(
-    (action: CreateStorageSystemAction) => {
-      switch (action.type) {
-        case 'backingStorage/setDbBackup':
-          setIsDbBackup(action.payload);
-          break;
-        case 'backingStorage/dbBackup/schedule':
-          setDbBackup((prev) => ({ ...prev, schedule: action.payload }));
-          break;
-        case 'backingStorage/dbBackup/volumeSnapshot/maxSnapshots':
-          setDbBackup((prev) => ({
-            ...prev,
-            volumeSnapshot: {
-              ...prev.volumeSnapshot,
-              maxSnapshots: action.payload,
-            },
-          }));
-          break;
-        case 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass':
-          setDbBackup((prev) => ({
-            ...prev,
-            volumeSnapshot: {
-              ...prev.volumeSnapshot,
-              volumeSnapshotClass: action.payload,
-            },
-          }));
-          break;
-        default:
-          break;
-      }
-    },
-    []
-  );
-
   const onSubmit = async () => {
     setIsLoading(true);
 
@@ -266,14 +429,54 @@ const CreateCephCluster: React.FC = () => {
               setRBDStorageClassDefault((currState) => !currState)
             }
             isRBDStorageClassDefault={isRBDStorageClassDefault}
-            doesDefaultSCAlreadyExists={false}
           />
+          <Checkbox
+            id="use-external-postgress"
+            label={
+              <>
+                {t('Use external PostgreSQL')}
+                <span className="pf-v5-u-ml-sm">
+                  <TechPreviewBadge />
+                </span>
+              </>
+            }
+            description={t(
+              'Allow Noobaa to connect to an external postgres server'
+            )}
+            isChecked={useExternalPostgres}
+            onChange={(_event, checked: boolean) =>
+              advancedDispatch({
+                type: 'advancedSettings/useExternalPostgres',
+                payload: checked,
+              })
+            }
+            className="odf-backing-store__radio--margin-bottom"
+            isDisabled={isDbBackup}
+          />
+          {useExternalPostgres && (
+            <PostgresConnectionDetails
+              dispatch={advancedDispatch}
+              tlsFiles={[
+                externalPostgres.tls.keys.private,
+                externalPostgres.tls.keys.public,
+              ]}
+              tlsEnabled={externalPostgres.tls.enabled}
+              allowSelfSignedCerts={externalPostgres.tls.allowSelfSignedCerts}
+              username={externalPostgres.username}
+              password={externalPostgres.password}
+              serverName={externalPostgres.serverName}
+              databaseName={externalPostgres.databaseName}
+              port={externalPostgres.port}
+              enableClientSideCerts={externalPostgres.tls.enableClientSideCerts}
+            />
+          )}
           <div className="pf-v5-u-my-md">
             <AutomaticBackup
-              dispatch={backupDispatch}
+              dispatch={advancedDispatch}
               isDbBackup={isDbBackup}
               isMCG={false}
               dbBackup={dbBackup}
+              isExternalPostgresEnabled={useExternalPostgres}
             />
           </div>
         </div>
