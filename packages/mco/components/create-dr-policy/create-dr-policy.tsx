@@ -27,10 +27,9 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
-  Text,
-  TextContent,
+  Content,
   TextInput,
-  TextVariants,
+  ContentVariants,
 } from '@patternfly/react-core';
 import {
   ACM_OPERATOR_SPEC_NAME,
@@ -300,13 +299,13 @@ const CreateDRPolicy: React.FC<{}> = () => {
   return (
     <>
       <PageHeading title={t('Create DRPolicy')}>
-        <TextContent className="mco-create-data-policy__description">
-          <Text component={TextVariants.small}>
+        <Content className="mco-create-data-policy__description">
+          <Content component={ContentVariants.small}>
             {t(
               'Get a quick recovery in a remote or secondary cluster with a disaster recovery (DR) policy'
             )}
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       </PageHeading>
       {loaded && !loadedError ? (
         <Form className="mco-create-data-policy__body">

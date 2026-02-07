@@ -26,8 +26,8 @@ import {
   Form,
   FormGroup,
   FormSection,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   FormHelperText,
   HelperText,
   HelperTextItem,
@@ -194,11 +194,11 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
   return loaded && !loadError ? (
     <Form maxWidth="58rem">
       <FormSection title={t('Namespace selection')}>
-        <Text component={TextVariants.small}>
+        <Content component={ContentVariants.small}>
           {t(
             'Enable disaster recovery protection by selecting the namespaces of your ACM discovered application.'
           )}
-        </Text>
+        </Content>
         <FormGroup
           className="pf-v5-u-w-50"
           label={t('DR cluster')}

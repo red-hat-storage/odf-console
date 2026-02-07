@@ -129,7 +129,7 @@ const DeviceClassForm: React.FC<DeviceClassFormProps> = ({
       formGroupProps={{
         label: t('Device class'),
         fieldId: 'device-class',
-        className: 'pf-v5-u-py-sm',
+        className: 'pf-v6-u-py-sm',
         isRequired: true,
       }}
       textInputProps={{

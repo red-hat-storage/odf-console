@@ -10,7 +10,7 @@ import { getValidatedProp } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import {
   FormGroup,
-  Text,
+  Content,
   FormHelperText,
   HelperText,
   HelperTextItem,
@@ -91,11 +91,11 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
           fieldId="recipe-selection"
           isRequired
         >
-          <Text>
+          <Content component="p">
             {t(
               'Only recipes of the selected namespaces will appear in the list.'
             )}
-          </Text>
+          </Content>
           <SingleSelectDropdown
             className="pf-v5-u-w-50 pf-v5-u-mt-sm"
             id="recipe-selection-dropdown"

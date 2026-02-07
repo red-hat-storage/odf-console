@@ -6,13 +6,8 @@ import { SecretModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { k8sDelete } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import {
-  Modal,
-  Button,
-  ModalVariant,
-  FlexItem,
-  Flex,
-} from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import { Button, FlexItem, Flex } from '@patternfly/react-core';
 import { useODFNamespaceSelector } from '../../redux';
 
 type RotateKeysModalProps = ModalComponent<{

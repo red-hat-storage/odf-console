@@ -56,25 +56,25 @@ export const storageCapacityTooltip = (t: TFunction) => {
 export const resourceProfileTooltip = (t: TFunction) => {
   return (
     <Trans t={t} ns="plugin__odf-console">
-      <p className="co-break-word pf-v5-u-font-weight-bold font-size-md pf-v5-u-mb-md">
+      <p className="co-break-word pf-v6-u-font-weight-bold font-size-md pf-v6-u-mb-md">
         What are the different performance profiles I can use to configure
         performance?
       </p>
-      <p className="co-break-word pf-v5-u-font-weight-bold pf-v5-u-mb-md">
+      <p className="co-break-word pf-v6-u-font-weight-bold pf-v6-u-mb-md">
         Performance profiles types:
       </p>
-      <p className="co-break-word pf-v5-u-mb-md">
-        <span className="pf-v5-u-font-weight-bold">Balanced mode:</span>{' '}
+      <p className="co-break-word pf-v6-u-mb-md">
+        <span className="pf-v6-u-font-weight-bold">Balanced mode:</span>{' '}
         Optimized for right amount of CPU and memory resources to support
         diverse workloads.
       </p>
-      <p className="co-break-word pf-v5-u-mb-md">
-        <span className="pf-v5-u-font-weight-bold">Lean mode:</span> Minimizes
+      <p className="co-break-word pf-v6-u-mb-md">
+        <span className="pf-v6-u-font-weight-bold">Lean mode:</span> Minimizes
         resource consumption by allocating fewer CPUs and less memory for
         resource-efficient operations.
       </p>
       <p className="co-break-word">
-        <span className="pf-v5-u-font-weight-bold">Performance mode:</span>{' '}
+        <span className="pf-v6-u-font-weight-bold">Performance mode:</span>{' '}
         Tailored for high-performance, allocating ample CPUs and memory to
         ensure optimal execution of demanding workloads.
       </p>

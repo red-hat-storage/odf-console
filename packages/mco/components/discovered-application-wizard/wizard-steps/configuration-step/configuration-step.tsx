@@ -9,8 +9,8 @@ import {
   Grid,
   GridItem,
   Radio,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import {
   EnrollDiscoveredApplicationAction,
@@ -44,11 +44,11 @@ export const Configuration: React.FC<ConfigurationProps> = ({
   return (
     <Form maxWidth="58rem">
       <FormSection title={t('Configure definition')}>
-        <Text component={TextVariants.small}>
+        <Content component={ContentVariants.small}>
           {t(
             'Choose your configuration preference to protect resources (application volumes/PVCs, or Kubernetes objects).'
           )}
-        </Text>
+        </Content>
         <Alert
           className="odf-alert pf-v5-u-mb-xs pf-v5-u-pl-md"
           title={t(

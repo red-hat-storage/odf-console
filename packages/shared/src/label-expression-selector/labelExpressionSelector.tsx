@@ -300,12 +300,11 @@ const ArrayInput: React.FC<ArrayInputProps> = ({
               }}
               actions={
                 <Button
+                  icon={<DeleteIcon />}
                   data-test={`delete-expression-${index}`}
                   variant={ButtonVariant.plain}
                   onClick={() => onSelect(index)}
-                >
-                  <DeleteIcon />
-                </Button>
+                />
               }
             />
           }
@@ -379,16 +378,18 @@ export const LabelExpressionSelector: React.FC<
         />
       ))}
       <Button
+        icon={
+          <PlusCircleIcon
+            data-test="pairs-list__add-icon"
+            className="co-icon-space-r"
+          />
+        }
         data-test="add-button"
         className="pf-v5-u-mt-md"
         type="button"
         variant={ButtonVariant.link}
         onClick={addExpression}
       >
-        <PlusCircleIcon
-          data-test="pairs-list__add-icon"
-          className="co-icon-space-r"
-        />
         {addExpressionString || t('Add label expression')}
       </Button>
     </div>

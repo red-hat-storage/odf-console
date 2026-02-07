@@ -31,8 +31,8 @@ import {
   Alert,
   AlertVariant,
   Spinner,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
 import {
@@ -208,7 +208,7 @@ const ClusterValidationMessage: React.FC<ClusterValidationMessageProps> = ({
 
   return (
     <div className="pf-v5-u-mt-md">
-      <Text component={TextVariants.h5}>{title}</Text>
+      <Content component={ContentVariants.h5}>{title}</Content>
       {isClusterWithoutODF ? (
         <Alert
           data-test="odf-not-found-alert"

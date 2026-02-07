@@ -3,7 +3,7 @@ import { useODFNamespaceSelector } from '@odf/core/redux';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Modal, ModalVariant } from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import NamespaceStoreForm from './namespace-store-form';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
