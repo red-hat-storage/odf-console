@@ -121,4 +121,97 @@ describe('Configure Performance', () => {
     expect(screen.getByText(/42 CPUs/i)).toBeInTheDocument();
     expect(screen.getByText(/102 GiB/i)).toBeInTheDocument();
   });
+
+  it('shows correct resource requirements for s390x Lean profile', () => {
+    const cpu = 20;
+    const memory = 40 * 1000 * 1000 * 1000;
+    const nodes = createFakeNodesData(3, cpu, memory);
+    nodes.forEach((node) => {
+      node.status.nodeInfo = { architecture: 's390x' };
+    });
+    const selectedNodes = createWizardNodeState(nodes);
+    (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
+
+    render(
+      <ConfigurePerformance
+        onResourceProfileChange={onResourceProfileChange}
+        resourceProfile={ResourceProfile.Lean}
+        selectedNodes={selectedNodes}
+        profileRequirementsText={ProfileRequirementsText}
+      />
+    );
+
+    expect(screen.getByText(/15 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/72 GiB/i)).toBeInTheDocument();
+  });
+
+  it('shows correct resource requirements for s390x Balanced profile', () => {
+    const cpu = 25;
+    const memory = 80 * 1000 * 1000 * 1000;
+    const nodes = createFakeNodesData(3, cpu, memory);
+    nodes.forEach((node) => {
+      node.status.nodeInfo = { architecture: 's390x' };
+    });
+    const selectedNodes = createWizardNodeState(nodes);
+    (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
+
+    render(
+      <ConfigurePerformance
+        onResourceProfileChange={onResourceProfileChange}
+        resourceProfile={ResourceProfile.Balanced}
+        selectedNodes={selectedNodes}
+        profileRequirementsText={ProfileRequirementsText}
+      />
+    );
+
+    expect(screen.getByText(/21 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/72 GiB/i)).toBeInTheDocument();
+  });
+
+  it('shows correct resource requirements for s390x Performance profile', () => {
+    const cpu = 35;
+    const memory = 150 * 1000 * 1000 * 1000;
+    const nodes = createFakeNodesData(3, cpu, memory);
+    nodes.forEach((node) => {
+      node.status.nodeInfo = { architecture: 's390x' };
+    });
+    const selectedNodes = createWizardNodeState(nodes);
+    (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
+
+    render(
+      <ConfigurePerformance
+        onResourceProfileChange={onResourceProfileChange}
+        resourceProfile={ResourceProfile.Performance}
+        selectedNodes={selectedNodes}
+        profileRequirementsText={ProfileRequirementsText}
+      />
+    );
+
+    expect(screen.getByText(/30 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/96 GiB/i)).toBeInTheDocument();
+  });
+
+  it('calculates extra OSD requirements correctly for s390x', () => {
+    const cpu = 30;
+    const memory = 100 * 1000 * 1000 * 1000;
+    const nodes = createFakeNodesData(3, cpu, memory);
+    nodes.forEach((node) => {
+      node.status.nodeInfo = { architecture: 's390x' };
+    });
+    const selectedNodes = createWizardNodeState(nodes);
+    (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
+
+    render(
+      <ConfigurePerformance
+        onResourceProfileChange={onResourceProfileChange}
+        resourceProfile={ResourceProfile.Balanced}
+        selectedNodes={selectedNodes}
+        osdAmount={9} // 9 OSDs instead of default 3
+        profileRequirementsText={ProfileRequirementsText}
+      />
+    );
+
+    expect(screen.getByText(/27 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/102 GiB/i)).toBeInTheDocument();
+  });
 });
