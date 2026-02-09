@@ -3,6 +3,7 @@ import { SAN_STORAGE_SYSTEM_NAME } from '@odf/core/constants';
 import { FileSystemKind } from '@odf/core/types/scale';
 import { DASH, getName, getNamespace } from '@odf/shared';
 import { Kebab } from '@odf/shared/kebab';
+import { ModalKeys } from '@odf/shared/modals';
 import { FileSystemModel } from '@odf/shared/models/scale';
 import { GreenCheckCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -21,7 +22,6 @@ import {
   VirtualizedTable,
   useListPageFilter,
   HealthState,
-  k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';
@@ -213,28 +213,24 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
   obj,
   activeColumnIDs,
 }) => {
+  const { t } = useCustomTranslation();
   const status = getLUNGroupStatus(obj);
   const isHealthy = status === HealthState.OK;
   const storageClassName = getStorageClassName(obj);
   const consoleLink = getConsoleLink(obj);
-  const cleanupBeforeDelete = async (fs: FileSystemKind) => {
-    await k8sPatch({
-      model: FileSystemModel,
-      resource: fs,
-      data: [
-        {
-          op: 'add',
-          path: '/metadata/labels',
-          value: {},
-        },
-        {
-          op: 'add',
-          path: '/metadata/labels/scale.spectrum.ibm.com~1allowDelete',
-          value: '',
-        },
-      ],
-    });
-  };
+
+  const customKebabItems = React.useMemo(
+    () => [
+      {
+        key: ModalKeys.DELETE,
+        value: t('Delete LUN group'),
+        component: React.lazy(
+          () => import('../../modals/lun-group/DeleteLUNModal')
+        ),
+      },
+    ],
+    [t]
+  );
 
   return (
     <>
@@ -272,9 +268,8 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
           extraProps={{
             resource: obj,
             resourceModel: FileSystemModel,
-            confirmWithName: true,
-            cleanupBeforeDelete,
           }}
+          customKebabItems={customKebabItems}
         />
       </TableData>
     </>
