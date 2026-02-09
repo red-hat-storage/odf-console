@@ -184,11 +184,11 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>
                     <Radio
+                      isDisabled={shouldDisableScale}
                       isChecked={selectedOption === ExternalSystemOption.Scale}
                       onChange={() =>
                         setSelectedOption(ExternalSystemOption.Scale)
                       }
-                      isDisabled={shouldDisableScale}
                       name="setup-scale-radio"
                       id="setup-scale-radio"
                     />
