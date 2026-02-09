@@ -69,8 +69,8 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     sanClusters?.loaded &&
     !sanClusters?.loadError &&
     sanClusters?.data?.length > 0;
-  // SAN tile should be disabled if either Scale or SAN cluster exists
   const shouldDisableSAN = hasScaleCluster || hasSANCluster;
+  const shouldDisableScale = hasSANCluster;
   return (
     <Flex
       direction={{ default: 'column' }}
@@ -157,7 +157,11 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
       {isFDF && (
         <>
           <FlexItem>
-            <Card id="setup-scale-storage" isClickable>
+            <Card
+              id="setup-scale-storage"
+              isClickable={!shouldDisableScale}
+              isDisabled={shouldDisableScale}
+            >
               <CardHeader
                 selectableActions={{
                   selectableActionId: 'scale-storage',
@@ -184,6 +188,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                       onChange={() =>
                         setSelectedOption(ExternalSystemOption.Scale)
                       }
+                      isDisabled={shouldDisableScale}
                       name="setup-scale-radio"
                       id="setup-scale-radio"
                     />
