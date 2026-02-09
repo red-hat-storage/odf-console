@@ -9,6 +9,7 @@ import {
   ResourceYAMLEditor,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 
 type FileSystemDetailsProps = {
@@ -50,6 +51,26 @@ export const FileSystemDetailsPage: React.FC = () => {
     name,
   });
 
+  // Check if this is a SAN FileSystem (has local spec and no remote spec)
+  const isSANFileSystem = React.useMemo(() => {
+    return resource?.spec?.local && _.isEmpty(resource?.spec?.remote);
+  }, [resource]);
+
+  const customKebabItems = React.useMemo(() => {
+    if (!isSANFileSystem) {
+      return undefined;
+    }
+    return [
+      {
+        key: 'DELETE',
+        value: t('Delete LUN group'),
+        component: React.lazy(
+          () => import('../../modals/lun-group/DeleteLUNModal')
+        ),
+      },
+    ];
+  }, [isSANFileSystem, t]);
+
   const actions = React.useCallback(() => {
     return (
       <Kebab
@@ -59,9 +80,10 @@ export const FileSystemDetailsPage: React.FC = () => {
           resourceModel: FileSystemModel,
           namespace,
         }}
+        customKebabItems={customKebabItems}
       />
     );
-  }, [resource, namespace]);
+  }, [resource, namespace, customKebabItems]);
 
   const breadcrumbs = [
     {
