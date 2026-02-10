@@ -31,6 +31,7 @@ import {
 } from '../constants';
 
 const getPVStorageClass = (pv) => pv?.spec?.storageClassName;
+export const NO_DEVICE_CLASS = '__NO_DEVICE_CLASS__';
 
 const getSelectedNodes = (
   scName: string,
@@ -222,11 +223,12 @@ export const getCurrentDeviceSetIndex = (
   deviceSets.findIndex((ds) => {
     const matchesSC =
       ds.dataPVCTemplate.spec.storageClassName === selectedSCName;
-    /*  No need to check "deviceClass" equality for the case where each deviceSet has its own
-    unique StorageClass (passing diviceClass as "null" as an argument in this case). */
-    const matchesDeviceClass = !!deviceClass
-      ? ds.deviceClass === deviceClass
-      : true;
+
+    /* if the deviceClass is noDeviceClassKey, we need match it with an index having empty string. */
+    const matchesDeviceClass =
+      deviceClass === NO_DEVICE_CLASS
+        ? !ds.deviceClass
+        : ds.deviceClass === deviceClass;
 
     return matchesSC && matchesDeviceClass;
   });
@@ -237,12 +239,14 @@ export const createDeviceSet = (
   portable: boolean,
   replica: number,
   count: number,
-  resources?: ResourceConstraints
+  resources?: ResourceConstraints,
+  deviceClass?: string
 ): DeviceSet => ({
   name: `ocs-deviceset-${scName}`,
   count,
   portable,
   replica,
+  ...(deviceClass && { deviceClass }),
   resources: resources ?? {},
   placement: {},
   dataPVCTemplate: {

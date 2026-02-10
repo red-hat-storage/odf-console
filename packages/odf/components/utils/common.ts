@@ -21,6 +21,7 @@ import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/od
 import {
   NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
   NOOBA_EXTERNAL_PG_SECRET_NAME,
+  DEFAULT_DEVICECLASS,
 } from '@odf/shared/constants';
 import { getLabel, getName, getNamespace, getUID } from '@odf/shared/selectors';
 import {
@@ -503,7 +504,9 @@ export const getOCSRequestData = ({
           storage,
           isPortable,
           deviceSetReplica,
-          deviceSetCount
+          deviceSetCount,
+          undefined,
+          DEFAULT_DEVICECLASS
         ),
       ],
       ...Object.assign(
