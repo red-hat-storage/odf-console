@@ -4,7 +4,7 @@ import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils/common';
-import { SingleSelectDropdown } from '@odf/shared';
+import { SingleSelectDropdown, useDeepCompareMemoize } from '@odf/shared';
 import { OCS_OPERATOR, ROOK_CEPH_OPERATOR } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
@@ -74,6 +74,7 @@ import {
   getSCAvailablePVs,
   isArbiterSC,
   isValidTopology,
+  NO_DEVICE_CLASS,
 } from '../../utils/ocs';
 import { PVsAvailableCapacity } from './pvs-available-capacity';
 import './add-capacity-modal.scss';
@@ -123,8 +124,11 @@ export const DeviceClassDropdown: React.FC<DeviceClassDropdownProps> = ({
   const { t } = useCustomTranslation();
 
   const deviceClassOptions = deviceClasses.map((cls) => (
-    <SelectOption key={cls} value={cls}>
-      {cls}
+    <SelectOption
+      key={!cls ? NO_DEVICE_CLASS : cls}
+      value={!cls ? NO_DEVICE_CLASS : cls}
+    >
+      {!cls ? t('None (no device class)') : cls}
     </SelectOption>
   ));
 
@@ -294,7 +298,9 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState('');
 
-  const deviceSets = storageCluster?.spec?.storageDeviceSets || [];
+  const deviceSets = useDeepCompareMemoize(
+    storageCluster?.spec?.storageDeviceSets || []
+  );
   const osdSizeWithUnit = getRequestedPVCSize(deviceSets?.[0]?.dataPVCTemplate);
   const osdSizeWithoutUnit = getStorageSizeInTiBWithoutUnit(osdSizeWithUnit);
   const isNoProvionerSC: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -324,14 +330,25 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     [installStorageClass]
   );
 
-  const deviceClasses = getDeviceClassesForSC(deviceSets, selectedSCName);
-
+  const deviceClasses = React.useMemo(
+    () => getDeviceClassesForSC(deviceSets, selectedSCName),
+    [deviceSets, selectedSCName]
+  );
   const hasMultiDeviceClasses = deviceClasses.length > 1;
+
+  React.useEffect(() => {
+    if (deviceClasses.length === 1) {
+      setDeviceClass(deviceClasses[0] || NO_DEVICE_CLASS);
+    } else if (deviceClasses.length > 1) {
+      // Multiple device classes - reset so user MUST choose from dropdown
+      setDeviceClass('');
+    }
+  }, [deviceClasses]);
 
   const deviceSetIndex: number = getCurrentDeviceSetIndex(
     deviceSets,
     selectedSCName,
-    hasMultiDeviceClasses ? deviceClass : null
+    deviceClass
   );
 
   // Stops users from moving from no-prov SC to prov SC. (Bug 2213183)
