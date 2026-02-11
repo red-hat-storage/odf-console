@@ -3,7 +3,7 @@ import { CREATE_SS_PAGE_URL } from '@odf/core/constants';
 import { StartingPoint } from '@odf/core/types/install-ui';
 import { useCustomTranslation } from '@odf/shared';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Flex,
   FlexItem,
@@ -30,6 +30,11 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
   const launchModal = useModal();
+  const location = useLocation();
+
+  const shouldShowExternalSystems = location.pathname.includes(
+    StartingPoint.OVERVIEW
+  );
 
   const redirectTo = (installationFlow: StartingPoint) => () => {
     const urlParams = new URLSearchParams({ mode: installationFlow });
@@ -74,31 +79,33 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
           </CardBody>
         </Card>
       </FlexItem>
-      <FlexItem>
-        <Card
-          isClickable
-          id="connect-external-system"
-          className="odf-storage-cluster-create-modal__setup-card"
-        >
-          <CardHeader
-            selectableActions={{
-              onClickAction: showExternalSystems,
-              selectableActionId: 'external-system',
-            }}
+      {shouldShowExternalSystems && (
+        <FlexItem>
+          <Card
+            isClickable
+            id="connect-external-system"
+            className="odf-storage-cluster-create-modal__setup-card"
           >
-            <CardTitle>{t('Connect to an external system')}</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <TextContent>
-              <Text component="small">
-                {t(
-                  'Integrate Data Foundation with an existing storage backend such as external Ceph cluster or IBM FlashSystem.'
-                )}
-              </Text>
-            </TextContent>
-          </CardBody>
-        </Card>
-      </FlexItem>
+            <CardHeader
+              selectableActions={{
+                onClickAction: showExternalSystems,
+                selectableActionId: 'external-system',
+              }}
+            >
+              <CardTitle>{t('Connect to an external system')}</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <TextContent>
+                <Text component="small">
+                  {t(
+                    'Integrate Data Foundation with an existing storage backend such as external Ceph cluster or IBM FlashSystem.'
+                  )}
+                </Text>
+              </TextContent>
+            </CardBody>
+          </Card>
+        </FlexItem>
+      )}
       <FlexItem>
         <Card
           id="setup-object-storage"
