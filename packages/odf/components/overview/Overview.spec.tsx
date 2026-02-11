@@ -20,6 +20,11 @@ jest.mock('@odf/core/redux/selectors', () => ({
   }),
 }));
 
+jest.mock('react-router-dom-v5-compat', () => ({
+  ...jest.requireActual('react-router-dom-v5-compat'),
+  useLocation: jest.fn(() => ({ pathname: '/overview', search: '' })),
+}));
+
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
   useK8sWatchResource: jest.fn(() => {
