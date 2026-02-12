@@ -2,13 +2,17 @@ import * as React from 'react';
 import { S3ProviderType } from '@odf/core/types';
 import { IamCommands, IAM_INTERNAL_ENDPOINT_PORT } from '@odf/shared/iam';
 import { S3Commands, S3_INTERNAL_ENDPOINT_PORT } from '@odf/shared/s3';
+import {
+  S3_VECTORS_INTERNAL_ENDPOINT_PORT,
+  S3VectorsCommands,
+} from '@odf/shared/s3-vectors';
 import { SecretKind } from '@odf/shared/types';
 import type { HttpRequest } from '@smithy/types';
 import * as _ from 'lodash-es';
 import { ProviderConfig } from '../registry/s3-providers';
 import { ClientType } from '../types';
 
-type ClientCommandType = S3Commands | IamCommands;
+type ClientCommandType = S3Commands | IamCommands | S3VectorsCommands;
 
 export const useClient = (
   secretData: SecretKind | null,
@@ -64,7 +68,9 @@ export const useClient = (
       const internalEndpointPort =
         type === ClientType.IAM
           ? IAM_INTERNAL_ENDPOINT_PORT
-          : S3_INTERNAL_ENDPOINT_PORT;
+          : type === ClientType.S3_VECTORS
+            ? S3_VECTORS_INTERNAL_ENDPOINT_PORT
+            : S3_INTERNAL_ENDPOINT_PORT;
 
       // Middleware for proxy handling:
       // We must include the port in the host header as the proxy does (it's omitted
