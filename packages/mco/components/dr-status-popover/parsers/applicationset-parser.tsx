@@ -1,12 +1,11 @@
 import * as React from 'react';
-import { DRPCStatus } from '@odf/mco/constants';
 import {
   getDRClusterResourceObj,
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
   useDisasterRecoveryResourceWatch,
 } from '@odf/mco/hooks';
-import { ArgoApplicationSetKind } from '@odf/mco/types';
+import { ArgoApplicationSetKind, Phase } from '@odf/mco/types';
 import {
   findPlacementNameFromAppSet,
   findDRResourceUsingPlacement,
@@ -15,6 +14,7 @@ import {
   getReplicationType,
   getPrimaryClusterName,
   getProtectedCondition,
+  getAvailableCondition,
 } from '@odf/mco/utils';
 import { getNamespace, getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
@@ -51,7 +51,7 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
     if (!_.isEmpty(drResource)) {
       const drpc = drResource?.drPlacementControls?.[0];
       const drPolicy = drResource?.drPolicy;
-      const status = drpc?.status?.phase as DRPCStatus;
+      const status = drpc?.status?.phase as Phase;
       const primaryClusterName = getPrimaryClusterName(drpc);
       const targetCluster = findCluster(
         drResource.drClusters,
@@ -66,6 +66,7 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       );
 
       const protectedCondition = getProtectedCondition(drpc);
+      const availableCondition = getAvailableCondition(drpc);
 
       return {
         policyName: getName(drPolicy),
@@ -78,6 +79,7 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         isLoadedWOError: drLoaded && !drLoadError,
         ...getProgressionFields(drpc),
         protectedCondition,
+        availableCondition,
       };
     }
     return null;
