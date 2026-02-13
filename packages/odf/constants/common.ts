@@ -60,6 +60,24 @@ export const RESOURCE_PROFILE_REQUIREMENTS_MAP: ResourceProfileRequirementsMap =
     },
   };
 
+/**
+ * s390x specific CPU adjustments
+ */
+export const S390X_CPU_ADJUSTMENTS = {
+  [ResourceProfile.Lean]: {
+    minCpu: 15,
+    osdCpu: 0.75,
+  },
+  [ResourceProfile.Balanced]: {
+    minCpu: 21,
+    osdCpu: 1,
+  },
+  [ResourceProfile.Performance]: {
+    minCpu: 30,
+    osdCpu: 2,
+  },
+};
+
 export enum DefaultRequestSize {
   BAREMETAL = '1',
   NON_BAREMETAL = '2Ti',
