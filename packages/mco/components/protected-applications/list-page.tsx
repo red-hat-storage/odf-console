@@ -151,28 +151,39 @@ export const ProtectedApplicationsListPage: React.FC = () => {
     ProtectedApplicationViewKind[]
   >(getProtectedApplicationViewResourceObj());
 
+  // Filter out resources marked for deletion (deletionTimestamp set)
+  // Resources with deletionTimestamp are being garbage collected and should not be displayed
+  const activePAVs = React.useMemo(() => {
+    if (!pavsLoaded || !pavs) return [];
+    return pavs.filter((pav) => !pav.metadata?.deletionTimestamp);
+  }, [pavs, pavsLoaded]);
+
   const [drpcs, drpcsLoaded, drpcsError] = useK8sWatchResource<
     DRPlacementControlKind[]
   >(getDRPlacementControlResourceObj({}));
 
-  // Monitor for DR operation completions and show alerts
-  useDROperationAlert(drpcs || []);
+  // Filter out DRPCs marked for deletion
+  const activeDRPCs = React.useMemo(() => {
+    if (!drpcsLoaded || !drpcs) return [];
+    return drpcs.filter((drpc) => !drpc.metadata?.deletionTimestamp);
+  }, [drpcs, drpcsLoaded]);
+
+  // Monitor for DR operation completions and show alerts (only for active DRPCs)
+  useDROperationAlert(activeDRPCs);
 
   const drpcMap = React.useMemo(() => {
     const map = new Map<string, DRPlacementControlKind>();
-    if (drpcsLoaded && drpcs) {
-      drpcs.forEach((drpc) => {
-        const key = `${drpc.metadata.namespace}/${drpc.metadata.name}`;
-        map.set(key, drpc);
-      });
-    }
+    activeDRPCs.forEach((drpc) => {
+      const key = `${drpc.metadata.namespace}/${drpc.metadata.name}`;
+      map.set(key, drpc);
+    });
     return map;
-  }, [drpcs, drpcsLoaded]);
+  }, [activeDRPCs]);
 
   const isAllLoadedWOAnyError =
     pavsLoaded && drpcsLoaded && !pavsError && !drpcsError;
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(pavs || []);
+  const [data, filteredData, onFilterChange] = useListPageFilter(activePAVs);
 
   return (
     <PaginatedListPage
