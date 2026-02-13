@@ -1,12 +1,12 @@
 .ocs-preview-badge {
-  &.pf-v5-c-label {
-    --pf-v5-c-label--BackgroundColor: var(--pf-v5-global--palette--orange-50);
-    --pf-v5-c-label--BorderRadius: var(--pf-v5-global--BorderRadius--sm);
-    --pf-v5-c-label--BorderRadius: 30em;
-    --pf-v5-c-label__content--before--BorderWidth: 1px;
-    --pf-v5-c-label__content--before--BorderColor: var(--pf-v5-global--palette--orange-200);
-    --pf-v5-c-label__content--Color:	var(--pf-v5-c-label--m-orange__content--Color);
-    --pf-v5-c-label--m-orange__icon--Color: var(--pf-v5-c-label--m-orange__content--Color);
+  &.pf-v6-c-label {
+    --pf-v6-c-label--BackgroundColor: var(--pf-t--color--orange--10);
+    --pf-v6-c-label--BorderRadius: var(--pf-t--global--border--radius--small);
+    --pf-v6-c-label--BorderRadius: 30em;
+    --pf-v6-c-label__content--before--BorderWidth: 1px;
+    --pf-v6-c-label__content--before--BorderColor: var(--pf-t--color--orange--20);
+    --pf-v6-c-label__content--Color: var(--pf-v6-c-label--m-orange__content--Color);
+    --pf-v6-c-label--m-orange__icon--Color: var(--pf-v6-c-label--m-orange__content--Color);
   }
 }
 
@@ -15,8 +15,8 @@
 }
 
 .odf-steps-count-badge {
-  background-color: var(--pf-v5-global--BackgroundColor--200);
-  color: var(--pf-v5-global--Color--dark-100);
+  background-color: var(--pf-t--global--background--color--200);
+  color: var(--pf-t--global--text--color--regular);
   border-radius: 20px;
   display: inline-block;
   flex-shrink: 0;

@@ -36,7 +36,6 @@ import {
   ButtonVariant,
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
   Title,
 } from '@patternfly/react-core';
 import { ArrowCircleLeftIcon, TopologyIcon } from '@patternfly/react-icons';
@@ -138,12 +137,15 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
   const { t } = useCustomTranslation();
   return (
     <Button
+      icon={
+        <>
+          <ArrowCircleLeftIcon /> {t('Back to main view')}
+        </>
+      }
       variant={ButtonVariant.plain}
       className="odf-topology__back-button"
       onClick={onClick}
-    >
-      <ArrowCircleLeftIcon /> {t('Back to main view')}
-    </Button>
+    />
   );
 };
 
@@ -651,13 +653,16 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
   // If external mode cluster exists, we do not allow internal mode cluster creation (in case of multiple StorageSystem support)
   const hideCreateSSOption = (isExternalMode && !isInternalMode) || !isNsSafe;
   return (
-    <EmptyState>
-      <EmptyStateIcon icon={TopologyIcon} />
-      <Title headingLevel="h4" size="lg">
-        {isExternalMode
-          ? t('Topology view is not supported for External mode')
-          : t('No StorageCluster found')}
-      </Title>
+    <EmptyState
+      titleText={
+        <Title headingLevel="h4" size="lg">
+          {isExternalMode
+            ? t('Topology view is not supported for External mode')
+            : t('No StorageCluster found')}
+        </Title>
+      }
+      icon={TopologyIcon}
+    >
       <EmptyStateBody>
         {!hideCreateSSOption &&
           t('Set up a storage cluster to view the topology')}

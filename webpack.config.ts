@@ -57,6 +57,10 @@ const config: webpack.Configuration & DevServerConfiguration = {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     alias: {
       '@odf/shared': path.resolve(__dirname, './packages/shared/src/'),
+      // 'react-fast-compare': path.resolve(
+      //   __dirname,
+      //   './node_modules/react-fast-compare/index.js'
+      // ),
     },
   },
   module: {

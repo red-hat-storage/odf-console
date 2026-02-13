@@ -4,11 +4,10 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
   Button,
-  Modal,
-  ModalVariant,
   Title,
   TitleSizes,
   AlertVariant,

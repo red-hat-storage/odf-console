@@ -4,10 +4,8 @@ import {
   Button,
   EmptyState,
   EmptyStateVariant,
-  EmptyStateIcon,
   EmptyStateBody,
   Tooltip,
-  EmptyStateHeader,
   EmptyStateFooter,
 } from '@patternfly/react-core';
 import { CubesIcon } from '@patternfly/react-icons';
@@ -33,12 +31,12 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
       aria-label={t('Loading empty page')}
     />
   ) : (
-    <EmptyState variant={EmptyStateVariant.lg}>
-      <EmptyStateHeader
-        titleText={<>{title}</>}
-        icon={<EmptyStateIcon icon={EmptyIcon} />}
-        headingLevel="h4"
-      />
+    <EmptyState
+      headingLevel="h4"
+      icon={EmptyIcon}
+      titleText={<>{title}</>}
+      variant={EmptyStateVariant.lg}
+    >
       <EmptyStateBody>{children}</EmptyStateBody>
       <EmptyStateFooter>
         <Tooltip

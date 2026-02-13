@@ -50,8 +50,8 @@ import {
   Flex,
   Grid,
   GridItem,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { ConnectedIcon } from '@patternfly/react-icons';
 import { StatusText } from './common';
@@ -230,15 +230,18 @@ const ProtectedAppStatus: React.FC<ProtectedAppStatusProps> = ({
   return (
     <>
       <GridItem lg={9} sm={6}>
-        <Text className="text-muted mco-dashboard__statusText--margin">
+        <Content
+          component="p"
+          className="text-muted mco-dashboard__statusText--margin"
+        >
           {text}
-        </Text>
+        </Content>
       </GridItem>
       <GridItem lg={2} sm={2}>
         <StatusIconAndText
           title={healthyCount.toString()}
           icon={<GreenCheckCircleIcon />}
-          className="pf-v5-u-text-align-center"
+          className="pf-v6-u-text-align-center"
         />
       </GridItem>
       <GridItem lg={1} sm={4}>
@@ -288,9 +291,9 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Text component={TextVariants.h1}>{protectedAppCount}</Text>
+      <Content component={ContentVariants.h1}>{protectedAppCount}</Content>
       <StatusText>{t('Protected applications')}</StatusText>
-      <Grid hasGutter className="pf-v5-u-w-75">
+      <Grid hasGutter className="pf-v6-u-w-75">
         <ProtectedAppStatus
           text={t('ACM discovered applications: ')}
           healthyCount={protectedDiscoveredApps - appsWithIssues[0]}
@@ -393,12 +396,12 @@ export const UtilizationCard: React.FC<UtilizationCardProps> = ({
   return (
     <div className="mco-dashboard__contentColumn">
       <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--spaceBetween">
-        <Text
-          component={TextVariants.h3}
+        <Content
+          component={ContentVariants.h3}
           className="mco-cluster-app__contentRow--flexStart"
         >
           {t('Utilization')}
-        </Text>
+        </Content>
         <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--flexEnd">
           <UtilizationDurationDropdown />
         </div>

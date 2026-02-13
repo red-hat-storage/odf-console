@@ -6,14 +6,14 @@
 
 .odf-install_capacity-header {
   text-align: center;
-  font-size: var(--pf-v5-global--FontSize--xl);
-  margin-bottom: var(--pf-v5-c-wizard__main-body--PaddingBottom);
+  font-size: var(--pf-t--global--font--size--xl);
+  margin-bottom: var(--pf-v6-c-wizard__main-body--PaddingBlockEnd);
 }
 
 .odf-install__stats {
   display: flex;
-  font-size: var(--pf-v5-global--FontSize--md);
-  margin-bottom: var(--pf-v5-global--spacer--xs);
+  font-size: var(--pf-t--global--font--size--md);
+  margin-bottom: var(--pf-t--global--spacer--xs);
   text-align: center;
 }
 
@@ -24,10 +24,10 @@
 }
 
 .odf-install_stats--divider {
-  border-right: var(--pf-v5-global--BorderWidth--sm) solid
-    var(--pf-v5-global--Color--light-300);
-  height: var(--pf-v5-global--LineHeight--sm);
-  margin: 0 var(--pf-v5-global--spacer--sm);
+  border-right: var(--pf-t--global--border--width--regular) solid
+    var(--pf-t--color--gray--20);
+  height: var(--pf-t--global--font--line-height--heading);
+  margin: 0 var(--pf-t--global--spacer--sm);
 }
 
 .odf-install__disk-list-btn {

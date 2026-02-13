@@ -246,7 +246,7 @@ describe('tests for css classes for elements of health item component', () => {
       <HealthItem title={title} state={HealthState.LOADING} />
     );
     expect(container.querySelector('.skeleton-health')).toBeTruthy();
-    expect(container.querySelector('.pf-v5-u-screen-reader')).toBeTruthy();
+    expect(container.querySelector('.pf-v6-u-screen-reader')).toBeTruthy();
   });
   it('should check the css for the icon displayed', () => {
     const { container } = render(<HealthItem title={title} />);
