@@ -7,7 +7,8 @@ import {
 } from '@odf/core/resources';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import { DANGER_THRESHOLD, WARNING_THRESHOLD } from '@odf/ocs/constants/charts';
-import { resiliencyProgressQuery } from '@odf/ocs/queries';
+import { useGetOCSHealth } from '@odf/ocs/hooks/useOcsHealth';
+import { resiliencyProgressQuery, StatusCardQueries } from '@odf/ocs/queries';
 import { getDataResiliencyState } from '@odf/ocs/utils';
 import {
   DASH,
@@ -15,8 +16,6 @@ import {
   healthStateMapping,
   healthStateMessage,
   ODF_OPERATOR,
-  resourceStatus,
-  Status,
   StorageClusterKind,
   SubscriptionKind,
   useFetchCsv,
@@ -86,24 +85,52 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
 
   const storageCluster = getStorageClusterInNs(storageClusters, odfNamespace);
   const clusterName = getName(storageCluster);
+
+  const { healthState, message: healthMessage } =
+    useGetOCSHealth(storageCluster);
+
   const [totalCapacity, usedCapacity, capacityLoading, capacityLoadError] =
     useRawCapacity(clusterName);
-  const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(
-    {
+  const [cephResiliencyProgress, cephResiliencyProgressError] =
+    useCustomPrometheusPoll({
       query: resiliencyProgressQuery(clusterName),
       endpoint: 'api/v1/query' as any,
       basePath: usePrometheusBasePath(),
-    }
-  );
-  const dataResiliencyState = getDataResiliencyState(
-    [{ response: resiliencyProgress, error: resiliencyProgressError }],
+    });
+
+  const [objectResiliencyProgress, objectResiliencyProgressError] =
+    useCustomPrometheusPoll({
+      query: StatusCardQueries.MCG_REBUILD_PROGRESS_QUERY,
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    });
+
+  const objectResiliencyState = getDataResiliencyState(
+    [
+      {
+        response: objectResiliencyProgress,
+        error: objectResiliencyProgressError,
+      },
+    ],
     t
   );
-  const resiliencyMessage =
-    dataResiliencyState.state === HealthState.OK
+  const cephDataResiliencyState = getDataResiliencyState(
+    [{ response: cephResiliencyProgress, error: cephResiliencyProgressError }],
+    t
+  );
+  const healthIcon = healthStateMapping?.[healthState]?.icon;
+  const cephResiliencyMessage =
+    cephDataResiliencyState.state === HealthState.OK
       ? t('Healthy')
-      : healthStateMessage(dataResiliencyState.state, t);
-  const resiliencyIcon = healthStateMapping?.[dataResiliencyState.state]?.icon;
+      : healthStateMessage(cephDataResiliencyState.state, t);
+  const cephResiliencyIcon =
+    healthStateMapping?.[cephDataResiliencyState.state]?.icon;
+  const objectResiliencyMessage =
+    objectResiliencyState.state === HealthState.OK
+      ? t('Healthy')
+      : healthStateMessage(objectResiliencyState.state, t);
+  const objectResiliencyIcon =
+    healthStateMapping?.[objectResiliencyState.state]?.icon;
 
   const odfVersion =
     csvLoaded && _.isEmpty(csvError) ? getOprVersionFromCSV(csv) : DASH;
@@ -177,14 +204,30 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                     {t('Cluster Status')}
                   </DescriptionListTerm>
                   <DescriptionListDescription>
-                    <Status status={resourceStatus(storageCluster)} />
+                    {healthIcon}
+                    <span className="pf-v5-u-ml-xs">{healthMessage}</span>
                   </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
-                  <DescriptionListTerm>{t('Resiliency')}</DescriptionListTerm>
+                  <DescriptionListTerm>
+                    {t('Block and File Resiliency')}
+                  </DescriptionListTerm>
                   <DescriptionListDescription>
-                    {resiliencyIcon}
-                    <span className="pf-v5-u-ml-xs">{resiliencyMessage}</span>
+                    {cephResiliencyIcon}
+                    <span className="pf-v5-u-ml-xs">
+                      {cephResiliencyMessage}
+                    </span>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>
+                    {t('Object Resiliency')}
+                  </DescriptionListTerm>
+                  <DescriptionListDescription>
+                    {objectResiliencyIcon}
+                    <span className="pf-v5-u-ml-xs">
+                      {objectResiliencyMessage}
+                    </span>
                   </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
