@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { DRPCStatus } from '@odf/mco/constants';
 import { getDRPolicyResourceObj } from '@odf/mco/hooks';
-import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
+import { DRPlacementControlKind, DRPolicyKind, Phase } from '@odf/mco/types';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   getReplicationHealth,
@@ -9,6 +8,7 @@ import {
   getDRPolicyName,
   getPrimaryClusterName,
   getProtectedCondition,
+  getAvailableCondition,
 } from '../../../utils';
 import { isCleanupPending } from '../../protected-applications/utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
@@ -58,6 +58,7 @@ export const DRPlacementControlParser: React.FC<
       : undefined;
 
     const protectedCondition = getProtectedCondition(drPlacementControl);
+    const availableCondition = getAvailableCondition(drPlacementControl);
 
     return {
       policyName: drPolicyName,
@@ -68,11 +69,12 @@ export const DRPlacementControlParser: React.FC<
       lastKubeObjectProtectionTime: lastKubeObjectProtectionTime,
       volumeReplicationHealth,
       kubeObjectReplicationHealth,
-      phase: drPlacementControl?.status?.phase as DRPCStatus,
+      phase: drPlacementControl?.status?.phase as Phase,
       isCleanupRequired: isCleanupPending(drPlacementControl),
       isLoadedWOError: loaded && !loadError,
       ...getProgressionFields(drPlacementControl),
       protectedCondition,
+      availableCondition,
     };
   }, [loaded, loadError, drPolicy, drPlacementControl, drPolicyName]);
 

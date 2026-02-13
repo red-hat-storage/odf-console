@@ -1,12 +1,20 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import React from 'react';
 import { describe, expect, it } from '@jest/globals';
-import { DRPCStatus, VolumeReplicationHealth } from '@odf/mco/constants';
-import { DRPlacementControlConditionReason } from '@odf/mco/types';
+import { VolumeReplicationHealth } from '@odf/mco/constants';
+import { DRPlacementControlConditionReason, Phase } from '@odf/mco/types';
 import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import DRStatusPopover, { DRStatusProps } from './dr-status-popover';
+
+type ScenarioOverrides = Partial<DRStatusProps>;
+
+type Scenario = {
+  label: string;
+  expectedStatus: string;
+  overrides: ScenarioOverrides;
+};
 
 describe('DRStatusPopover Component', () => {
   const baseStatus: DRStatusProps = {
@@ -18,14 +26,14 @@ describe('DRStatusPopover Component', () => {
     lastKubeObjectProtectionTime: '2023-10-01T12:00:00Z',
     volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
     kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
-    phase: DRPCStatus.Relocated,
+    phase: Phase.Relocated,
     isCleanupRequired: false,
     isLoadedWOError: true,
   };
 
   const healthyStatus: DRStatusProps = {
     isLoadedWOError: true,
-    phase: 'Deployed' as DRPCStatus,
+    phase: Phase.Deployed,
     volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
     kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
     primaryCluster: 'primary-cluster',
@@ -38,7 +46,7 @@ describe('DRStatusPopover Component', () => {
 
   const warningStatus: DRStatusProps = {
     isLoadedWOError: true,
-    phase: 'Deployed' as DRPCStatus,
+    phase: Phase.Deployed,
     volumeReplicationHealth: VolumeReplicationHealth.WARNING,
     kubeObjectReplicationHealth: VolumeReplicationHealth.WARNING,
     primaryCluster: 'primary-cluster',
@@ -51,7 +59,7 @@ describe('DRStatusPopover Component', () => {
 
   const failoverStatus: DRStatusProps = {
     isLoadedWOError: true,
-    phase: DRPCStatus.FailingOver,
+    phase: Phase.FailingOver,
     primaryCluster: 'primary-cluster',
     targetCluster: 'target-cluster',
     policyName: '',
@@ -62,7 +70,7 @@ describe('DRStatusPopover Component', () => {
 
   const relocateStatus: DRStatusProps = {
     isLoadedWOError: true,
-    phase: DRPCStatus.Relocating,
+    phase: Phase.Relocating,
     primaryCluster: 'primary-cluster',
     targetCluster: 'target-cluster',
     policyName: '',
@@ -73,7 +81,7 @@ describe('DRStatusPopover Component', () => {
 
   const failoverCompleteStatus: DRStatusProps = {
     isLoadedWOError: true,
-    phase: DRPCStatus.FailedOver,
+    phase: Phase.FailedOver,
     primaryCluster: 'primary-cluster',
     targetCluster: 'target-cluster',
     policyName: '',
@@ -84,7 +92,7 @@ describe('DRStatusPopover Component', () => {
 
   const relocateCompleteStatus: DRStatusProps = {
     isLoadedWOError: true,
-    phase: DRPCStatus.Relocated,
+    phase: Phase.Relocated,
     primaryCluster: 'primary-cluster',
     targetCluster: 'target-cluster',
     policyName: '',
@@ -96,7 +104,8 @@ describe('DRStatusPopover Component', () => {
   it('renders Protecting when ConditionProtected is initializing', async () => {
     const protectingStatus: DRStatusProps = {
       ...baseStatus,
-      phase: 'Deployed' as DRPCStatus, // Must be Deployed (not Relocated/FailedOver) for Protecting to show
+      phase: Phase.Deployed, // Must be Deployed (not Relocated/FailedOver) for Protecting to show
+      progression: 'Deploying',
       volumeLastGroupSyncTime: '', // No sync time - sync hasn't started yet
       protectedCondition: {
         status: K8sResourceConditionStatus.Unknown,
@@ -210,10 +219,74 @@ describe('DRStatusPopover Component', () => {
     expect(screen.getByTestId('cluster-details')).toBeInTheDocument();
   });
 
+  it('renders Protection Error when protected condition is Error in FailedOver phase after sync starts', async () => {
+    const failedOverProtectionError: DRStatusProps = {
+      isLoadedWOError: true,
+      phase: Phase.FailedOver,
+      primaryCluster: 'primary-cluster',
+      targetCluster: 'target-cluster',
+      policyName: 'policy-1',
+      schedulingInterval: '5m',
+      volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
+      volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      progression: 'Completed',
+      protectedCondition: {
+        status: K8sResourceConditionStatus.False,
+        reason: DRPlacementControlConditionReason.Error,
+        message: 'VM protection validation failed.',
+      },
+    };
+
+    render(
+      <DRStatusPopover disasterRecoveryStatus={failedOverProtectionError} />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Protection Error'
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      'VM protection validation failed.'
+    );
+  });
+
+  it('renders Protection Error when protected condition is Error in Relocated phase after sync starts', async () => {
+    const relocatedProtectionError: DRStatusProps = {
+      isLoadedWOError: true,
+      phase: Phase.Relocated,
+      primaryCluster: 'primary-cluster',
+      targetCluster: 'target-cluster',
+      policyName: 'policy-1',
+      schedulingInterval: '5m',
+      volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
+      volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      progression: 'Completed',
+      protectedCondition: {
+        status: K8sResourceConditionStatus.False,
+        reason: DRPlacementControlConditionReason.Error,
+        message: 'VM protection validation failed.',
+      },
+    };
+
+    render(
+      <DRStatusPopover disasterRecoveryStatus={relocatedProtectionError} />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Protection Error'
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      'VM protection validation failed.'
+    );
+  });
+
   it('shows Critical status when FailedOver phase has CRITICAL replication health', async () => {
     const failedOverWithCritical: DRStatusProps = {
       isLoadedWOError: true,
-      phase: DRPCStatus.FailedOver,
+      phase: Phase.FailedOver,
       primaryCluster: 'primary-cluster',
       targetCluster: 'target-cluster',
       policyName: 'policy-1',
@@ -236,7 +309,7 @@ describe('DRStatusPopover Component', () => {
   it('shows Critical status when Relocated phase has CRITICAL replication health', async () => {
     const relocatedWithCritical: DRStatusProps = {
       isLoadedWOError: true,
-      phase: DRPCStatus.Relocated,
+      phase: Phase.Relocated,
       primaryCluster: 'primary-cluster',
       targetCluster: 'target-cluster',
       policyName: 'policy-1',
@@ -259,7 +332,7 @@ describe('DRStatusPopover Component', () => {
   it('shows Warning status when FailedOver phase has WARNING replication health', async () => {
     const failedOverWithWarning: DRStatusProps = {
       isLoadedWOError: true,
-      phase: DRPCStatus.FailedOver,
+      phase: Phase.FailedOver,
       primaryCluster: 'primary-cluster',
       targetCluster: 'target-cluster',
       policyName: 'policy-1',
@@ -277,5 +350,600 @@ describe('DRStatusPopover Component', () => {
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
       /Volumes are syncing slower than usual/
     );
+  });
+
+  it('validates DR Status for all defined scenarios', () => {
+    const baseScenario: DRStatusProps = {
+      isLoadedWOError: true,
+      phase: Phase.Deployed,
+      primaryCluster: 'primary-cluster',
+      targetCluster: 'target-cluster',
+      policyName: 'policy-1',
+      schedulingInterval: '5m',
+      volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
+      lastKubeObjectProtectionTime: '2023-10-01T12:00:00Z',
+      volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      progression: 'Completed',
+      isCleanupRequired: false,
+    };
+
+    const noSync = '';
+    const scenarios: Scenario[] = [
+      {
+        label: 'FailingOver - FailingOver',
+        expectedStatus: 'FailingOver',
+        overrides: {
+          phase: Phase.FailingOver,
+          progression: 'FailingOver',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailingOver - CheckingFailoverPrerequisites',
+        expectedStatus: 'FailingOver',
+        overrides: {
+          phase: Phase.FailingOver,
+          progression: 'CheckingFailoverPrerequisites',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailingOver - WaitForFencing',
+        expectedStatus: 'FailingOver',
+        overrides: {
+          phase: Phase.FailingOver,
+          progression: 'WaitForFencing',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailingOver - UpdatedPlacement',
+        expectedStatus: 'FailingOver',
+        overrides: {
+          phase: Phase.FailingOver,
+          progression: 'UpdatedPlacement',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailingOver - FailingOverToCluster',
+        expectedStatus: 'FailingOver',
+        overrides: {
+          phase: Phase.FailingOver,
+          progression: 'FailingOverToCluster',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailingOver - WaitingForResourceRestore',
+        expectedStatus: 'FailingOver',
+        overrides: {
+          phase: Phase.FailingOver,
+          progression: 'WaitingForResourceRestore',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailedOver - WaitForReadiness',
+        expectedStatus: 'FailedOver',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'WaitForReadiness',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailedOver - WaitOnUserToCleanUp',
+        expectedStatus: 'FailedOver',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'WaitOnUserToCleanUp',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailedOver no sync - success',
+        expectedStatus: 'FailedOver',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.True,
+            reason: DRPlacementControlConditionReason.Success,
+          },
+        },
+      },
+      {
+        label: 'FailedOver no sync - unknown',
+        expectedStatus: 'FailedOver',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.Unknown,
+            reason: DRPlacementControlConditionReason.Unknown,
+          },
+        },
+      },
+      {
+        label: 'FailedOver no sync - error',
+        expectedStatus: 'FailedOver',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'FailedOver sync healthy',
+        expectedStatus: 'Healthy',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+        },
+      },
+      {
+        label: 'FailedOver sync warning',
+        expectedStatus: 'Warning',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+        },
+      },
+      {
+        label: 'FailedOver sync critical',
+        expectedStatus: 'Critical',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+        },
+      },
+      {
+        label: 'FailedOver sync healthy + protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'FailedOver sync warning + protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'FailedOver sync critical + protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'FailedOver progression active (EnsuringVolSyncSetup)',
+        expectedStatus: 'FailedOver',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'EnsuringVolSyncSetup',
+        },
+      },
+      {
+        label: 'FailedOver progression active (WaitingForResourceRestore)',
+        expectedStatus: 'FailedOver',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'WaitingForResourceRestore',
+        },
+      },
+      {
+        label: 'FailedOver cleanup required',
+        expectedStatus: 'WaitOnUserToCleanUp',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'WaitOnUserToCleanUp',
+          isCleanupRequired: true,
+        },
+      },
+      {
+        label: 'Relocating - Relocating',
+        expectedStatus: 'Relocating',
+        overrides: {
+          phase: Phase.Relocating,
+          progression: 'Relocating',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'Relocated - CleaningUp',
+        expectedStatus: 'Relocated',
+        overrides: {
+          phase: Phase.Relocated,
+          progression: 'CleaningUp',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'Relocating - ClearingPlacement',
+        expectedStatus: 'Relocating',
+        overrides: {
+          phase: Phase.Relocating,
+          progression: 'ClearingPlacement',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'Relocating cleanup required',
+        expectedStatus: 'WaitOnUserToCleanUp',
+        overrides: {
+          phase: Phase.Relocating,
+          progression: 'WaitOnUserToCleanUp',
+          isCleanupRequired: true,
+        },
+      },
+      {
+        label: 'Relocated no sync',
+        expectedStatus: 'Relocated',
+        overrides: {
+          phase: Phase.Relocated,
+          progression: 'Completed',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'Relocated sync healthy',
+        expectedStatus: 'Healthy',
+        overrides: {
+          phase: Phase.Relocated,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+        },
+      },
+      {
+        label: 'Relocated sync warning',
+        expectedStatus: 'Warning',
+        overrides: {
+          phase: Phase.Relocated,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+        },
+      },
+      {
+        label: 'Relocated sync critical',
+        expectedStatus: 'Critical',
+        overrides: {
+          phase: Phase.Relocated,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+        },
+      },
+      {
+        label: 'Relocated sync healthy + protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.Relocated,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'Relocated sync warning + protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.Relocated,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'Deploying unknown',
+        expectedStatus: 'Protecting',
+        overrides: {
+          phase: Phase.Deploying,
+          progression: 'Deploying',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.Unknown,
+            reason: DRPlacementControlConditionReason.Unknown,
+          },
+        },
+      },
+      {
+        label: 'Deploying unknown/progressing',
+        expectedStatus: 'Protecting',
+        overrides: {
+          phase: Phase.Deploying,
+          progression: 'Deploying',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.Unknown,
+            reason: DRPlacementControlConditionReason.Progressing,
+          },
+        },
+      },
+      {
+        label: 'Deploying progressing false',
+        expectedStatus: 'Protecting',
+        overrides: {
+          phase: Phase.Deploying,
+          progression: 'Deploying',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Progressing,
+          },
+        },
+      },
+      {
+        label: 'Deploying error false -> protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.Deploying,
+          progression: 'Deploying',
+          volumeLastGroupSyncTime: noSync,
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'Deployed unknown progressing -> health-based',
+        expectedStatus: 'Protecting',
+        overrides: {
+          phase: Phase.Deployed,
+          progression: 'Completed',
+          volumeLastGroupSyncTime: noSync,
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.Unknown,
+            reason: DRPlacementControlConditionReason.Progressing,
+          },
+        },
+      },
+      {
+        label: 'Deployed progressing false -> health-based',
+        expectedStatus: 'Protecting',
+        overrides: {
+          phase: Phase.Deployed,
+          progression: 'Completed',
+          volumeLastGroupSyncTime: noSync,
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Progressing,
+          },
+        },
+      },
+      {
+        label: 'Deployed error false -> protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.Deployed,
+          progression: 'Completed',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'Deployed success true -> health-based',
+        expectedStatus: 'Critical',
+        overrides: {
+          phase: Phase.Deployed,
+          progression: 'Completed',
+          volumeLastGroupSyncTime: noSync,
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.True,
+            reason: DRPlacementControlConditionReason.Success,
+          },
+        },
+      },
+      {
+        label: 'Deployed sync healthy',
+        expectedStatus: 'Healthy',
+        overrides: {
+          phase: Phase.Deployed,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+        },
+      },
+      {
+        label: 'Deployed sync warning',
+        expectedStatus: 'Warning',
+        overrides: {
+          phase: Phase.Deployed,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+        },
+      },
+      {
+        label: 'Deployed sync critical',
+        expectedStatus: 'Critical',
+        overrides: {
+          phase: Phase.Deployed,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+        },
+      },
+      {
+        label: 'Deployed sync healthy + protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.Deployed,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'Initiating unknown -> protecting',
+        expectedStatus: 'Protecting',
+        overrides: {
+          phase: Phase.Initiating,
+          progression: 'Initial',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.Unknown,
+            reason: DRPlacementControlConditionReason.Unknown,
+          },
+        },
+      },
+      {
+        label: 'Initiating unknown/progressing -> protecting',
+        expectedStatus: 'Protecting',
+        overrides: {
+          phase: Phase.Initiating,
+          progression: 'Initial',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.Unknown,
+            reason: DRPlacementControlConditionReason.Progressing,
+          },
+        },
+      },
+      {
+        label: 'Initiating error false -> health-based',
+        expectedStatus: 'Critical',
+        overrides: {
+          phase: Phase.Initiating,
+          progression: 'Initial',
+          volumeLastGroupSyncTime: noSync,
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'WaitForUser with protection error (progression active)',
+        expectedStatus: 'Action needed',
+        overrides: {
+          phase: Phase.WaitForUser,
+          progression: 'Any',
+          volumeLastGroupSyncTime: noSync,
+          availableCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+            message: 'Operation Paused - User Intervention Required',
+          },
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+      {
+        label: 'Deleting with protecting',
+        expectedStatus: 'Deleting',
+        overrides: {
+          phase: Phase.Deleting,
+          progression: 'Deleting',
+          volumeLastGroupSyncTime: noSync,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.Unknown,
+            reason: DRPlacementControlConditionReason.Unknown,
+          },
+        },
+      },
+      {
+        label: 'Multi-component healthy',
+        expectedStatus: 'Healthy',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+          kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
+        },
+      },
+      {
+        label: 'Multi-component warning',
+        expectedStatus: 'Warning',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+          kubeObjectReplicationHealth: VolumeReplicationHealth.WARNING,
+        },
+      },
+      {
+        label: 'Multi-component critical',
+        expectedStatus: 'Critical',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+          kubeObjectReplicationHealth: VolumeReplicationHealth.CRITICAL,
+        },
+      },
+      {
+        label: 'Multi-component protection error',
+        expectedStatus: 'ProtectionError',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'Completed',
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+          kubeObjectReplicationHealth: VolumeReplicationHealth.WARNING,
+          protectedCondition: {
+            status: K8sResourceConditionStatus.False,
+            reason: DRPlacementControlConditionReason.Error,
+          },
+        },
+      },
+    ];
+
+    scenarios.forEach(({ expectedStatus, overrides }) => {
+      const props = { ...baseScenario, ...overrides };
+      const { unmount } = render(
+        <DRStatusPopover disasterRecoveryStatus={props} />
+      );
+      const buttonText =
+        screen.getByTestId('dr-status-button').textContent?.toLowerCase() || '';
+      expect(buttonText).toContain(expectedStatus.toLowerCase());
+      unmount();
+    });
   });
 });
