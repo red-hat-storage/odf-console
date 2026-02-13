@@ -28,7 +28,11 @@ import {
 } from '@patternfly/react-core';
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
-import { createScaleLocalClusterPayload, labelNodes } from '../common/payload';
+import {
+  configureMetricsNamespaceLabels,
+  createScaleLocalClusterPayload,
+  labelNodes,
+} from '../common/payload';
 import { LUNsTable } from './LUNsTable';
 import {
   createCSIDriver,
@@ -107,6 +111,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         await labelNodes(componentState.selectedNodes)();
         await createScaleLocalClusterPayload()();
         await createCSIDriver();
+        await configureMetricsNamespaceLabels();
       }
       const localDisks = await createLocalDisks(mappedLuns, t);
       const fileSystem = await createLocalFileSystem(

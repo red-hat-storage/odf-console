@@ -1,19 +1,13 @@
 import * as React from 'react';
-import { DeploymentType } from '@odf/core/types';
-import {
-  ListKind,
-  StorageClassResourceKind,
-  TechPreviewBadge,
-  useK8sGet,
-} from '@odf/shared';
-import { StorageClassModel } from '@odf/shared/models';
+import { BackingStorageType, DeploymentType } from '@odf/core/types';
+import { TechPreviewBadge } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { isDefaultClass } from '@odf/shared/utils';
 import { Form, FormGroup, Checkbox } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from '../backing-storage-step/enable-nfs';
 import { PostgresConnectionDetails } from '../backing-storage-step/noobaa-external-postgres/postgres-connection-details';
 import { SetCephRBDStorageClassDefault } from '../backing-storage-step/set-rbd-sc-default';
+import SetVirtualizeSCDefault from '../backing-storage-step/set-virtualize-sc-default';
 import { AutomaticBackup } from './automatic-backup/automatic-backup';
 
 export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
@@ -21,6 +15,8 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   dispatch,
   hasOCS,
   hasMultipleClusters,
+  deployment,
+  backingStorageType,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -28,20 +24,11 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     isRBDStorageClassDefault,
     externalPostgres,
     useExternalPostgres,
-    deployment,
     isDbBackup,
     dbBackup,
-    type: backingStorageType,
   } = state;
 
-  const [sc, scLoaded] =
-    useK8sGet<ListKind<StorageClassResourceKind>>(StorageClassModel);
-
   const isFullDeployment = deployment === DeploymentType.FULL;
-  // Return true while loading to prevent auto-check, then actual value once loaded
-  const doesDefaultSCAlreadyExists = scLoaded
-    ? sc?.items?.some((item) => isDefaultClass(item)) || false
-    : true;
 
   const isMCG = deployment === DeploymentType.MCG;
   return (
@@ -58,9 +45,16 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             <SetCephRBDStorageClassDefault
               dispatch={dispatch}
               isRBDStorageClassDefault={isRBDStorageClassDefault}
-              doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
             />
           </>
+        )}
+        {isFullDeployment && !hasMultipleClusters && (
+          <SetVirtualizeSCDefault
+            dispatch={dispatch}
+            isVirtualizeStorageClassDefault={
+              state.isVirtualizeStorageClassDefault
+            }
+          />
         )}
         {/* Should be visible for both external and internal mode (but only single NooBaa is allowed, so should be hidden if any cluster already exists) */}
         {!hasOCS && (
@@ -80,11 +74,12 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             isChecked={useExternalPostgres}
             onChange={() =>
               dispatch({
-                type: 'backingStorage/useExternalPostgres',
+                type: 'advancedSettings/useExternalPostgres',
                 payload: !useExternalPostgres,
               })
             }
             className="odf-backing-store__radio--margin-bottom"
+            isDisabled={isDbBackup}
           />
         )}
         {useExternalPostgres && !hasOCS && (
@@ -110,6 +105,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             dispatch={dispatch}
             isMCG={isMCG}
             dbBackup={dbBackup}
+            isExternalPostgresEnabled={useExternalPostgres}
           />
         )}
       </FormGroup>
@@ -119,7 +115,9 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
 
 type AdvancedSettingsProps = {
   dispatch: WizardDispatch;
-  state: WizardState['backingStorage'];
+  state: WizardState['advancedSettings'];
   hasOCS: boolean;
   hasMultipleClusters: boolean;
+  deployment: DeploymentType;
+  backingStorageType: BackingStorageType;
 };

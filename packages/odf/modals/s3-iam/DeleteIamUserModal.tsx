@@ -3,13 +3,13 @@ import {
   AccessKeyStatus,
   IAM_BASE_ROUTE,
   IAM_USERS_BOOKMARKS_USER_SETTINGS_KEY,
-  POLICY_NAME,
 } from '@odf/core/constants/s3-iam';
 import { DASH, useUserSettingsLocalStorage } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { IamCommands } from '@odf/shared/iam';
 import { CommonModalProps } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -33,6 +33,7 @@ import {
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { useUserAccessKeys } from '../../components/s3-iam/hooks/useUserAccessKeys';
 import { useUserDetails } from '../../components/s3-iam/hooks/useUserDetails';
+import { cleanupAllPolicies } from '../../utils/s3-iam';
 
 type DeleteIamUserModalProps = {
   userName: string;
@@ -113,10 +114,8 @@ export const DeleteIamUserModal: React.FC<
     setInProgress(true);
 
     try {
-      await iamClient.deleteUserPolicy({
-        UserName: userName,
-        PolicyName: POLICY_NAME,
-      });
+      // Clean up all inline policies before deleting user
+      await cleanupAllPolicies(iamClient, userName);
 
       await iamClient.deleteIamUser({
         UserName: userName,

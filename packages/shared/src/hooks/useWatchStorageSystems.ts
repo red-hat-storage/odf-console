@@ -1,4 +1,5 @@
 import { FDF_FLAG } from '@odf/core/redux/provider-hooks';
+import { DaemonKind } from '@odf/core/types/scale';
 import { isExternalCluster } from '@odf/core/utils';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
 import { ODFStorageSystem } from '@odf/shared/models';
@@ -16,6 +17,9 @@ import {
   getUID,
 } from '../selectors';
 import { useDeepCompareMemoize } from './deep-compare-memoize';
+
+export const SAN_CLUSTER_NAME_ANNOTATION =
+  'scale.spectrum.ibm.com/gpfs-cluster-name';
 
 const mapStorageClusterToStorageSystem = (
   storageCluster: K8sResourceKind
@@ -42,13 +46,19 @@ const mapStorageClusterToStorageSystem = (
 });
 
 const mapSANClusterToStorageSystem = (
-  sanCluster: K8sResourceKind
+  sanCluster: K8sResourceKind,
+  sanClusterName?: string
 ): StorageSystemKind => ({
   apiVersion: ODFStorageSystem.apiVersion,
   kind: ODFStorageSystem.kind,
   metadata: {
     name: 'SAN_Storage',
     namespace: getNamespace(sanCluster),
+    annotations: {
+      ...(sanClusterName && {
+        [SAN_CLUSTER_NAME_ANNOTATION]: sanClusterName,
+      }),
+    },
   },
   spec: {
     kind: `${sanCluster.kind.toLowerCase()}.${sanCluster.apiVersion}`,
@@ -76,13 +86,18 @@ export const useWatchStorageSystems = (
     flashSystemClusters,
     remoteClusters: remoteClusterClients,
     sanClusters,
+    daemons,
   } = useWatchStorageClusters();
+
+  const sanClusterName = (daemons?.data as DaemonKind[])?.[0]?.status
+    ?.clusterName;
 
   const loaded =
     odfClusters?.loaded &&
     flashSystemClusters?.loaded &&
     (isFDF ? sanClusters?.loaded : true) &&
-    (isFDF ? remoteClusterClients?.loaded : true);
+    (isFDF ? remoteClusterClients?.loaded : true) &&
+    (isFDF ? daemons?.loaded : true);
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it
   const loadError = odfClusters?.loadError;
   const storageClusters: StorageClusterKind[] = onlyWatchExternalClusters
@@ -107,13 +122,20 @@ export const useWatchStorageSystems = (
   const sanClustersData = sanClusters?.data;
   const sanClustersList: StorageSystemKind[] =
     sanClusters?.loaded && !sanClusters?.loadError
-      ? sanClustersData?.map(mapSANClusterToStorageSystem)
+      ? sanClustersData?.map((sanCluster) =>
+          mapSANClusterToStorageSystem(sanCluster, sanClusterName)
+        )
       : [];
+
+  // Only show SAN_Storage (LocalCluster) if no RemoteCluster exists
+  const shouldShowSANStorage =
+    !remoteClusterClientsData || remoteClusterClientsData.length === 0;
+
   const aggregatedStorageSystems = [
     ...storageSystems,
     ...flashSystemClustersList,
     ...remoteClusterClientsList,
-    ...sanClustersList,
+    ...(shouldShowSANStorage ? sanClustersList : []),
   ];
   const memoizedStorageSystems = useDeepCompareMemoize(
     aggregatedStorageSystems,

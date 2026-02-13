@@ -65,9 +65,16 @@
     "**/package.json": "npx --yes sort-package-json@3.0.0"
   },
   "resolutions": {
+    "@remix-run/router": "1.23.2",
     "brace-expansion@1.1.7": "1.1.12",
     "brace-expansion@2.0.1": "2.0.2",
+    "fast-xml-parser": "5.3.4",
     "follow-redirects": "^1.15.11",
+    "js-yaml": "4.1.1",
+    "lodash": "4.17.23",
+    "lodash-es": "4.17.23",
+    "react-router": "6.30.3",
+    "undici": "6.23.0",
     "webpack": "^5.99.9"
   },
   "dependencies": {
@@ -98,8 +105,8 @@
     "immer": "^10.1.1",
     "is-ip": "^5.0.1",
     "js-base64": "^3.7.7",
-    "js-yaml": "^4.1.0",
-    "lodash-es": "^4.17.21",
+    "js-yaml": "^4.1.1",
+    "lodash-es": "^4.17.23",
     "luxon": "^3.6.1",
     "mini-css-extract-plugin": "^2.9.2",
     "mobx": "^6.13.7",
@@ -116,7 +123,7 @@
     "react-i18next": "^11.11.4",
     "react-linkify": "^0.2.2",
     "react-redux": "7.2.2",
-    "react-router-dom-v5-compat": "^6.28.2",
+    "react-router-dom-v5-compat": "^6.30.3",
     "react-tagsinput": "^3.20.3",
     "react-virtualized-auto-sizer": "^1.0.26",
     "react-window": "^1.8.11",

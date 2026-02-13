@@ -306,11 +306,13 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     }
   };
 
+  const clustersLoaded = allLoaded && !!requiredODFVersion;
+
   return (
     <PaginatedClusterTable
       selectedClusters={selectedClusters}
       clusters={clusters}
-      isLoaded={allLoaded}
+      isLoaded={clustersLoaded}
       error={loadError}
       onChange={onChange}
     />

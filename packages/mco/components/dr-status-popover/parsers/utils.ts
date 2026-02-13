@@ -70,9 +70,10 @@ export const getProgressionFields = (
   const detailMessages = [...drpcDetails, ...resourceDetails];
 
   const applicationName =
+    drPlacementControl.metadata?.name ||
     drPlacementControl.metadata?.annotations?.[
       'drplacementcontrol.ramendr.openshift.io/app-namespace'
-    ] || drPlacementControl.metadata?.name;
+    ];
 
   // Check if it's a discovered app: has protectedNamespaces defined and non-empty
   const isDiscoveredApp =

@@ -7,6 +7,7 @@ import {
   arbiterText,
   LSO_OPERATOR,
   OCS_TOLERATION,
+  lsoInstallationPage,
 } from '@odf/core/constants';
 import { useNodesData, useLSODiskDiscovery } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
@@ -21,13 +22,10 @@ import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isCSVSucceeded } from '@odf/shared/utils';
 import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  WizardContext,
-  WizardContextType,
-} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
+import { useWizardContext } from '@patternfly/react-core';
 import {
   Alert,
   AlertVariant,
@@ -43,11 +41,6 @@ import { LocalVolumeSetBody } from './body';
 import { SelectedCapacity } from './selected-capacity';
 import { useLSODiscoveredDisks } from './useLSODiscoveredDisks';
 import './create-local-volume-set-step.scss';
-
-const goToLSOInstallationPage = (navigate) =>
-  navigate(
-    '/operatorhub/all-namespaces?details-item=local-storage-operator-redhat-operators-openshift-marketplace'
-  );
 
 const makeLocalVolumeSetCall = (
   state: WizardState['createLocalVolumeSet'],
@@ -97,8 +90,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   nodes,
 }) => {
   const { t } = useCustomTranslation();
-  const { onNext, activeStep } =
-    React.useContext<WizardContextType>(WizardContext);
+  const { goToNextStep, activeStep } = useWizardContext();
 
   const cancel = () => {
     dispatch({
@@ -113,7 +105,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       type: 'wizard/setStepIdReached',
       payload: stepIdReached <= stepId ? stepId + 1 : stepIdReached,
     });
-    onNext();
+    goToNextStep();
   };
 
   const makeLVSCall = () => {
@@ -204,7 +196,7 @@ export const LSOInstallAlert = () => {
           <Button
             type="button"
             variant="primary"
-            onClick={() => goToLSOInstallationPage(navigate)}
+            onClick={() => navigate(lsoInstallationPage)}
           >
             Install
           </Button>

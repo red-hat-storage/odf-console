@@ -9,6 +9,7 @@ import {
   useCustomTranslation,
   useK8sGet,
 } from '@odf/shared';
+import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
@@ -57,6 +58,19 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
   const hasExternalStorageClusters = externalClusterDetails.clusterName !== '';
   const platform = getInfrastructurePlatform(infrastructure);
   const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
+
+  // Check if Scale cluster or SAN cluster exists
+  const { remoteClusters, sanClusters } = useWatchStorageClusters();
+  const hasScaleCluster =
+    remoteClusters?.loaded &&
+    !remoteClusters?.loadError &&
+    remoteClusters?.data?.length > 0;
+  const hasSANCluster =
+    sanClusters?.loaded &&
+    !sanClusters?.loadError &&
+    sanClusters?.data?.length > 0;
+  const shouldDisableSAN = hasScaleCluster || hasSANCluster;
+  const shouldDisableScale = hasSANCluster;
   return (
     <Flex
       direction={{ default: 'column' }}
@@ -143,7 +157,11 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
       {isFDF && (
         <>
           <FlexItem>
-            <Card id="setup-scale-storage" isClickable>
+            <Card
+              id="setup-scale-storage"
+              isClickable={!shouldDisableScale}
+              isDisabled={shouldDisableScale}
+            >
               <CardHeader
                 selectableActions={{
                   selectableActionId: 'scale-storage',
@@ -170,6 +188,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                       onChange={() =>
                         setSelectedOption(ExternalSystemOption.Scale)
                       }
+                      isDisabled={shouldDisableScale}
                       name="setup-scale-radio"
                       id="setup-scale-radio"
                     />
@@ -179,7 +198,11 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
             </Card>
           </FlexItem>
           <FlexItem>
-            <Card id="setup-san-storage" isClickable>
+            <Card
+              id="setup-san-storage"
+              isClickable={!shouldDisableSAN}
+              isDisabled={shouldDisableSAN}
+            >
               <CardHeader
                 selectableActions={{
                   selectableActionId: 'san-storage',
@@ -202,6 +225,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>
                     <Radio
+                      isDisabled={shouldDisableSAN}
                       isChecked={selectedOption === ExternalSystemOption.SAN}
                       onChange={() =>
                         setSelectedOption(ExternalSystemOption.SAN)

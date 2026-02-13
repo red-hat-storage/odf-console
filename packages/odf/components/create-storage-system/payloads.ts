@@ -139,21 +139,21 @@ export const createStorageCluster = async (
     securityAndNetwork,
     nodes,
     backingStorage,
+    advancedSettings,
   } = state;
   const { capacity, enableArbiter, arbiterLocation, pvCount } =
     capacityAndNodes;
   const { encryption, kms } = securityAndNetwork;
+  const { type, deployment } = backingStorage;
   const {
-    type,
     enableNFS,
-    deployment,
     isRBDStorageClassDefault,
     isVirtualizeStorageClassDefault,
     useExternalPostgres,
     externalPostgres,
     isDbBackup,
     dbBackup,
-  } = backingStorage;
+  } = advancedSettings;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 

@@ -84,3 +84,6 @@ export const TIB_CONVERSION_DIVISOR = {
 
 export const BLOCK = 'Block';
 export const FILESYSTEM = 'Filesystem';
+
+export const OPENSHIFT_USER_WORKLOAD_MONITORING_NAMESPACE =
+  'openshift-user-workload-monitoring';

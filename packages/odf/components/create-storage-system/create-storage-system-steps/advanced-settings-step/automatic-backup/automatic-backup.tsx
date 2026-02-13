@@ -53,7 +53,8 @@ type AutomaticBackupProps = {
   dispatch: WizardDispatch;
   isDbBackup: boolean;
   isMCG: boolean;
-  dbBackup: WizardState['backingStorage']['dbBackup'];
+  isExternalPostgresEnabled: boolean;
+  dbBackup: WizardState['advancedSettings']['dbBackup'];
 };
 
 export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
@@ -61,6 +62,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
   isDbBackup,
   isMCG,
   dbBackup,
+  isExternalPostgresEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const { schedule, volumeSnapshot } = dbBackup;
@@ -80,20 +82,17 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
     )
   );
 
-  const hasVSCs = (volumeSnapshotClasses ?? []).length > 0;
-  const shouldDisableBackup = isMCG && vscLoaded && !hasVSCs;
-
   const selectedFrequency = getCronTimeFromSchedule(schedule);
   const handleSelect = (type: CronTime) => {
     dispatch({
-      type: 'backingStorage/dbBackup/schedule',
+      type: 'advancedSettings/dbBackup/schedule',
       payload: CRON_MAP[type],
     });
   };
 
   const onVolumeSnapshotChange = (vscName: string) => {
     dispatch({
-      type: 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass',
+      type: 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
       payload: vscName,
     });
   };
@@ -105,8 +104,11 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
     let newValue: number;
     switch (funcType) {
       case 'onChange': {
-        const value = Number((event?.target as HTMLInputElement)?.value);
-        newValue = Math.max(1, Math.min(value || 1, 12));
+        const value = (event.target as HTMLInputElement).value;
+        const numValue = parseInt(value, 10);
+        newValue = isNaN(numValue)
+          ? 0
+          : Math.max(1, Math.min(numValue || 1, 12));
         break;
       }
       case 'onMinus': {
@@ -119,7 +121,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
       }
     }
     dispatch({
-      type: 'backingStorage/dbBackup/volumeSnapshot/maxSnapshots',
+      type: 'advancedSettings/dbBackup/volumeSnapshot/maxSnapshots',
       payload: newValue,
     });
   };
@@ -133,16 +135,16 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
           'Opt in for automatic backup for MultiCloud Object Gateway metadata database'
         )}
         isChecked={isDbBackup}
-        isDisabled={shouldDisableBackup}
+        isDisabled={!vscLoaded || isExternalPostgresEnabled}
         onChange={() =>
           dispatch({
-            type: 'backingStorage/setDbBackup',
+            type: 'advancedSettings/setDbBackup',
             payload: !isDbBackup,
           })
         }
         className="odf-advanced-settings__checkbox"
       />
-      {shouldDisableBackup && (
+      {!vscLoaded && (
         <Alert
           variant="info"
           title={t('No volume snapshot class present')}
