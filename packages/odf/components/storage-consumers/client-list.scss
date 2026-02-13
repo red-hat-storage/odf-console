@@ -3,12 +3,12 @@
 }
 
 .odf-storage-client-list__no-client-msg-text {
-  color: var(--pf-v5-global--disabled-color--100);
+  color: var(--pf-t--global--text--color--disabled);
   text-align: center;
   width: 43vw;
 }
 
 .odf-storage-client-list__no-client-msg-icon {
-  width: var(--pf-v5-global--icon--FontSize--xl);
-  height: var(--pf-v5-global--icon--FontSize--xl);
+  width: var(--pf-t--global--icon--size--font--4xl);
+  height: var(--pf-t--global--icon--size--font--4xl);
 }

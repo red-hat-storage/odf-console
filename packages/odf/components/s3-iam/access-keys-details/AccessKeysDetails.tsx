@@ -15,8 +15,6 @@ import {
   EmptyState,
   EmptyStateActions,
   EmptyStateFooter,
-  EmptyStateHeader,
-  EmptyStateIcon,
   EmptyStateVariant,
 } from '@patternfly/react-core';
 import { KeyIcon, PlusCircleIcon } from '@patternfly/react-icons';
@@ -75,7 +73,7 @@ const AccessKeysDetailsContent: React.FC<AccessKeysDetailsContentProps> = ({
 
   return (
     <div className="odf-m-pane__body">
-      <div className="pf-v5-u-mt-md">
+      <div className="pf-v6-u-mt-md">
         <Alert
           title={t('You can define only {{maxKeys}} access keys', {
             maxKeys: MAX_ACCESS_KEYS,
@@ -102,12 +100,12 @@ const AccessKeysDetailsContent: React.FC<AccessKeysDetailsContentProps> = ({
           )}
         </Grid>
         {iamAccessKeys.length === 0 && (
-          <EmptyState variant={EmptyStateVariant.lg}>
-            <EmptyStateHeader
-              titleText={t('No access keys found')}
-              icon={<EmptyStateIcon icon={KeyIcon} />}
-              headingLevel="h4"
-            />
+          <EmptyState
+            headingLevel="h4"
+            icon={KeyIcon}
+            titleText={t('No access keys found')}
+            variant={EmptyStateVariant.lg}
+          >
             <EmptyStateFooter>
               <EmptyStateActions>
                 <Button

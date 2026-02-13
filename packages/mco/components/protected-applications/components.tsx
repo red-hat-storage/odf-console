@@ -17,6 +17,7 @@ import {
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
@@ -28,10 +29,8 @@ import {
   ButtonVariant,
   Grid,
   GridItem,
-  Modal,
-  ModalVariant,
   PopoverPosition,
-  Text,
+  Content,
   Tooltip,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
@@ -87,11 +86,11 @@ export const EnrollApplicationButton: React.FC<{
   return (
     <div
       className={classNames({
-        'pf-v5-u-display-flex pf-v5-u-flex-direction-column pf-v5-u-flex-direction-row-on-lg mco-protected-applications__popover':
+        'pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-flex-direction-row-on-lg mco-protected-applications__popover':
           !isNoDataMessage,
       })}
     >
-      <div className="pf-v5-u-ml-md pf-v5-u-mt-md">
+      <div className="pf-v6-u-ml-md pf-v6-u-mt-md">
         <ActionDropdown
           id="enroll-application-types"
           aria-label={t('Enroll application')}
@@ -114,11 +113,11 @@ export const EnrollApplicationButton: React.FC<{
         statusBody={
           <div
             className={classNames({
-              'pf-v5-u-ml-md': true,
-              'pf-v5-u-mt-md': isNoDataMessage,
+              'pf-v6-u-ml-md': true,
+              'pf-v6-u-mt-md': isNoDataMessage,
             })}
           >
-            <OutlinedQuestionCircleIcon className="pf-v5-u-mr-sm" />
+            <OutlinedQuestionCircleIcon className="pf-v6-u-mr-sm" />
             {t('Application types and their enrollment processes')}
           </div>
         }
@@ -126,18 +125,18 @@ export const EnrollApplicationButton: React.FC<{
         popoverPosition={PopoverPosition.bottom}
       >
         <Trans t={t}>
-          <p className="co-break-word pf-v5-u-font-weight-bold">
+          <p className="co-break-word pf-v6-u-font-weight-bold">
             ACM discovered applications:
           </p>
-          <p className="co-break-word pf-v5-u-mb-sm">
+          <p className="co-break-word pf-v6-u-mb-sm">
             Based on modular and microservices architecture, uses operators for
             dynamically created kubernetes objects. Eg:{' '}
-            <span className="pf-v5-u-font-weight-bold">
+            <span className="pf-v6-u-font-weight-bold">
               CloudPak, Custom-created applications
             </span>
           </p>
-          <p className="co-break-word pf-v5-u-mb-md">
-            <span className="pf-v5-u-font-weight-bold">
+          <p className="co-break-word pf-v6-u-mb-md">
+            <span className="pf-v6-u-font-weight-bold">
               Enrollment process:
             </span>{' '}
             Discovered applications are enrolled under disaster recovery through
@@ -146,19 +145,19 @@ export const EnrollApplicationButton: React.FC<{
             or resource label.
           </p>
 
-          <p className="co-break-word pf-v5-u-font-weight-bold">
+          <p className="co-break-word pf-v6-u-font-weight-bold">
             ACM managed applications:
           </p>
-          <p className="co-break-word pf-v5-u-mb-sm">
+          <p className="co-break-word pf-v6-u-mb-sm">
             Based on subscribing to one or more Kubernetes resource repositories
             (channel resource) that contains resources that are deployed on
             managed clusters. Eg:{' '}
-            <span className="pf-v5-u-font-weight-bold">
+            <span className="pf-v6-u-font-weight-bold">
               ApplicationSet, Subscriptions
             </span>
           </p>
           <p className="co-break-word">
-            <span className="pf-v5-u-font-weight-bold">
+            <span className="pf-v6-u-font-weight-bold">
               Enrollment process:
             </span>{' '}
             Individually protect managed application with flexibility for
@@ -174,7 +173,7 @@ export const EnrollApplicationButton: React.FC<{
 export const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <Bullseye className="pf-v5-u-mt-xl">
+    <Bullseye className="pf-v6-u-mt-xl">
       {t('No protected applications found')}
     </Bullseye>
   );
@@ -236,7 +235,7 @@ export const AlertMessages: React.FC = () => {
           variant={message.variant}
           title={message.title}
           key={message.key}
-          className="pf-v5-u-mt-xs pf-v5-u-mb-xs"
+          className="pf-v6-u-mt-xs pf-v6-u-mb-xs"
           {...(message?.isInline ? { isInline: message.isInline } : {})}
           {...(message?.actionClose
             ? { actionClose: message.actionClose }
@@ -333,13 +332,13 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   };
 
   if (!view) {
-    return <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />;
+    return <DataUnavailableError className="pf-v6-u-pt-xl pf-v6-u-pb-xl" />;
   }
 
   const hasData = applicationType && namespaces.length > 0;
 
   if (!hasData) {
-    return <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />;
+    return <DataUnavailableError className="pf-v6-u-pt-xl pf-v6-u-pb-xl" />;
   }
 
   const applicationName = getName(view);
@@ -354,62 +353,90 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
 
   return (
     <>
-      <Grid hasGutter>
-        <GridItem span={3} className="pf-v5-u-text-align-center">
-          <Text component="h6" className="pf-v5-u-font-weight-bold">
-            {t('Application type')}
-          </Text>
-        </GridItem>
-        <GridItem span={6} className="pf-v5-u-text-align-center">
-          <Text component="h6" className="pf-v5-u-font-weight-bold">
-            {isDiscovered
-              ? t('Protected namespaces')
-              : t('Destination namespace')}
-          </Text>
-        </GridItem>
-        <GridItem span={3} className="pf-v5-u-text-align-center">
-          <Text component="h6" className="pf-v5-u-font-weight-bold">
-            {t('Volume Consistency groups')}
-          </Text>
-        </GridItem>
+      {isDiscovered ? (
+        <Grid hasGutter>
+          <GridItem span={3} className="pf-v6-u-text-align-center">
+            <Content component="h6" className="pf-v6-u-font-weight-bold">
+              {t('Application type')}
+            </Content>
+          </GridItem>
+          <GridItem span={6} className="pf-v6-u-text-align-center">
+            <Content component="h6" className="pf-v6-u-font-weight-bold">
+              {t('Protected namespaces')}
+            </Content>
+          </GridItem>
+          <GridItem span={3} className="pf-v6-u-text-align-center">
+            <Content component="h6" className="pf-v6-u-font-weight-bold">
+              {t('Volume Consistency groups')}
+            </Content>
+          </GridItem>
 
-        <GridItem span={3} className="pf-v5-u-text-align-center">
-          <Text>{applicationType}</Text>
-        </GridItem>
-        <GridItem
-          span={6}
-          className="pf-v5-u-text-align-center pf-v5-u-mx-auto"
-        >
-          {namespaces.map((namespace: string) => (
-            <div key={namespace} className="pf-v5-u-mb-sm">
-              <ResourceNameWIcon
-                resourceModel={NamespaceModel}
-                resourceName={namespace}
-              />
-            </div>
-          ))}
-        </GridItem>
-        <GridItem span={3} className="pf-v5-u-text-align-center">
-          {namespaces.map((namespace: string) => (
-            <div key={namespace} className="pf-v5-u-mb-sm">
-              {consistencyGroupsCount?.[namespace] ? (
-                <Button
-                  variant={ButtonVariant.link}
-                  aria-label={t(`View details for ${namespace}`, {
-                    namespace,
-                  })}
-                  onClick={() => openModal(namespace)}
-                  isInline
-                >
-                  {consistencyGroupsCount[namespace]}
-                </Button>
-              ) : (
-                <Text className="pf-v5-u-color-200">-</Text>
-              )}
-            </div>
-          ))}
-        </GridItem>
-      </Grid>
+          <GridItem span={3} className="pf-v6-u-text-align-center">
+            <Content component="p">{applicationType}</Content>
+          </GridItem>
+          <GridItem
+            span={6}
+            className="pf-v6-u-text-align-center pf-v6-u-mx-auto"
+          >
+            {enrolledNamespaces.map((namespace: string) => (
+              <div key={namespace} className="pf-v6-u-mb-sm">
+                <ResourceNameWIcon
+                  resourceModel={NamespaceModel}
+                  resourceName={namespace}
+                />
+              </div>
+            ))}
+          </GridItem>
+          <GridItem span={3} className="pf-v6-u-text-align-center ">
+            {enrolledNamespaces.map((namespace: string) => (
+              <div key={namespace} className="pf-v6-u-mb-sm">
+                {consistencyGroupsCount?.[namespace] ? (
+                  <Button
+                    variant={ButtonVariant.link}
+                    aria-label={t(`View details for ${namespace}`, {
+                      namespace,
+                    })}
+                    onClick={() => openModal(namespace)}
+                    isInline
+                  >
+                    {consistencyGroupsCount[namespace]}
+                  </Button>
+                ) : (
+                  <Content component="p" className="pf-v6-u-color-200">
+                    -
+                  </Content>
+                )}
+              </div>
+            ))}
+          </GridItem>
+        </Grid>
+      ) : (
+        <Grid hasGutter>
+          <GridItem span={6} className="pf-v6-u-text-align-center">
+            <Content component="h6" className="pf-v6-u-font-weight-bold">
+              {t('Application type')}
+            </Content>
+          </GridItem>
+          <GridItem span={6} className="pf-v6-u-text-align-center">
+            <Content component="h6" className="pf-v6-u-font-weight-bold">
+              {t('Destination namespace')}
+            </Content>
+          </GridItem>
+
+          <GridItem span={6} className="pf-v6-u-text-align-center">
+            <Content component="p">{applicationType}</Content>
+          </GridItem>
+          <GridItem
+            span={6}
+            className="pf-v6-u-text-align-center pf-v6-u-mx-auto"
+          >
+            <ResourceNameWIcon
+              resourceModel={NamespaceModel}
+              resourceName={destinationNamespace}
+            />
+          </GridItem>
+        </Grid>
+      )}
 
       {selectedNamespace && (
         <ConsistencyGroupsModal

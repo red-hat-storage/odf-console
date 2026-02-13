@@ -72,12 +72,12 @@ export const ObjectVersionsTableRow: React.FC<
         <span>
           {object.apiResponse.versionId}
           {isLatest && (
-            <Label color="purple" className="pf-v5-u-ml-xs" isCompact>
+            <Label color="purple" className="pf-v6-u-ml-xs" isCompact>
               {t('Latest')}
             </Label>
           )}
           {isDeleteMarker && (
-            <Label color="purple" className="pf-v5-u-ml-xs" isCompact>
+            <Label color="purple" className="pf-v6-u-ml-xs" isCompact>
               {t('Delete marker')}
             </Label>
           )}

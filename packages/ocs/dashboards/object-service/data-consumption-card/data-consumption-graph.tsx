@@ -9,7 +9,6 @@ import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { GraphEmpty } from '@odf/shared/charts';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
 import {
   Chart,
   ChartAxis,
@@ -19,7 +18,8 @@ import {
   ChartThemeColor,
   ChartTooltip,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
+import * as _ from 'lodash-es';
 import {
   getDataConsumptionChartData,
   numberInWords,
@@ -114,7 +114,7 @@ const DataConsumptionGraph: React.FC<DataConsumptionGraphProps> = ({
               orientation="horizontal"
               symbolSpacer={5}
               gutter={2}
-              height={30}
+              // height={30}
               padding={{ top: 50, bottom: 0 }}
               style={{ labels: { fontSize: 8 } }}
             />

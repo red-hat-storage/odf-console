@@ -20,8 +20,8 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { Modal, ModalVariant } from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
@@ -249,7 +249,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
       header={
         <>
           <ModalTitle>{MODAL_TITLE}</ModalTitle>
-          <StoragePoolDefinitionText className="pf-v5-u-ml-xl" />
+          <StoragePoolDefinitionText className="pf-v6-u-ml-xl" />
         </>
       }
       variant={ModalVariant.medium}

@@ -23,10 +23,10 @@ const PolicyFooterSection: React.FC = () => {
   const loadedWOError = drPoliciesLoaded && !drPoliciesLoadError;
   const policyCount = drPolicies?.length;
   return (
-    <div className="pf-v5-u-mt-md">
+    <div className="pf-v6-u-mt-md">
       <Button
         variant={ButtonVariant.secondary}
-        className="pf-v5-u-mb-xs mco-policy--footer"
+        className="pf-v6-u-mb-xs mco-policy--footer"
         onClick={() =>
           navigate(
             `${DR_BASE_ROUTE}/policies/${referenceForModel(DRPolicyModel)}/~new`
@@ -61,12 +61,12 @@ const EnrollAppFooterSection: React.FC = () => {
   const { t } = useCustomTranslation();
 
   return (
-    <div className="mco-enroll-app--footer pf-v5-u-mt-md">
+    <div className="mco-enroll-app--footer pf-v6-u-mt-md">
       <EnrollApplicationButton toggleVariant="secondary" isNoDataMessage />
       <Trans t={t}>
-        <p className="text-muted pf-v5-u-mt-sm">
+        <p className="text-muted pf-v6-u-mt-sm">
           View enrolled apps under{' '}
-          <span className="pf-v5-u-font-weight-bold">
+          <span className="pf-v6-u-font-weight-bold">
             Protected applications
           </span>
           .
@@ -81,11 +81,11 @@ export const HeaderSection: React.FC<{
   heading: string;
 }> = ({ stepCount, heading }) => {
   return (
-    <p className="pf-v5-u-mb-md">
-      <span className="pf-v5-u-mr-sm">
+    <p className="pf-v6-u-mb-md">
+      <span className="pf-v6-u-mr-sm">
         <StepsCountBadge stepCount={stepCount} />
       </span>{' '}
-      <span className="pf-v5-u-font-weight-bold">{heading}</span>
+      <span className="pf-v6-u-font-weight-bold">{heading}</span>
     </p>
   );
 };
