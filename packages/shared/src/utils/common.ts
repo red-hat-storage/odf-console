@@ -55,6 +55,7 @@ export const getGVK = (label: string) => {
 };
 
 export const getGVKofResource = (resource: K8sResourceCommon) => {
+  if (!resource) return null;
   const { apiVersion: apiGroupVersion, kind } = resource;
   const [apiGroup, apiVersion] = apiGroupVersion.split('/');
   return referenceFor(apiGroup)(apiVersion)(kind);

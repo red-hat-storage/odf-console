@@ -55,7 +55,10 @@ export const generateDeploymentsInNodes = (
 /**
  * Generate a NodeModel from Nodes of a particular Zone
  */
-export const generateNodesInZone = (nodes: NodeKind[]): NodeModel[] => {
+export const generateNodesInZone = (
+  nodes: NodeKind[],
+  nodeOsdCountMap?: Record<string, number>
+): NodeModel[] => {
   const zone = getTopologyDomain(nodes[0]);
 
   const group: NodeModel = {
@@ -76,9 +79,11 @@ export const generateNodesInZone = (nodes: NodeKind[]): NodeModel[] => {
 
   const nodesInZone: NodeModel[] = nodes.map((node) => {
     const id = getUID(node);
+    const nodeName = getName(node);
+    const osdCount = nodeOsdCountMap?.[nodeName] || 0;
     const nodeModel = createNode({
       id,
-      label: getName(node),
+      label: nodeName,
       labelPosition: LabelPosition.bottom,
       badge: MachineModel.abbr,
       shape: NodeShape.ellipse,
@@ -86,6 +91,7 @@ export const generateNodesInZone = (nodes: NodeKind[]): NodeModel[] => {
       showDecorators: true,
       resource: node,
       kind: MachineModel.kind,
+      osdCount,
     });
     return nodeModel;
   });

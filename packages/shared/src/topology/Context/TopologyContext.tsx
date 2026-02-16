@@ -11,12 +11,17 @@ export type NodeDeploymentMap = {
   [nodeName: string]: DeploymentKind[];
 };
 
+export type NodeOsdCountMap = {
+  [nodeName: string]: number;
+};
+
 type DefaultContext = {
   zones: string[];
   nodes: NodeKind[];
   storageCluster: StorageClusterKind;
   deployments: DeploymentKind[];
   nodeDeploymentMap: NodeDeploymentMap;
+  nodeOsdCountMap?: NodeOsdCountMap;
   visualizationLevel: TopologyViewLevel;
   activeNode?: string;
   setActiveNode?: (node: string) => void;
@@ -33,6 +38,7 @@ const defaultContext: DefaultContext = {
   activeNode: null,
   setActiveNode: null,
   nodeDeploymentMap: {},
+  nodeOsdCountMap: {},
   selectedElement: null,
   setSelectedElement: () => null,
 };
