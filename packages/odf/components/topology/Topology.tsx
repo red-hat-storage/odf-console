@@ -72,6 +72,7 @@ import {
 import {
   STEP_INTO_EVENT,
   STEP_TO_CLUSTER,
+  STEP_TO_OSD_INFORMATION,
   ZOOM_IN,
   ZOOM_OUT,
 } from './constants';
@@ -92,9 +93,14 @@ import './topology.scss';
 type SideBarProps = {
   onClose: any;
   isExpanded: boolean;
+  shouldToggleToOSDInformation: boolean;
 };
 
-const Sidebar: React.FC<SideBarProps> = ({ onClose, isExpanded }) => {
+const Sidebar: React.FC<SideBarProps> = ({
+  onClose,
+  isExpanded,
+  shouldToggleToOSDInformation,
+}) => {
   const { selectedElement: element } = React.useContext(TopologyDataContext);
   const data = element?.getData();
   const resource = data?.resource;
@@ -104,6 +110,7 @@ const Sidebar: React.FC<SideBarProps> = ({ onClose, isExpanded }) => {
       resource={resource}
       onClose={onClose}
       isExpanded={isExpanded}
+      shouldToggleToOSDInformation={shouldToggleToOSDInformation}
     />
   );
 };
@@ -156,6 +163,7 @@ const TopologyViewComponent: React.FC = () => {
   const lastNode = React.useRef<string>();
 
   const [isSideBarOpen, setSideBarOpen] = React.useState(false);
+  const [isOSDInformationOpen, setIsOSDInformationOpen] = React.useState(false);
   const {
     nodes,
     storageCluster,
@@ -163,6 +171,7 @@ const TopologyViewComponent: React.FC = () => {
     visualizationLevel,
     activeNode,
     nodeDeploymentMap,
+    nodeOsdCountMap,
     setSelectedElement,
   } = React.useContext(TopologyDataContext);
 
@@ -178,11 +187,26 @@ const TopologyViewComponent: React.FC = () => {
         setSelectedElement(element);
         setSelectedIds([ids[0]]);
         setSideBarOpen(true);
+        setIsOSDInformationOpen(false);
       }
+    };
+    const onStepToOSDInformation = ({ id }) => {
+      const element = controller.getElementById(id);
+      if (!!element && !_.has(element.getData(), 'zone')) {
+        setSelectedElement(element);
+        setSelectedIds([id]);
+        setSideBarOpen(true);
+      }
+      setIsOSDInformationOpen(true);
+      setSideBarOpen(true);
     };
     controller.addEventListener(SELECTION_EVENT, selectionHandler);
     controller.addEventListener(STEP_INTO_EVENT, onCloseSideBar);
     controller.addEventListener(STEP_TO_CLUSTER, onCloseSideBar);
+    controller.addEventListener(
+      STEP_TO_OSD_INFORMATION,
+      onStepToOSDInformation
+    );
     return () => {
       controller.removeEventListener(SELECTION_EVENT, selectionHandler);
       controller.removeEventListener(STEP_INTO_EVENT, onCloseSideBar);
@@ -192,7 +216,9 @@ const TopologyViewComponent: React.FC = () => {
 
   React.useEffect(() => {
     const groupedNodes = groupNodesByZones(nodes);
-    const dataModel = groupedNodes.map(generateNodesInZone);
+    const dataModel = groupedNodes.map((nodesInZone) =>
+      generateNodesInZone(nodesInZone, nodeOsdCountMap)
+    );
     const flattenedDataModel = _.flatten(dataModel);
     const children = flattenedDataModel
       .filter((item) => item.type === 'group')
@@ -245,7 +271,9 @@ const TopologyViewComponent: React.FC = () => {
     }
     if (needsUpdate && TopologyViewLevel.NODES === visualizationLevel) {
       const groupedNodes = groupNodesByZones(nodes);
-      const dataModel = groupedNodes.map(generateNodesInZone);
+      const dataModel = groupedNodes.map((nodesInZone) =>
+        generateNodesInZone(nodesInZone, nodeOsdCountMap)
+      );
       const flattenedDataModel = _.flatten(dataModel);
       const children = flattenedDataModel
         .filter((item) => item.type === 'group')
@@ -273,6 +301,7 @@ const TopologyViewComponent: React.FC = () => {
     currentView,
     deployments,
     nodeDeploymentMap,
+    nodeOsdCountMap,
     nodes,
     storageCluster,
     visualizationLevel,
@@ -349,22 +378,25 @@ const TopologyViewComponent: React.FC = () => {
     );
     const newZoneAndNodeGroup =
       newNodesInNewZones.length > 0
-        ? generateNodesInZone(newNodesInNewZones)
+        ? generateNodesInZone(newNodesInNewZones, nodeOsdCountMap)
         : [];
 
     const addedNodes = [];
     if (newNodesInExistingZones.length > 0) {
       requiresUpdate = true;
       newNodesInExistingZones.forEach((newNode) => {
+        const nodeName = getName(newNode);
+        const osdCount = nodeOsdCountMap?.[nodeName] || 0;
         const nodeModel = createNode({
           id: getUID(newNode),
-          label: getName(newNode),
+          label: nodeName,
           labelPosition: LabelPosition.bottom,
           badge: NodeModel.abbr,
           shape: NodeShape.ellipse,
           showStatusDecorator: true,
           showDecorators: true,
           resource: newNode,
+          osdCount,
         });
         addedNodes.push(nodeModel);
         filtererdGraphNodes.forEach((n) =>
@@ -412,13 +444,19 @@ const TopologyViewComponent: React.FC = () => {
     if (requiresUpdate) {
       controller.fromModel(updatedModel);
     }
-  }, [controller, nodes, deployments, nodeDeploymentMap, storageCluster]);
+  }, [
+    controller,
+    nodes,
+    deployments,
+    nodeDeploymentMap,
+    nodeOsdCountMap,
+    storageCluster,
+  ]);
 
   const toggleVisualizationLevel = React.useCallback(
     () => controller.fireEvent(STEP_TO_CLUSTER),
     [controller]
   );
-
   return (
     <TopologyView
       controlBar={
@@ -449,7 +487,13 @@ const TopologyViewComponent: React.FC = () => {
           })}
         />
       }
-      sideBar={<Sidebar onClose={onCloseSideBar} isExpanded={isSideBarOpen} />}
+      sideBar={
+        <Sidebar
+          onClose={onCloseSideBar}
+          isExpanded={isSideBarOpen}
+          shouldToggleToOSDInformation={isOSDInformationOpen}
+        />
+      }
       sideBarResizable={true}
       minSideBarSize="400px"
       sideBarOpen={isSideBarOpen}
@@ -499,6 +543,14 @@ const Topology: React.FC = () => {
   const [daemonSets, daemonSetsLoaded, daemonSetError] =
     useSafeK8sWatchResource<K8sResourceCommon[]>(odfDaemonSetResource);
 
+  const osdPods = React.useMemo(
+    () =>
+      podsLoaded && !podsError
+        ? pods.filter((pod) => pod.metadata.labels?.['app'] === 'rook-ceph-osd')
+        : [],
+    [pods, podsLoaded, podsError]
+  );
+
   // ToDo (epic 4422): This will work as Internal mode cluster will only be created in ODF install namespace.
   // Still, make this generic so that this works even if it gets created in a different namespace.
   const storageCluster: StorageClusterKind = getStorageClusterInNs(
@@ -517,6 +569,19 @@ const Topology: React.FC = () => {
   const memoizedStatefulSets = useDeepCompareMemoize(statefulSets, true);
   const memoizedReplicaSets = useDeepCompareMemoize(replicaSets, true);
   const memoizedDaemonSets = useDeepCompareMemoize(daemonSets, true);
+
+  const nodeOsdCountMap = React.useMemo(() => {
+    if (!osdPods) return {};
+
+    return memoizedNodes.reduce<Record<string, number>>((acc, node) => {
+      const nodeName = getName(node);
+      const osdCount = osdPods.filter(
+        (pod): pod is PodKind => pod != null && pod?.spec?.nodeName === nodeName
+      ).length;
+      acc[nodeName] = osdCount;
+      return acc;
+    }, {});
+  }, [memoizedNodes, osdPods]);
 
   const nodeDeploymentMap = React.useMemo(
     () =>
@@ -586,6 +651,11 @@ const Topology: React.FC = () => {
       activeNode,
       setActiveNode,
       nodeDeploymentMap,
+      nodeOsdCountMap,
+      pods: memoizedPods,
+      podsLoaded,
+      podsLoadError: podsError,
+      osdPods,
       selectedElement,
       setSelectedElement: setSelectedElement as any,
     };
@@ -596,10 +666,13 @@ const Topology: React.FC = () => {
     memoizedDeployments,
     visualizationLevel,
     activeNode,
-    setActiveNode,
     nodeDeploymentMap,
+    nodeOsdCountMap,
+    memoizedPods,
+    podsLoaded,
+    podsError,
+    osdPods,
     selectedElement,
-    setSelectedElement,
   ]);
 
   const topologySearchContextData = React.useMemo(() => {
