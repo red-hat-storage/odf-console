@@ -1,14 +1,18 @@
 import * as React from 'react';
-import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
+import {
+  CephObjectStoreModel,
+  NooBaaSystemModel,
+  StorageClusterKind,
+} from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { CephClusterModel } from '@odf/shared/models';
-import { getName, getNamespace } from '@odf/shared/selectors';
-import { K8sResourceKind, StorageSystemKind } from '@odf/shared/types';
+import { getNamespace } from '@odf/shared/selectors';
+import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel, isOCSStorageSystem } from '@odf/shared/utils';
+import { referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,
   useK8sWatchResource,
@@ -48,7 +52,7 @@ const AcceptableHealthStates = [
   NA,
 ];
 
-export const useGetOCSHealth: UseGetOCSHealth = (systems) => {
+export const useGetOCSHealth: UseGetOCSHealth = (storageCluster) => {
   const { t } = useCustomTranslation();
 
   const [cephData, cephLoaded, cephLoadError] =
@@ -66,138 +70,154 @@ export const useGetOCSHealth: UseGetOCSHealth = (systems) => {
   });
 
   return React.useMemo(() => {
-    let unifiedHealthStates: UnifiedHealthStates = {};
-    systems?.forEach((system: StorageSystemKind) => {
-      if (isOCSStorageSystem(system)) {
-        const systemName = getName(system);
-        const systemNamespace = getNamespace(system);
+    // Check if any required resources are still loading (not loaded and no error)
+    const isLoading =
+      (!cephLoaded && !cephLoadError) ||
+      (!cephObjLoaded && !cephObjLoadError) ||
+      (!noobaaLoaded && !noobaaLoadError);
 
-        const cephCluster = cephData?.find(
-          (ceph) => getNamespace(ceph) === systemNamespace
-        );
-        const cephObjectStore = cephObjData?.find(
-          (cephObj) => getNamespace(cephObj) === systemNamespace
-        );
-        const noobaaCluster = noobaaData?.find(
-          (noobaa) => getNamespace(noobaa) === systemNamespace
-        );
+    if (isLoading) {
+      return {
+        healthState: HealthState.LOADING,
+        message: t('Loading'),
+      };
+    }
 
-        const cephHealthState = getCephHealthState(
-          {
-            ceph: {
-              data: cephCluster,
-              loaded: cephLoaded,
-              loadError: cephLoadError,
+    // Check if all resources failed to load (network errors)
+    const allResourcesErrored =
+      (cephLoadError || !cephLoaded) &&
+      (cephObjLoadError || !cephObjLoaded) &&
+      (noobaaLoadError || !noobaaLoaded);
+
+    if (
+      allResourcesErrored &&
+      (cephLoadError || cephObjLoadError || noobaaLoadError)
+    ) {
+      return {
+        healthState: HealthState.UNKNOWN,
+        message: t('Unknown'),
+      };
+    }
+
+    let blockFileHealthState: SubsystemHealth = {
+      healthState: HealthState.UNKNOWN,
+      message: t('Unknown'),
+    };
+
+    let objectHealthState: SubsystemHealth = {
+      healthState: HealthState.UNKNOWN,
+      message: t('Unknown'),
+    };
+
+    const systemNamespace = getNamespace(storageCluster);
+    const cephCluster = cephData?.find(
+      (ceph) => getNamespace(ceph) === systemNamespace
+    );
+    const cephObjectStore = cephObjData?.find(
+      (cephObj) => getNamespace(cephObj) === systemNamespace
+    );
+    const noobaaCluster = noobaaData?.find(
+      (noobaa) => getNamespace(noobaa) === systemNamespace
+    );
+
+    const cephHealthState = getCephHealthState(
+      {
+        ceph: {
+          data: cephCluster,
+          loaded: cephLoaded,
+          loadError: cephLoadError,
+        },
+      },
+      t
+    ).state;
+
+    const interimRGWState =
+      !cephObjLoadError && cephObjLoaded
+        ? getRGWHealthState(cephObjectStore).state
+        : NA;
+
+    // there will only be single NooBaa instance (even for multiple StorageSystems)
+    // and its status should only be linked with the corresponding StorageSystem/StorageCluster.
+    const interimMCGState = !_.isEmpty(noobaaCluster)
+      ? getNooBaaState(
+          [
+            {
+              response: noobaaHealthStatus,
+              error: noobaaQueryLoadError,
             },
-          },
-          t
-        ).state;
+          ],
+          t,
+          {
+            loaded: noobaaLoaded,
+            loadError: noobaaLoadError,
+            data: noobaaData,
+          }
+        ).state
+      : NA;
 
-        const interimRGWState =
-          !cephObjLoadError && cephObjLoaded
-            ? getRGWHealthState(cephObjectStore).state
-            : NA;
+    const mcgState = AcceptableHealthStates.includes(interimMCGState)
+      ? HealthState.OK
+      : HealthState.ERROR;
 
-        // there will only be single NooBaa instance (even for multiple StorageSystems)
-        // and its status should only be linked with the corresponding StorageSystem/StorageCluster.
-        const interimMCGState = !_.isEmpty(noobaaCluster)
-          ? getNooBaaState(
-              [
-                {
-                  response: noobaaHealthStatus,
-                  error: noobaaQueryLoadError,
-                },
-              ],
-              t,
-              {
-                loaded: noobaaLoaded,
-                loadError: noobaaLoadError,
-                data: noobaaData,
-              }
-            ).state
-          : NA;
+    const rgwState = AcceptableHealthStates.includes(interimRGWState)
+      ? HealthState.OK
+      : HealthState.ERROR;
 
-        const mcgState = AcceptableHealthStates.includes(interimMCGState)
+    blockFileHealthState.healthState = AcceptableHealthStates.includes(
+      cephHealthState
+    )
+      ? HealthState.OK
+      : HealthState.ERROR;
+    blockFileHealthState.message = AcceptableHealthStates.includes(
+      cephHealthState
+    )
+      ? t('Healthy')
+      : t('Unhealthy');
+
+    objectHealthState.healthState =
+      mcgState === HealthState.ERROR || rgwState === HealthState.ERROR
+        ? HealthState.ERROR
+        : HealthState.OK;
+    objectHealthState.message =
+      mcgState === HealthState.ERROR || rgwState === HealthState.ERROR
+        ? t('Unhealthy')
+        : t('Healthy');
+
+    const unifiedHealthMessage =
+      blockFileHealthState.healthState === HealthState.OK &&
+      objectHealthState.healthState === HealthState.OK
+        ? t('Healthy')
+        : t('Unhealthy');
+
+    const unifiedHealthStates = {
+      healthState:
+        blockFileHealthState.healthState === HealthState.OK &&
+        objectHealthState.healthState === HealthState.OK
           ? HealthState.OK
-          : HealthState.ERROR;
-
-        const rgwState = AcceptableHealthStates.includes(interimRGWState)
-          ? HealthState.OK
-          : HealthState.ERROR;
-
-        const cephStorageHealthStatus = AcceptableHealthStates.includes(
-          cephHealthState
-        )
-          ? HealthState.OK
-          : HealthState.ERROR;
-
-        const unifiedObjectHealth =
-          mcgState === HealthState.ERROR || rgwState === HealthState.ERROR
-            ? HealthState.ERROR
-            : HealthState.OK;
-
-        let unifiedHealthState: UnifiedHealthState;
-        if (
-          unifiedObjectHealth === HealthState.ERROR &&
-          cephStorageHealthStatus === HealthState.ERROR
-        ) {
-          unifiedHealthState = {
-            rawHealthState: '2',
-            errorMessages: [
-              t('Block and File service is unhealthy'),
-              t('Object service is unhealthy'),
-            ],
-          };
-        } else if (unifiedObjectHealth === HealthState.ERROR) {
-          unifiedHealthState = {
-            rawHealthState: '1',
-            errorMessages: [t('Object service is unhealthy')],
-            errorComponent:
-              rgwState !== HealthState.OK ? 'block-file' : 'object',
-          };
-        } else if (cephStorageHealthStatus === HealthState.ERROR) {
-          unifiedHealthState = {
-            rawHealthState: '1',
-            errorMessages: [t('Block and File service is unhealthy')],
-            errorComponent: 'block-file',
-          };
-        } else {
-          unifiedHealthState = {
-            rawHealthState: '0',
-          };
-        }
-
-        unifiedHealthStates[`${systemName}${systemNamespace}`] =
-          unifiedHealthState;
-      }
-    });
-
+          : HealthState.ERROR,
+      message: unifiedHealthMessage,
+    };
     return unifiedHealthStates;
   }, [
-    systems,
     cephData,
-    cephLoaded,
     cephLoadError,
+    cephLoaded,
     cephObjData,
-    cephObjLoaded,
     cephObjLoadError,
+    cephObjLoaded,
     noobaaData,
-    noobaaLoaded,
-    noobaaLoadError,
     noobaaHealthStatus,
+    noobaaLoadError,
+    noobaaLoaded,
     noobaaQueryLoadError,
+    storageCluster,
     t,
   ]);
 };
 
-type UnifiedHealthState = {
-  rawHealthState: string;
-  errorMessages?: string[];
-  errorComponent?: string;
+type SubsystemHealth = {
+  healthState: HealthState;
+  message: string;
 };
 
-type UnifiedHealthStates = {
-  [systemNameAndNamespace: string]: UnifiedHealthState;
-};
-
-type UseGetOCSHealth = (systems: StorageSystemKind[]) => UnifiedHealthStates;
+type UseGetOCSHealth = (system: StorageClusterKind) => SubsystemHealth;
