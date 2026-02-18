@@ -46,3 +46,7 @@ export const getNodeZone = (node: NodeKind): string =>
   node.metadata.labels?.['topology.kubernetes.io/zone'];
 
 export const getRack = (node: NodeKind) => node.metadata.labels?.[RACK_LABEL];
+
+export const getNodeArchitecture = (node: NodeKind): string =>
+  (node?.status?.nodeInfo as { architecture?: string } | undefined)
+    ?.architecture ?? '';
