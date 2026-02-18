@@ -67,7 +67,7 @@ export const StatusCard: React.FC = () => {
   const operatorStatus = operator?.status?.phase;
 
   // Todo(bipuladh): In 4.11 this should come in from an extension point
-  const ocsHealthStatuses = useGetOCSHealth(systems);
+  const ocsHealthStatuses = useGetOCSHealth(null);
 
   const parsedHealthData =
     !healthError &&
