@@ -136,6 +136,7 @@ const CreateStorageConsumer: React.FC = () => {
           storageClasses: [
             { name: `${clusterName}-ceph-rbd` },
             { name: `${clusterName}-cephfs` },
+            { name: `${odfNamespace}.noobaa.io` },
           ],
           volumeSnapshotClasses: [
             { name: `${clusterName}-rbdplugin-snapclass` },

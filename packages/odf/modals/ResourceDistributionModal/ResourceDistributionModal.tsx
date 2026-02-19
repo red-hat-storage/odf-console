@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NOOBAA_PROVISIONER } from '@odf/core/constants';
 import {
   getName,
   StorageConsumerModel,
@@ -62,6 +63,9 @@ const resources: WatchK8sResources<Resources> = {
   },
 };
 
+const isCephOrNooBaaProvisioner = (provisioner: string): boolean =>
+  isCephProvisioner(provisioner) || _.endsWith(provisioner, NOOBAA_PROVISIONER);
+
 export const StorageClassRowGenerator: React.FC<
   RowGeneratorProps<StorageClassResourceKind>
 > = ({ resource: storageClass, onSelect, isSelected, rowIndex }) => {
@@ -118,7 +122,7 @@ export const DistributeResourceModal: React.FC<
 
   const data = useK8sWatchResources<Resources>(resources);
   const filteredStorageClasses = data.storageClasses.data.filter((res) =>
-    isCephProvisioner(getProvisioner(res))
+    isCephOrNooBaaProvisioner(getProvisioner(res))
   );
   const filteredVolumeSnapshotClasses = data.volumeSnapshotClasses.data.filter(
     (res) => isCephProvisioner(res?.driver)
@@ -155,7 +159,7 @@ export const DistributeResourceModal: React.FC<
         volumeSnapshotClass: {},
       };
       newSelectedResources.storageClass = data.storageClasses.data
-        .filter((sc) => isCephProvisioner(getProvisioner(sc)))
+        .filter((sc) => isCephOrNooBaaProvisioner(getProvisioner(sc)))
         .reduce((acc, storageClass) => {
           acc[getName(storageClass)] = preselectedStorageClasses?.includes(
             getName(storageClass)
