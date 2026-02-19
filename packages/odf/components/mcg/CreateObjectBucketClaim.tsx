@@ -47,6 +47,7 @@ import {
   TextContent,
 } from '@patternfly/react-core';
 import NamespaceSafetyBox from '../../components/utils/safety-box';
+import { useIsClientCluster } from '../../hooks';
 import { useODFNamespaceSelector } from '../../redux';
 import { isObjectSC } from '../../utils';
 import { ReplicationPolicyForm, Rule } from './replication-policy-form';
@@ -147,6 +148,8 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   const { t } = useCustomTranslation();
   const { state, dispatch, namespace, control, fieldRequirements } = props;
   const isNoobaa = state.scProvisioner?.includes(NOOBAA_PROVISIONER);
+  const [isClientCluster] = useIsClientCluster();
+  const allowBucketClass = isNoobaa && !isClientCluster;
 
   const { odfNamespace } = useODFNamespaceSelector();
 
@@ -204,7 +207,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       obj.metadata.generateName = 'bucketclaim-';
       obj.spec.generateBucketName = 'bucket-';
     }
-    if (state.bucketClass && isNoobaa) {
+    if (state.bucketClass && allowBucketClass) {
       if (!!state.replicationRuleFormData.length) {
         const replicationPolicy = createReplicationRulesAndStringify(
           state.replicationRuleFormData,
@@ -220,6 +223,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     }
     dispatch({ type: 'setPayload', payload: obj });
   }, [
+    allowBucketClass,
     namespace,
     state.name,
     state.scName,
@@ -300,7 +304,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
           />
         )}
       />
-      {isNoobaa && (
+      {allowBucketClass && (
         <>
           <FormGroupController
             name="bucketclass"
@@ -332,19 +336,17 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
               />
             )}
           />
-          {isNoobaa && (
-            <FormGroup>
-              <Checkbox
-                id="enable-replication"
-                label={t('Enable replication')}
-                isChecked={replicationEnabled}
-                description={t(
-                  'This option provides higher resiliency of objects stored in NooBaa buckets'
-                )}
-                onChange={onChangeReplication}
-              />
-            </FormGroup>
-          )}
+          <FormGroup>
+            <Checkbox
+              id="enable-replication"
+              label={t('Enable replication')}
+              isChecked={replicationEnabled}
+              description={t(
+                'This option provides higher resiliency of objects stored in NooBaa buckets'
+              )}
+              onChange={onChangeReplication}
+            />
+          </FormGroup>
           {replicationEnabled && (
             <>
               <FormGroup>
@@ -392,9 +394,11 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
   const initialNamespace = React.useRef<string>(namespace);
   const submitBtnId = 'obc-submit-btn';
   const navigate = useNavigate();
+  const [isClientCluster] = useIsClientCluster();
   const { obcFormSchema, fieldRequirements } = useObcFormSchema(
     namespace,
-    state
+    state,
+    isClientCluster
   );
 
   const resolver = useYupValidationResolver(obcFormSchema);
