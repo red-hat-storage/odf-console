@@ -111,7 +111,7 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
               onChange={(_event, checked) => setForceDeletion(checked)}
               data-test="force-deletion-checkbox"
               description={t(
-                'Erases all associated data and Ceph/Rook resources. Recommended only if the storage used by this StorageConsumer is no longer needed.'
+                'Erases all associated data and Ceph/Rook resources, including NooBaa OBC buckets and credentials. Recommended only if the storage used by this StorageConsumer is no longer needed.'
               )}
             />
           </FormGroup>

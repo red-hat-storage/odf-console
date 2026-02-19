@@ -6,6 +6,8 @@ export const OCS_PROVISIONERS = [
   'ceph.rook.io/bucket',
 ];
 
+export const NOOBAA_PROVISIONER = 'noobaa.io/obc';
+
 export const IBM_PROVISIONERS = ['spectrumscale.csi.ibm.com'];
 
 // Block and file storage provisioners

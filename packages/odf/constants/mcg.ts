@@ -95,6 +95,5 @@ export enum NamespacePolicyType {
 }
 
 export const RGW_PROVISIONER = 'ceph.rook.io/bucket';
-export const NOOBAA_PROVISIONER = 'noobaa.io/obc';
 
 export const ATTACH_DEPLOYMENT = 'ATTACH_DEPLOYMENT';

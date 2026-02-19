@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { NOOBAA_PROVISIONER } from '@odf/core/constants';
 import { projectResource } from '@odf/core/resources';
 import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
 import {
@@ -12,7 +11,11 @@ import {
   NooBaaObjectBucketClaimModel,
   NooBaaBucketClassModel,
 } from '@odf/shared';
-import { formSettings, DEFAULT_NS } from '@odf/shared/constants';
+import {
+  NOOBAA_PROVISIONER,
+  formSettings,
+  DEFAULT_NS,
+} from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
@@ -22,7 +25,11 @@ import { ProjectModel, StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel, ALL_NAMESPACES_KEY } from '@odf/shared/utils';
+import {
+  isClientPlugin,
+  referenceForModel,
+  ALL_NAMESPACES_KEY,
+} from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   getAPIVersionForModel,
@@ -146,6 +153,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   const { t } = useCustomTranslation();
   const { state, dispatch, namespace, control, fieldRequirements } = props;
   const isNoobaa = state.scProvisioner?.includes(NOOBAA_PROVISIONER);
+  const allowBucketClass = isNoobaa && !isClientPlugin();
 
   const { odfNamespace } = useODFNamespaceSelector();
 
@@ -203,7 +211,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       obj.metadata.generateName = 'bucketclaim-';
       obj.spec.generateBucketName = 'bucket-';
     }
-    if (state.bucketClass && isNoobaa) {
+    if (state.bucketClass && allowBucketClass) {
       if (!!state.replicationRuleFormData.length) {
         const replicationPolicy = createReplicationRulesAndStringify(
           state.replicationRuleFormData,
@@ -219,11 +227,11 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     }
     dispatch({ type: 'setPayload', payload: obj });
   }, [
+    allowBucketClass,
     namespace,
     state.name,
     state.scName,
     state.bucketClass,
-    isNoobaa,
     dispatch,
     state.replicationRuleFormData,
     state.logReplicationInfo,
@@ -299,7 +307,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
           />
         )}
       />
-      {isNoobaa && (
+      {allowBucketClass && (
         <>
           <FormGroupController
             name="bucketclass"
@@ -331,19 +339,17 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
               />
             )}
           />
-          {isNoobaa && (
-            <FormGroup>
-              <Checkbox
-                id="enable-replication"
-                label={t('Enable replication')}
-                isChecked={replicationEnabled}
-                description={t(
-                  'This option provides higher resiliency of objects stored in NooBaa buckets'
-                )}
-                onChange={onChangeReplication}
-              />
-            </FormGroup>
-          )}
+          <FormGroup>
+            <Checkbox
+              id="enable-replication"
+              label={t('Enable replication')}
+              isChecked={replicationEnabled}
+              description={t(
+                'This option provides higher resiliency of objects stored in NooBaa buckets'
+              )}
+              onChange={onChangeReplication}
+            />
+          </FormGroup>
           {replicationEnabled && (
             <>
               <FormGroup>

@@ -1,6 +1,7 @@
 import {
   ODF_PROXY_ROOT_PATH,
   PLUGIN_OPENSHIFT_CI,
+  NOOBAA_PROVISIONER,
 } from '@odf/shared/constants';
 import { StorageClassModel, StorageClusterModel } from '@odf/shared/models';
 import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
@@ -17,7 +18,7 @@ import {
   consoleFetchJSON,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { SECOND, NOOBAA_PROVISIONER } from './constants';
+import { SECOND } from './constants';
 import { isExternalCluster, isClusterIgnored } from './utils';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageSystem CRD
