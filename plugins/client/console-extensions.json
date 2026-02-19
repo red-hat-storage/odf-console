@@ -38,6 +38,56 @@
     }
   },
   {
+    "type": "console.resource/create",
+    "properties": {
+      "model": {
+        "group": "objectbucket.io",
+        "version": "v1alpha1",
+        "kind": "ObjectBucketClaim"
+      },
+      "component": { "$codeRef": "createOBC.CreateOBCPage" }
+    },
+    "flags": {
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "objectbucketclaims",
+      "name": "%plugin__odf-client-console~Object Bucket Claims%",
+      "contextId": "odf-object-service",
+      "after": "buckets",
+      "href": "objectbucket.io~v1alpha1~ObjectBucketClaim",
+      "component": { "$codeRef": "mcg.OBCListPage" }
+    },
+    "flags": {
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/resource/objectbucket.io~v1alpha1~ObjectBucketClaim/create/~new",
+      "exact": true,
+      "component": { "$codeRef": "createOBC.CreateOBCPage" }
+    },
+    "flags": {
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/resource/ns/:namespace/objectbucket.io~v1alpha1~ObjectBucketClaim/:resourceName",
+      "exact": false,
+      "component": { "$codeRef": "mcg.OBCDetailsPage" }
+    },
+    "flags": {
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "odfConsoleRedux",

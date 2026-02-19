@@ -1,3 +1,4 @@
+import { NOOBAA_PROVISIONER } from '@odf/shared/constants';
 import * as _ from 'lodash-es';
 
 export enum StoreProviders {
@@ -95,6 +96,6 @@ export enum NamespacePolicyType {
 }
 
 export const RGW_PROVISIONER = 'ceph.rook.io/bucket';
-export const NOOBAA_PROVISIONER = 'noobaa.io/obc';
+export { NOOBAA_PROVISIONER };
 
 export const ATTACH_DEPLOYMENT = 'ATTACH_DEPLOYMENT';

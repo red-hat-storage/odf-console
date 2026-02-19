@@ -8,7 +8,9 @@
   },
   "exposedModules": {
     "dashboard": "@odf/client/src/components/dashboards/client-dashboard",
+    "createOBC": "@odf/client/src/components/mcg/index",
     "install": "@odf/client/src/components/create-client/create-client",
-    "features": "@odf/client/src/features"
+    "features": "@odf/client/src/features",
+    "mcg": "@odf/client/src/components/mcg/index"
   }
 }

@@ -1,4 +1,9 @@
 // Reexports MCG imports from ODF core
+import { CreateOBCPage } from '@odf/core/components/mcg/CreateObjectBucketClaim';
+import {
+  OBCDetailsPage,
+  OBCListPage,
+} from '@odf/core/components/mcg/ObjectBucketClaim';
 import ObjectServicePage from '@odf/core/components/object-service-nav-item/object-service';
 import BucketOverview from '@odf/core/components/s3-browser/bucket-overview/BucketOverview';
 import BucketsListPage from '@odf/core/components/s3-browser/buckets-list-page/bucketsListPage';
@@ -19,6 +24,9 @@ export {
   BucketOverview as s3BucketOverview,
   CorsDetailsPage,
   CreateBucket,
+  CreateOBCPage,
+  OBCDetailsPage,
+  OBCListPage,
   CreateCorsRule,
   CreateLifecycleRule,
   EditCorsRule,
