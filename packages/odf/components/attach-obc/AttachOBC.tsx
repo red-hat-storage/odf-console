@@ -28,6 +28,7 @@ import {
   ActionGroup,
   Button,
 } from '@patternfly/react-core';
+import { useIsClientCluster } from '../../hooks';
 import { getAttachOBCPatch } from '../../utils';
 import { CreateOBCForm } from '../mcg/CreateObjectBucketClaim';
 import { commonReducer, defaultState } from '../mcg/state';
@@ -48,9 +49,12 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
     namespace
   );
 
+  const [isClientCluster] = useIsClientCluster();
+
   const { obcFormSchema, fieldRequirements } = useObcFormSchema(
     namespace,
-    state
+    state,
+    isClientCluster
   );
 
   const schema = !createOBC
