@@ -11,6 +11,7 @@ import { ValidationMessage } from '@odf/core/components/utils/common-odf-install
 import { resourceRequirementsTooltip } from '@odf/core/constants';
 import { NodeData, ResourceProfile, ValidationType } from '@odf/core/types';
 import {
+  getNodeArchitectureFromState,
   getOsdAmount,
   getResourceProfileRequirements,
   isResourceProfileAllowed,
@@ -50,12 +51,14 @@ const getValidation = (
   if (!profile) {
     return null;
   }
+  const architecture = getNodeArchitectureFromState(nodes);
 
   return isResourceProfileAllowed(
     profile,
     getTotalCpu(nodes),
     getTotalMemoryInGiB(nodes),
-    osdAmount
+    osdAmount,
+    architecture
   )
     ? null
     : ValidationType.RESOURCE_PROFILE;
@@ -64,15 +67,17 @@ const getValidation = (
 type ProfileRequirementsModalTextProps = {
   selectedProfile: ResourceProfile;
   osdAmount: number;
+  architecture?: string;
 };
 
 const ProfileRequirementsModalText: React.FC<
   ProfileRequirementsModalTextProps
-> = ({ selectedProfile, osdAmount }) => {
+> = ({ selectedProfile, osdAmount, architecture }) => {
   const { t } = useCustomTranslation();
   const { minCpu, minMem } = getResourceProfileRequirements(
     selectedProfile,
-    osdAmount
+    osdAmount,
+    architecture
   );
   return (
     <TextContent>
@@ -126,6 +131,7 @@ const ConfigurePerformanceModal: React.FC<StorageClusterActionModalProps> = ({
       getOsdAmount(deviceSet.count, deviceSet.replica)
     )
     .reduce((accumulator: number, current: number) => accumulator + current);
+  const architecture = getNodeArchitectureFromState(selectedNodes);
 
   const onProfileChange = React.useCallback(
     (newProfile: ResourceProfile): void => {
@@ -210,6 +216,7 @@ const ConfigurePerformanceModal: React.FC<StorageClusterActionModalProps> = ({
             key={validation}
             validation={validation}
             className="pf-v5-u-mt-md"
+            architecture={architecture}
           />
         )}
         {errorMessage && (
