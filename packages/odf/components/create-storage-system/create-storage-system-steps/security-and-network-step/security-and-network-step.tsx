@@ -17,11 +17,14 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
   externalStorage,
   supportedExternalStorage,
   systemNamespace,
+  nodes = [],
 }) => {
   const {
     networkType: nwType,
     clusterNetwork,
     publicNetwork,
+    usePublicNetwork,
+    useClusterNetwork,
     encryption,
     kms,
     isMultusAcknowledged,
@@ -79,6 +82,14 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
     });
   };
 
+  const setUsePublicNetwork = (val: boolean) => {
+    dispatch({ type: 'securityAndNetwork/setUsePublicNetwork', payload: val });
+  };
+
+  const setUseClusterNetwork = (val: boolean) => {
+    dispatch({ type: 'securityAndNetwork/setUseClusterNetwork', payload: val });
+  };
+
   return (
     <Form noValidate={false}>
       <Encryption
@@ -97,11 +108,16 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           setCIDRNetwork={setCIDRNetwork}
           cephPublicCIDR={cephPublicCIDR}
           cephClusterCIDR={cephClusterCIDR}
+          usePublicNetwork={usePublicNetwork}
+          useClusterNetwork={useClusterNetwork}
+          setUsePublicNetwork={setUsePublicNetwork}
+          setUseClusterNetwork={setUseClusterNetwork}
           clusterNetwork={clusterNetwork}
           publicNetwork={publicNetwork}
           systemNamespace={systemNamespace}
           isMultusAcknowledged={isMultusAcknowledged}
           setIsMultusAcknowledged={setIsMultusAcknowledged}
+          nodes={nodes}
         />
       )}
       {isExternal && (
@@ -127,4 +143,5 @@ type SecurityAndNetworkProps = {
   externalStorage?: WizardState['backingStorage']['externalStorage'];
   supportedExternalStorage?: ExternalStorage[];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  nodes?: WizardState['nodes'];
 };
