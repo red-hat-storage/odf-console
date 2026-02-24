@@ -114,6 +114,7 @@ export const createWizardNodeState = (
     const labels = node?.metadata?.labels;
     const taints = node?.spec?.taints;
     const architecture = getNodeArchitecture(node);
+    const annotations = node?.metadata?.annotations;
     return {
       name,
       hostName,
@@ -126,6 +127,7 @@ export const createWizardNodeState = (
       labels,
       taints,
       architecture,
+      annotations,
     };
   });
 
@@ -167,9 +169,10 @@ export const capacityAndNodesValidate = (
   if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
-  if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
+  const minNodes = MINIMUM_NODES;
+  if (!enableStretchCluster && nodes.length && nodes.length < minNodes) {
     validations.push(ValidationType.MINIMUMNODES);
-  } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
+  } else if (nodes.length && nodes.length >= minNodes) {
     if (
       !isResourceProfileAllowed(
         resourceProfile,
