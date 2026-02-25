@@ -33,6 +33,7 @@ import {
   createScaleLocalClusterPayload,
   labelNodes,
 } from '../common/payload';
+import { ExternalRegistryFormSection } from './ExternalRegistryFormSection';
 import { LUNsTable } from './LUNsTable';
 import {
   createCSIDriver,
@@ -43,6 +44,7 @@ import {
 import { SANSystemComponentState, initialComponentState } from './types';
 import { useDeviceFinder } from './useDeviceFinder';
 import useSANSystemFormValidation from './useFormValidation';
+import { usePersistentRegistryCheck } from './usePersistentRegistryCheck';
 
 type CreateSANSystemFormProps = {
   componentState: SANSystemComponentState;
@@ -79,7 +81,14 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     control,
     formState: { isSubmitted },
     watch,
+    getValues,
   } = useSANSystemFormValidation(existingFileSystemNames);
+
+  const [
+    hasPersistentRegistry,
+    hasPersistentRegistryLoading,
+    hasPersistentRegistryError,
+  ] = usePersistentRegistryCheck();
 
   const selectedNodes = componentState.selectedNodes;
 
@@ -87,9 +96,19 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
 
   // Watch form fields
   const lunGroupName = watch('lunGroupName');
+  const imageRegistryUrl = watch('imageRegistryUrl');
+  const imageRepositoryName = watch('imageRepositoryName');
+  const secretKey = watch('secretKey');
+  const caCertificateSecret = watch('caCertificateSecret');
+  const privateKeySecret = watch('privateKeySecret');
 
   const isFormValid = !!(
     lunGroupName &&
+    imageRegistryUrl &&
+    imageRepositoryName &&
+    secretKey &&
+    caCertificateSecret &&
+    privateKeySecret &&
     componentState.selectedNodes.length > 0 &&
     componentState.selectedLUNs.size > 0
   );
@@ -109,7 +128,25 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     try {
       if (!isLocalClusterConfigured) {
         await labelNodes(componentState.selectedNodes)();
-        await createScaleLocalClusterPayload()();
+        const externalKmmRegistry =
+          !hasPersistentRegistry &&
+          (() => {
+            const values = getValues();
+            return values.imageRegistryUrl &&
+              values.imageRepositoryName &&
+              values.secretKey &&
+              values.caCertificateSecret &&
+              values.privateKeySecret
+              ? {
+                  imageRegistryUrl: values.imageRegistryUrl,
+                  imageRepositoryName: values.imageRepositoryName,
+                  secretKey: values.secretKey,
+                  caCertificateSecret: values.caCertificateSecret,
+                  privateKeySecret: values.privateKeySecret,
+                }
+              : undefined;
+          })();
+        await createScaleLocalClusterPayload(externalKmmRegistry)();
         await createCSIDriver();
         await configureMetricsNamespaceLabels();
       }
@@ -135,6 +172,8 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     componentState.selectedLUNs,
     componentState.selectedNodes,
     isLocalClusterConfigured,
+    hasPersistentRegistry,
+    getValues,
     lunGroupName,
     navigate,
     t,
@@ -146,6 +185,14 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         <FormGroup label={t('Connection name')} fieldId="connectionName">
           <div data-test="san-connection-name">{t('SAN-based storage')}</div>
         </FormGroup>
+        {!hasPersistentRegistryLoading &&
+          !hasPersistentRegistryError &&
+          !hasPersistentRegistry && (
+            <ExternalRegistryFormSection
+              control={control}
+              fieldRequirements={fieldRequirements}
+            />
+          )}
         <FormGroup label={t('Select local cluster nodes')} isRequired>
           <NodesSection
             isDisabled={isLocalClusterConfigured}
