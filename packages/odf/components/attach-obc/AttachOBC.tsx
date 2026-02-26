@@ -10,7 +10,11 @@ import { DeploymentModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { DeploymentKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
+import {
+  referenceForModel,
+  resourcePathFromModel,
+  isClientPlugin,
+} from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   k8sCreate,
@@ -50,7 +54,8 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
 
   const { obcFormSchema, fieldRequirements } = useObcFormSchema(
     namespace,
-    state
+    state,
+    isClientPlugin()
   );
 
   const schema = !createOBC

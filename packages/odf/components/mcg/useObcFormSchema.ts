@@ -20,7 +20,8 @@ export type UseObcBaseSchema = {
 
 const useObcFormSchema = (
   namespace: string,
-  state: State
+  state: State,
+  isClient: boolean = false
 ): UseObcBaseSchema => {
   const { t } = useCustomTranslation();
   const [data, loaded, loadError] = useK8sList(
@@ -64,7 +65,7 @@ const useObcFormSchema = (
     const obcFormSchema = Yup.object({
       'sc-dropdown': Yup.string().required(),
       bucketclass: Yup.string().when('sc-dropdown', {
-        is: (value: string) => !!value && isNoobaa,
+        is: (value: string) => !!value && isNoobaa && !isClient,
         then: (schema: Yup.StringSchema) => schema.required(),
       }),
     }).concat(obcNameSchema);
@@ -74,7 +75,7 @@ const useObcFormSchema = (
         obcFormSchema as unknown as UseObcBaseSchema['obcFormSchema'],
       fieldRequirements,
     };
-  }, [data, loadError, loaded, state.scProvisioner, t]);
+  }, [data, isClient, loadError, loaded, state.scProvisioner, t]);
 };
 
 export default useObcFormSchema;
