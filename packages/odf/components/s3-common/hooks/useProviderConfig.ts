@@ -2,6 +2,7 @@ import * as React from 'react';
 import { S3ProviderType } from '@odf/core/types';
 import { IAM_PROVIDER_REGISTRY } from '../registry/iam-providers';
 import { S3_PROVIDER_REGISTRY, ProviderConfig } from '../registry/s3-providers';
+import { S3_VECTORS_PROVIDER_REGISTRY } from '../registry/s3-vectors-providers';
 import { ClientType } from '../types';
 import { useSystemInfo } from './useSystemInfo';
 
@@ -21,7 +22,9 @@ export const useProviderConfig = (
     const registryEntry =
       type === ClientType.IAM
         ? IAM_PROVIDER_REGISTRY
-        : S3_PROVIDER_REGISTRY[providerType];
+        : type === ClientType.S3_VECTORS
+          ? S3_VECTORS_PROVIDER_REGISTRY
+          : S3_PROVIDER_REGISTRY[providerType];
 
     if (registryEntry.staticConfig) {
       const staticConfig = registryEntry.staticConfig;
