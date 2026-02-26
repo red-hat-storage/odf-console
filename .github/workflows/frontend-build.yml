@@ -19,7 +19,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
-      - run: yarn install --check-cache
+      - name: Install dependencies
+        run: yarn install
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: false
       - run: yarn build
       - run: yarn build-mco
       - run: yarn build-client
