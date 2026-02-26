@@ -6,9 +6,8 @@ import {
   MenuToggleElement,
   Select,
   SelectOption,
-  TextContent,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { ProviderStateMap } from '../../constants';
 import { ProviderNames } from '../../types';
@@ -99,7 +98,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
       onClick={onToggleClick}
       isDisabled={isLengthUnity(allowedKMSProviders)}
       isExpanded={isOpen}
-      className="pf-v5-c-form-control"
+      className="pf-v6-c-form-control"
     >
       {selectedProvider.name}
     </MenuToggle>
@@ -108,11 +107,11 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   return (
     <div className="ocs-storage-class-encryption__form-dropdown--padding">
       {!isWizardFlow && (
-        <TextContent className="ocs-install-kms__heading">
-          <Text component={TextVariants.h3}>
+        <Content className="ocs-install-kms__heading">
+          <Content component={ContentVariants.h3}>
             {t('Connect to a Key Management Service')}
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       )}
       <FormGroup
         fieldId="kms-provider"

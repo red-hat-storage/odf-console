@@ -5,7 +5,7 @@ import {
 } from '@odf/core/types';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Text, TextContent, TextVariants } from '@patternfly/react-core';
+import { Content, ContentVariants } from '@patternfly/react-core';
 import { getExternalStorage } from '../../utils';
 import { WizardDispatch, WizardState } from '../reducer';
 
@@ -34,9 +34,11 @@ export const ConnectionDetails: React.FC<ConnectionDetailsProps> = ({
 
   return (
     <>
-      <TextContent>
-        <Text component={TextVariants.h3}>{t('Connection details')}</Text>
-      </TextContent>
+      <Content>
+        <Content component={ContentVariants.h3}>
+          {t('Connection details')}
+        </Content>
+      </Content>
       {Component && <Component setFormState={setForm} formState={state} />}
     </>
   );

@@ -7,10 +7,9 @@ import { S3Commands } from '@odf/shared/s3';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { numberInputOnChange } from '@odf/shared/utils';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { DateTime } from 'luxon';
 import {
-  Modal,
-  ModalVariant,
   Button,
   ButtonVariant,
   Alert,
@@ -86,7 +85,7 @@ const ExpirationInput: React.FC<ExpirationInputProps> = ({
         onChange={numberInputOnChange(minValue, maxValue, onInputChange)}
         onMinus={(): void => onInputChange(inputValue - 1)}
         onPlus={(): void => onInputChange(inputValue + 1)}
-        className="pf-v5-u-mr-xs"
+        className="pf-v6-u-mr-xs"
       />
       <StaticDropdown
         defaultSelection={TimeUnits.Minutes}
@@ -109,7 +108,7 @@ const CopyURL: React.FC<CopyURLProps> = ({ urlDetails }) => {
 
   return (
     <FormGroup label={t('Share link')} fieldId="share-link">
-      <div className="pf-v5-u-text-align-right text-muted">
+      <div className="pf-v6-u-text-align-right text-muted">
         <b>{t('Valid until: ')}</b>
         {urlDetails.current.validUntil}{' '}
       </div>
@@ -118,7 +117,7 @@ const CopyURL: React.FC<CopyURLProps> = ({ urlDetails }) => {
       </ClipboardCopy>
       <Alert
         variant={AlertVariant.info}
-        className="pf-v5-u-mt-sm"
+        className="pf-v6-u-mt-sm"
         isInline
         isPlain
         title={t(
@@ -222,7 +221,7 @@ const PresignedURLModal: React.FC<CommonModalProps<PresignedURLModalProps>> = ({
       </div>
       <Alert
         variant={AlertVariant.info}
-        className="pf-v5-u-mt-sm pf-v5-u-mb-sm"
+        className="pf-v6-u-mt-sm pf-v6-u-mb-sm"
         isInline
         title={t(
           'A third-party entity can access the object using this presigned URL, which allows sharing without requiring a login, until the URL expires.'

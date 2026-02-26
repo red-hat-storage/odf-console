@@ -5,18 +5,16 @@ import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import {
-  Modal,
   Button,
-  Text,
+  Content,
   TextInput,
-  ModalVariant,
   ValidatedOptions,
   TextInputTypes,
-  TextVariants,
-  TextContent,
+  ContentVariants,
   Alert,
   AlertVariant,
   AlertActionCloseButton,
@@ -126,29 +124,29 @@ const EmptyBucketModal: React.FC<CommonModalProps<EmptyBucketModalProps>> = ({
       onClose={closeModal}
       variant={ModalVariant.medium}
       description={
-        <TextContent className="text-muted">
-          <Text component={TextVariants.p}>
+        <Content className="text-muted">
+          <Content component={ContentVariants.p}>
             {t(
               'Emptying the bucket will permanentaly delete all objects. This action cannot be undone.'
             )}
-          </Text>
-          <Text component={TextVariants.p}>
+          </Content>
+          <Content component={ContentVariants.p}>
             {t(
               'Any objects added during this process may also be deleted. To prevent adding new objects during the emptying process, consider updating the bucket policy (through CLI).'
             )}
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       }
       actions={[
         <div>
           {inProgress && (
-            <Text className="text-muted pf-v5-u-mb-sm">
+            <Content component="p" className="text-muted pf-v6-u-mb-sm">
               <em>
                 {t(
                   'The bucket is being emptied. This may take a while to complete.'
                 )}
               </em>
-            </Text>
+            </Content>
           )}
           <Button
             key="confirm"
@@ -168,7 +166,7 @@ const EmptyBucketModal: React.FC<CommonModalProps<EmptyBucketModalProps>> = ({
     >
       <FormGroup
         label={getTextInputLabel(t, bucketName)}
-        className="pf-v5-u-mt-2xl pf-v5-u-mb-sm"
+        className="pf-v6-u-mt-2xl pf-v6-u-mb-sm"
         fieldId="empty-bucket"
       >
         <TextInput
@@ -222,7 +220,7 @@ export const EmptyBucketAlerts: React.FC<EmptyBucketAlertProps> = ({
         variant={AlertVariant.danger}
         title={t('Cannot empty bucket')}
         isInline
-        className="co-alert pf-v5-u-mb-md"
+        className="co-alert pf-v6-u-mb-md"
         actionClose={
           <AlertActionCloseButton
             onClose={() => {
@@ -261,7 +259,7 @@ export const EmptyBucketAlerts: React.FC<EmptyBucketAlertProps> = ({
       variant={AlertVariant.success}
       title={t('Successfully emptied bucket ') + emptyBucketResponse.bucketName}
       isInline
-      className="co-alert pf-v5-u-mb-md"
+      className="co-alert pf-v6-u-mb-md"
       actionClose={
         <AlertActionCloseButton
           onClose={() => {

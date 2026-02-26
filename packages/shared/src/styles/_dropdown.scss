@@ -1,8 +1,11 @@
 .dropdown--full-width {
     &,
-    .pf-v5-c-dropdown__toggle,
-    .pf-v5-c-menu-toggle {
+    .pf-v6-c-dropdown__toggle,
+    .pf-v6-c-menu-toggle {
       justify-content: space-between;
       width: 100%;
+    }
+    .pf-v6-c-menu__content {
+      width: inherit;
     }
 }

@@ -1,19 +1,19 @@
 .odf-topology {
     &-search-bar {
         width: 100%;
-        border-bottom: 1px solid var(--pf-v5-global--palette--black-200);
-        padding: var(--pf-v5-global--spacer--sm);
+        border-bottom: 1px solid var(--pf-t--global--border--color--default);
+        padding: var(--pf-t--global--spacer--sm);
     }
-    &-search-bar__search .pf-v5-c-input-group {
+    &-search-bar__search .pf-v6-c-input-group {
         max-width: 30%;
         display: inline-flex;
         border-style: outset;
     }
     &-search-bar__expand {
-        margin-left: var(--pf-v5-global--spacer--lg);
+        margin-left: var(--pf-t--global--spacer--lg);
     }
     &-search-bar__expand-icon {
-        margin-right: var(--pf-v5-global--spacer--sm);
+        margin-right: var(--pf-t--global--spacer--sm);
     }
     &-search-bar__expand-button {
       text-decoration: underline;

@@ -1,13 +1,9 @@
 import * as React from 'react';
 import { ButtonBar, useCustomTranslation } from '@odf/shared';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { observer } from 'mobx-react-lite';
 import { Trans } from 'react-i18next';
-import {
-  Button,
-  ButtonVariant,
-  Modal,
-  ModalVariant,
-} from '@patternfly/react-core';
+import { Button, ButtonVariant } from '@patternfly/react-core';
 import { uploadStore } from '../../../components/s3-browser/upload-objects/store';
 
 type AbortUploadsModalProps = {
@@ -40,14 +36,14 @@ export const AbortUploadsModal: React.FC<AbortUploadsModalProps> = observer(
                 <Button
                   variant={ButtonVariant.primary}
                   onClick={onAbort}
-                  className="pf-v5-u-mr-xs"
+                  className="pf-v6-u-mr-xs"
                 >
                   {t('Yes, cancel')}
                 </Button>
                 <Button
                   variant={ButtonVariant.secondary}
                   onClick={() => setModalOpen(false)}
-                  className="pf-v5-u-ml-xs"
+                  className="pf-v6-u-ml-xs"
                 >
                   {t('No, continue uploads')}
                 </Button>

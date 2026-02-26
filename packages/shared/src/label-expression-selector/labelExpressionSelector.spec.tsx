@@ -99,7 +99,7 @@ describe('Label expression selector', () => {
     // Find the Values section and its combobox input
     const valuesSection = screen
       .getByText('Values')
-      .closest('.pf-v5-c-form__group');
+      .closest('.pf-v6-c-form__group');
     const valueInput = valuesSection?.querySelector('[role="combobox"]');
 
     if (!valueInput) {

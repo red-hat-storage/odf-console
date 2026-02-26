@@ -9,9 +9,8 @@ import {
   BreadcrumbItem,
   Split,
   SplitItem,
-  TextContent,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { K8sResourceKind } from '../types/k8s';
 import './page-heading.scss';
@@ -32,7 +31,7 @@ const BreadCrumbs: React.FC<BreadCrumbsProps> = ({ breadcrumbs }) => (
             crumb.name
           ) : (
             <Link
-              className="pf-v5-c-breadcrumb__link"
+              className="pf-v6-c-breadcrumb__link"
               to={crumb.path}
               data-test-id={`breadcrumb-link-${i}`}
             >
@@ -104,10 +103,10 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
         </Split>
       )}
       <div className="odf-title-details">
-        <TextContent
+        <Content
           className={classNames({ 'odf-m-pane__heading--center': centerText })}
         >
-          <Text component={TextVariants.h1} className="odf-resource-item">
+          <Content component={ContentVariants.h1} className="odf-resource-item">
             <span
               data-test-id="resource-title"
               className="odf-resource-item__resource-name odf-title-status"
@@ -119,8 +118,8 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
                 </ResourceStatus>
               )}
             </span>
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
         {showActions && (
           <div className="odf-actions" data-test-id="details-actions">
             {actions()}
@@ -149,13 +148,13 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
   required,
   id,
 }) => (
-  <TextContent
+  <Content
     className="odf-section-heading"
     style={style}
     data-test-section-heading={text}
     id={id}
   >
-    <Text component={TextVariants.h2}>
+    <Content component={ContentVariants.h2}>
       <span
         className={classNames({
           'odf-required': required,
@@ -164,6 +163,6 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
         {text}
       </span>
       {children}
-    </Text>
-  </TextContent>
+    </Content>
+  </Content>
 );

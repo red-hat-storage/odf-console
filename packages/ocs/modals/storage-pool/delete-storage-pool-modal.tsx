@@ -32,10 +32,10 @@ import {
   Patch,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
-import { Modal, ModalVariant } from '@patternfly/react-core';
 import {
   getFsPoolIndex,
   getScNamesUsingPool,

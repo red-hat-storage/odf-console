@@ -23,8 +23,8 @@ import {
   Button,
   ButtonVariant,
   Divider,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import {
   PencilAltIcon,
@@ -60,13 +60,13 @@ const displayUnknown = (t: TFunction) => (
   <StatusIconAndText
     icon={<UnknownIcon />}
     title={t('Unknown')}
-    className="pf-v5-l-flex__item"
+    className="pf-v6-l-flex__item"
   />
 );
 
 const replicationStatus = (label: string, time: string, t: TFunction) => (
-  <Text component={TextVariants.p} className="pf-v5-l-flex__item">
-    <div className="pf-v5-l-flex">
+  <Content component={ContentVariants.p} className="pf-v6-l-flex__item">
+    <div className="pf-v6-l-flex">
       {label}{' '}
       {time ? (
         t('Last synced on {{syncTime}}', { syncTime: formatTime(time) })
@@ -77,7 +77,7 @@ const replicationStatus = (label: string, time: string, t: TFunction) => (
         </>
       )}
     </div>
-  </Text>
+  </Content>
 );
 enum EmptyPageContentType {
   NamespaceProtected = 'NamespaceProtected',
@@ -95,7 +95,7 @@ const getEmptyPageContentMap = (t: TFunction) => ({
           This managed application namespace is already DR protected. You may
           have protected this namespace while enrolling discovered applications.
         </p>
-        <p className="pf-v5-u-mt-md">
+        <p className="pf-v6-u-mt-md">
           To see disaster recovery information for your applications, go to
           <strong> Protected applications </strong> under&nbsp;
           <strong> Disaster Recovery </strong>.
@@ -282,24 +282,24 @@ export const DRInformationGroup: React.FC<DRInformationGroupProps> = ({
   children,
 }) => {
   return (
-    <div className="pf-v5-u-mb-md">
-      <div className="pf-v5-l-flex">
-        <Text component={TextVariants.h4} className="pf-v5-l-flex__item">
+    <div className="pf-v6-u-mb-md">
+      <div className="pf-v6-l-flex">
+        <Content component={ContentVariants.h4} className="pf-v6-l-flex__item">
           {title}
-        </Text>
+        </Content>
         {!!action && (
           <Button
             variant={ButtonVariant.link}
             icon={action.icon}
             onClick={action.onClick}
-            className="pf-v5-l-flex__item pf-m-align-right"
+            className="pf-v6-l-flex__item pf-m-align-right"
           >
             {action.actionText}
           </Button>
         )}
       </div>
       {children}
-      {divider && <Divider className="pf-v5-u-mt-md" />}
+      {divider && <Divider className="pf-v6-u-mt-md" />}
     </div>
   );
 };
@@ -331,13 +331,13 @@ const DRInformation: React.FC<DRInformationProps> = ({
   return (
     <>
       <DRInformationGroup title={t('Disaster recovery policy details')} divider>
-        <Text component={TextVariants.p}>
+        <Content component={ContentVariants.p}>
           {t('Name: {{name}} ({{status}})', {
             name: getName(drPolicyInfo),
             status: getDRPolicyStatus(isValidated, t),
           })}
-        </Text>
-        <Text component={TextVariants.p}>
+        </Content>
+        <Content component={ContentVariants.p}>
           {isAsync
             ? t(
                 'Replication policy: {{replicationType}}, {{interval}} {{unit}}',
@@ -350,13 +350,13 @@ const DRInformation: React.FC<DRInformationProps> = ({
             : t('Replication policy: {{replicationType}}', {
                 replicationType,
               })}
-        </Text>
-        <Text component={TextVariants.p}>
+        </Content>
+        <Content component={ContentVariants.p}>
           {t('Cluster: {{clusters}}', { clusters: drClusters.join(', ') })}
-        </Text>
-        <Text component={TextVariants.p} className="pf-v5-u-mt-md">
+        </Content>
+        <Content component={ContentVariants.p} className="pf-v6-u-mt-md">
           {t('Assigned on: {{assignedOn}}', { assignedOn })}
-        </Text>
+        </Content>
       </DRInformationGroup>
       <DRInformationGroup
         title={t('Protected application resources')}
@@ -371,28 +371,30 @@ const DRInformation: React.FC<DRInformationProps> = ({
         }
         divider
       >
-        <Text component={TextVariants.p}>
+        <Content component={ContentVariants.p}>
           {t('Placement: {{placements}}', {
             placements: placements.join(', '),
           })}
-        </Text>
+        </Content>
         {appType !== DRApplication.DISCOVERED ? (
           <>
-            <Text component={TextVariants.p}>{t('Label selector:')}</Text>
+            <Content component={ContentVariants.p}>
+              {t('Label selector:')}
+            </Content>
             <Labels labels={pvcSelector} numLabels={4} />
           </>
         ) : (
           <>
-            <Text component={TextVariants.p}>
+            <Content component={ContentVariants.p}>
               {t('Recipe name: {{recipeName}}', {
                 recipeName,
               })}
-            </Text>
-            <Text component={TextVariants.p}>
+            </Content>
+            <Content component={ContentVariants.p}>
               {t('Recipe namespace: {{recipeNamespace}}', {
                 recipeNamespace,
               })}
-            </Text>
+            </Content>
           </>
         )}
         <VolumeGroupReplicationStatus
@@ -420,24 +422,25 @@ const VolumeGroupReplicationStatus: React.FC<VolumeReplicationStatusProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   return (
-    <div className="pf-v5-l-flex">
-      <Text component={TextVariants.p} className="pf-v5-l-flex__item">
+    <div className="pf-v6-l-flex">
+      <Content component={ContentVariants.p} className="pf-v6-l-flex__item">
         {t('Volume group replication: ')}
-      </Text>
+      </Content>
       <StatusIconAndText
         icon={isEnabled ? <GreenCheckCircleIcon /> : <BanIcon />}
         title={isEnabled ? t('Enabled') : t('Disabled')}
-        className="pf-v5-l-flex__item"
+        className="pf-v6-l-flex__item"
       />
       {isEnabled && (
         <Button
+          icon={<ArrowRightIcon />}
           variant={ButtonVariant.link}
           onClick={() =>
             setModalContext(ModalViewContext.VOLUME_CONSISTENCY_GROUP_VIEW)
           }
-          className="pf-v5-l-flex__item pf-m-align-right"
+          className="pf-v6-l-flex__item pf-m-align-right"
         >
-          {t('View volume groups')} <ArrowRightIcon />
+          {t('View volume groups')}
         </Button>
       )}
     </div>

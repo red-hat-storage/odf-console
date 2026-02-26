@@ -20,13 +20,13 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background-color: var(--pf-v5-global--BackgroundColor--100);
+      background-color: var(--pf-t--global--background--color--100);
     }
 
-    .pf-v5-c-table__check {
+    .pf-v6-c-table__check {
       width: 2.62rem;
       min-width: 2.62rem;
-      padding-right: var(--pf-v5-global--spacer--xs);
+      padding-right: var(--pf-t--global--spacer--xs);
     }
   }
 }

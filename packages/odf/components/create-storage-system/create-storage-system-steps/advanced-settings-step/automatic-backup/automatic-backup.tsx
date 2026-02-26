@@ -149,7 +149,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
           variant="info"
           title={t('No volume snapshot class present')}
           isInline
-          className="pf-v5-u-mt-sm"
+          className="pf-v6-u-mt-sm"
         >
           {t(
             'VolumeSnapshotClass is required to use this feature. Ensure a VolumeSnapshotClass is present in the cluster.'
@@ -162,8 +162,8 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
             role="radiogroup"
             fieldId="backup-frequency-radio-group"
             label={t('Backup frequency')}
-            labelIcon={<QuestionCircleIcon />}
-            className="pf-v5-u-mt-md"
+            labelHelp={<QuestionCircleIcon />}
+            className="pf-v6-u-mt-md"
             isRequired
           >
             <Radio
@@ -173,7 +173,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
               description={t('Backup occurs at 12:00 AM every day')}
               isChecked={selectedFrequency === CronTime.DAILY}
               onChange={() => handleSelect(CronTime.DAILY)}
-              className="pf-v5-u-p-sm"
+              className="pf-v6-u-p-sm"
             />
             <Radio
               name="backup-frequency"
@@ -182,7 +182,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
               description={t('Backup occurs at 12:00 AM every Saturday')}
               isChecked={selectedFrequency === CronTime.WEEKLY}
               onChange={() => handleSelect(CronTime.WEEKLY)}
-              className="pf-v5-u-p-sm"
+              className="pf-v6-u-p-sm"
             />
             <Radio
               name="backup-frequency"
@@ -193,13 +193,13 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
               )}
               isChecked={selectedFrequency === CronTime.MONTHLY}
               onChange={() => handleSelect(CronTime.MONTHLY)}
-              className="pf-v5-u-p-sm"
+              className="pf-v6-u-p-sm"
             />
           </FormGroup>
           <FormGroup
             fieldId="backup-copies"
             label={t('Number of backup copies to be retained')}
-            className="pf-v5-u-mb-sm"
+            className="pf-v6-u-mb-sm"
             isRequired
           >
             <NumberInput
@@ -225,12 +225,12 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
             <FormGroup
               fieldId="backup-add-volumeSnapshotClass"
               label={t('Add VolumeSnapshotClass')}
-              className="pf-v5-u-mt-md"
+              className="pf-v6-u-mt-md"
               isRequired
             >
               <SingleSelectDropdown
                 id="volume-snapshot-class-dropdown"
-                className="pf-v5-u-w-50 pf-v5-u-mt-sm"
+                className="pf-v6-u-w-50 pf-v6-u-mt-sm"
                 selectedKey={volumeSnapshot.volumeSnapshotClass}
                 selectOptions={selectOptions(volumeSnapshotClasses)}
                 onChange={onVolumeSnapshotChange}

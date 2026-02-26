@@ -35,8 +35,8 @@ import {
   Radio,
   ExpandableSection,
   TextInputTypes,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Tooltip,
   FormHelperText,
   HelperText,
@@ -344,12 +344,12 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           'data-test': 'create-lvs-storage-class-name',
         }}
       />
-      <Text
-        component={TextVariants.h3}
+      <Content
+        component={ContentVariants.h3}
         className="odf-create-lvs__filter-volumes-text--margin"
       >
         {t('Filter disks by')}
-      </Text>
+      </Content>
       <Radio
         label={<AllNodesLabel count={allNodes?.length} />}
         description={t(
@@ -392,7 +392,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           isDisabled
         />
         <Alert
-          className="pf-v5-u-mt-md"
+          className="pf-v6-u-mt-md"
           variant={diskTypeValidationError.variant || AlertVariant.danger}
           title={diskTypeValidationError.title}
           isInline

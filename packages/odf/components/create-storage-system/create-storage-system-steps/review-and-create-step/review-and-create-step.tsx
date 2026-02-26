@@ -17,9 +17,8 @@ import {
 } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import {
-  TextContent,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   List,
   ListItem,
 } from '@patternfly/react-core';
@@ -28,9 +27,9 @@ import './review-and-create-step.scss';
 
 export const ReviewItem = ({ children, title }) => (
   <div className="odf-review-and-create__review-item">
-    <TextContent>
-      <Text component={TextVariants.h4}>{title}</Text>
-    </TextContent>
+    <Content>
+      <Content component={ContentVariants.h4}>{title}</Content>
+    </Content>
     <List isPlain>{children}</List>
   </div>
 );

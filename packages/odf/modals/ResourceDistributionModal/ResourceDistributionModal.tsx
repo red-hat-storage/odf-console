@@ -19,9 +19,9 @@ import {
   useK8sWatchResources,
   k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
-  Modal,
   Flex,
   FlexItem,
   Button,

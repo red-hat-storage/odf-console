@@ -85,7 +85,7 @@ export const RequestSizeInput: React.FC<RequestSizeInputProps> = ({
   const inputName = `${name}Value`;
   return (
     <div>
-      <div className="pf-v5-c-input-group">
+      <div className="pf-v6-c-input-group">
         <NumberSpinner
           onChange={onValueChange}
           changeValueBy={changeValueBy}

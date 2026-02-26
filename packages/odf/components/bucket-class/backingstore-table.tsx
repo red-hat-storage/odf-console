@@ -275,11 +275,12 @@ const BackingStoreSelection: React.FC<BackingStoreSelectionProps> = (props) => {
             {!hideCreateBackingStore && (
               <FlexItem>
                 <Button
+                  icon={<PlusCircleIcon />}
                   variant="link"
                   onClick={launchModal}
                   className="nb-bc-step-page-form__modal-launcher"
                 >
-                  <PlusCircleIcon /> {t('Create BackingStore ')}
+                  {t('Create BackingStore ')}
                 </Button>
               </FlexItem>
             )}

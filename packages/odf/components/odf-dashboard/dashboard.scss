@@ -1,10 +1,10 @@
 @use './../../style.scss' as shared;
 
 .odf-dashboard-body {
-  background-color: var(--pf-v5-global--BackgroundColor--200);
+  background-color: var(--pf-t--global--background--color--200);
   flex: 1 0 auto;
-  padding: shared.$pf-v5-global-gutter;
-  @media (min-width: shared.$pf-v5-global--breakpoint--xl) {
-    padding: shared.$pf-v5-global-gutter--md;
+  padding: var(--pf-t--global--spacer--gutter--default);
+  @media (min-width: shared.$pf-t--global--breakpoint--xl) {
+    padding: var(--pf-t--global--spacer--gutter--md);
   }
 }

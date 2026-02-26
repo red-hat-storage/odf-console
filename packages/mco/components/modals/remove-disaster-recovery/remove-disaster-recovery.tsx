@@ -21,14 +21,13 @@ import {
   k8sGet,
   k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
 import {
   Alert,
   AlertVariant,
   Button,
   ButtonVariant,
-  Modal,
-  ModalVariant,
 } from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 
@@ -155,7 +154,7 @@ const RemoveDisasterRecoveryModal: React.FC<
       header={
         <ModalHeader>
           <ExclamationTriangleIcon
-            color="var(--pf-v5-global--warning-color--100)"
+            color="var(--pf-t--global--color--status--warning--100)"
             className="icon--spacer"
           />
           {t('Remove disaster recovery?')}

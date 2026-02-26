@@ -22,6 +22,7 @@ import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isCSVSucceeded } from '@odf/shared/utils';
 import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -33,7 +34,6 @@ import {
   Form,
   Grid,
   GridItem,
-  Modal,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
@@ -127,7 +127,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <span>
         {t("After the LocalVolumeSet is created you won't be able to edit it.")}
       </span>
-      <p className="pf-v5-u-pt-sm">
+      <p className="pf-v6-u-pt-sm">
         <strong>{t('Note:')} </strong>
         {arbiterText(t)}
       </p>

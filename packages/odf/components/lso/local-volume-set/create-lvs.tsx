@@ -84,7 +84,7 @@ const CreateLocalVolumeSet: React.FC = () => {
       </div>
       <Form
         noValidate={false}
-        className="odf-m-pane__body pf-v5-u-w-75"
+        className="odf-m-pane__body pf-v6-u-w-75"
         onSubmit={onSubmit}
       >
         <LocalVolumeSetBody

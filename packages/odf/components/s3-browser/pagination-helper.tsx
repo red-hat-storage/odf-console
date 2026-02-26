@@ -183,8 +183,8 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   const totalCount = disableNext ? toCount : t('many');
   return (
-    <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
-      <b className="pf-v5-u-mt-xs">
+    <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-row">
+      <b className="pf-v6-u-mt-xs">
         {t('{{ fromCount }} - {{ toCount }} of {{ totalCount }}', {
           fromCount,
           toCount,
@@ -192,21 +192,19 @@ export const Pagination: React.FC<PaginationProps> = ({
         })}
       </b>
       <Button
+        icon={<AngleLeftIcon />}
         variant={ButtonVariant.plain}
-        className="pf-v5-u-mr-xs"
+        className="pf-v6-u-mr-xs"
         isDisabled={disablePrevious}
         onClick={onPrevious}
-      >
-        <AngleLeftIcon />
-      </Button>
+      />
       <Button
+        icon={<AngleRightIcon />}
         variant={ButtonVariant.plain}
-        className="pf-v5-u-ml-xs"
+        className="pf-v6-u-ml-xs"
         isDisabled={disableNext}
         onClick={onNext}
-      >
-        <AngleRightIcon />
-      </Button>
+      />
     </div>
   );
 };

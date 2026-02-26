@@ -9,8 +9,8 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
+import { ChartDonut, ChartLabel } from '@patternfly/react-charts/victory';
 import * as _ from 'lodash-es';
-import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
 import { Button } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { SelectedNodesTable } from '../capacity-and-nodes-step/selected-nodes-table';
@@ -101,10 +101,7 @@ export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
         title={humanizeBinaryBytes(selectedCapacity).string}
         constrainToVisibleArea
         subTitleComponent={
-          <ChartLabel
-            dy={5}
-            style={{ fill: `var(--pf-v5-global--palette--black-500)` }}
-          />
+          <ChartLabel dy={5} style={{ fill: `var(--pf-t--color--gray--50)` }} />
         }
       />
       <DiskListModal

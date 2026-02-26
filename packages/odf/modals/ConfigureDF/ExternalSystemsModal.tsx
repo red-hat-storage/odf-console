@@ -13,6 +13,7 @@ import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageCluste
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { Modal } from '@patternfly/react-core/deprecated';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Flex,
@@ -21,9 +22,7 @@ import {
   CardHeader,
   CardTitle,
   CardBody,
-  TextContent,
-  Text,
-  Modal,
+  Content,
   Title,
   Button,
   Radio,
@@ -75,7 +74,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     <Flex
       direction={{ default: 'column' }}
       spaceItems={{ default: 'spaceItemsXl', md: 'spaceItemsMd' }}
-      className="pf-v5-u-mt-md"
+      className="pf-v6-u-mt-md"
     >
       <FlexItem>
         <Card
@@ -95,13 +94,13 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
           <CardBody>
             <Flex direction={{ default: 'row' }}>
               <FlexItem>
-                <TextContent>
-                  <Text component="small">
+                <Content>
+                  <Content component="small">
                     {t(
                       'Provision a storage cluster using local devices on your OpenShift nodes.'
                     )}
-                  </Text>
-                </TextContent>
+                  </Content>
+                </Content>
               </FlexItem>
               <FlexItem align={{ default: 'alignRight' }}>
                 <Radio
@@ -132,13 +131,13 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
           <CardBody>
             <Flex direction={{ default: 'row' }}>
               <FlexItem>
-                <TextContent>
-                  <Text component="small">
+                <Content>
+                  <Content component="small">
                     {t(
                       'Connect to an IBM FlashSystem to power Data Foundation with fast reliable block storage optimized for enterprise performance.'
                     )}
-                  </Text>
-                </TextContent>
+                  </Content>
+                </Content>
               </FlexItem>
               <FlexItem align={{ default: 'alignRight' }}>
                 <Radio
@@ -174,13 +173,13 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               <CardBody>
                 <Flex direction={{ default: 'row' }}>
                   <FlexItem>
-                    <TextContent>
-                      <Text component="small">
+                    <Content>
+                      <Content component="small">
                         {t(
                           'Connect to IBM Storage Scale to deliver fast, scalable file storage for Data Foundation'
                         )}
-                      </Text>
-                    </TextContent>
+                      </Content>
+                    </Content>
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>
                     <Radio
@@ -215,13 +214,13 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               <CardBody>
                 <Flex direction={{ default: 'row' }}>
                   <FlexItem>
-                    <TextContent>
-                      <Text component="small">
+                    <Content>
+                      <Content component="small">
                         {t(
                           'Use groups of shared LUNs from local cluster nodes to create StorageClases with Fusion Data Foundation Access for SAN.'
                         )}
-                      </Text>
-                    </TextContent>
+                      </Content>
+                    </Content>
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>
                     <Radio
@@ -251,13 +250,13 @@ const ModalHeader: React.FC = () => {
       <Title headingLevel="h1" id="welcome-df-modal-title">
         {t('Connect to external storage')}
       </Title>
-      <TextContent>
-        <Text component="small">
+      <Content>
+        <Content component="small">
           {t(
             'Data Foundation simplifies persistent storage and data services across your cloud-native infrastructure'
           )}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
     </>
   );
 };
@@ -307,16 +306,16 @@ export const ExternalSystemsSelectModal: ModalComponent = ({ closeModal }) => {
         </Button>,
       ]}
     >
-      <TextContent>
-        <Text component="h4">
+      <Content>
+        <Content component="h4">
           {t('Select a platform to connect an external storage')}
-        </Text>
-        <Text component="small">
+        </Content>
+        <Content component="small">
           {t(
             'This selection determines the storage capabilities of your cluster. Once configured it cannot be changed.'
           )}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
       <ConfigureExternalSystems
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}

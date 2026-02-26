@@ -280,7 +280,7 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
         <Checkbox
           id="enable-encryption-storage-class"
           label={t('Enable encryption on StorageClass')}
-          className="pf-v5-u-pt-md"
+          className="pf-v6-u-pt-md"
           isChecked={state.storageClassDetails.enableStorageClassEncryption}
           onChange={onEncryptionChange}
         />

@@ -18,25 +18,26 @@
     }
 
     &__dropdown--padding {
-        padding-right: var(--pf-v5-global--spacer--xs);
+        padding-right: var(--pf-t--global--spacer--xs);
     }
     &__dropdownHeight {
         max-height: 30rem;
         overflow-y: auto;
     }
     &__text--padding-left {
-        padding-left: var(--pf-v5-global--spacer--sm);
+        padding-left: var(--pf-t--global--spacer--sm);
     }
 
     &__text--margin-top {
-        margin-top: var(--pf-v5-global--spacer--lg);
+        margin-top: var(--pf-t--global--spacer--lg);
     }
     &__text--divider {
-        border-bottom: var(--pf-v5-global--BorderWidth--sm) solid var(--pf-v5-global--BorderColor--100);
-        margin-bottom: var(--pf-v5-global--spacer--lg);
+        border-bottom: var(--pf-t--global--border--width--regular) solid
+          var(--pf-t--global--border--color--100);
+        margin-bottom: var(--pf-t--global--spacer--lg);
     }
     &__headerText--size {
-        font-size: var(--pf-v5-global--FontSize--xl);
+        font-size: var(--pf-t--global--font--size--xl);
     }
 }
 
@@ -46,7 +47,7 @@
 }
 
 .mco-cluster-app__graph--margin-bottom {
-     margin-bottom: var(--pf-v5-global--spacer--xl);
+     margin-bottom: var(--pf-t--global--spacer--xl);
 }
 
 .mco-cluster-app__donut-chart {
@@ -55,11 +56,11 @@
 }
 
 .co-utilization-card__item-summary {
-    margin-left: var(--pf-v5-global--spacer--3xl);
+    margin-left: var(--pf-t--global--spacer--3xl);
 }
 
   .co-utilization-card__item-summary .bold {
-    font-weight: bold;
+    font-weight: var(--pf-t--global--font--weight--body--bold);
 }
 
 .mco-cluster-app__subs-table--width {

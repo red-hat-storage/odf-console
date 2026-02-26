@@ -5,8 +5,8 @@ import { VirtualMachineModel } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
-import { Modal, ModalVariant } from '@patternfly/react-core';
 import { AppManagePoliciesModalBody } from './app-manage-policies-modal-body';
 import { ModalViewContext } from './utils/reducer';
 

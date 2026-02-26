@@ -18,9 +18,8 @@ import {
   Bullseye,
   Stack,
   StackItem,
-  TextContent,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Alert,
   AlertVariant,
 } from '@patternfly/react-core';
@@ -66,7 +65,7 @@ export const LoginBody: React.FC<LoginBodyProps> = ({
     <>
       <FormGroup
         label={t('Secret namespace')}
-        className="pf-v5-u-my-md"
+        className="pf-v6-u-my-md"
         isRequired
       >
         <ResourceDropdown<K8sResourceCommon>
@@ -78,7 +77,7 @@ export const LoginBody: React.FC<LoginBodyProps> = ({
           className="odf-s3-secret__dropdown"
         />
       </FormGroup>
-      <FormGroup label={t('Secret name')} className="pf-v5-u-my-md" isRequired>
+      <FormGroup label={t('Secret name')} className="pf-v6-u-my-md" isRequired>
         <ResourceDropdown<K8sResourceCommon>
           resource={getValidWatchK8sResourceObj(
             {
@@ -98,7 +97,7 @@ export const LoginBody: React.FC<LoginBodyProps> = ({
       </FormGroup>
       <Checkbox
         id="storage-type"
-        className="pf-v5-u-my-md"
+        className="pf-v6-u-my-md"
         label={t('Stay signed in')}
         description={t(
           'If not selected, you need to sign in again when you open a new browser window or a tab.'
@@ -170,20 +169,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   return (
-    <Bullseye className="pf-v5-u-mt-lg">
+    <Bullseye className="pf-v6-u-mt-lg">
       <Stack hasGutter>
         <StackItem>
-          <TextContent className="pf-v5-u-text-align-center">
-            <Text component={TextVariants.h3}>
-              <LockIcon className="pf-v5-u-mr-xs" />
+          <Content className="pf-v6-u-text-align-center">
+            <Content component={ContentVariants.h3}>
+              <LockIcon className="pf-v6-u-mr-xs" />
               {t('Sign in to continue')}
-            </Text>
-            <Text component={TextVariants.small}>
+            </Content>
+            <Content component={ContentVariants.small}>
               {t(
                 'You need permission to access buckets on this cluster. Use Secret namespace and Secret name to continue'
               )}
-            </Text>
-          </TextContent>
+            </Content>
+          </Content>
         </StackItem>
         <StackItem>
           {error && (
@@ -191,7 +190,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               variant={AlertVariant.danger}
               title={error}
               isInline
-              className="pf-v5-u-my-md"
+              className="pf-v6-u-my-md"
             />
           )}
         </StackItem>
@@ -203,7 +202,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             setStorageType={setStorageType}
           />
         </StackItem>
-        <StackItem className="pf-v5-u-text-align-center">
+        <StackItem className="pf-v6-u-text-align-center">
           <Button
             variant={ButtonVariant.primary}
             onClick={storeCredentials}

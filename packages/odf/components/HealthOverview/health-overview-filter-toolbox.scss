@@ -1,6 +1,6 @@
 .health-overview-filter-toolbox {
   &__item {
-    margin-right: var(--pf-v5-global--spacer--sm);
+    margin-right: var(--pf-t--global--spacer--sm);
 
     &:last-child {
       margin-right: 0;
@@ -19,12 +19,12 @@
 
   &__clear-filters {
     padding-left: 0;
-    padding-top: var(--pf-v5-global--spacer--xs);
-    font-size: var(--pf-v5-global--FontSize--sm);
+    padding-top: var(--pf-t--global--spacer--xs);
+    font-size: var(--pf-t--global--font--size--sm);
   }
 
   &__datetime-group {
-    margin-left: var(--pf-v5-global--spacer--sm);
+    margin-left: var(--pf-t--global--spacer--sm);
   }
 
   &__datetime-item {
@@ -34,7 +34,7 @@
   &__search {
     flex-grow: 1;
     min-width: 15.625rem;
-    margin-left: var(--pf-v5-global--spacer--sm);
+    margin-left: var(--pf-t--global--spacer--sm);
   }
 }
 

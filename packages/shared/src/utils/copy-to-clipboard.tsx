@@ -61,19 +61,22 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
         >
           <CTC text={props.value} onCopy={() => setCopied(true)}>
             <Button
+              icon={
+                <>
+                  <CopyIcon />
+                  <span className="sr-only">{t('Copy to clipboard')}</span>
+                </>
+              }
               variant="plain"
               onMouseEnter={() => setCopied(false)}
               className={cn(
                 'odf-copy-to-clipboard__btn',
-                'pf-v5-c-clipboard-copy__group-copy',
+                'pf-v6-c-clipboard-copy__group-copy',
                 { 'odf-copy-to-clipboard__btn--icon-only': props.iconOnly }
               )}
               type="button"
               data-test="copy-to-clipboard-btn"
-            >
-              <CopyIcon />
-              <span className="sr-only">{t('Copy to clipboard')}</span>
-            </Button>
+            />
           </CTC>
         </Tooltip>
       </CopyToClipboardWrapper>

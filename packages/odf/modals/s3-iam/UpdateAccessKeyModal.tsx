@@ -4,14 +4,8 @@ import { useCustomTranslation } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { IamCommands } from '@odf/shared/iam';
 import { CommonModalProps } from '@odf/shared/modals';
-import {
-  Button,
-  ButtonVariant,
-  Flex,
-  FlexItem,
-  Modal,
-  ModalVariant,
-} from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 
 export type UpdateAccessKeyModalProps = {
   name: string;
@@ -86,7 +80,7 @@ const UpdateAccessKeyModal: React.FC<
       description={<div className="text-muted">{descriptionText}</div>}
       actions={[
         <ButtonBar
-          className="pf-v5-u-w-100"
+          className="pf-v6-u-w-100"
           inProgress={inProgress}
           errorMessage={error ? error?.message || JSON.stringify(error) : ''}
         >
@@ -103,12 +97,11 @@ const UpdateAccessKeyModal: React.FC<
             </FlexItem>
             <FlexItem>
               <Button
+                icon={t('Cancel')}
                 variant={ButtonVariant.plain}
                 onClick={closeModal}
                 isDisabled={inProgress}
-              >
-                {t('Cancel')}
-              </Button>
+              />
             </FlexItem>
           </Flex>
         </ButtonBar>,
@@ -116,7 +109,7 @@ const UpdateAccessKeyModal: React.FC<
     >
       <Flex direction={{ default: 'column' }}>
         <FlexItem>
-          <label className="pf-v5-u-font-weight-bold">{t('Access key')}</label>
+          <label className="pf-v6-u-font-weight-bold">{t('Access key')}</label>
         </FlexItem>
         <FlexItem>
           <div className="text-muted">{AccessKeyId}</div>

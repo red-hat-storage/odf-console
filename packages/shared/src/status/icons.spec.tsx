@@ -78,7 +78,7 @@ describe('GreenCheckCircleIcon', () => {
     const { getByTestId } = render(<GreenCheckCircleIcon />);
     const icon = getByTestId('mock-check-circle-icon');
 
-    expect(icon).toHaveAttribute('color', '#3e8635');
+    expect(icon).toHaveAttribute('color', '#3d7317');
   });
 
   it('renders a green check circle icon with custom classnames and title', () => {
@@ -109,7 +109,7 @@ describe('RedExclamationCircleIcon', () => {
     const { getByTestId } = render(<RedExclamationCircleIcon />);
     const icon = getByTestId('mock-exclamation-circle-icon');
 
-    expect(icon).toHaveAttribute('color', '#c9190b');
+    expect(icon).toHaveAttribute('color', '#b1380b');
   });
 
   it('renders a red exclamation circle icon with custom classnames and title', () => {
@@ -140,7 +140,7 @@ describe('YellowExclamationTriangleIcon', () => {
     const { getByTestId } = render(<YellowExclamationTriangleIcon />);
     const icon = getByTestId('mock-exclamation-triangle-icon');
 
-    expect(icon).toHaveAttribute('color', '#f0ab00');
+    expect(icon).toHaveAttribute('color', '#73480b');
   });
 
   it('renders a yellow exclamation triangle icon with custom classnames and title', () => {
@@ -171,7 +171,7 @@ describe('BlueInfoCircleIcon', () => {
     const { getByTestId } = render(<BlueInfoCircleIcon />);
     const icon = getByTestId('mock-info-circle-icon');
 
-    expect(icon).toHaveAttribute('color', '#2b9af3');
+    expect(icon).toHaveAttribute('color', '#4394e5');
   });
 
   it('renders a blue info circle icon with custom size, classnames and title', () => {
@@ -202,7 +202,7 @@ describe('GrayUnknownIcon', () => {
     const { getByTestId } = render(<GrayUnknownIcon />);
     const icon = getByTestId('mock-unknown-icon');
 
-    expect(icon).toHaveAttribute('color', '#6a6e73');
+    expect(icon).toHaveAttribute('color', '#c7c7c7');
   });
 
   it('renders a grey unknown icon with custom size, classnames and title', () => {
@@ -233,7 +233,7 @@ describe('BlueSyncIcon', () => {
     const { getByTestId } = render(<BlueSyncIcon />);
     const icon = getByTestId('mock-sync-alt-icon');
 
-    expect(icon).toHaveAttribute('color', '#2b9af3');
+    expect(icon).toHaveAttribute('color', '#4394e5');
   });
 
   it('renders a blue sync icon with custom size, classnames and title', () => {
@@ -264,7 +264,7 @@ describe('RedResourcesFullIcon', () => {
     const { getByTestId } = render(<RedResourcesFullIcon />);
     const icon = getByTestId('mock-resources-full-icon');
 
-    expect(icon).toHaveAttribute('color', '#c9190b');
+    expect(icon).toHaveAttribute('color', '#b1380b');
   });
 
   it('renders a red resource full icon with custom size, classnames and title', () => {
@@ -295,7 +295,7 @@ describe('YellowResourcesAlmostFullIcon', () => {
     const { getByTestId } = render(<YellowResourcesAlmostFullIcon />);
     const icon = getByTestId('mock-resources-almost-full-icon');
 
-    expect(icon).toHaveAttribute('color', '#f0ab00');
+    expect(icon).toHaveAttribute('color', '#73480b');
   });
 
   it('renders a yellow resource almost full icon with custom size, classnames and title', () => {
@@ -326,7 +326,7 @@ describe('BlueArrowCircleUpIcon', () => {
     const { getByTestId } = render(<BlueArrowCircleUpIcon />);
     const icon = getByTestId('mock-arrow-circle-up-icon');
 
-    expect(icon).toHaveAttribute('color', '#2b9af3');
+    expect(icon).toHaveAttribute('color', '#4394e5');
   });
 
   it('renders a blue arrow circle up icon with custom size, classnames and title', () => {

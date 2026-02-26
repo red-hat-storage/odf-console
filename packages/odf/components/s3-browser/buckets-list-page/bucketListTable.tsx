@@ -49,7 +49,7 @@ const getRowActions = (
     title: (
       <>
         {t('Empty bucket')}
-        <p className="text-muted pf-v5-u-font-size-xs">
+        <p className="text-muted pf-v6-u-font-size-xs">
           {t('Erase the contents of your bucket')}
         </p>
       </>
@@ -104,7 +104,7 @@ const getHeaderColumns = (t: TFunction<string>, favorites: string[]) => {
     {
       columnName: columnNames[2],
       thProps: {
-        className: 'pf-v5-u-w-16-on-lg',
+        className: 'pf-v6-u-w-16-on-lg',
       },
     },
     {
@@ -112,13 +112,13 @@ const getHeaderColumns = (t: TFunction<string>, favorites: string[]) => {
       sortFunction: (a, b, c) =>
         sortRows(a, b, c, 'metadata.creationTimestamp'),
       thProps: {
-        className: 'pf-v5-u-w-16-on-lg',
+        className: 'pf-v6-u-w-16-on-lg',
       },
     },
     {
       columnName: columnNames[4],
       thProps: {
-        className: 'pf-v5-u-w-16-on-lg',
+        className: 'pf-v6-u-w-16-on-lg',
       },
     },
     {
@@ -145,7 +145,7 @@ const NoBucketMessage: React.FC = () => {
 
 const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
-  return <Bullseye className="pf-v5-u-mt-xl">{t('No buckets found')}</Bullseye>;
+  return <Bullseye className="pf-v6-u-mt-xl">{t('No buckets found')}</Bullseye>;
 };
 
 const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
@@ -195,7 +195,7 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
         </Link>
       </Td>
       <Td dataLabel={columnNames[2]}>
-        <Label color="gold">{getProviderLabel(providerType)}</Label>
+        <Label color="yellow">{getProviderLabel(providerType)}</Label>
       </Td>
       <Td dataLabel={columnNames[3]}>
         {<Timestamp timestamp={creationTimestamp} ignoreRelativeTime />}

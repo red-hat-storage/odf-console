@@ -248,7 +248,7 @@ export const FailoverRelocateModalBody: React.FC<
 
   return (
     <>
-      {!!message && <Alert {...message} className="pf-v5-u-mb-md" />}
+      {!!message && <Alert {...message} className="pf-v6-u-mb-md" />}
       <Flex
         direction={{ default: 'column' }}
         spaceItems={{ default: 'spaceItemsMd' }}
@@ -284,7 +284,7 @@ export const FailoverRelocateModalBody: React.FC<
                 {t('Last available: ')}
                 <DateTimeFormat
                   dateTime={placement?.targetClusterAvailableTime}
-                  className="pf-v5-u-display-inline-block pf-v5-u-ml-sm"
+                  className="pf-v6-u-display-inline-block pf-v6-u-ml-sm"
                 />
               </HelperTextItem>
             </HelperText>

@@ -42,12 +42,12 @@ const TopologySearchBar: React.FC = () => {
       </span>
       <span className="odf-topology-search-bar__expand">
         <Button
+          icon={<ExpandIcon className="odf-topology-search-bar__expand-icon" />}
           variant={ButtonVariant.link}
           isInline
           onClick={toggleFullScreen}
           className="odf-topology-search-bar__expand-button"
         >
-          <ExpandIcon className="odf-topology-search-bar__expand-icon" />
           {!isFullScreen ? t('Expand to fullscreen') : t('Exit fullscreen')}
         </Button>
       </span>

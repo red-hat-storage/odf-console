@@ -6,16 +6,10 @@ import {
   ResourceLink,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import {
-  Alert,
-  Button,
-  FormGroup,
-  Modal,
-  ModalVariant,
-  TextInput,
-} from '@patternfly/react-core';
+import { Alert, Button, FormGroup, TextInput } from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 import { LoadingInline } from '../generic/Loading';
 import { ClusterServiceVersionModel } from '../models';

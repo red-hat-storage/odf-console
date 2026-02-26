@@ -1,10 +1,11 @@
 
 .odf-create-storage-client__header {
-  border-bottom: var(--pf-v5-global--BorderWidth--sm) solid #ddd;
-  padding-right: var(--pf-v5-global--spacer--lg);
-  padding-left: var(--pf-v5-global--spacer--lg);
-  padding-bottom: var(--pf-v5-global--spacer--sm);
-  padding-top: var(--pf-v5-global--spacer--sm);
+  border-bottom: var(--pf-t--global--border--width--regular) solid
+    var(--pf-t--global--border--color--100);
+  padding-right: var(--pf-t--global--spacer--lg);
+  padding-left: var(--pf-t--global--spacer--lg);
+  padding-bottom: var(--pf-t--global--spacer--sm);
+  padding-top: var(--pf-t--global--spacer--sm);
 }
 
 .odf-create-client__form {

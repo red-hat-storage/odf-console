@@ -2,16 +2,12 @@ import * as React from 'react';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
-  Modal,
-  ModalVariant,
   Button,
   ButtonVariant,
-  Text,
-  TextContent,
-  TextList,
-  TextListItem,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 
 type PublicAccessBlockConfirmationProps = {
@@ -50,23 +46,23 @@ const PublicAccessBlockConfirmation: React.FC<
         </ButtonBar>,
       ]}
     >
-      <TextContent>
-        <TextList>
-          <Text component={TextVariants.p}>
+      <Content>
+        <Content component="ul">
+          <Content component={ContentVariants.p}>
             {t('You are about to disable')}
-          </Text>
+          </Content>
           {configText.map((text) => (
-            <TextListItem className="pf-v5-u-ml-md">
+            <Content component="li" className="pf-v6-u-ml-md">
               <b>{text}</b>
-            </TextListItem>
+            </Content>
           ))}
-          <Text component={TextVariants.p} className="pf-v5-u-mt-md">
+          <Content component={ContentVariants.p} className="pf-v6-u-mt-md">
             {t(
               "This action may expose the bucket's contents to the public and introduce potential risks. Are you sure you want to proceed?"
             )}
-          </Text>
-        </TextList>
-      </TextContent>
+          </Content>
+        </Content>
+      </Content>
     </Modal>
   );
 };

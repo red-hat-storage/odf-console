@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
-  Modal,
-  ModalVariant,
   Button,
   ButtonVariant,
   FormGroup,
@@ -180,6 +179,7 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
       onClick={() => setIsUnitSelectOpen((prev) => !prev)}
       isExpanded={isUnitSelectOpen}
       style={{ minWidth: '120px' }}
+      isDisabled={isSubmitting}
     >
       {durationUnitOptions.find((opt) => opt.value === durationUnit)?.label ||
         t('hours')}
@@ -204,7 +204,7 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
       variant={ModalVariant.small}
       title={
         <span>
-          <BellIcon className="pf-v5-u-mr-sm" />
+          <BellIcon className="pf-v6-u-mr-sm" />
           {t('Silence alert')}
         </span>
       }
@@ -231,7 +231,7 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
       ]}
     >
       <div ref={modalContentRef}>
-        <p className="pf-v5-u-mb-md">
+        <p className="pf-v6-u-mb-md">
           {t(
             'Temporarily mute alerts matching the selected checks and conditions. Silenced alerts will not appear in the table or affect the health score.'
           )}
@@ -242,7 +242,7 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
             variant={AlertVariant.danger}
             isInline
             title={t('Error creating silence')}
-            className="pf-v5-u-mb-md"
+            className="pf-v6-u-mb-md"
           >
             {error}
           </Alert>
@@ -272,7 +272,6 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
                 onSelect={handleUnitSelect}
                 onOpenChange={setIsUnitSelectOpen}
                 toggle={unitToggle}
-                isDisabled={isSubmitting}
                 shouldFocusFirstItemOnOpen
                 shouldFocusToggleOnSelect
               >
@@ -296,7 +295,7 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
             title={t('{{count}} alert(s) will be silenced', {
               count: selectedAlerts.length,
             })}
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
           />
         )}
       </div>

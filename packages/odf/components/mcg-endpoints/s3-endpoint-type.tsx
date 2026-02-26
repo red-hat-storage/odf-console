@@ -169,12 +169,11 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
               </InputGroupItem>
               <InputGroupItem>
                 <Button
+                  icon={t('Switch to Credentials')}
                   variant="plain"
                   data-test="switch-to-creds"
                   onClick={switchToCredentials}
-                >
-                  {t('Switch to Credentials')}
-                </Button>
+                />
               </InputGroupItem>
             </InputGroup>
           )}
@@ -205,9 +204,11 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
                   />
                 </InputGroupItem>
                 <InputGroupItem>
-                  <Button variant="plain" onClick={switchToSecret}>
-                    {t('Switch to Secret')}
-                  </Button>
+                  <Button
+                    icon={t('Switch to Secret')}
+                    variant="plain"
+                    onClick={switchToSecret}
+                  />
                 </InputGroupItem>
               </InputGroup>
             )}

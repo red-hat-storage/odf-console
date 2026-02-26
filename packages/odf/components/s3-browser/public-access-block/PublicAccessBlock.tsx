@@ -78,7 +78,7 @@ const PabAlert: React.FC<PabAlertProps> = ({
       <Alert
         variant={AlertVariant.danger}
         title={t('Your bucket is currently publicly accessible.')}
-        className="pf-v5-u-mb-sm"
+        className="pf-v6-u-mb-sm"
       >
         <p>
           {t(
@@ -96,7 +96,7 @@ const PabAlert: React.FC<PabAlertProps> = ({
         title={t(
           'One or more settings might have allowed public access to your bucket'
         )}
-        className="pf-v5-u-mb-sm"
+        className="pf-v6-u-mb-sm"
       />
     );
   }
@@ -171,13 +171,13 @@ const PabFooter: React.FC<PabFooterProps> = ({
     <ButtonBar
       inProgress={inProgress}
       errorMessage={error?.message || JSON.stringify(error)}
-      className="pf-v5-u-mt-xl"
+      className="pf-v6-u-mt-xl"
     >
-      <span className="pf-v5-u-mt-sm">
+      <span className="pf-v6-u-mt-sm">
         <Button
           variant={ButtonVariant.primary}
           onClick={shouldShowModal ? launchConfirmationModal : handleSubmit}
-          className="pf-v5-u-mr-xs"
+          className="pf-v6-u-mr-xs"
           isDisabled={!!error || inProgress}
         >
           {t('Save changes')}
@@ -185,7 +185,7 @@ const PabFooter: React.FC<PabFooterProps> = ({
         <Button
           variant={ButtonVariant.secondary}
           onClick={triggerRefresh}
-          className="pf-v5-u-ml-xs"
+          className="pf-v6-u-ml-xs"
         >
           {t('Cancel')}
         </Button>

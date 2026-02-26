@@ -3,9 +3,9 @@
         width: 50%;
     }
     &__nameValue--weight {
-        font-weight: var(--pf-v5-global--FontWeight--bold)
+        font-weight: var(--pf-t--global--font--weight--body--bold)
     }
     &__alert--margin-left {
-        margin-left: var(--pf-v5-global--spacer--lg);
+        margin-left: var(--pf-t--global--spacer--lg);
     }
 }
