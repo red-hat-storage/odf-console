@@ -10,10 +10,10 @@
     "packages/*"
   ],
   "scripts": {
-    "analyze-client": "PLUGIN=client yarn analyze-common && PLUGIN=client yarn tsx ./analyzeTest.ts",
+    "analyze-client": "PLUGIN=client I8N_NS=client yarn analyze-common && PLUGIN=client yarn tsx ./analyzeTest.ts",
     "analyze-common": "yarn build:generate && NODE_ENV=production I8N_NS=${I8N_NS} ANALYZE_BUNDLE=true yarn tsx ./node_modules/.bin/webpack -c ./webpack.config.ts",
-    "analyze-mco": "PLUGIN=mco yarn analyze-common && PLUGIN=mco yarn tsx ./analyzeTest.ts",
-    "analyze-odf": "PLUGIN=odf yarn analyze-common && PLUGIN=odf yarn tsx ./analyzeTest.ts",
+    "analyze-mco": "PLUGIN=mco I8N_NS=mco yarn analyze-common && PLUGIN=mco yarn tsx ./analyzeTest.ts",
+    "analyze-odf": "PLUGIN=odf I8N_NS=odf yarn analyze-common && PLUGIN=odf yarn tsx ./analyzeTest.ts",
     "build": "NODE_ENV=production PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
     "build-client": "NODE_ENV=production PLUGIN=client I8N_NS=plugin__odf-client-console yarn build:plugin",
     "build-dev": "NODE_ENV=development PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
@@ -35,7 +35,7 @@
     "export-pos": "./scripts/i18n/export-pos.sh",
     "format": "yarn prettier -w .",
     "format-test": "yarn prettier -c .",
-    "i18n": "i18next \"packages/**/*.{ts,tsx}\" [-oc] -c i18next-parser.config.js",
+    "i18n": "i18next \"packages/**/*.{ts,tsx}\" \\[-oc\\] -c i18next-parser.config.js",
     "i18n-test": "yarn i18n --fail-on-update",
     "i18n-to-po": "node ./scripts/i18n/i18n-to-po.mjs",
     "lint": "yarn lint-ts && yarn lint-css",
