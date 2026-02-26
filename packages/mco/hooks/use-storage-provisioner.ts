@@ -47,29 +47,22 @@ export type ClusterProviders = {
 
   const providersByCluster = React.useMemo<ClusterProviders[]>(() => {
     if (!loaded) return [];
-
     const supportedProvisioners = [...CEPH_PROVISIONERS, ...IBM_PROVISIONERS];
-
     return Object.entries(itemsByCluster).map(([cluster, items]) => {
-      const odfCount = items.filter((i) =>
-        supportedProvisioners.includes(i.provisioner)
-      ).length;
-
-      const tpMap = new Map<string, number>();
+      const provMap = new Map<string, number>();
       items.forEach(({ provisioner }) => {
-        if (!supportedProvisioners.includes(provisioner)) {
-          tpMap.set(provisioner, (tpMap.get(provisioner) || 0) + 1);
-        }
+        const isODF = supportedProvisioners.some((sp) =>
+          provisioner.includes(sp)
+        );
+        const displayName = isODF
+          ? `${provisioner} [Data Foundation]`
+          : provisioner;
+        provMap.set(displayName, (provMap.get(displayName) || 0) + 1);
       });
-
       const provs: Provider[] = [];
-      if (odfCount > 0) {
-        provs.push({ displayName: 'Data Foundation', count: odfCount });
-      }
-      tpMap.forEach((cnt, prov) =>
+      provMap.forEach((cnt, prov) =>
         provs.push({ displayName: prov, count: cnt })
       );
-
       return { cluster, providers: provs };
     });
   }, [loaded, itemsByCluster]);
