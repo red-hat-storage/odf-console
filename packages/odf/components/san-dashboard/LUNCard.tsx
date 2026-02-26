@@ -39,6 +39,8 @@ import {
 import { InfoCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import { filterSANFileSystems } from '../ibm-common/utils';
+import { useScaleGuiLink } from './useScaleGUILink';
+import './LUNCard.scss';
 
 const resource = {
   kind: referenceForModel(FileSystemModel),
@@ -85,9 +87,12 @@ const getStorageClassName = (fileSystem: FileSystemKind): string => {
   return getName(fileSystem);
 };
 
-// Todo(bipuladh) Fix this
-const getConsoleLink = (_fileSystem: FileSystemKind): string | undefined => {
-  return undefined;
+const getConsoleLink = (
+  fileSystem: FileSystemKind,
+  url: string
+): string | undefined => {
+  if (url === '-') return undefined;
+  return `${url}-/${getName(fileSystem)}`;
 };
 
 const lunGroupStatusFilter = (t): RowFilter<FileSystemKind> => ({
@@ -128,6 +133,7 @@ type LUNGroupsListProps = {
 
 const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
   const { t } = useCustomTranslation();
+  const { url } = useScaleGuiLink();
   const lunGroupTableColumns = React.useMemo<TableColumn<FileSystemKind>[]>(
     () => [
       {
@@ -203,21 +209,22 @@ const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
       aria-label={t('LUN groups table')}
       columns={columns}
       Row={LUNGroupRow}
+      rowData={{ url }}
     />
   );
 };
 
-type CustomData = {};
+type CustomData = { url: string };
 
 const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
   obj,
   activeColumnIDs,
+  rowData: { url },
 }) => {
   const { t } = useCustomTranslation();
   const status = getLUNGroupStatus(obj);
   const isHealthy = status === HealthState.OK;
   const storageClassName = getStorageClassName(obj);
-  const consoleLink = getConsoleLink(obj);
 
   const customKebabItems = React.useMemo(
     () => [
@@ -231,6 +238,8 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
     ],
     [t]
   );
+
+  const consoleLink = getConsoleLink(obj, url);
 
   return (
     <>
@@ -252,13 +261,17 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
         {consoleLink ? (
-          <ExternalLink
-            href={consoleLink}
-            additionalClassName="pf-v5-u-display-inline-flex pf-v5-u-align-items-center"
-          >
-            {consoleLink}
-            <ExternalLinkAltIcon className="pf-v5-u-ml-xs" />
-          </ExternalLink>
+          <div className="lun-card__console-link-wrap">
+            <ExternalLink
+              href={consoleLink}
+              additionalClassName="lun-card__console-link pf-v5-u-display-inline-flex pf-v5-u-align-items-center"
+            >
+              <span className="lun-card__console-link-text" title={consoleLink}>
+                {consoleLink}
+              </span>
+              <ExternalLinkAltIcon className="lun-card__console-link-icon pf-v5-u-ml-xs" />
+            </ExternalLink>
+          </div>
         ) : (
           DASH
         )}
