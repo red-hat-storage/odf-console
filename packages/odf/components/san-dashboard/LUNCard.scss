@@ -1,0 +1,29 @@
+.lun-card {
+  &__console-link-wrap {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    // Cap width so content doesn't grow the cell; line-clamp then applies
+    max-width: min(100%, 24rem);
+  }
+
+  &__console-link {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  &__console-link-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    word-break: break-all;
+    min-width: 0;
+  }
+
+  &__console-link-icon {
+    font-size: var(--pf-v5-global--icon--FontSize--md);
+    flex-shrink: 0;
+  }
+}
