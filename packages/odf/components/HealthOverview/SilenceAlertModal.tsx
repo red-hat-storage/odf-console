@@ -275,6 +275,7 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
                 isDisabled={isSubmitting}
                 shouldFocusFirstItemOnOpen
                 shouldFocusToggleOnSelect
+                popperProps={{ appendTo: () => document.body }}
               >
                 <SelectList>
                   {durationUnitOptions.map((option) => (
