@@ -7,6 +7,7 @@ import {
   externalSystemsDoc,
   PageHeading,
   useCustomTranslation,
+  odfDeployExternalMode,
 } from '@odf/shared';
 import { DOC_VERSION } from '@odf/shared/hooks/use-doc-version';
 import { ViewDocumentation } from '@odf/shared/utils';
@@ -179,9 +180,10 @@ const InitialEmptyStatePage: React.FC = () => {
             <EmptyStateActions>
               <Button
                 variant={ButtonVariant.link}
-                onClick={() => {
-                  return null;
-                }}
+                component={'a'}
+                href={odfDeployExternalMode(DOC_VERSION)}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 {t('Documentation link')}
               </Button>
