@@ -91,6 +91,8 @@ const validateAdvancedSettingsStep = (
     externalPostgres,
     isDbBackup,
     dbBackup,
+    enableForcefulDeployment,
+    forcefulDeploymentConfirmation,
   } = advancedSettings;
 
   const {
@@ -115,6 +117,11 @@ const validateAdvancedSettingsStep = (
   const hasDbBackupEnabledButNoFields =
     isDbBackup && !dbBackup.volumeSnapshot?.volumeSnapshotClass && isMCG;
 
+  // The Next button is disabled when forceful deployment is enabled but confirmation text not equals confirm
+  const hasForcefulDeploymentEnabledButNoConfirmation =
+    enableForcefulDeployment &&
+    !(forcefulDeploymentConfirmation?.trim().toLowerCase() === 'confirm');
+
   switch (type) {
     case BackingStorageType.EXISTING:
       return (
@@ -136,7 +143,8 @@ const validateAdvancedSettingsStep = (
         !!deployment &&
         !hasPGEnabledButNoFields &&
         !hasClientCertsEnabledButNoKeys &&
-        !hasDbBackupEnabledButNoFields
+        !hasDbBackupEnabledButNoFields &&
+        !hasForcefulDeploymentEnabledButNoConfirmation
       );
     default:
       return false;

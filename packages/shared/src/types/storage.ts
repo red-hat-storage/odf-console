@@ -96,6 +96,9 @@ export type StorageClusterKind = K8sResourceCommon & {
     externalStorage?: {};
     allowRemoteStorageConsumers?: boolean;
     hostNetwork?: boolean;
+    forcefulDeployment?: {
+      enabled: boolean;
+    };
   };
   status?: {
     phase: StorageClusterPhase | string;
