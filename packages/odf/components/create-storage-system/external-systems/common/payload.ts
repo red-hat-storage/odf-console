@@ -20,22 +20,24 @@ import { WizardNodeState } from '../../reducer';
 
 export const labelNodes = (nodes: WizardNodeState[]) => {
   const labelPath = `/metadata/labels/scale.spectrum.ibm.com~1daemon-selector`;
-  const patch: Patch[] = [
-    {
-      op: 'add',
-      path: '/metadata/labels',
-      value: {},
-    },
-    {
+  const requests: Promise<K8sKind>[] = [];
+  nodes.forEach((node) => {
+    const patch: Patch[] = [];
+    if (!node.labels) {
+      patch.push({
+        op: 'add',
+        path: '/metadata/labels',
+        value: {},
+      });
+    }
+    patch.push({
       op: 'add',
       path: labelPath,
       value: '',
-    },
-  ];
-  const requests: Promise<K8sKind>[] = [];
-  nodes.forEach((node) => {
-    if (!node.labels?.['scale.spectrum.ibm.com/daemon-selector/'])
+    });
+    if (!node.labels?.['scale.spectrum.ibm.com/daemon-selector/']) {
       requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
+    }
   });
   return () => Promise.all(requests);
 };
