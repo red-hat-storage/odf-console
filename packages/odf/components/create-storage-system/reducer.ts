@@ -76,6 +76,8 @@ export const initialState: CreateStorageSystemState = {
         volumeSnapshotClass: '',
       },
     },
+    enableForcefulDeployment: false,
+    forcefulDeploymentConfirmation: '',
   },
   capacityAndNodes: {
     enableArbiter: false,
@@ -167,6 +169,8 @@ type CreateStorageSystemState = {
         volumeSnapshotClass: string;
       };
     };
+    enableForcefulDeployment: boolean;
+    forcefulDeploymentConfirmation: string;
   };
   createStorageClass: ExternalState;
   connectionDetails: ExternalCephState;
@@ -358,6 +362,16 @@ export const reducer: WizardReducer = (prevState, action) => {
       break;
     case 'advancedSettings/useExternalPostgres':
       newState.advancedSettings.useExternalPostgres = action.payload;
+      break;
+    case 'advancedSettings/enableForcefulDeployment':
+      newState.advancedSettings.enableForcefulDeployment = action.payload;
+      // Reset confirmation when disabling
+      if (!action.payload) {
+        newState.advancedSettings.forcefulDeploymentConfirmation = '';
+      }
+      break;
+    case 'advancedSettings/setForcefulDeploymentConfirmation':
+      newState.advancedSettings.forcefulDeploymentConfirmation = action.payload;
       break;
     case 'advancedSettings/externalPostgres/setUsername':
       newState.advancedSettings.externalPostgres.username = action.payload;
@@ -605,6 +619,14 @@ export type CreateStorageSystemAction =
   | {
       type: 'advancedSettings/useExternalPostgres';
       payload: WizardState['advancedSettings']['useExternalPostgres'];
+    }
+  | {
+      type: 'advancedSettings/enableForcefulDeployment';
+      payload: WizardState['advancedSettings']['enableForcefulDeployment'];
+    }
+  | {
+      type: 'advancedSettings/setForcefulDeploymentConfirmation';
+      payload: WizardState['advancedSettings']['forcefulDeploymentConfirmation'];
     }
   | {
       type: 'advancedSettings/externalPostgres/setUsername';

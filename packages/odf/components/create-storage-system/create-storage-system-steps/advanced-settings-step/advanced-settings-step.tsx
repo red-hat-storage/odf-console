@@ -2,7 +2,14 @@ import * as React from 'react';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { TechPreviewBadge } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Form, FormGroup, Checkbox } from '@patternfly/react-core';
+import {
+  Form,
+  FormGroup,
+  Checkbox,
+  Alert,
+  AlertVariant,
+  TextArea,
+} from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from '../backing-storage-step/enable-nfs';
 import { PostgresConnectionDetails } from '../backing-storage-step/noobaa-external-postgres/postgres-connection-details';
@@ -26,6 +33,8 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     useExternalPostgres,
     isDbBackup,
     dbBackup,
+    enableForcefulDeployment,
+    forcefulDeploymentConfirmation,
   } = state;
 
   const isFullDeployment = deployment === DeploymentType.FULL;
@@ -81,6 +90,54 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             className="odf-backing-store__radio--margin-bottom"
             isDisabled={isDbBackup}
           />
+        )}
+        {backingStorageType === BackingStorageType.LOCAL_DEVICES && (
+          <Checkbox
+            id="enable-forceful-deployment"
+            label={t('Enable forceful deployment')}
+            description={t(
+              'Override and completely wipe any data on disks used to create this storage system'
+            )}
+            isChecked={enableForcefulDeployment}
+            onChange={() =>
+              dispatch({
+                type: 'advancedSettings/enableForcefulDeployment',
+                payload: !enableForcefulDeployment,
+              })
+            }
+            className="odf-backing-store__radio--margin-bottom"
+          />
+        )}
+        {enableForcefulDeployment && (
+          <>
+            <Alert
+              variant={AlertVariant.warning}
+              isInline
+              isPlain
+              title={t(
+                'Any data on the disks used to create this storage system deleted. This cannot be undone.'
+              )}
+              className="pf-v5-u-mt-sm"
+            />
+            <FormGroup
+              label={t('Type CONFIRM to confirm')}
+              fieldId="forceful-deployment-confirmation"
+              className="pf-v5-u-mt-md"
+            >
+              <TextArea
+                id="forceful-deployment-confirmation"
+                value={forcefulDeploymentConfirmation}
+                onChange={(_event, value: string) =>
+                  dispatch({
+                    type: 'advancedSettings/setForcefulDeploymentConfirmation',
+                    payload: value,
+                  })
+                }
+                placeholder={t('CONFIRM')}
+                aria-label={t('Forceful deployment confirmation')}
+              />
+            </FormGroup>
+          </>
         )}
         {useExternalPostgres && !hasOCS && (
           <PostgresConnectionDetails

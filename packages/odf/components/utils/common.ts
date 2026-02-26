@@ -424,6 +424,7 @@ export type OCSRequestData = {
   storageClusterName: string;
   isDbBackup?: boolean;
   dbBackup?: WizardState['advancedSettings']['dbBackup'];
+  enableForcefulDeployment?: boolean;
 };
 
 export const getOCSRequestData = ({
@@ -450,6 +451,7 @@ export const getOCSRequestData = ({
   storageClusterName,
   isDbBackup,
   dbBackup,
+  enableForcefulDeployment,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -583,6 +585,12 @@ export const getOCSRequestData = ({
         schedule: dbBackup.schedule,
         volumeSnapshot: dbBackup.volumeSnapshot,
       },
+    };
+  }
+  // Add forceful deployment configuration if enabled
+  if (enableForcefulDeployment) {
+    requestData.spec.forcefulDeployment = {
+      enabled: enableForcefulDeployment,
     };
   }
 
