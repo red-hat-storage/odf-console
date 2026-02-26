@@ -1,22 +1,23 @@
 .odf-topology {
-    &-nav__item {
-        margin-left: var(--pf-v5-global--spacer--sm);
-        margin-right: var(--pf-v5-global--spacer--sm);
-        display: flex;
-        align-items: center;
-    }
-    &-nav {
-        border-bottom: 1px solid var(--pf-v5-global--palette--black-200);
-        padding: var(--pf-v5-global--spacer--sm);
-        display: inline-flex;
-        width: 100%;
-    }
+  &-nav__item {
+    margin-left: var(--pf-v5-global--spacer--sm);
+    margin-right: var(--pf-v5-global--spacer--sm);
+    display: flex;
+    align-items: center;
+  }
+
+  &-nav {
+    border-bottom: 1px solid var(--pf-v5-global--palette--black-200);
+    padding: var(--pf-v5-global--spacer--sm);
+    display: inline-flex;
+    width: 100%;
+  }
 }
 
 .odf-topology-nav__item {
-    .pf-v5-c-options-menu__toggle:not(.pf-m-plain)::before {
-        border: none;
-    }
+  .pf-v5-c-options-menu__toggle:not(.pf-m-plain)::before {
+    border: none;
+  }
 }
 
 .odf-topology-nav__item-storage-cluster-link {

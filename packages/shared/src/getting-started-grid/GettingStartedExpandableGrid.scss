@@ -1,17 +1,18 @@
 .ocs-getting-started-expandable-section {
-    background-color: var(--pf-v5-global--BackgroundColor--100);
-    margin-bottom: var(--pf-v5-global--gutter);
-    &__toggle-text {
-      color: var(--pf-v5-global--Color--dark-100);
-      font-size: var(--pf-v5-global--icon--FontSize--md);
-      font-weight: var(--pf-v5-global--FontWeight--bold);
-    }
+  background-color: var(--pf-v5-global--BackgroundColor--100);
+  margin-bottom: var(--pf-v5-global--gutter);
 
-    .pf-v5-c-expandable-section__toggle {
-        align-items: center;
-    }
+  &__toggle-text {
+    color: var(--pf-v5-global--Color--dark-100);
+    font-size: var(--pf-v5-global--icon--FontSize--md);
+    font-weight: var(--pf-v5-global--FontWeight--bold);
+  }
+
+  .pf-v5-c-expandable-section__toggle {
+    align-items: center;
+  }
 }
 
 .ocs-getting-started-expandable-grid {
-    --pf-v5-c-card--BoxShadow: 0;
+  --pf-v5-c-card--BoxShadow: 0;
 }

@@ -1,40 +1,41 @@
 .odf-onboarding-modal__text-area {
-    height: 19rem;
+  height: 19rem;
 }
 
 .odf-onboarding-modal__clipboard {
-    padding-left: 0;
+  padding-left: 0;
 }
 
 .odf-onboarding-modal__title-desc {
-    margin-bottom: 4vh;
+  margin-bottom: 4vh;
 }
 
 .odf-onboarding-modal__quota-desc {
-    .pf-v5-c-radio__description {
-        margin-top: -0.5rem;
-    }
-    .pf-v5-c-form__group-label-info {
-        margin-bottom: 0.5rem;
-    }
+  .pf-v5-c-radio__description {
+    margin-top: -0.5rem;
+  }
+
+  .pf-v5-c-form__group-label-info {
+    margin-bottom: 0.5rem;
+  }
 }
 
 .odf-onboarding-modal__timestamp-icon {
-    width: fit-content;
+  width: fit-content;
 }
 
 .co-icon-and-text.odf-onboarding-modal__info-icon {
-    display: unset;
+  display: unset;
 
-    .co-icon-flex-child {
-        position: unset;
-    }
+  .co-icon-flex-child {
+    position: unset;
+  }
 }
 
 .odf-onboarding-modal__invalid-quota {
-    width: fit-content;
+  width: fit-content;
 }
 
 .odf-onboarding-modal__quota-desc h5 {
-    display: inline;
+  display: inline;
 }

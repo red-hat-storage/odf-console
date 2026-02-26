@@ -1,21 +1,25 @@
 .odf-topology {
-    &-search-bar {
-        width: 100%;
-        border-bottom: 1px solid var(--pf-v5-global--palette--black-200);
-        padding: var(--pf-v5-global--spacer--sm);
-    }
-    &-search-bar__search .pf-v5-c-input-group {
-        max-width: 30%;
-        display: inline-flex;
-        border-style: outset;
-    }
-    &-search-bar__expand {
-        margin-left: var(--pf-v5-global--spacer--lg);
-    }
-    &-search-bar__expand-icon {
-        margin-right: var(--pf-v5-global--spacer--sm);
-    }
-    &-search-bar__expand-button {
-      text-decoration: underline;
-    }
+  &-search-bar {
+    width: 100%;
+    border-bottom: 1px solid var(--pf-v5-global--palette--black-200);
+    padding: var(--pf-v5-global--spacer--sm);
+  }
+
+  &-search-bar__search .pf-v5-c-input-group {
+    max-width: 30%;
+    display: inline-flex;
+    border-style: outset;
+  }
+
+  &-search-bar__expand {
+    margin-left: var(--pf-v5-global--spacer--lg);
+  }
+
+  &-search-bar__expand-icon {
+    margin-right: var(--pf-v5-global--spacer--sm);
+  }
+
+  &-search-bar__expand-button {
+    text-decoration: underline;
+  }
 }

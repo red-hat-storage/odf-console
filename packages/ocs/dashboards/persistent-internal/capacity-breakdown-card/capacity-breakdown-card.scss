@@ -25,10 +25,12 @@
     justify-content: end;
     padding: var(--pf-v5-global--spacer--md) var(--pf-v5-global--spacer--lg) 0;
   }
+
   &__dropdown {
     width: -webkit-fill-available;
     max-width: 30em;
   }
+
   &__dropdown > div {
     max-height: 300px;
     max-width: 30em;
@@ -38,6 +40,7 @@
       min-width: 12em;
     }
   }
+
   &__title {
     padding-right: var(--pf-v5-global--spacer--lg);
   }

@@ -1,14 +1,14 @@
 .odf-topology__group {
-    &-state--warning path.pf-topology__group__background {
-        stroke: var(--pf-v5-global--warning-color--100)
-    }
+  &-state--warning path.pf-topology__group__background {
+    stroke: var(--pf-v5-global--warning-color--100);
+  }
 
-    &-state--error path.pf-topology__group__background {
-        stroke: var(--pf-v5-global--danger-color--100)
-    }
+  &-state--error path.pf-topology__group__background {
+    stroke: var(--pf-v5-global--danger-color--100);
+  }
 }
 
 .odf-topology__group--zone > path.pf-topology__group__background {
-        stroke-dasharray: 5px;
-        stroke: #B8BBBE;
+  stroke-dasharray: 5px;
+  stroke: #b8bbbe;
 }

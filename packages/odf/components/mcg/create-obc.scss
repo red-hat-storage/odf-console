@@ -2,20 +2,21 @@
   &__resource-dropdown {
     width: 100%;
   }
+
   &__namespacestore-dropdown {
     margin-bottom: var(--pf-v5-global--spacer--md);
   }
   
   &__remove-button {
-   margin-top: var(--pf-v5-global--spacer--xl);
-   display: inline
+    margin-top: var(--pf-v5-global--spacer--xl);
+    display: inline;
   }
   
   &__form {
     width: 100%;
   }
 
-  &__stack-item{
+  &__stack-item {
     border-style: solid;
     border-width: thin;
     padding: var(--pf-v5-global--spacer--md);
