@@ -11,6 +11,7 @@
   flex-direction: row;
   justify-content: left;
   align-items: flex-end;
+
   &-sub {
     display: inline-flex;
     flex-direction: row;
@@ -33,9 +34,11 @@
   flex-wrap: wrap;
   justify-content: space-between;
   width: 100%;
+
   &-ceph {
     line-height: 32px;
   }
+
   &-multiline {
     display: flex;
     align-items: center;

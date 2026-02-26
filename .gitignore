@@ -11,3 +11,12 @@ plugins/**/cypress.config.ts
 yarn-error.log
 test-report.html
 .vscode/launch.json
+
+# Yarn v4 (Berry)
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

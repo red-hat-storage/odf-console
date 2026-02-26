@@ -2,6 +2,26 @@
 
 ODF Console is the UI plugin for Openshift Data Foundation Operator. It works as a remote module for OpenShift Container Platform [console](<(https://github.com/openshift/console)>).
 
+## Package Manager
+
+This project uses **Yarn Berry (v4)** as the package manager. Yarn is managed via [Corepack](https://nodejs.org/api/corepack.html), which is included with Node.js 16.10+.
+
+### First-time Setup
+
+Enable Corepack (one-time setup):
+
+```bash
+corepack enable
+```
+
+### Installing Dependencies
+
+```bash
+yarn install
+```
+
+The Yarn version is specified in `package.json` under the `packageManager` field. Corepack will automatically use the correct version.
+
 ## Running in Development Mode
 
 ODF console works as a remote bundle for OCP console. To run ODF Console there should be a instance of OCP console up and running.
@@ -17,17 +37,19 @@ After the OCP console is set as required by ODF Console. Performs the following 
 1. Install ODF Operator
 2. Create a Storage System
 3. Clone this repo.
-4. Pull all required dependencies by running `yarn install`.
-5. Run the development mode of odf-console using `yarn run dev`. This runs a webserver in port 9001.
+4. Enable Corepack: `corepack enable` (first-time setup)
+5. Pull all required dependencies by running `yarn install`.
+6. Run the development mode of odf-console using `yarn run dev`. This runs a webserver in port 9001.
 
 ### Steps to run OCP Console as a container in development mode:
 
 1. Install ODF Operator.
 2. Create a Storage System.
 3. Clone this repo.
-4. Pull all required dependencies by running `yarn install`.
-5. Run the development mode of odf-console using `CONSOLE_VERSION=4.18 I8N_NS=plugin__odf-console PLUGIN=odf yarn run dev:c`. This runs a container running both the console bridge and a webserver in port 9001.
-6. For more OCP container related environment variables [Refer](https://github.com/red-hat-storage/odf-console/scripts/start-ocp-console.sh).
+4. Enable Corepack: `corepack enable` (first-time setup)
+5. Pull all required dependencies by running `yarn install`.
+6. Run the development mode of odf-console using `CONSOLE_VERSION=4.18 I8N_NS=plugin__odf-console PLUGIN=odf yarn run dev:c`. This runs a container running both the console bridge and a webserver in port 9001.
+7. For more OCP container related environment variables [Refer](https://github.com/red-hat-storage/odf-console/scripts/start-ocp-console.sh).
 
 ### Unit Tests
 
