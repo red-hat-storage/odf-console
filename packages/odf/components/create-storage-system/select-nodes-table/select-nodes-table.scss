@@ -11,17 +11,17 @@
 }
 
 .ceph-odf-install__select-nodes-table {
-  margin-bottom: var(--pf-v5-global--spacer--md);
+  margin-bottom: var(--pf-t--global--spacer--md);
   max-height: 300px;
   overflow-y: auto;
-  scrollbar-color: var(--pf-v5-global--BackgroundColor--light-300)
-    var(--pf-v5-global--palette--white);
+  scrollbar-color: var(--pf-t--global--background--color--300)
+    var(--pf-t--color--white);
 
-  .pf-v5-c-table {
-    border: var(--pf-v5-global--BorderWidth--sm) solid
-      var(--pf-v5-global--BorderColor--100);
+  .pf-v6-c-table {
+    border: var(--pf-t--global--border--width--regular) solid
+      var(--pf-t--global--border--color--100);
 
-    .pf-v5-c-table__check {
+    .pf-v6-c-table__check {
       /* This overrides the default overrides of checkboxes for ocs based tables */
       width: 4.6% !important;
 

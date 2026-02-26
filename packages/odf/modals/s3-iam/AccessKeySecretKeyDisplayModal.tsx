@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { GreenCheckCircleIcon, useCustomTranslation } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Form,
@@ -10,8 +11,6 @@ import {
   ButtonVariant,
   Alert,
   FormSection,
-  Modal,
-  ModalVariant,
   Title,
   Label,
   Flex,
@@ -68,7 +67,7 @@ export const AccessKeySecretKeyDisplayModal: React.FC<
       onClose={handleClose}
       title={
         <Title headingLevel="h2">
-          <GreenCheckCircleIcon className="pf-v5-u-mr-sm" />
+          <GreenCheckCircleIcon className="pf-v6-u-mr-sm" />
           {t(title)}
         </Title>
       }
@@ -102,13 +101,13 @@ export const AccessKeySecretKeyDisplayModal: React.FC<
               <>
                 {t('Access key ')}
                 <Label
-                  className="pf-v5-u-ml-xs"
+                  className="pf-v6-u-ml-xs"
                   icon={<GreenCheckCircleIcon />}
                   color="green"
                 >
                   {t('Active')}
                 </Label>
-                <Label className="pf-v5-u-ml-sm" color="cyan">
+                <Label className="pf-v6-u-ml-sm" color="teal">
                   {t('Primary')}
                 </Label>
               </>
@@ -127,18 +126,19 @@ export const AccessKeySecretKeyDisplayModal: React.FC<
               </FlexItem>
               <FlexItem>
                 <Button
+                  icon={hide ? <EyeIcon /> : <EyeSlashIcon />}
                   variant="plain"
                   onClick={() => {
                     setHide(!hide);
                   }}
-                >
-                  {hide ? <EyeIcon /> : <EyeSlashIcon />}
-                </Button>
+                />
               </FlexItem>
               <FlexItem>
-                <Button variant="plain" onClick={handleCopy}>
-                  <CopyIcon />
-                </Button>
+                <Button
+                  icon={<CopyIcon />}
+                  variant="plain"
+                  onClick={handleCopy}
+                />
               </FlexItem>
             </Flex>
           </FormGroup>

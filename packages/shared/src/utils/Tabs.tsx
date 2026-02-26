@@ -146,7 +146,7 @@ const Tabs: React.FC<TabsProps> = ({
       unmountOnExit={true}
       activeKey={activeTab}
       onSelect={onSelect}
-      isSecondary={isSecondary}
+      isSubtab={isSecondary}
       component={TabsComponent.nav}
     >
       {elements}

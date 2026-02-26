@@ -11,7 +11,7 @@ export const ModalTitle: React.FC<ModalTitleProps> = ({
   close,
 }) => (
   <div className={className}>
-    <h1 className="pf-v5-c-title pf-m-2xl" data-test-id="modal-title">
+    <h1 className="pf-v6-c-title pf-m-2xl" data-test-id="modal-title">
       {children}
       {close && (
         <CloseButton
@@ -81,7 +81,7 @@ export const ModalSubmitFooter: React.SFC<ModalSubmitFooterProps> = ({
       errorMessage={errorMessage}
       message={message}
     >
-      <ActionGroup className="pf-v5-c-form pf-v5-c-form__actions--right pf-v5-c-form__group--no-top-margin">
+      <ActionGroup className="pf-v6-c-form pf-v6-c-form__actions--right pf-v6-c-form__group--no-top-margin">
         {reset && (
           <Button
             variant="link"

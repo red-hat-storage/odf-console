@@ -1,26 +1,27 @@
 .rich-input__rules {
-  padding-top: var(--pf-v5-c-helper-text--Gap);
+  padding-top: var(--pf-v6-c-helper-text--Gap);
 }
 
 .rich-input__group {
-  border-color: var(--pf-v5-global--BorderColor--300)
-    var(--pf-v5-global--BorderColor--300) var(--pf-v5-global--info-color--100)
-    var(--pf-v5-global--BorderColor--300);
-  border-width: var(--pf-v5-global--BorderWidth--sm);
-  border-bottom-width: var(--pf-v5-global--BorderWidth--md);
+  border-color: var(--pf-t--global--border--color--300)
+    var(--pf-t--global--border--color--300)
+    var(--pf-t--global--color--status--info--100)
+    var(--pf-t--global--border--color--300);
+  border-width: var(--pf-t--global--border--width--regular);
+  border-bottom-width: var(--pf-t--global--border--width--strong);
   border-style: solid;
 }
 
 .rich-input__group--success {
-  border-bottom-color: var(--pf-v5-global--success-color--100);
-  border-width: var(--pf-v5-global--BorderWidth--sm);
-  border-bottom-width: var(--pf-v5-global--BorderWidth--md);
+  border-bottom-color: var(--pf-t--global--color--status--success--100);
+  border-width: var(--pf-t--global--border--width--regular);
+  border-bottom-width: var(--pf-t--global--border--width--strong);
 }
 
 .rich-input__group--invalid {
-  border-bottom-color: var(--pf-v5-global--danger-color--100);
-  border-width: var(--pf-v5-global--BorderWidth--sm);
-  border-bottom-width: var(--pf-v5-global--BorderWidth--md);
+  border-bottom-color: var(--pf-t--global--color--status--danger--100);
+  border-width: var(--pf-t--global--border--width--regular);
+  border-bottom-width: var(--pf-t--global--border--width--strong);
 }
 
 .rich-input__text {

@@ -1,14 +1,14 @@
 .topology-sidebar-tab__resources {
-  font-size: var(--pf-v5-global--FontSize--sm);
+  font-size: var(--pf-t--global--font--size--sm);
 
   .list-group-item {
-    margin-bottom: var(--pf-v5-global--spacer--sm);
+    margin-bottom: var(--pf-t--global--spacer--sm);
   }
   .odf-sidebar-pod-list__item-header {
-    color: var(--pf-v5-global--Color--dark-200);
+    color: var(--pf-t--global--text--color--subtle);
     display: block;
   }
   .odf-sidebar-pod-list__item-content {
-    font-weight: var(--pf-v5-global--FontWeight--semi-bold);
+    font-weight: var(--pf-t--global--font--weight--200);
   }
 }

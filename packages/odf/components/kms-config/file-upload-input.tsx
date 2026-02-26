@@ -84,7 +84,7 @@ export const FileUploadInput: React.FC<
       key={`kms-${id}`}
       fieldId={id}
       label={inputName}
-      labelIcon={labelIcon}
+      labelHelp={labelIcon}
       className={`${className}__form-body`}
       isRequired
     >

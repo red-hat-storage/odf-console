@@ -3,16 +3,20 @@
     /* Removes padding from the list page to align the table with rest of the form fields*/
     padding: 0;
   }
+
+  input[type='checkbox'] {
+    cursor: pointer;
+  }
 }
 
 .odf-capacity-and-nodes__taint-checkbox {
-  margin-top: calc(var(--pf-v5-global--spacer--md) * -1);
+  margin-top: calc(var(--pf-t--global--spacer--md) * -1);
 }
 
 .ocs-enable-arbiter-label {
   display: inline-block;
   &__title--padding {
-    padding: var(--pf-v5-global--spacer--sm) var(--pf-v5-global--spacer--sm)
-      var(--pf-v5-global--spacer--sm) 0;
+    padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--sm)
+      var(--pf-t--global--spacer--sm) 0;
   }
 }

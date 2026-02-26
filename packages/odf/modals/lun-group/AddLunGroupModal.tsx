@@ -15,15 +15,9 @@ import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requireme
 import { LocalDiskModel } from '@odf/shared/models/scale';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import {
-  Button,
-  ButtonVariant,
-  Form,
-  FormGroup,
-  Modal,
-  ModalVariant,
-} from '@patternfly/react-core';
+import { Button, ButtonVariant, Form, FormGroup } from '@patternfly/react-core';
 
 type AddLunGroupModalProps = {
   isOpen: boolean;

@@ -1,12 +1,12 @@
 .health-overview__alerts-table {
-  .pf-v5-c-table__th,
-  .pf-v5-c-table__td {
-    padding-top: var(--pf-v5-global--spacer--sm);
-    padding-bottom: var(--pf-v5-global--spacer--sm);
+  .pf-v6-c-table__th,
+  .pf-v6-c-table__td {
+    padding-top: var(--pf-t--global--spacer--sm);
+    padding-bottom: var(--pf-t--global--spacer--sm);
     vertical-align: middle;
   }
 
-  .pf-v5-c-table__tr {
+  .pf-v6-c-table__tr {
     height: auto;
   }
 }

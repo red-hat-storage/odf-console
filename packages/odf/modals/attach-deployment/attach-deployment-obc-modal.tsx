@@ -13,8 +13,9 @@ import { DeploymentKind, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { Alert, Button, Modal, ModalVariant } from '@patternfly/react-core';
+import { Alert, Button } from '@patternfly/react-core';
 import { getAttachOBCPatch } from '../../utils';
 import './attach-deployment.scss';
 

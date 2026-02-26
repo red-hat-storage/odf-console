@@ -32,7 +32,7 @@ export const RecipeParameterInput: React.FC<RecipeParameterInputProps> = ({
     <FormGroup
       label={t('Recipe parameters')}
       fieldId="recipe-parameters"
-      labelIcon={
+      labelHelp={
         <FieldLevelHelp>
           {t(
             'Recipe parameters are a set of named inputs that substitute the placeholders in a recipe.'

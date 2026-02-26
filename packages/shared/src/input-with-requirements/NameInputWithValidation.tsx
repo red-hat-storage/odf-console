@@ -80,7 +80,7 @@ const NameInputWithValidation: React.FC<NameInputWithValidationProps> = ({
         footerContent: `${t('Example')}: my-name`,
       }}
       formGroupProps={{
-        className: 'pf-v5-u-w-50',
+        className: 'pf-v6-u-w-50',
         label: label ?? t('Name'),
         fieldId,
         isRequired: true,

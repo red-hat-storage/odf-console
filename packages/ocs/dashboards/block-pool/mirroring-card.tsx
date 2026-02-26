@@ -12,10 +12,10 @@ import {
   useK8sWatchResource,
   HealthState,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { ChartPie, ChartThemeColor } from '@patternfly/react-charts/victory';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
-import { ChartPie, ChartThemeColor } from '@patternfly/react-charts';
 import {
   ExpandableSection,
   Popover,
@@ -185,12 +185,14 @@ const MirroringImageStatePopover: React.FC<MirroringImageStatePopoverProps> = ({
       }
     >
       <Button
+        icon={
+          <OutlinedQuestionCircleIcon className="odf-block-pool-mirroring-help__icon" />
+        }
         aria-label={t('image states info')}
         variant="link"
         isInline
         className="odf-block-pool-mirroring-help"
       >
-        <OutlinedQuestionCircleIcon className="odf-block-pool-mirroring-help__icon" />
         What does each state mean?
       </Button>
     </Popover>
@@ -302,7 +304,7 @@ export const MirroringCard: React.FC = () => {
                 <StatusIconAndText
                   title={healthStateMessage(mirroringHealth?.health, t)}
                   icon={mirroringHealth?.icon as React.ReactElement}
-                  className="pf-v5-u-ml-xs"
+                  className="pf-v6-u-ml-xs"
                 />
               </MirroringCardItem>
               <MirroringCardItem
@@ -313,7 +315,7 @@ export const MirroringCard: React.FC = () => {
                 <StatusIconAndText
                   title={healthStateMessage(imageHealth?.health, t)}
                   icon={imageHealth?.icon as React.ReactElement}
-                  className="pf-v5-u-ml-xs"
+                  className="pf-v6-u-ml-xs"
                 />
               </MirroringCardItem>
               {!_.isEmpty(states) && (

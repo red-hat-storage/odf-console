@@ -16,7 +16,7 @@ export const StoragePoolFooter = (props: StoragePoolFooterProps) => {
 
   return (
     <ButtonBar errorMessage={state.errorMessage} inProgress={state.inProgress}>
-      <ActionGroup className="pf-v5-c-form pf-v5-c-form__actions--left">
+      <ActionGroup className="pf-v6-c-form pf-v6-c-form__actions--left">
         <Button
           type="button"
           variant="primary"

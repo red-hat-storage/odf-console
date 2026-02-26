@@ -1,14 +1,14 @@
 .s3-cors-button--margin {
-    margin-left: calc(var(--pf-v5-global--spacer--md) * -1);
+    margin-left: calc(var(--pf-t--global--spacer--md) * -1);
 }
 
 .s3-cors-input--margin {
-    margin-left: calc(var(--pf-v5-global--spacer--xs) * 5.5);
-    margin-top: var(--pf-v5-global--spacer--sm);
+    margin-left: calc(var(--pf-t--global--spacer--xs) * 5.5);
+    margin-top: var(--pf-t--global--spacer--sm);
 }
 
 .s3-cors-validation--font-weight {
-    .pf-v5-c-alert__title {
-        font-weight: var(--pf-v5-global--FontWeight--normal);
+    .pf-v6-c-alert__title {
+        font-weight: var(--pf-t--global--font--weight--body--default);
     }
 }

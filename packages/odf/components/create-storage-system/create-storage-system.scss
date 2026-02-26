@@ -1,25 +1,25 @@
 .odf-create-storage-system__header {
-  border-bottom: var(--pf-v5-global--BorderWidth--sm) solid #ddd;
-  padding-right: var(--pf-v5-global--spacer--lg);
-  padding-left: var(--pf-v5-global--spacer--lg);
-  padding-bottom: var(--pf-v5-global--spacer--md);
-  padding-top: var(--pf-v5-global--spacer--lg);
+  border-bottom: var(--pf-t--global--border--width--regular) solid #ddd;
+  padding-right: var(--pf-t--global--spacer--lg);
+  padding-left: var(--pf-t--global--spacer--lg);
+  padding-bottom: var(--pf-t--global--spacer--md);
+  padding-top: var(--pf-t--global--spacer--lg);
 }
 
 .odf-create-storage-system__breadcrumb {
   // _overrides.scss modifies the default padding for pf breadcrumbs to be padding-top: 25px
   // Adjusting it since it takes a lot of space on thecreate system page
-  padding-top: var(--pf-v5-global--spacer--sm);
+  padding-top: var(--pf-t--global--spacer--sm);
 }
 
 .odf-create-storage-system-footer__alert {
-  margin: 0 var(--pf-v5-global--spacer--md);
+  margin: 0 var(--pf-t--global--spacer--md);
 }
 
 .odf-create-storage-system-wizard-body {
-  margin: var(--pf-v5-global--spacer--4xl);
+  margin: var(--pf-t--global--spacer--4xl);
   &__error {
-    color: var(--pf-v5-global--danger-color--200);
+    color: var(--pf-t--global--color--status--danger--200);
   }
 }
 

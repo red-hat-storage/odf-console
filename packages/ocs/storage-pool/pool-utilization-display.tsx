@@ -50,17 +50,17 @@ export const PoolUtilizationDisplay: React.FC<{
       hasAutoWidth
       triggerAction="hover"
     >
-      <Button variant="link" className="pf-v5-u-text-align-left pf-v5-u-w-100">
+      <Button variant="link" className="pf-v6-u-text-align-left pf-v6-u-w-100">
         <Flex
           alignItems={{ default: 'alignItemsCenter' }}
           spaceItems={{ default: 'spaceItemsSm' }}
         >
           {isCritical ? (
-            <ExclamationCircleIcon className="pf-v5-u-danger-color-100" />
+            <ExclamationCircleIcon className="pf-v6-u-danger-color-100" />
           ) : (
-            <ExclamationTriangleIcon className="pf-v5-u-warning-color-100" />
+            <ExclamationTriangleIcon className="pf-v6-u-warning-color-100" />
           )}
-          <span className="pf-v5-u-word-break-break-word">
+          <span className="pf-v6-u-word-break-break-word">
             {usedCapacityDisplay} ({utilizationPercentage.toFixed(1)}%)
           </span>
         </Flex>

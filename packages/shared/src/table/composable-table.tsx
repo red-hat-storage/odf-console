@@ -67,11 +67,11 @@ export const ComposableTable: ComposableTableProps = <
       EmptyMsg={emptyRowMessage}
       unfilteredData={unfilteredData}
       NoDataEmptyMsg={noDataMsg}
-      skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
+      skeleton={<div className="loading-skeleton--table pf-v6-u-mt-lg" />}
     >
       <Table
         aria-label={t('Composable table')}
-        className="pf-v5-u-mt-md"
+        className="pf-v6-u-mt-md"
         variant={variant}
       >
         <Thead>

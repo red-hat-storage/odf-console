@@ -25,6 +25,7 @@ import {
   K8sModel,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
@@ -32,8 +33,6 @@ import {
   Alert,
   Button,
   FormGroup,
-  Modal,
-  ModalVariant,
   Spinner,
   TextInput,
 } from '@patternfly/react-core';

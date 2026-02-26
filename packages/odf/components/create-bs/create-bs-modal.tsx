@@ -5,7 +5,7 @@ import {
   ModalHeader,
 } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Modal, ModalVariant } from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import CreateBackingStoreForm from './create-bs';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
@@ -24,6 +24,7 @@ const CreateBackingStoreFormModal: React.FC<
       onClose={closeModal}
     >
       <div className="nb-endpoints__modal">
+        <ModalHeader>{t('Create new BackingStore')}</ModalHeader>
         <ModalBody>
           <p>
             {t(

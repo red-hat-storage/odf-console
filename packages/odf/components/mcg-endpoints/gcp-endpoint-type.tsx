@@ -89,8 +89,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
       enableFlip
       maxWidth="21rem"
     >
-      <Button variant="link">
-        <HelpIcon />
+      <Button icon={<HelpIcon />} variant="link">
         {t('Where can I find Google Cloud credentials?')}
       </Button>
     </Popover>
@@ -159,12 +158,11 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
               </InputGroupItem>
               <InputGroupItem>
                 <Button
+                  icon={t('Switch to Secret')}
                   variant="plain"
                   onClick={toggleShowSecret}
                   aria-label={t('Switch to Secret')}
-                >
-                  {t('Switch to Secret')}
-                </Button>
+                />
               </InputGroupItem>
             </InputGroup>
           ) : (
@@ -186,12 +184,11 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
               </InputGroupItem>
               <InputGroupItem>
                 <Button
+                  icon={t('Switch to upload JSON')}
                   variant="plain"
                   onClick={toggleShowSecret}
                   aria-label={t('Switch to upload JSON')}
-                >
-                  {t('Switch to upload JSON')}
-                </Button>
+                />
               </InputGroupItem>
             </InputGroup>
           )

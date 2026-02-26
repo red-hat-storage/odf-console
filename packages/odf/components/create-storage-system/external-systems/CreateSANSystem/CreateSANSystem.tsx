@@ -210,7 +210,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         />
       )}
       <ButtonBar errorMessage={error}>
-        <ActionGroup className="pf-v5-c-form">
+        <ActionGroup className="pf-v6-c-form">
           <Button
             type={ButtonType.submit}
             variant={ButtonVariant.primary}

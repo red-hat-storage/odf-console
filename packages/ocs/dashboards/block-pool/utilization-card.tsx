@@ -28,7 +28,7 @@ export const UtilizationCard: React.FC = () => {
       >
         <CardTitle>{t('Performance')}</CardTitle>
       </CardHeader>
-      <Grid className="odf-block-pool-utilization-card-body pf-v5-u-ml-lg pf-v5-u-mr-md">
+      <Grid className="odf-block-pool-utilization-card-body pf-v6-u-ml-lg pf-v6-u-mr-md">
         <PrometheusUtilizationItem
           title={t('IOPS')}
           utilizationQuery={getPoolQuery(

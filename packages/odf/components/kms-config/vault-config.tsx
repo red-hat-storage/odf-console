@@ -3,7 +3,6 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
-import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
@@ -18,6 +17,7 @@ import {
   Icon,
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
+import { t_color_blue_40 as blueInfoColor } from '@patternfly/react-tokens';
 import { ProviderStateMap } from '../../constants';
 import {
   VaultConfig,

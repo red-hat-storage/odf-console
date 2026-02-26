@@ -3,10 +3,9 @@ import { parseNamespaceName } from '@odf/mco/utils';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  Text,
+  Content,
   Badge,
-  TextContent,
-  TextVariants,
+  ContentVariants,
   Flex,
   FlexItem,
 } from '@patternfly/react-core';
@@ -38,16 +37,18 @@ export const SelectedClusterView: React.FC<SelectedClusterViewProps> = ({
         </Badge>
       </FlexItem>
       <FlexItem>
-        <TextContent>
-          <Text component={TextVariants.p}>{getName(cluster)}</Text>
+        <Content>
+          <Content component={ContentVariants.p}>{getName(cluster)}</Content>
           {!!storageClusterName ? (
-            <Text component={TextVariants.small}>{storageClusterName}</Text>
+            <Content component={ContentVariants.small}>
+              {storageClusterName}
+            </Content>
           ) : (
-            <Text component={TextVariants.small}>
+            <Content component={ContentVariants.small}>
               {t('Information unavailable')}
-            </Text>
+            </Content>
           )}
-        </TextContent>
+        </Content>
       </FlexItem>
     </Flex>
   );

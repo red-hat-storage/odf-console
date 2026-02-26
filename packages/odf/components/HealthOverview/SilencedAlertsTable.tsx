@@ -50,7 +50,7 @@ const RowRenderer: React.FC<RowComponentType<SilencedAlertRowData>> = ({
     <>
       <Td dataLabel={t('Silenced on')}>
         <div>{silencedOnDisplay}</div>
-        <div className="pf-v5-u-color-200">
+        <div className="pf-v6-u-color-200">
           {row.endsOn ? t('Until {{time}}', { time: untilDisplay }) : DASH}
         </div>
       </Td>
@@ -245,7 +245,7 @@ export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
           isInline
           variant={AlertVariant.danger}
           title={t('Unable to unsilence the selected alerts')}
-          className="pf-v5-u-mb-md"
+          className="pf-v6-u-mb-md"
         >
           {actionError?.message}
         </Alert>

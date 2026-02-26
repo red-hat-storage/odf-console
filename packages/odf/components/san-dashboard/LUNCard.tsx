@@ -31,9 +31,8 @@ import {
   CardHeader,
   CardTitle,
   pluralize,
-  TextContent,
-  TextVariants,
-  Text,
+  Content,
+  ContentVariants,
   Tooltip,
 } from '@patternfly/react-core';
 import { InfoCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
@@ -161,10 +160,10 @@ const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
         },
         id: tableColumnInfo[2].id,
         header: (
-          <span className="pf-v5-u-display-flex pf-v5-u-align-items-center">
+          <span className="pf-v6-u-display-flex pf-v6-u-align-items-center">
             {t('StorageClasses')}
             <Tooltip content={t('StorageClasses information')}>
-              <InfoCircleIcon className="pf-v5-u-ml-sm pf-v5-u-color-200" />
+              <InfoCircleIcon className="pf-v6-u-ml-sm pf-v6-u-color-200" />
             </Tooltip>
           </span>
         ),
@@ -177,10 +176,10 @@ const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
         },
         id: tableColumnInfo[3].id,
         header: (
-          <span className="pf-v5-u-display-flex pf-v5-u-align-items-center">
+          <span className="pf-v6-u-display-flex pf-v6-u-align-items-center">
             {t('Console link')}
             <Tooltip content={t('Console link information')}>
-              <InfoCircleIcon className="pf-v5-u-ml-sm pf-v5-u-color-200" />
+              <InfoCircleIcon className="pf-v6-u-ml-sm pf-v6-u-color-200" />
             </Tooltip>
           </span>
         ),
@@ -251,8 +250,8 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
         </Link>
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        <span className="pf-v5-u-display-flex pf-v5-u-align-items-center">
-          {isHealthy && <GreenCheckCircleIcon className="pf-v5-u-mr-sm" />}
+        <span className="pf-v6-u-display-flex pf-v6-u-align-items-center">
+          {isHealthy && <GreenCheckCircleIcon className="pf-v6-u-mr-sm" />}
           {status}
         </span>
       </TableData>
@@ -264,12 +263,12 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
           <div className="lun-card__console-link-wrap">
             <ExternalLink
               href={consoleLink}
-              additionalClassName="lun-card__console-link pf-v5-u-display-inline-flex pf-v5-u-align-items-center"
+              additionalClassName="lun-card__console-link pf-v6-u-display-inline-flex pf-v6-u-align-items-center"
             >
               <span className="lun-card__console-link-text" title={consoleLink}>
                 {consoleLink}
               </span>
-              <ExternalLinkAltIcon className="lun-card__console-link-icon pf-v5-u-ml-xs" />
+              <ExternalLinkAltIcon className="lun-card__console-link-icon pf-v6-u-ml-xs" />
             </ExternalLink>
           </div>
         ) : (
@@ -307,9 +306,9 @@ const LUNGroupsTable: React.FC = () => {
 
   return (
     <div>
-      <TextContent className="pf-v5-u-my-xl">
-        <Text component={TextVariants.h2}>
-          <span className="pf-v5-u-mr-sm">
+      <Content className="pf-v6-u-my-xl">
+        <Content component={ContentVariants.h2}>
+          <span className="pf-v6-u-mr-sm">
             <LUNGroupStatusIcon
               fileSystems={filteredFileSystems || []}
               loading={!fileSystemsLoaded}
@@ -322,8 +321,8 @@ const LUNGroupsTable: React.FC = () => {
               t('LUN group')
             ),
           })}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
       <ListPageFilter
         data={data}
         loaded={fileSystemsLoaded}

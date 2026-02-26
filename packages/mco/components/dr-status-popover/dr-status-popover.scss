@@ -1,62 +1,62 @@
 .dr-status-popover {
   &__title {
-    font-weight: bold;
+    font-weight: var(--pf-t--global--font--weight--body--bold);
     font-size: 16px;
   }
 
   &__description {
-    margin-bottom: var(--pf-v5-global--spacer--md);
+    margin-bottom: var(--pf-t--global--spacer--md);
   }
 
   &__action-needed,
   &__critical {
-    color: var(--pf-v5-global--danger-color--100);
+    color: var(--pf-t--global--color--status--danger--100);
   }
 
   &__warning {
-    color: var(--pf-v5-global--warning-color--100);
+    color: var(--pf-t--global--color--status--warning--100);
   }
 
   &__healthy {
-    color: var(--pf-v5-global--success-color--100);
+    color: var(--pf-t--global--color--status--success--100);
   }
 
   &__failover,
   &__relocating {
-    color: var(--pf-v5-global--Color--100);
+    color: var(--pf-t--global--text--color--regular);
   }
 
   &__cluster-details {
-    margin-top: var(--pf-v5-global--spacer--md);
+    margin-top: var(--pf-t--global--spacer--md);
   }
 
   &__sync-details {
-    margin-top: var(--pf-v5-global--spacer--md);
+    margin-top: var(--pf-t--global--spacer--md);
   }
 
   &__policy-details {
-    margin-top: var(--pf-v5-global--spacer--md);
+    margin-top: var(--pf-t--global--spacer--md);
   }
 
   &__title-text.dr-status-action-needed,
   &__title-text.dr-status-critical {
-    color: var(--pf-v5-global--danger-color--100);
+    color: var(--pf-t--global--color--status--danger--100);
   }
 
   &__title-text.dr-status-warning {
-    color: var(--pf-v5-global--warning-color--100);
+    color: var(--pf-t--global--color--status--warning--100);
   }
 
   &__title-text.dr-status-healthy {
-    color: var(--pf-v5-global--success-color--100);
+    color: var(--pf-t--global--color--status--success--100);
   }
 
   &__title-text.dr-status-protecting {
-    color: var(--pf-v5-global--info-color--100);
+    color: var(--pf-t--global--color--status--info--100);
   }
 
   &__title-text.dr-status-protection-error {
-    color: var(--pf-v5-global--danger-color--100);
+    color: var(--pf-t--global--color--status--danger--100);
   }
 
   &__popover-body {

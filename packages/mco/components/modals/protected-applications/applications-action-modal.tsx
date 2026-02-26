@@ -5,13 +5,8 @@ import { ArgoApplicationSetKind } from '@odf/mco/types';
 import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
 import { ApplicationKind, useCustomTranslation } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
-import {
-  Modal,
-  ModalVariant,
-  Bullseye,
-  Spinner,
-  Alert,
-} from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import { Bullseye, Spinner, Alert } from '@patternfly/react-core';
 import { ArogoApplicationSetParser } from '../app-failover-relocate/parser/argo-application-set-parser';
 import { SubscriptionFailoverRelocateModal } from '../app-failover-relocate/subscriptions/failover-relocate-modal';
 

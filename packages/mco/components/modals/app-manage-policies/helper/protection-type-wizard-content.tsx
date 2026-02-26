@@ -191,7 +191,7 @@ const ProtectionTypeSelection: React.FC<ProtectionTypeSelectionProps> = ({
   return (
     <Form>
       <FormGroup label={t('Protection type')} fieldId="vm-protection-method">
-        <FormHelperText className="pf-v5-u-mb-sm">
+        <FormHelperText className="pf-v6-u-mb-sm">
           <HelperText>
             <HelperTextItem variant="indeterminate">
               {t('Choose how you would like to protect this VM:')}
@@ -211,7 +211,7 @@ const ProtectionTypeSelection: React.FC<ProtectionTypeSelectionProps> = ({
               onChange={setProtectionMethod}
               isChecked={protectionType === value}
               isDisabled={isDisabled}
-              className="pf-v5-u-mb-md"
+              className="pf-v6-u-mb-md"
               body={protectionType === value && componentRef}
             />
           )

@@ -7,15 +7,10 @@ import {
   ModalFooter,
 } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import {
-  Modal,
-  ModalVariant,
-  Button,
-  ButtonVariant,
-  Icon,
-} from '@patternfly/react-core';
+import { Button, ButtonVariant, Icon } from '@patternfly/react-core';
 import { ArrowRightIcon } from '@patternfly/react-icons';
 
 const ManagedApplicationsModal: React.FC<CommonModalProps> = (props) => {
@@ -73,6 +68,11 @@ const ManagedApplicationsModal: React.FC<CommonModalProps> = (props) => {
       </ModalBody>
       <ModalFooter>
         <Button
+          icon={
+            <Icon size="sm">
+              <ArrowRightIcon className="pf-v5-u-ml-sm" />
+            </Icon>
+          }
           variant={ButtonVariant.link}
           onClick={() => {
             closeModal();
@@ -81,9 +81,6 @@ const ManagedApplicationsModal: React.FC<CommonModalProps> = (props) => {
           isInline
         >
           {t('Continue to Applications page')}
-          <Icon size="sm">
-            <ArrowRightIcon className="pf-v5-u-ml-sm" />
-          </Icon>
         </Button>
       </ModalFooter>
     </Modal>

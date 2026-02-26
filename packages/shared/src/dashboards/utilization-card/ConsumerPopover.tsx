@@ -194,7 +194,7 @@ export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
         consumers.reduce((items, curr) => {
           const ref = referenceForModel(curr.model);
           const dropdownItem = (
-            <DropdownItem key={ref} id={ref}>
+            <DropdownItem key={ref} id={ref} value={ref}>
               {t('By {{label}}', {
                 label: curr.model.labelKey
                   ? t(curr.model.labelKey)
@@ -208,15 +208,14 @@ export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
     );
 
     const onDropdownChange = React.useCallback(
-      (event: React.SyntheticEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
+      (
+        _event?: React.MouseEvent<Element, MouseEvent>,
+        value?: string | number
+      ) => {
         setCurrentConsumer(
-          consumers.find(
-            (c) => referenceForModel(c.model) === event?.currentTarget?.id
-          )
+          consumers.find((c) => referenceForModel(c.model) === value)
         );
-        setDropdownOpen((o) => !o);
+        setDropdownOpen(false);
       },
       [consumers, setDropdownOpen]
     );

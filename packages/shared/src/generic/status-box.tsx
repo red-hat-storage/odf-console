@@ -24,7 +24,7 @@ export const LoadError: React.FC<LoadErrorProps> = ({
   const { t } = useCustomTranslation();
   return (
     <Box className={className}>
-      <div className="pf-v5-u-text-align-center odf-error-title">
+      <div className="pf-v6-u-text-align-center odf-error-title">
         {_.isString(message)
           ? t('Error Loading {{label}}: {{message}}', {
               label,
@@ -33,7 +33,7 @@ export const LoadError: React.FC<LoadErrorProps> = ({
           : t('Error Loading {{label}}', { label })}
       </div>
       {canRetry && (
-        <div className="pf-v5-u-text-align-center">
+        <div className="pf-v6-u-text-align-center">
           <Trans t={t}>
             Please{' '}
             <Button
@@ -87,7 +87,7 @@ export const EmptyBox: React.FC<EmptyBoxProps> = ({ label }) => {
   const { t } = useCustomTranslation();
   return (
     <Box>
-      <div data-test="empty-message" className="pf-v5-u-text-align-center">
+      <div data-test="empty-message" className="pf-v6-u-text-align-center">
         {label ? t('No {{label}} found', { label }) : t('Not found')}
       </div>
     </Box>
@@ -108,7 +108,7 @@ export const MsgBox: React.FC<MsgBoxProps> = ({
     )}
     {detail && (
       <div
-        className="pf-v5-u-text-align-center odf-status-box__detail"
+        className="pf-v6-u-text-align-center odf-status-box__detail"
         data-test="msg-box-detail"
       >
         {detail}
@@ -122,7 +122,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
   const { t } = useCustomTranslation();
   return (
     <div>
-      <Box className="pf-v5-u-text-align-center">
+      <Box className="pf-v6-u-text-align-center">
         <MsgBox
           title={t('Restricted Access')}
           detail={t(

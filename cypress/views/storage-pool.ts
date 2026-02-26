@@ -183,10 +183,10 @@ export const openStoragePoolKebab = (
   cy.byLegacyTestID('item-filter').clear();
   cy.byLegacyTestID('item-filter').type(targetPoolName);
   cy.log('Only one resource should be present after filtering');
-  cy.byTestID('storage-pool-kebab-button').should('have.length', 1);
+  cy.get('[data-test="storage-pool-kebab-button"]').should('have.length', 1);
   if (isDefaultPool)
-    cy.byTestID('storage-pool-kebab-button').should('be.disabled');
-  else cy.byTestID('storage-pool-kebab-button').click();
+    cy.get('[data-test="storage-pool-kebab-button"]').should('be.disabled');
+  else cy.get('[data-test="storage-pool-kebab-button"]').click();
 };
 
 export const deleteStoragePool = (poolName: string) => {
@@ -200,5 +200,5 @@ export const deleteStoragePool = (poolName: string) => {
   cy.log('Verify that the pool is not found.');
   cy.byLegacyTestID('item-filter').clear();
   cy.byLegacyTestID('item-filter').type(poolName);
-  cy.byTestID('storage-pool-kebab-button').should('have.length', 0);
+  cy.get('[data-test="storage-pool-kebab-button"]').should('have.length', 0);
 };

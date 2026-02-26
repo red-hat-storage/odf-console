@@ -9,8 +9,8 @@ import {
   Grid,
   GridItem,
   Radio,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import {
   EnrollDiscoveredApplicationAction,
@@ -44,13 +44,13 @@ export const Configuration: React.FC<ConfigurationProps> = ({
   return (
     <Form maxWidth="58rem">
       <FormSection title={t('Configure definition')}>
-        <Text component={TextVariants.small}>
+        <Content component={ContentVariants.small}>
           {t(
             'Choose your configuration preference to protect resources (application volumes/PVCs, or Kubernetes objects).'
           )}
-        </Text>
+        </Content>
         <Alert
-          className="odf-alert pf-v5-u-mb-xs pf-v5-u-pl-md"
+          className="odf-alert pf-v6-u-mb-xs pf-v6-u-pl-md"
           title={t(
             'You have selected {{count}} namespaces, to view or change your selection go back to the previous step.',
             { count: namespaces.length }
@@ -63,7 +63,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           <Grid hasGutter>
             <GridItem
               span={6}
-              className="mco-configuration-step__radio pf-v5-u-p-lg"
+              className="mco-configuration-step__radio pf-v6-u-p-lg"
             >
               <Radio
                 id="label-based-protection"
@@ -83,7 +83,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             </GridItem>
             <GridItem
               span={6}
-              className="mco-configuration-step__radio pf-v5-u-p-lg"
+              className="mco-configuration-step__radio pf-v6-u-p-lg"
             >
               <Radio
                 id="recipe-based-protection"

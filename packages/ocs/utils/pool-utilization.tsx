@@ -6,9 +6,9 @@ import {
   ExclamationCircleIcon,
   CheckCircleIcon,
 } from '@patternfly/react-icons';
-import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens';
-import { global_success_color_100 as successColor } from '@patternfly/react-tokens';
-import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens';
+import { t_global_color_status_warning_default as warningColor } from '@patternfly/react-tokens';
+import { t_global_color_status_success_default as successColor } from '@patternfly/react-tokens';
+import { t_global_color_status_danger_default as dangerColor } from '@patternfly/react-tokens';
 import {
   POOL_NEAR_FULL_THRESHOLD,
   POOL_FULL_THRESHOLD,

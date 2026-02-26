@@ -34,7 +34,7 @@ import {
   CardTitle,
   Grid,
   GridItem,
-  Text,
+  Content,
   Skeleton,
 } from '@patternfly/react-core';
 import {
@@ -247,7 +247,10 @@ const ClusterAppCardTitle: React.FC<ClusterAppCardTitleProps> = ({
     apiVersion;
   return !!app.namespace ? (
     <div>
-      <Text className="mco-cluster-app__headerText--size mco-dashboard__statusText--margin">
+      <Content
+        component="p"
+        className="mco-cluster-app__headerText--size mco-dashboard__statusText--margin"
+      >
         {t('Application: ')}
         {appType === DRApplication.DISCOVERED ? (
           app.name
@@ -256,12 +259,12 @@ const ClusterAppCardTitle: React.FC<ClusterAppCardTitleProps> = ({
             {app.name}
           </Link>
         )}
-      </Text>
-      <Text className="mco-dashboard__statusText--margin">
+      </Content>
+      <Content component="p" className="mco-dashboard__statusText--margin">
         {t('Type: {{type}}', {
           type: APPLICATION_TYPE_DISPLAY_TEXT(t)[appType],
         })}
-      </Text>
+      </Content>
     </div>
   ) : (
     <div className="mco-cluster-app__headerText--size">{cluster}</div>

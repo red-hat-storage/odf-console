@@ -7,11 +7,11 @@ import {
   useActiveColumns,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import classNames from 'classnames';
 import {
   Modal as PfModal,
   ModalProps as PfModalProps,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import classNames from 'classnames';
 import { Button } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import './disk-list-modal.scss';

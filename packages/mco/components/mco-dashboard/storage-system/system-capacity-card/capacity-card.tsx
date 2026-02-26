@@ -131,22 +131,22 @@ const metricsSort = (
 const headerColumns = (t: TFunction) => [
   {
     columnName: t('plugin__odf-console~Name'),
-    className: 'pf-v5-u-w-25',
+    className: 'pf-v6-u-w-25',
     sortFunction: systemNameSort,
   },
   {
     columnName: t('plugin__odf-console~Cluster name'),
-    className: 'pf-v5-u-w-20',
+    className: 'pf-v6-u-w-20',
     sortFunction: clusterNameSort,
   },
   {
     columnName: t('plugin__odf-console~Used Capacity %'),
-    className: 'pf-v5-u-w-25',
+    className: 'pf-v6-u-w-25',
     sortFunction: metricsSort,
   },
   {
     columnName: t('plugin__odf-console~Used / Total'),
-    className: 'pf-v5-u-w-30',
+    className: 'pf-v6-u-w-30',
   },
 ];
 
@@ -392,11 +392,10 @@ const SystemCapacityCard: React.FC = () => {
               onChange={(_event, searchValue: string) => onChange(searchValue)}
             />
             <Button
+              icon={<SearchIcon />}
               variant={ButtonVariant.control}
               aria-label={t('cluster name search button')}
-            >
-              <SearchIcon />
-            </Button>
+            ></Button>
           </FlexItem>
         </Flex>
       </CardHeader>

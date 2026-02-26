@@ -3,13 +3,12 @@ import { CreateOBC } from '@odf/core/components/mcg/CreateObjectBucketClaim';
 import CreateBucketForm from '@odf/core/components/s3-browser/create-bucket/CreateBucketForm';
 import { S3Provider } from '@odf/core/components/s3-browser/s3-context';
 import { useCustomTranslation } from '@odf/shared';
+import { Tile } from '@patternfly/react-core/deprecated';
 import {
   Alert,
   FormGroup,
-  Tile,
-  TextContent,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import '../../../style.scss';
 
@@ -27,9 +26,9 @@ const CreateBucket: React.FC<{}> = () => {
   return (
     <>
       <div className="odf-create-operand__header">
-        <TextContent className="odf-create-operand__header-text">
-          <Text component={TextVariants.h1}>{t('Create Bucket')}</Text>
-        </TextContent>
+        <Content className="odf-create-operand__header-text">
+          <Content component={ContentVariants.h1}>{t('Create Bucket')}</Content>
+        </Content>
         <p>
           {t(
             'An object bucket is a cloud storage container that organizes and manages files (objects), allowing users to store, retrieve and control access to data efficiently.'
@@ -37,17 +36,17 @@ const CreateBucket: React.FC<{}> = () => {
         </p>
       </div>
       <div className="odf-m-pane__body">
-        <div className="pf-v5-c-form">
+        <div className="pf-v6-c-form">
           <FormGroup
             label={t('Select bucket creation method')}
             isRequired
-            className="pf-v5-u-mb-md"
+            className="pf-v6-u-mb-md"
           >
             <Tile
               title={t('Create via Object Bucket Claim')}
               isSelected={method === CreationMethod.OBC}
               onClick={() => setMethod(CreationMethod.OBC)}
-              className="pf-v5-u-w-50 pf-v5-u-w-33-on-2xl pf-v5-u-mr-md-on-2xl"
+              className="pf-v6-u-w-50 pf-v6-u-w-33-on-2xl pf-v6-u-mr-md-on-2xl"
             >
               {t(
                 'Ideal for Kubernetes environments providing a more abstracted approach to managing storage resources and leveraging dynamic provisioning.'
@@ -57,7 +56,7 @@ const CreateBucket: React.FC<{}> = () => {
               title={t('Create via S3 API')}
               isSelected={method === CreationMethod.S3}
               onClick={() => setMethod(CreationMethod.S3)}
-              className="pf-v5-u-w-50 pf-v5-u-w-33-on-2xl"
+              className="pf-v6-u-w-50 pf-v6-u-w-33-on-2xl"
             >
               {t(
                 'Ideal for applications and systems that need to interact directly with S3-compatible storage.'
@@ -73,9 +72,9 @@ const CreateBucket: React.FC<{}> = () => {
               title={t(
                 'OBC references a StorageClass with a provisioner that interacts with the S3 API to create the bucket. Kubernetes then binds the OBC, making the bucket accessible to applications.'
               )}
-              className="pf-v5-u-mb-md"
+              className="pf-v6-u-mb-md"
             />
-            <CreateOBC className="pf-v5-u-w-50" showNamespaceSelector={true} />
+            <CreateOBC className="pf-v6-u-w-50" showNamespaceSelector={true} />
           </>
         )}
         {method === CreationMethod.S3 && (

@@ -26,8 +26,8 @@ import {
   CardTitle,
   Gallery,
   GalleryItem,
-  TextVariants,
-  Text,
+  ContentVariants,
+  Content,
 } from '@patternfly/react-core';
 import { DRClusterAppsMap } from '../../../../types';
 import {
@@ -165,7 +165,9 @@ export const StatusCard: React.FC = () => {
     <Card data-test="operator-status-card">
       <CardHeader className="mco-status__text--divider">
         <CardTitle>
-          <Text component={TextVariants.h3}>{t('Operator status')}</Text>
+          <Content component={ContentVariants.h3}>
+            {t('Operator status')}
+          </Content>
         </CardTitle>
       </CardHeader>
       <CardBody>

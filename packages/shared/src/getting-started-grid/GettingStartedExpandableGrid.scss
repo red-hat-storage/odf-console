@@ -1,17 +1,17 @@
 .ocs-getting-started-expandable-section {
-    background-color: var(--pf-v5-global--BackgroundColor--100);
-    margin-bottom: var(--pf-v5-global--gutter);
+    background-color: var(--pf-t--global--background--color--100);
+    margin-bottom: var(--pf-t--global--spacer--gutter--default);
     &__toggle-text {
-      color: var(--pf-v5-global--Color--dark-100);
-      font-size: var(--pf-v5-global--icon--FontSize--md);
-      font-weight: var(--pf-v5-global--FontWeight--bold);
+      color: var(--pf-t--global--text--color--regular);
+      font-size: var(--pf-t--global--icon--size--font--md);
+      font-weight: var(--pf-t--global--font--weight--body--bold);
     }
 
-    .pf-v5-c-expandable-section__toggle {
+    .pf-v6-c-expandable-section__toggle {
         align-items: center;
     }
 }
 
 .ocs-getting-started-expandable-grid {
-    --pf-v5-c-card--BoxShadow: 0;
+    --pf-v6-c-card--BoxShadow: 0;
 }

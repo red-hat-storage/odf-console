@@ -56,7 +56,7 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
     <FormGroup
       fieldId="encryption-options"
       label={t('Encryption level')}
-      labelIcon={
+      labelHelp={
         <FieldLevelHelp>
           {t(
             'The StorageCluster encryption level can be set to include all components under the cluster (including StorageClass and PVs) or to include only StorageClass encryption. PV encryption can use an auth token that will be used with the KMS configuration to allow multi-tenancy.'
@@ -304,7 +304,7 @@ export const Encryption: React.FC<EncryptionProps> = ({
           <Alert
             variant={AlertVariant.info}
             isInline
-            className="pf-v5-u-mt-sm"
+            className="pf-v6-u-mt-sm"
             title={
               <>
                 {t(

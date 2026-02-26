@@ -1,12 +1,12 @@
 import * as React from 'react';
-import * as _ from 'lodash-es';
 import {
   Chart,
   ChartAxis,
   ChartGroup,
   ChartLine,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
+import * as _ from 'lodash-es';
 import { Title } from '@patternfly/react-core';
 import { HumanizeResult } from '../../types';
 import { useCustomTranslation } from '../../useCustomTranslationHook';
@@ -49,7 +49,7 @@ const LineGraph: React.FC<LineGraphProps> = React.memo(
       : '';
     return !dataUnavailable ? (
       <div className="odf-lineGraph">
-        <div className="pf-v5-u-display-none-on-md pf-v5-u-display-inline-block-on-lg pf-v5-u-w-95-lg">
+        <div className="pf-v6-u-display-none-on-md pf-v6-u-display-inline-block-on-lg pf-v6-u-w-95-lg">
           <Chart
             containerComponent={
               <ChartVoronoiContainer
@@ -84,7 +84,7 @@ const LineGraph: React.FC<LineGraphProps> = React.memo(
             </ChartGroup>
           </Chart>
         </div>
-        <div className="pf-v5-u-w-5-lg pf-v5-u-w-100-md odf-valueBox">
+        <div className="pf-6-u-w-5-lg pf-v6-u-w-100-md odf-valueBox">
           <div>
             <Title headingLevel="h5" size="md">
               {latestValue}

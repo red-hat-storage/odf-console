@@ -40,6 +40,7 @@ import {
   Patch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { SVGIconProps } from '@patternfly/react-icons/dist/esm/createIcon';
 import * as _ from 'lodash-es';
 import {
@@ -47,8 +48,6 @@ import {
   AlertVariant,
   Button,
   ButtonVariant,
-  Modal,
-  ModalVariant,
 } from '@patternfly/react-core';
 import { InProgressIcon, RunningIcon } from '@patternfly/react-icons';
 import './capacity-autoscaling-modal.scss';
@@ -116,11 +115,11 @@ const CapacityAutoscalingCurrentStatus: React.FC<
   }
 
   return (
-    <div className="pf-v5-u-mt-sm pf-v5-u-font-size-sm">
-      <span className="pf-v5-u-font-family-heading pf-v5-u-mr-sm">
+    <div className="pf-v6-u-mt-sm pf-v6-u-font-size-sm">
+      <span className="pf-v6-u-font-family-heading pf-v6-u-mr-sm">
         {t('Current status:')}
       </span>
-      <StatusIcon className="pf-v5-u-mr-sm" />
+      <StatusIcon className="pf-v6-u-mr-sm" />
       {statusText}
     </div>
   );
@@ -312,7 +311,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
               enable &&
               storageAutoScaler.status?.storageCapacityLimitReached && (
                 <Alert
-                  className="pf-v5-u-mt-md"
+                  className="pf-v6-u-mt-md"
                   isInline
                   variant={AlertVariant.warning}
                   title={t('Cluster has reached its expansion limit.')}
@@ -331,7 +330,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
             )}
             {alreadyEnabled && !enable && (
               <Alert
-                className="pf-v5-u-mt-md"
+                className="pf-v6-u-mt-md"
                 isInline
                 variant={AlertVariant.warning}
                 title={t('Disable automatic capacity scaling?')}
@@ -343,7 +342,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
             )}
             {validation && (
               <Alert
-                className="pf-v5-u-mt-md"
+                className="pf-v6-u-mt-md"
                 isInline
                 variant={AlertVariant.danger}
                 title={validation}
@@ -351,7 +350,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
             )}
             {errorMessage && (
               <Alert
-                className="pf-v5-u-mt-md"
+                className="pf-v6-u-mt-md"
                 isInline
                 variant={AlertVariant.danger}
                 title={t('An error occurred')}
@@ -364,7 +363,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
           <StatusBox loaded={isLoaded} loadError={isLoadError} />
         ) : (
           <Alert
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
             isInline
             variant={AlertVariant.danger}
             title={t(

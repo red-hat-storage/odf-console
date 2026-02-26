@@ -2,13 +2,8 @@ import * as React from 'react';
 import { useApplicationFromPAV } from '@odf/mco/hooks/use-application-pav';
 import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
 import { CommonModalProps } from '@odf/shared/modals';
-import {
-  Modal,
-  ModalVariant,
-  Bullseye,
-  Spinner,
-  Alert,
-} from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import { Bullseye, Spinner, Alert } from '@patternfly/react-core';
 import { AppManagePoliciesModal } from '../app-manage-policies/app-manage-policies-modal';
 
 type AppManagePoliciesModalWrapperProps = {

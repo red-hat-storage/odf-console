@@ -3,11 +3,11 @@
     width: 100%;
   }
   &__namespacestore-dropdown {
-    margin-bottom: var(--pf-v5-global--spacer--md);
+    margin-bottom: var(--pf-t--global--spacer--md);
   }
   
   &__remove-button {
-   margin-top: var(--pf-v5-global--spacer--xl);
+   margin-top: var(--pf-t--global--spacer--xl);
    display: inline
   }
   
@@ -18,7 +18,7 @@
   &__stack-item{
     border-style: solid;
     border-width: thin;
-    padding: var(--pf-v5-global--spacer--md);
+    padding: var(--pf-t--global--spacer--md);
     width: 100%;
   }
 
