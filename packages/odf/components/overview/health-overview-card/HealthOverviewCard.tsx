@@ -1,25 +1,20 @@
 import * as React from 'react';
 import { HEALTH_SCORE_QUERY } from '@odf/core/components/odf-dashboard/queries';
 import { TWENTY_FOUR_HOURS } from '@odf/shared/constants';
+import { AreaChart } from '@odf/shared/dashboards/utilization-card/area-chart';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import useRefWidth from '@odf/shared/hooks/ref-width';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { DataPoint } from '@odf/shared/utils';
 import {
   AlertSeverity,
+  Humanize,
   PrometheusEndpoint,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import {
-  Chart,
-  ChartArea,
-  ChartAxis,
-  ChartGroup,
-  ChartThemeColor,
-  ChartVoronoiContainer,
-} from '@patternfly/react-charts';
+import { ChartThemeColor } from '@patternfly/react-charts';
 import {
   Card,
   CardBody,
@@ -46,16 +41,48 @@ import {
 } from '../../HealthOverview/hooks';
 import './health-overview-card.scss';
 
-type HealthDataPoint = {
-  x: number;
-  y: number;
-  name: string;
+// Humanize function for displaying percentage values
+const humanizePercent: Humanize = (value: number) => ({
+  string: `${Math.round(value)}%`,
+  value,
+  unit: '%',
+});
+
+// Custom date formatter for x-axis tick labels
+const formatTimeLabel = (date: Date): string =>
+  date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+// Chart styling for health score area
+const HEALTH_CHART_STYLE = [
+  {
+    data: {
+      fill: 'var(--pf-v5-chart-color-blue-300)',
+      fillOpacity: 0.3,
+      stroke: 'var(--pf-v5-chart-color-blue-400)',
+      strokeWidth: 2,
+    },
+  },
+];
+
+// Chart axis styling
+const X_AXIS_STYLE = {
+  axis: { stroke: 'transparent' },
+  tickLabels: {
+    fontSize: 12,
+    fill: 'var(--pf-v5-global--Color--200)',
+  },
 };
+
+// Chart padding configuration
+const CHART_PADDING = { top: 20, bottom: 40, left: 10, right: 10 };
 
 export const HealthOverviewCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
-  const [chartRef, chartWidth] = useRefWidth();
   const basePath = usePrometheusBasePath();
 
   // Fetch health score metric over time (range query)
@@ -78,7 +105,6 @@ export const HealthOverviewCard: React.FC = () => {
     // Get active alerts (exclude silenced ones)
     const activeAlerts = filterOutSilencedAlerts(healthAlerts, silences);
 
-    // Count firing alerts by severity in a single pass (O(n) instead of O(4n))
     return activeAlerts.reduce(
       (acc, alert) => {
         // Only count firing alerts
@@ -101,44 +127,49 @@ export const HealthOverviewCard: React.FC = () => {
     );
   }, [healthAlerts, silences]);
 
-  // Process health score data for chart
-  const chartData: HealthDataPoint[] = React.useMemo(() => {
+  // Process health score data for chart (format: DataPoint<Date>[][])
+  const chartData: DataPoint<Date>[][] = React.useMemo(() => {
     if (!healthScoreData?.data?.result?.[0]?.values) return [];
 
-    return healthScoreData.data.result[0].values
-      .map((value): HealthDataPoint | null => {
+    const dataPoints = healthScoreData.data.result[0].values
+      .map((value): DataPoint<Date> | null => {
         const [timestamp, scoreValue] = value;
         const score = parseFloat(scoreValue);
         if (Number.isNaN(score)) {
           return null;
         }
-        const date = new Date(timestamp * 1000);
 
         return {
-          x: timestamp * 1000, // Use milliseconds for x-axis
+          x: new Date(timestamp * 1000),
           y: score,
-          name: `${score.toFixed(1)}% at ${date.toLocaleTimeString()}`,
+          description: t('Health Score'),
         };
       })
-      .filter((item): item is HealthDataPoint => item !== null);
-  }, [healthScoreData]);
+      .filter((item): item is DataPoint<Date> => item !== null);
+
+    return dataPoints.length > 0 ? [dataPoints] : [];
+  }, [healthScoreData, t]);
 
   // Get current health score (latest value)
   const currentHealthScore =
-    chartData.length > 0 ? chartData[chartData.length - 1].y : null;
+    chartData.length > 0 && chartData[0].length > 0
+      ? chartData[0][chartData[0].length - 1].y
+      : null;
 
   // Calculate fixed 24-hour x-axis domain (now - 24h to now)
-  const xDomain = React.useMemo((): [number, number] => {
+  const chartDomain = React.useMemo(() => {
     const now = Date.now();
-    return [now - TWENTY_FOUR_HOURS, now];
+    return {
+      x: [now - TWENTY_FOUR_HOURS, now] as [number, number],
+      y: [0, 100] as [number, number],
+    };
   }, []);
 
-  // Comprehensive loading and error state management
   const isAlertsLoading = !healthAlertsLoaded || !silencedAlertsLoaded;
   const isLoading = healthScoreLoading || isAlertsLoading;
 
   const hasError = healthScoreError || healthAlertsError || silencedAlertsError;
-  const hasNoData = chartData.length === 0;
+  const hasNoData = chartData.length === 0 || chartData[0]?.length === 0;
   const showEmptyState = isLoading || hasError || hasNoData;
 
   // Determine specific error message
@@ -204,68 +235,27 @@ export const HealthOverviewCard: React.FC = () => {
             </div>
           </GridItem>
 
-          <GridItem md={9} sm={12} ref={chartRef}>
-            {chartData.length > 0 ? (
-              <div className="odf-infrastructure-health-card__chart">
-                <Text component={TextVariants.small}>{t('Last 24 hours')}</Text>
-                <Chart
-                  ariaTitle={t('Health Score Over Time')}
-                  containerComponent={
-                    <ChartVoronoiContainer
-                      labels={({ datum }) => datum.name}
-                      constrainToVisibleArea
-                    />
-                  }
-                  height={200}
-                  width={chartWidth > 0 ? chartWidth - 40 : 600}
-                  padding={{ top: 20, bottom: 40, left: 10, right: 10 }}
-                  minDomain={{ x: xDomain[0], y: 0 }}
-                  maxDomain={{ x: xDomain[1], y: 100 }}
-                  scale={{ x: 'time', y: 'linear' }}
-                  themeColor={ChartThemeColor.blue}
-                >
-                  <ChartAxis
-                    tickFormat={(timestamp) => {
-                      const date = new Date(timestamp);
-                      return date.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true,
-                      });
-                    }}
-                    fixLabelOverlap
-                    style={{
-                      axis: { stroke: 'transparent' },
-                      tickLabels: {
-                        fontSize: 12,
-                        fill: 'var(--pf-v5-global--Color--200)',
-                      },
-                    }}
-                  />
-                  <ChartGroup>
-                    <ChartArea
-                      data={chartData}
-                      interpolation="monotoneX"
-                      style={{
-                        data: {
-                          fill: 'var(--pf-v5-chart-color-blue-300)',
-                          fillOpacity: 0.3,
-                          stroke: 'var(--pf-v5-chart-color-blue-400)',
-                          strokeWidth: 2,
-                        },
-                      }}
-                    />
-                  </ChartGroup>
-                </Chart>
-              </div>
-            ) : (
-              <Text
-                component={TextVariants.small}
-                className="pf-v5-u-text-align-center"
-              >
-                {t('No chart data available')}
-              </Text>
-            )}
+          <GridItem md={9} sm={12}>
+            <div className="odf-infrastructure-health-card__chart">
+              <Text component={TextVariants.small}>{t('Last 24 hours')}</Text>
+              <AreaChart
+                data={chartData}
+                loading={healthScoreLoading}
+                ariaChartTitle={t('Health Score Over Time')}
+                humanize={humanizePercent}
+                formatDate={formatTimeLabel}
+                height={200}
+                yAxis={false}
+                xAxis={true}
+                domain={chartDomain}
+                themeColor={ChartThemeColor.blue}
+                padding={CHART_PADDING}
+                interpolation="monotoneX"
+                chartStyle={HEALTH_CHART_STYLE}
+                xAxisStyle={X_AXIS_STYLE}
+                disableGraphLink
+              />
+            </div>
           </GridItem>
 
           {/* Active Issues Section */}

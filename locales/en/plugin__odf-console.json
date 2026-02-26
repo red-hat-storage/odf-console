@@ -1418,7 +1418,6 @@
   "No automatic backup found": "No automatic backup found",
   "No buckets found": "No buckets found",
   "No capacity data available.": "No capacity data available.",
-  "No chart data available": "No chart data available",
   "No clusters selected": "No clusters selected",
   "No common storage class found for the selected managed clusters. To create a DR policy, a common storage class must exist, if not configured already, provision a common storage class and try again.": "No common storage class found for the selected managed clusters. To create a DR policy, a common storage class must exist, if not configured already, provision a common storage class and try again.",
   "no compression": "no compression",
