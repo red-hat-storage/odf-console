@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { USERS_CREATE_PAGE_PATH } from '@odf/core/constants/s3-iam';
+import { getVectorBucketCreatePageRoute } from '@odf/core/constants/s3-vectors';
 import { ODF_ADMIN } from '@odf/core/features';
-import { IamUserCrFormat, S3ProviderType } from '@odf/core/types';
-import { useRefresh } from '@odf/shared/hooks';
-import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { S3ProviderType } from '@odf/core/types';
+import { useCustomTranslation, useRefresh } from '@odf/shared';
 import { getValidFilteredData } from '@odf/shared/utils';
 import {
   ListPageBody,
@@ -11,33 +10,27 @@ import {
   ListPageFilter,
   ListPageHeader,
   useFlag,
-  useModal,
   useListPageFilter,
+  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 import { SyncAltIcon } from '@patternfly/react-icons';
 import { ActionsColumn } from '@patternfly/react-table';
 import { ClientType } from '../../s3-common/types';
 import { getAcountBadge, getAccountActionsItems } from '../../s3-common/utils';
-import { IamContext, IamProvider } from '../iam-context';
-import { UsersListTable } from './UsersListTable';
-import { UsersPagination } from './UsersPagination';
+import { S3VectorsContext, S3VectorsProvider } from '../s3-vectors-context';
+import { VectorBucketsListTable } from './VectorBucketsListTable';
+import { VectorBucketsPagination } from './VectorBucketsPagination';
 
-type UsersInfo = [IamUserCrFormat[], boolean, any];
-
-type UsersListPageBodyProps = {
-  usersInfo: UsersInfo;
-  setUsersInfo: React.Dispatch<React.SetStateAction<UsersInfo>>;
-};
-
-const UsersListPageBody: React.FC<UsersListPageBodyProps> = ({
-  usersInfo,
-  setUsersInfo,
+const VectorBucketsListPageBody = ({
+  vectorBucketInfo,
+  setVectorBucketInfo,
 }) => {
   const { t } = useCustomTranslation();
   const [fresh, triggerRefresh] = useRefresh();
-  const [users, loaded, loadError] = usersInfo;
-  const [allUsers, filteredUsers, onFilterChange] = useListPageFilter(users);
+  const [vectorBuckets, loaded, loadError] = vectorBucketInfo;
+  const [allVectorBuckets, filteredVectorBuckets, onFilterChange] =
+    useListPageFilter(vectorBuckets);
   return (
     <ListPageBody>
       <Flex className="pf-v5-u-mt-md">
@@ -46,14 +39,14 @@ const UsersListPageBody: React.FC<UsersListPageBodyProps> = ({
             <ListPageFilter
               loaded={true}
               hideLabelFilter={true}
-              nameFilterPlaceholder={t('Find by accountname')}
-              data={getValidFilteredData(allUsers)}
+              nameFilterPlaceholder={t('Search a bucket by name')}
+              data={getValidFilteredData(allVectorBuckets)}
               onFilterChange={onFilterChange}
             />
           </FlexItem>
           <FlexItem>
             <Button
-              data-test="users-list-sync-button"
+              data-test="vector-buckets-list-sync-button"
               variant={ButtonVariant.plain}
               onClick={triggerRefresh}
               isDisabled={!fresh}
@@ -64,14 +57,18 @@ const UsersListPageBody: React.FC<UsersListPageBodyProps> = ({
         </Flex>
         <Flex>
           <FlexItem>
-            {fresh && <UsersPagination setUsersInfo={setUsersInfo} />}
+            {fresh && (
+              <VectorBucketsPagination
+                setVectorBucketInfo={setVectorBucketInfo}
+              />
+            )}
           </FlexItem>
         </Flex>
       </Flex>
       {fresh && (
-        <UsersListTable
-          allUsers={users}
-          filteredUsers={filteredUsers}
+        <VectorBucketsListTable
+          allVectorBuckets={vectorBuckets}
+          filteredVectorBuckets={filteredVectorBuckets}
           loaded={loaded}
           error={loadError}
           triggerRefresh={triggerRefresh}
@@ -80,28 +77,26 @@ const UsersListPageBody: React.FC<UsersListPageBodyProps> = ({
     </ListPageBody>
   );
 };
-
-const UsersListPageContent: React.FC = () => {
+const VectorBucketsListPageContent: React.FC = () => {
   const { t } = useCustomTranslation();
-
-  const [usersInfo, setUsersInfo] = React.useState<UsersInfo>([
+  const [vectorBucketInfo, setVectorBucketInfo] = React.useState([
     [],
     false,
     undefined,
   ]);
-
   const isAdmin = useFlag(ODF_ADMIN);
-  const { logout, setSecretRef } = React.useContext(IamContext);
+  const { logout, setSecretRef } = React.useContext(S3VectorsContext);
   const launcher = useModal();
-
+  const providerType = S3ProviderType.Noobaa;
   return (
     <>
       <ListPageHeader
-        title={t('IAM user')}
+        title={t('Vector Buckets')}
+        helpText={t('Browse, upload, and manage objects in buckets.')}
         {...(!isAdmin ? { badge: getAcountBadge(t) } : {})}
       >
-        <ListPageCreateLink to={USERS_CREATE_PAGE_PATH}>
-          {t('Create IAM user')}
+        <ListPageCreateLink to={getVectorBucketCreatePageRoute(providerType)}>
+          {t('Create vector bucket')}
         </ListPageCreateLink>
         {!isAdmin && (
           <ActionsColumn
@@ -111,25 +106,24 @@ const UsersListPageContent: React.FC = () => {
               S3ProviderType.Noobaa,
               logout,
               setSecretRef,
-              ClientType.IAM
+              ClientType.S3_VECTORS
             )}
           />
         )}
       </ListPageHeader>
-      <div className="pf-v5-u-ml-lg pf-v5-u-mr-lg text-muted">
-        {t('IAM account is used to manage users, access keys and policies')}
-      </div>
-      <UsersListPageBody usersInfo={usersInfo} setUsersInfo={setUsersInfo} />
+      <VectorBucketsListPageBody
+        vectorBucketInfo={vectorBucketInfo}
+        setVectorBucketInfo={setVectorBucketInfo}
+      />
     </>
   );
 };
-
-const UsersListPage: React.FC = () => {
+const VectorBucketsListPage: React.FC = () => {
   return (
-    <IamProvider>
-      <UsersListPageContent />
-    </IamProvider>
+    <S3VectorsProvider>
+      <VectorBucketsListPageContent />
+    </S3VectorsProvider>
   );
 };
 
-export default UsersListPage;
+export default VectorBucketsListPage;
