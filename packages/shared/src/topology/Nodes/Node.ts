@@ -51,6 +51,7 @@ export const createNode = (options: {
   dataType?: DataTypes;
   resource?: any;
   kind?: any;
+  osdCount?: number;
 }): NodeModel => {
   const shape = options.shape || NodeShape.ellipse;
   const width = options.width || DEFAULT_NODE_SIZE;
