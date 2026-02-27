@@ -3,7 +3,7 @@
   "description": "Ceph and MCG components",
   "version": "0.0.0",
   "dependencies": {
-    "@odf/shared": "file:../shared",
-    "@odf/core": "0.0.0"
+    "@odf/core": "0.0.0",
+    "@odf/shared": "file:../shared"
   }
 }

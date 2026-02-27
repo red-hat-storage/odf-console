@@ -5,6 +5,10 @@
 # cypress/base: used as it contains all the system dependencies required by cypress (but not cypress itself).
 FROM cypress/base:22.17.0
 
+# Enable Corepack and install Yarn v4
+RUN corepack enable && \
+    corepack prepare yarn@4.12.0 --activate
+
 # Yarn requires the home dir to be writable by any container user.
 ENV HOME=/opt/home
 RUN mkdir -p ${HOME}

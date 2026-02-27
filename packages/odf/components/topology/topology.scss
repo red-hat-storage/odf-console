@@ -1,48 +1,48 @@
 .odf__topology-view {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-grow: 1;
-    flex-direction: column;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
 }
 
 @media (min-width: 768px) {
-    .odf__topology-view {
-        .pf-topology-container__with-sidebar.pf-topology-container__with-sidebar--open .pf-topology-content {
-            width: 180px;
-            min-width: 100%;
-        }
+  .odf__topology-view {
+    .pf-topology-container__with-sidebar.pf-topology-container__with-sidebar--open .pf-topology-content {
+      width: 180px;
+      min-width: 100%;
     }
+  }
 }
 
 .odf-topology__back-button {
-    background-color: var(--pf-v5-global--palette--black-300) !important;
-    color: var(--pf-v5-global--Color--dark-200);
-    left: var(--pf-v5-global--gutter);
-    position: absolute;
-    top: var(--pf-v5-global--gutter);
-    font-size: var(--pf-v5-global--FontSize--xs);
-    font-weight: var(--pf-v5-global--FontWeight--normal);
-    padding: 4px;
-    border-radius: 4px;
-    z-index: 2;
+  background-color: var(--pf-v5-global--palette--black-300) !important;
+  color: var(--pf-v5-global--Color--dark-200);
+  left: var(--pf-v5-global--gutter);
+  position: absolute;
+  top: var(--pf-v5-global--gutter);
+  font-size: var(--pf-v5-global--FontSize--xs);
+  font-weight: var(--pf-v5-global--FontWeight--normal);
+  padding: 4px;
+  border-radius: 4px;
+  z-index: 2;
 }
 
 .odf-topology__message-button {
-    color: var(--pf-v5-global--Color--dark-200);
-    right: var(--pf-v5-global--gutter);
-    position: absolute;
-    top: var(--pf-v5-global--gutter);
-    font-size: var(--pf-v5-global--FontSize--xs);
-    font-weight: var(--pf-v5-global--FontWeight--normal);
-    z-index: 2;
+  color: var(--pf-v5-global--Color--dark-200);
+  right: var(--pf-v5-global--gutter);
+  position: absolute;
+  top: var(--pf-v5-global--gutter);
+  font-size: var(--pf-v5-global--FontSize--xs);
+  font-weight: var(--pf-v5-global--FontWeight--normal);
+  z-index: 2;
 }
 
 .odf-topology__show-message-button {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .odf-topology__back-button:hover {
-    box-shadow: 1px 1px 3px 1px #aaabac;
-    cursor: pointer;
+  box-shadow: 1px 1px 3px 1px #aaabac;
+  cursor: pointer;
 }

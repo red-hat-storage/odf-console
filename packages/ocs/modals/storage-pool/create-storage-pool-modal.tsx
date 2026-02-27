@@ -72,7 +72,8 @@ export const CreateStoragePoolModal = withHandlePromise(
       blockPoolInitialState
     );
     const [isSubmit, setIsSubmit] = React.useState(false);
-    const [timer, setTimer] = React.useState<NodeJS.Timer>(null);
+    const [timer, setTimer] =
+      React.useState<ReturnType<typeof setTimeout>>(null);
 
     const poolName = state.poolName;
 

@@ -1,10 +1,10 @@
 .odf-multiselect-menu-toggle {
-  cursor: pointer;
   --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--200);
+  cursor: pointer;
 
   &--has-selection {
-    cursor: pointer;
     --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--100);
+    cursor: pointer;
   }
 }
 

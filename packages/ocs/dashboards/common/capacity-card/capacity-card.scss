@@ -6,10 +6,12 @@
     width: 100%;
     margin-top: var(--pf-v5-global--spacer--md);
   }
+
   &__legend {
     flex-grow: 1;
     padding-top: var(--pf-v5-global--spacer--md);
   }
+
   &__chart {
     flex-grow: 0.12;
     max-height: 180px;
@@ -17,6 +19,7 @@
     margin-bottom: 1rem;
     margin-right: 1rem;
   }
+
   &--error {
     margin-top: var(--pf-v5-global--spacer--xs);
     margin-bottom: var(--pf-v5-global--spacer--xs);
@@ -31,31 +34,38 @@
     flex: 1 1 0;
     display: flex;
   }
+
   &__color-square {
     width: 15px;
     height: 15px;
   }
+
   &__title {
     margin-left: 6px;
     line-height: 15px;
     font-weight: bold;
+
     &--pad {
       padding-right: 30px;
     }
   }
+
   &__index-block {
     display: flex;
   }
+
   &__value-block {
     display: flex;
     flex-direction: row-reverse;
     flex-grow: 0.25;
   }
+
   &__icon-block {
     display: flex;
     flex-direction: row-reverse;
     flex-grow: 0.1;
   }
+
   &__text {
     line-height: 15px;
     font-weight: bold;
@@ -69,8 +79,9 @@
   background: sk.$skeleton-color;
   opacity: 0;
   border-radius: 6px;
-  margin: 0.5rem 0.7em 0.5rem 0.7em;
+  margin: 0.5rem 0.7em;
   height: 30px;
+
   &::after {
     background-repeat: no-repeat;
     content: '';
@@ -84,6 +95,7 @@
   &__legend {
     flex-grow: 1;
   }
+
   &-legend__item {
     min-width: 1em;
     max-width: 18em;
@@ -91,6 +103,7 @@
     min-height: 1em;
     max-height: 2em;
   }
+
   &__chart {
     flex-grow: 1;
     min-width: 5em;

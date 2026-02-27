@@ -1,25 +1,25 @@
-.odf-upload{
-    width: 99%;
-    margin: var(--pf-v5-global--spacer--sm);
-    padding: var(--pf-v5-global--spacer--xs);
+.odf-upload {
+  width: 99%;
+  margin: var(--pf-v5-global--spacer--sm);
+  padding: var(--pf-v5-global--spacer--xs);
 }
 
 .odf-upload__title {
-    border: 1px dotted var(--pf-v5-global--palette--black-500);
-    padding: var(--pf-v5-global--spacer--md);
-    margin-top: var(--pf-v5-global--spacer--xs);
+  border: 1px dotted var(--pf-v5-global--palette--black-500);
+  padding: var(--pf-v5-global--spacer--md);
+  margin-top: var(--pf-v5-global--spacer--xs);
 }
 
-.odf-upload-title__button{
-    width: 75%;
+.odf-upload-title__button {
+  width: 75%;
 }
 
 
 .odf-upload-title__input {
-    margin: 0 auto;
-    align-self: center;
+  margin: 0 auto;
+  align-self: center;
 }
 
 .odf-upload__helper-text {
-    color: var(--pf-v5-global--palette--black-500);
+  color: var(--pf-v5-global--palette--black-500);
 }

@@ -174,7 +174,11 @@ export OAUTH_BASE_ADDRESS
 # https://docs.cypress.io/guides/guides/continuous-integration.html#Colors
 export NO_COLOR=1
 
-# Install dependencies.
+# Enable Corepack for Yarn Berry
+corepack enable
+
+# Install dependencies with immutable installs disabled for CI
+export YARN_ENABLE_IMMUTABLE_INSTALLS=false
 yarn install
 
 # Run tests.
