@@ -12,7 +12,7 @@ RUN corepack enable && \
     corepack prepare yarn@4.12.0 --activate
 
 COPY . /app
-RUN yarn install --immutable --network-timeout 300000
+RUN YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install --network-timeout 300000
 RUN BUILD_SCRIPT=build; \
     if [ "$PLUGIN" = "client" ]; then \
       BUILD_SCRIPT="${BUILD_SCRIPT}-client"; \
@@ -27,7 +27,7 @@ FROM docker.io/library/node:22.17
 # Enable Corepack and install Yarn v4
 RUN corepack enable && \
     corepack prepare yarn@4.12.0 --activate && \
-    yarn global add http-server
+    npm install -g http-server
 COPY --from=builder /dist /app
 COPY --from=builder /dist /app/compatibility
 COPY --from=builder /app/http-server.sh .
