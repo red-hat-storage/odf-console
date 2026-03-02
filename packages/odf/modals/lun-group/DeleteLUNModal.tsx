@@ -166,8 +166,10 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
         queryParams: { ns: fsNamespace },
       });
 
-      const localDisksList =
-        (localDisksResponse as ListKind<LocalDiskKind>).items || [];
+      // API may return ListKind { items: [...] } or a raw array
+      const localDisksList = Array.isArray(localDisksResponse)
+        ? localDisksResponse
+        : ((localDisksResponse as ListKind<LocalDiskKind>)?.items ?? []);
       const associatedDisks = localDisksList.filter(
         (disk) => disk.status?.filesystem === fsName
       );
