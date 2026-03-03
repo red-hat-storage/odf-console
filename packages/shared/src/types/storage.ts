@@ -40,6 +40,7 @@ export type StorageClusterKind = K8sResourceCommon & {
     };
     managedResources?: {
       cephCluster: {
+        cleanupPolicy: CleanupPolicy;
         monCount: 3 | 5;
       };
       cephBlockPools?: {
@@ -243,6 +244,10 @@ type ClientStatus = {
 export type StorageConsumerKind = K8sResourceCommon & {
   spec?: StorageConsumerSpec;
   status?: StorageConsumerStatus;
+};
+
+export type CleanupPolicy = {
+  wipeDevicesFromOtherClusters: boolean;
 };
 
 export type NoobaaSystemKind = K8sResourceCommon;
