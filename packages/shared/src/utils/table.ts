@@ -22,3 +22,15 @@ export const sortRows = (
   }
   return sort(aValue, bValue, c);
 };
+
+export const sortNumericRows = <T extends Record<string, any>>(
+  a: T,
+  b: T,
+  direction: SortByDirection,
+  field: string
+): number => {
+  const aValue = _.get(a, field, 0) as number;
+  const bValue = _.get(b, field, 0) as number;
+  const sortVal = aValue - bValue;
+  return direction === SortByDirection.asc ? sortVal : -sortVal;
+};
