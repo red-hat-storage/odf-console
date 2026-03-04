@@ -357,3 +357,52 @@ export const CAPACITY_TREND_QUERIES = (
 
 export const resiliencyProgressQuery = (clusterName: string) =>
   DATA_RESILIENCY_QUERY(clusterName)[StorageDashboardQuery.RESILIENCY_PROGRESS];
+
+export enum CephFSSubvolumeMetric {
+  IOPS = 'IOPS',
+  LATENCY = 'LATENCY',
+  THROUGHPUT = 'THROUGHPUT',
+}
+
+/**
+ * CephFS Subvolume Per-Subvolume Metrics
+ *
+ * NOTE (RHSTOR-7679): These metrics are expected to be provided by Ceph MDS
+ * but may not be available in all Ceph versions/configurations. They may require
+ * specific Ceph MDS subvolume metrics feature enablement.
+ *
+ * Expected labels on these metrics (when PVC mapping is available):
+ * - subvolume_path: The subvolume path (e.g., "csi-vol-abc/subvol-xyz")
+ * - fs_name: The CephFS filesystem name
+ * - pvc: The PersistentVolumeClaim name (FUTURE - not yet available)
+ * - namespace: The PVC namespace (FUTURE - not yet available)
+ */
+const CEPHFS_SUBVOLUME_RAW_METRICS = {
+  [CephFSSubvolumeMetric.IOPS]: {
+    read: 'ceph_mds_subvolume_metrics_avg_read_iops',
+    write: 'ceph_mds_subvolume_metrics_avg_write_iops',
+  },
+  [CephFSSubvolumeMetric.LATENCY]: {
+    read: 'ceph_mds_subvolume_metrics_avg_read_lat_msec',
+    write: 'ceph_mds_subvolume_metrics_avg_write_lat_msec',
+  },
+  [CephFSSubvolumeMetric.THROUGHPUT]: {
+    read: 'ceph_mds_subvolume_metrics_avg_read_tp_Bps',
+    write: 'ceph_mds_subvolume_metrics_avg_write_tp_Bps',
+  },
+};
+
+/**
+ * Get the PromQL query for top K CephFS subvolumes by metric type
+ *
+ * TODO (RHSTOR-7679): Once PVC mapping metrics are available, update query to include
+ * PVC and namespace labels for drill-down functionality. The query should then be:
+ * `topk(10, sum by (subvolume_path, fs_name, pvc, namespace) (${read} + ${write}))`
+ *
+ * @param metric The metric type to query (IOPS, LATENCY, or THROUGHPUT)
+ * @returns PromQL query string
+ */
+export const getCephFSSubvolumeTopKQuery = (metric: CephFSSubvolumeMetric) => {
+  const { read, write } = CEPHFS_SUBVOLUME_RAW_METRICS[metric];
+  return `topk(10, sum by (subvolume_path, fs_name) (${read} + ${write}))`;
+};
