@@ -6,6 +6,7 @@ import {
   NodeData,
   VolumeTypeValidation,
   NetworkType,
+  ErasureCodingSchema,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
@@ -430,7 +431,9 @@ export type OCSRequestData = {
   enableNoobaaClientSideCerts?: boolean;
   storageClusterName: string;
   isDbBackup?: boolean;
-  dbBackup?: WizardState['advancedSettings']['dbBackup'];
+  dbBackup?: WizardState['optionalSettings']['dbBackup'];
+  useErasureCoding?: boolean;
+  erasureCodingSchema?: ErasureCodingSchema | null;
 };
 
 export const getOCSRequestData = ({
@@ -457,6 +460,8 @@ export const getOCSRequestData = ({
   storageClusterName,
   isDbBackup,
   dbBackup,
+  useErasureCoding,
+  erasureCodingSchema,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -524,6 +529,37 @@ export const getOCSRequestData = ({
           defaultStorageClass: shouldSetCephRBDAsDefault,
           defaultVirtualizationStorageClass: shouldSetVirtualizeSCAsDefault,
         },
+      },
+    };
+  }
+
+  if (!isMCG && useErasureCoding && erasureCodingSchema) {
+    const k = erasureCodingSchema.k;
+    const m = erasureCodingSchema.m;
+    const dataPoolSpec = {
+      failureDomain: 'host',
+      erasureCoded: { dataChunks: k, codingChunks: m },
+    };
+    requestData.spec.managedResources = {
+      ...requestData.spec.managedResources,
+      cephObjectStores: {
+        ...requestData.spec.managedResources?.cephObjectStores,
+        dataPoolSpec,
+      },
+      CreateEcMetadataPool: true,
+      cephBlockPools: {
+        ...requestData.spec.managedResources?.cephBlockPools,
+        dataPoolSpec,
+      },
+      cephFilesystem: {
+        enableEcStorageclass: true,
+        additionalDataPools: [
+          {
+            name: 'file-ec',
+            failureDomain: 'host',
+            erasureCoded: { dataChunks: k, codingChunks: m },
+          },
+        ],
       },
     };
   }

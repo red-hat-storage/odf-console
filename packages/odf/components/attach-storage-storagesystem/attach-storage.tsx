@@ -257,7 +257,7 @@ const AttachStorage = () => {
         </TextContent>
       </PageHeading>
       {!isLoaded || isLoadError ? (
-        <div className="pf-v6-u-pb-xl">
+        <div className="pf-v5-u-pb-xl">
           <StatusBox
             loaded={isLoaded}
             loadError={isLoadError}

@@ -7,6 +7,7 @@ import {
   getRBDVolumeSnapshotClassName,
 } from '@odf/core/components/utils';
 import {
+  ERASURE_CODING_MIN_NODES,
   MINIMUM_NODES,
   NO_PROVISIONER,
   Steps,
@@ -79,8 +80,8 @@ const validateBackingStorageStep = (
   }
 };
 
-const validateAdvancedSettingsStep = (
-  advancedSettings: WizardState['advancedSettings'],
+const validateOptionalSettingsStep = (
+  optionalSettings: WizardState['optionalSettings'],
   sc: WizardState['storageClass'],
   deployment: DeploymentType,
   type: BackingStorageType
@@ -91,7 +92,7 @@ const validateAdvancedSettingsStep = (
     externalPostgres,
     isDbBackup,
     dbBackup,
-  } = advancedSettings;
+  } = optionalSettings;
 
   const {
     username,
@@ -111,7 +112,6 @@ const validateAdvancedSettingsStep = (
   const hasClientCertsEnabledButNoKeys =
     enableClientSideCerts && (!keys.private || !keys.public);
 
-  // The Next button is disabled only when no VolumeSnapshotClass is selected for MCG Standalone when automatic backup option enabled.
   const hasDbBackupEnabledButNoFields =
     isDbBackup && !dbBackup.volumeSnapshot?.volumeSnapshotClass && isMCG;
 
@@ -142,6 +142,22 @@ const validateAdvancedSettingsStep = (
       return false;
   }
 };
+
+const validateAdvancedSettingsStep = (
+  advancedSettings: WizardState['advancedSettings'],
+  nodeCount: number
+) => {
+  const { useErasureCoding, erasureCodingSchema } = advancedSettings;
+
+  if (!useErasureCoding) return true;
+
+  const hasErasureCodingButNodesInvalid = nodeCount < ERASURE_CODING_MIN_NODES;
+  const hasErasureCodingEnabledButNoSchema = !erasureCodingSchema;
+
+  return (
+    !hasErasureCodingButNodesInvalid && !hasErasureCodingEnabledButNoSchema
+  );
+};
 const canJumpToNextStep = (
   name: string,
   state: WizardState,
@@ -158,6 +174,7 @@ const canJumpToNextStep = (
     connectionDetails,
     nodes,
     advancedSettings,
+    optionalSettings,
   } = state;
   const { type, externalStorage } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
@@ -198,13 +215,15 @@ const canJumpToNextStep = (
   switch (name) {
     case StepsName(t)[Steps.BackingStorage]:
       return validateBackingStorageStep(backingStorage, storageClass);
-    case StepsName(t)[Steps.AdvancedSettings]:
-      return validateAdvancedSettingsStep(
-        advancedSettings,
+    case StepsName(t)[Steps.OptionalSettings]:
+      return validateOptionalSettingsStep(
+        optionalSettings,
         storageClass,
         backingStorage.deployment,
         backingStorage.type
       );
+    case StepsName(t)[Steps.AdvancedSettings]:
+      return validateAdvancedSettingsStep(advancedSettings, nodes.length);
     case StepsName(t)[Steps.CreateStorageClass]:
       return (
         !!storageClass.name &&
@@ -267,7 +286,7 @@ const handleReviewAndCreateNext = async (
 ) => {
   const { nodes, capacityAndNodes } = state;
   const { systemNamespace, deployment, type } = state.backingStorage;
-  const { useExternalPostgres, externalPostgres } = state.advancedSettings;
+  const { useExternalPostgres, externalPostgres } = state.optionalSettings;
   const { encryption, kms } = state.securityAndNetwork;
   const isMCG: boolean = deployment === DeploymentType.MCG;
   const nsAlreadyExists = !!existingNamespaces.find(
@@ -407,7 +426,7 @@ export const CreateStorageSystemFooter: React.FC<
 
   const stepName = activeStep.name as string;
   const { deployment } = state.backingStorage;
-  const { isDbBackup } = state.advancedSettings;
+  const { isDbBackup } = state.optionalSettings;
   const isMCG: boolean = deployment === DeploymentType.MCG;
 
   const jumpToNextStep = canJumpToNextStep(
@@ -434,14 +453,17 @@ export const CreateStorageSystemFooter: React.FC<
           payload: { field: 'showConfirmModal', value: true },
         });
         break;
-      case StepsName(t)[Steps.AdvancedSettings]:
+      case StepsName(t)[Steps.OptionalSettings]:
         // Auto-select the RBD VolumeSnapshotClass for internal mode when automatic backup is enabled.
         if (isDbBackup && !isMCG) {
           dispatch({
-            type: 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
+            type: 'optionalSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
             payload: NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS,
           });
         }
+        moveToNextStep();
+        break;
+      case StepsName(t)[Steps.AdvancedSettings]:
         moveToNextStep();
         break;
       case StepsName(t)[Steps.ReviewAndCreate]:

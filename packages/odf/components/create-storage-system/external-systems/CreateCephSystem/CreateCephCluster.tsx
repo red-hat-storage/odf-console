@@ -31,9 +31,9 @@ import {
   Flex,
   ButtonVariant,
 } from '@patternfly/react-core';
-import { AutomaticBackup } from '../../create-storage-system-steps/advanced-settings-step/automatic-backup/automatic-backup';
 import { PostgresConnectionDetails } from '../../create-storage-system-steps/backing-storage-step/noobaa-external-postgres/postgres-connection-details';
 import { SetCephRBDStorageClassDefault } from '../../create-storage-system-steps/backing-storage-step/set-rbd-sc-default';
+import { AutomaticBackup } from '../../create-storage-system-steps/optional-settings-step/automatic-backup/automatic-backup';
 import { createOCSNamespace } from '../../payloads';
 import { CreateStorageSystemAction } from '../../reducer';
 import {
@@ -85,8 +85,8 @@ const OCS_MULTIPLE_CLUSTER_NS = 'openshift-storage-extended';
 const NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS =
   getRBDVolumeSnapshotClassName(OCS_EXTERNAL_CR_NAME);
 
-// Initial state for advanced settings (backup + postgres)
-type AdvancedSettingsState = {
+// Optional settings state (backup + postgres) for RHCS flow
+type OptionalSettingsState = {
   isDbBackup: boolean;
   dbBackup: {
     schedule: string;
@@ -114,7 +114,7 @@ type AdvancedSettingsState = {
   };
 };
 
-const initialAdvancedSettingsState: AdvancedSettingsState = {
+const initialOptionalSettingsState: OptionalSettingsState = {
   isDbBackup: false,
   dbBackup: {
     schedule: '0 0 * * *',
@@ -142,21 +142,21 @@ const initialAdvancedSettingsState: AdvancedSettingsState = {
   },
 };
 
-// Reducer for advanced settings
-const advancedSettingsReducer = (
-  state: AdvancedSettingsState,
+// Reducer for optional settings (handles optionalSettings/* actions)
+const optionalSettingsReducer = (
+  state: OptionalSettingsState,
   action: CreateStorageSystemAction
-): AdvancedSettingsState => {
+): OptionalSettingsState => {
   switch (action.type) {
     // Backup actions
-    case 'advancedSettings/setDbBackup':
+    case 'optionalSettings/setDbBackup':
       return { ...state, isDbBackup: action.payload };
-    case 'advancedSettings/dbBackup/schedule':
+    case 'optionalSettings/dbBackup/schedule':
       return {
         ...state,
         dbBackup: { ...state.dbBackup, schedule: action.payload },
       };
-    case 'advancedSettings/dbBackup/volumeSnapshot/maxSnapshots':
+    case 'optionalSettings/dbBackup/volumeSnapshot/maxSnapshots':
       return {
         ...state,
         dbBackup: {
@@ -167,7 +167,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass':
+    case 'optionalSettings/dbBackup/volumeSnapshot/volumeSnapshotClass':
       return {
         ...state,
         dbBackup: {
@@ -179,9 +179,9 @@ const advancedSettingsReducer = (
         },
       };
     // Postgres actions
-    case 'advancedSettings/useExternalPostgres':
+    case 'optionalSettings/useExternalPostgres':
       return { ...state, useExternalPostgres: action.payload };
-    case 'advancedSettings/externalPostgres/setUsername':
+    case 'optionalSettings/externalPostgres/setUsername':
       return {
         ...state,
         externalPostgres: {
@@ -189,7 +189,7 @@ const advancedSettingsReducer = (
           username: action.payload,
         },
       };
-    case 'advancedSettings/externalPostgres/setPassword':
+    case 'optionalSettings/externalPostgres/setPassword':
       return {
         ...state,
         externalPostgres: {
@@ -197,7 +197,7 @@ const advancedSettingsReducer = (
           password: action.payload,
         },
       };
-    case 'advancedSettings/externalPostgres/setServerName':
+    case 'optionalSettings/externalPostgres/setServerName':
       return {
         ...state,
         externalPostgres: {
@@ -205,12 +205,12 @@ const advancedSettingsReducer = (
           serverName: action.payload,
         },
       };
-    case 'advancedSettings/externalPostgres/setPort':
+    case 'optionalSettings/externalPostgres/setPort':
       return {
         ...state,
         externalPostgres: { ...state.externalPostgres, port: action.payload },
       };
-    case 'advancedSettings/externalPostgres/setDatabaseName':
+    case 'optionalSettings/externalPostgres/setDatabaseName':
       return {
         ...state,
         externalPostgres: {
@@ -218,7 +218,7 @@ const advancedSettingsReducer = (
           databaseName: action.payload,
         },
       };
-    case 'advancedSettings/externalPostgres/tls/enableTLS':
+    case 'optionalSettings/externalPostgres/tls/enableTLS':
       return {
         ...state,
         externalPostgres: {
@@ -229,7 +229,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'advancedSettings/externalPostgres/tls/allowSelfSignedCerts':
+    case 'optionalSettings/externalPostgres/tls/allowSelfSignedCerts':
       return {
         ...state,
         externalPostgres: {
@@ -240,7 +240,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'advancedSettings/externalPostgres/tls/enableClientSideCerts':
+    case 'optionalSettings/externalPostgres/tls/enableClientSideCerts':
       return {
         ...state,
         externalPostgres: {
@@ -251,7 +251,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'advancedSettings/externalPostgres/tls/keys/setPrivateKey':
+    case 'optionalSettings/externalPostgres/tls/keys/setPrivateKey':
       return {
         ...state,
         externalPostgres: {
@@ -265,7 +265,7 @@ const advancedSettingsReducer = (
           },
         },
       };
-    case 'advancedSettings/externalPostgres/tls/keys/setPublicKey':
+    case 'optionalSettings/externalPostgres/tls/keys/setPublicKey':
       return {
         ...state,
         externalPostgres: {
@@ -293,14 +293,14 @@ const CreateCephCluster: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
 
-  // Single reducer for advanced settings (backup + postgres)
-  const [advancedSettings, advancedDispatch] = React.useReducer(
-    advancedSettingsReducer,
-    initialAdvancedSettingsState
+  // Optional settings (backup + postgres) for this flow
+  const [optionalSettings, optionalDispatch] = React.useReducer(
+    optionalSettingsReducer,
+    initialOptionalSettingsState
   );
 
   const { isDbBackup, dbBackup, useExternalPostgres, externalPostgres } =
-    advancedSettings;
+    optionalSettings;
 
   const navigate = useNavigate();
   const redirectPath = '/odf/external-systems';
@@ -445,8 +445,8 @@ const CreateCephCluster: React.FC = () => {
             )}
             isChecked={useExternalPostgres}
             onChange={(_event, checked: boolean) =>
-              advancedDispatch({
-                type: 'advancedSettings/useExternalPostgres',
+              optionalDispatch({
+                type: 'optionalSettings/useExternalPostgres',
                 payload: checked,
               })
             }
@@ -455,7 +455,7 @@ const CreateCephCluster: React.FC = () => {
           />
           {useExternalPostgres && (
             <PostgresConnectionDetails
-              dispatch={advancedDispatch}
+              dispatch={optionalDispatch}
               tlsFiles={[
                 externalPostgres.tls.keys.private,
                 externalPostgres.tls.keys.public,
@@ -472,7 +472,7 @@ const CreateCephCluster: React.FC = () => {
           )}
           <div className="pf-v5-u-my-md">
             <AutomaticBackup
-              dispatch={advancedDispatch}
+              dispatch={optionalDispatch}
               isDbBackup={isDbBackup}
               isMCG={false}
               dbBackup={dbBackup}

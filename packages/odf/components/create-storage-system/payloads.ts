@@ -140,20 +140,21 @@ export const createStorageCluster = async (
     nodes,
     backingStorage,
     advancedSettings,
+    optionalSettings,
   } = state;
   const { capacity, enableArbiter, arbiterLocation, pvCount } =
     capacityAndNodes;
   const { encryption, kms } = securityAndNetwork;
-  const { type, deployment } = backingStorage;
+  const { type, deployment, isVirtualizeStorageClassDefault } = backingStorage;
   const {
     enableNFS,
     isRBDStorageClassDefault,
-    isVirtualizeStorageClassDefault,
     useExternalPostgres,
     externalPostgres,
     isDbBackup,
     dbBackup,
-  } = advancedSettings;
+  } = optionalSettings;
+  const { useErasureCoding, erasureCodingSchema } = advancedSettings;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 
@@ -211,6 +212,8 @@ export const createStorageCluster = async (
     storageClusterName,
     isDbBackup,
     dbBackup,
+    useErasureCoding,
+    erasureCodingSchema,
   });
 
   return k8sCreate({ model: StorageClusterModel, data: payload });
