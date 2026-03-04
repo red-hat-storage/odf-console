@@ -1,0 +1,17 @@
+.odf-cephfs-subvolume-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.odf-cephfs-subvolume-card__dropdown {
+  min-width: 200px;
+}
+
+.odf-cephfs-subvolume-card__popover-trigger {
+  margin-left: 6px;
+}
+
+.odf-cephfs-subvolume-card__popover-view-all {
+  margin-top: 8px;
+}
