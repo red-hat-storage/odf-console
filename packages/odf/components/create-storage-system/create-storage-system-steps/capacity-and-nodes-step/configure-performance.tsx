@@ -12,6 +12,7 @@ import {
 import { useNodesData } from '@odf/core/hooks';
 import { ResourceProfile } from '@odf/core/types';
 import {
+  getNodeArchitectureFromState,
   getResourceProfileRequirements,
   isResourceProfileAllowed,
   nodesWithoutTaints,
@@ -28,13 +29,19 @@ import {
 } from '@patternfly/react-core';
 import './configure-performance.scss';
 
-const selectOptions = (t: TFunction, forceLean: boolean, osdAmount: number) =>
+const selectOptions = (
+  t: TFunction,
+  forceLean: boolean,
+  osdAmount: number,
+  architecture?: string
+) =>
   Object.entries(ResourceProfile).map((value: [string, ResourceProfile]) => {
     const displayName = t('{{mode}} mode', { mode: value[0] });
     let profile = value[1];
     const { minCpu, minMem } = getResourceProfileRequirements(
       profile,
-      osdAmount
+      osdAmount,
+      architecture
     );
     const description = `CPUs required: ${minCpu}, Memory required: ${minMem} GiB`;
     const isDisabled =
@@ -66,15 +73,17 @@ export const PerformanceHeaderText: React.FC = () => {
 type ProfileRequirementsTextProps = {
   selectedProfile: ResourceProfile;
   osdAmount: number;
+  architecture?: string;
 };
 
 export const ProfileRequirementsText: React.FC<
   ProfileRequirementsTextProps
-> = ({ selectedProfile, osdAmount }) => {
+> = ({ selectedProfile, osdAmount, architecture }) => {
   const { t } = useCustomTranslation();
   const { minCpu, minMem } = getResourceProfileRequirements(
     selectedProfile,
-    osdAmount
+    osdAmount,
+    architecture
   );
   return (
     <TextContent>
@@ -139,12 +148,14 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
     );
     const allCpu = getTotalCpu(selectableNodes);
     const allMem = getTotalMemoryInGiB(selectableNodes);
+    const architecture = getNodeArchitectureFromState(selectableNodes);
     if (
       !isResourceProfileAllowed(
         ResourceProfile.Balanced,
         allCpu,
         allMem,
-        osdAmount
+        osdAmount,
+        architecture
       )
     ) {
       forceLean = true;
@@ -155,12 +166,14 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
   }
 
   // Set error icon in dropdown when appropriate.
+  const architecture = getNodeArchitectureFromState(selectedNodes);
   const isProfileAllowed = resourceProfile
     ? isResourceProfileAllowed(
         resourceProfile,
         getTotalCpu(selectedNodes),
         getTotalMemoryInGiB(selectedNodes),
-        osdAmount
+        osdAmount,
+        architecture
       )
     : true;
   const validated =
@@ -184,7 +197,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         selectedKey={resourceProfile}
         id="resource-profile"
         className="odf-configure-performance__selector pf-v5-u-mb-md"
-        selectOptions={selectOptions(t, forceLean, osdAmount)}
+        selectOptions={selectOptions(t, forceLean, osdAmount, architecture)}
         onChange={onResourceProfileChange}
         validated={validated}
       />
@@ -192,6 +205,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         <ProfileRequirementsTextComponent
           selectedProfile={resourceProfile}
           osdAmount={osdAmount}
+          architecture={architecture}
         />
       )}
     </div>

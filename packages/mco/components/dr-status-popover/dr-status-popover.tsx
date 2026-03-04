@@ -1,13 +1,21 @@
 import * as React from 'react';
 import {
-  DRPCStatus,
   drStatusPopoverDocs,
   VolumeReplicationHealth,
   DRActionType,
   DRProtectionStatus,
+  THRESHOLD,
 } from '@odf/mco/constants';
-import { Progression, DRPlacementControlConditionReason } from '@odf/mco/types';
-import { formatTime } from '@odf/shared/details-page/datetime';
+import {
+  Progression,
+  DRPlacementControlConditionReason,
+  Phase,
+} from '@odf/mco/types';
+import { getVolumeReplicationHealth } from '@odf/mco/utils';
+import {
+  formatTime,
+  getTimeDifferenceInSeconds,
+} from '@odf/shared/details-page/datetime';
 import { DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import {
   GreenCheckCircleIcon,
@@ -46,7 +54,7 @@ export type DRStatusProps = {
   lastKubeObjectProtectionTime?: string;
   volumeReplicationHealth: VolumeReplicationHealth;
   kubeObjectReplicationHealth?: VolumeReplicationHealth;
-  phase: DRPCStatus;
+  phase: Phase;
   isCleanupRequired?: boolean;
   isLoadedWOError: boolean;
   progression?: string;
@@ -56,14 +64,17 @@ export type DRStatusProps = {
   action?: DRActionType;
   isDiscoveredApp?: boolean;
   protectedCondition?: K8sResourceCondition;
+  availableCondition?: K8sResourceCondition;
 };
 
 enum DRStatus {
   WaitOnUserToCleanUp = Progression.WaitOnUserToCleanUp,
-  FailingOver = DRPCStatus.FailingOver,
-  Relocating = DRPCStatus.Relocating,
-  FailedOver = DRPCStatus.FailedOver,
-  Relocated = DRPCStatus.Relocated,
+  WaitForUser = Phase.WaitForUser,
+  Deleting = Phase.Deleting,
+  FailingOver = Phase.FailingOver,
+  Relocating = Phase.Relocating,
+  FailedOver = Phase.FailedOver,
+  Relocated = Phase.Relocated,
   Critical = VolumeReplicationHealth.CRITICAL,
   Warning = VolumeReplicationHealth.WARNING,
   Healthy = VolumeReplicationHealth.HEALTHY,
@@ -115,12 +126,17 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.FailedOver]: <GreenCheckCircleIcon />,
     [DRStatus.Relocated]: <GreenCheckCircleIcon />,
     [DRStatus.WaitOnUserToCleanUp]: <RedExclamationCircleIcon />,
+    [DRStatus.WaitForUser]: <RedExclamationCircleIcon />,
+    [DRStatus.Deleting]: <InProgressIcon />,
     [DRStatus.Protecting]: <InProgressIcon />,
     [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
   };
 
   return iconMap[status] ?? null;
 };
+
+const getStatusLabel = (status: DRStatus, t: TFunction): string =>
+  status === DRStatus.WaitForUser ? t('Action needed') : status;
 
 const DescriptionItem: React.FC<{ term: string; description?: string }> = ({
   term,
@@ -383,41 +399,26 @@ const isReplicationHealthy = (
 const isProgressionActive = (progression?: string): boolean =>
   !!progression && progression !== Progression.Completed;
 
-const shouldShowActionStatus = ({
-  phase,
-  progression,
-  volumeReplicationHealth,
-  kubeObjectReplicationHealth,
-}: {
-  phase: DRPCStatus;
-  progression?: string;
-  volumeReplicationHealth: VolumeReplicationHealth;
-  kubeObjectReplicationHealth?: VolumeReplicationHealth;
-}): boolean => {
-  const isCompleted = progression === Progression.Completed;
-  const isHealthy = isReplicationHealthy(
-    volumeReplicationHealth,
-    kubeObjectReplicationHealth
+const isWithinSyncThreshold = (
+  actionStartTime?: string,
+  schedulingInterval?: string
+): boolean => {
+  if (!actionStartTime || !schedulingInterval) return true;
+  const elapsedSeconds = getTimeDifferenceInSeconds(actionStartTime);
+  const [, slaDiff] = getVolumeReplicationHealth(
+    elapsedSeconds,
+    schedulingInterval
   );
-
-  switch (phase) {
-    case DRPCStatus.FailedOver:
-    case DRPCStatus.Relocated:
-      return !(isCompleted && isHealthy);
-
-    case DRPCStatus.FailingOver:
-    case DRPCStatus.Relocating:
-      return true;
-
-    default:
-      return false;
-  }
+  return slaDiff < THRESHOLD;
 };
 
 const shouldShowProtecting = (
   isCleanupRequired: boolean,
+  phase: Phase,
   protectedCondition?: K8sResourceCondition,
-  volumeLastGroupSyncTime?: string
+  volumeLastGroupSyncTime?: string,
+  actionStartTime?: string,
+  schedulingInterval?: string
 ): boolean => {
   // Never show "Protecting" during cleanup or when condition is missing
   if (isCleanupRequired || !protectedCondition) {
@@ -442,7 +443,19 @@ const shouldShowProtecting = (
   // 1. Status is unknown (validating), OR
   // 2. Reason is unknown (undetermined), OR
   // 3. Protection is progressing but sync hasn't started
-  return isStatusUnknown || isReasonUnknown || isProgressingWithoutSync;
+  if (isStatusUnknown || isReasonUnknown) {
+    return true;
+  }
+
+  if (isProgressingWithoutSync) {
+    // For Deployed, respect the 3x schedule interval window before falling to health
+    if (phase === Phase.Deployed) {
+      return isWithinSyncThreshold(actionStartTime, schedulingInterval);
+    }
+    return true;
+  }
+
+  return false;
 };
 
 const shouldShowProtectionError = (
@@ -468,40 +481,52 @@ const getDRStatus = ({
   progression,
   volumeLastGroupSyncTime,
   protectedCondition,
+  schedulingInterval,
+  actionStartTime,
 }: {
   isCleanupRequired: boolean;
-  phase: DRPCStatus;
+  phase: Phase;
   volumeReplicationHealth: VolumeReplicationHealth;
   kubeObjectReplicationHealth?: VolumeReplicationHealth;
   progression?: string;
   volumeLastGroupSyncTime?: string;
   protectedCondition?: K8sResourceCondition;
+  schedulingInterval?: string;
+  actionStartTime?: string;
 }): DRStatus => {
   // Check if cleanup is required — this has the highest priority
   if (isCleanupRequired) return DRStatus.WaitOnUserToCleanUp;
 
+  // WaitForUser is always treated as action required
+  if (phase === Phase.WaitForUser) return DRStatus.WaitForUser;
+
+  // Deleting is always shown as an in-progress removal state
+  if (phase === Phase.Deleting) return DRStatus.Deleting;
+
   // Handle failover or relocation phases directly
-  if (phase === DRPCStatus.FailingOver) return DRStatus.FailingOver;
-  if (phase === DRPCStatus.Relocating) return DRStatus.Relocating;
+  if (phase === Phase.FailingOver) return DRStatus.FailingOver;
+  if (phase === Phase.Relocating) return DRStatus.Relocating;
 
   // Combine health statuses into an array for easier checks (filter out undefined)
   const replicationHealths = [
     volumeReplicationHealth,
     ...(kubeObjectReplicationHealth ? [kubeObjectReplicationHealth] : []),
   ];
+  const isProgressionCompleted = !isProgressionActive(progression);
 
   // For FailedOver/Relocated phases:
-  // - If sync has started (lastGroupSyncTime exists), show health status unless progression is still active
   // - If sync hasn't started yet, show completion message (phase status)
+  // - If progression is still active, keep phase status
+  // - Otherwise, fall through to protection/health evaluation
   // This check must come BEFORE "Protecting" status to ensure completion status
   // is shown immediately after failover/relocate completes, even if protectedCondition
   // is still in "Unknown" or "Progressing" state.
   const hasSyncStarted = !!volumeLastGroupSyncTime;
 
-  if (phase === DRPCStatus.FailedOver || phase === DRPCStatus.Relocated) {
+  if (phase === Phase.FailedOver || phase === Phase.Relocated) {
     // If sync hasn't started yet, show completion message (phase status)
     if (!hasSyncStarted) {
-      return phase === DRPCStatus.FailedOver
+      return phase === Phase.FailedOver
         ? DRStatus.FailedOver
         : DRStatus.Relocated;
     }
@@ -509,58 +534,37 @@ const getDRStatus = ({
     // Once sync has started, check if progression is still active before showing health status
     // If progression is active (not Completed/undefined), show phase status to keep progression view visible
     if (isProgressionActive(progression)) {
-      return phase === DRPCStatus.FailedOver
+      return phase === Phase.FailedOver
         ? DRStatus.FailedOver
         : DRStatus.Relocated;
     }
-
-    // If any health status is CRITICAL, return Critical status
-    if (replicationHealths.includes(VolumeReplicationHealth.CRITICAL))
-      return DRStatus.Critical;
-
-    // If any health status is WARNING, return Warning status
-    if (replicationHealths.includes(VolumeReplicationHealth.WARNING))
-      return DRStatus.Warning;
-
-    // If replication is healthy, return Healthy status (not phase status)
-    if (
-      isReplicationHealthy(volumeReplicationHealth, kubeObjectReplicationHealth)
-    ) {
-      return DRStatus.Healthy;
-    }
-
-    // Fallback: show Critical if health cannot be determined
-    return DRStatus.Critical;
   }
 
-  // Check for protection error before other statuses (only for non-completion phases)
-  if (shouldShowProtectionError(protectedCondition))
-    return DRStatus.ProtectionError;
-
-  // Check for protecting status before health checks (only for non-completion phases)
-  // This should NOT apply to FailedOver/Relocated phases as they are handled above
-  // Also, if sync has started, we should NOT show "Protecting" - show health status instead
-  if (
-    shouldShowProtecting(
-      isCleanupRequired,
-      protectedCondition,
-      volumeLastGroupSyncTime
-    )
-  )
+  const shouldProtect = shouldShowProtecting(
+    isCleanupRequired,
+    phase,
+    protectedCondition,
+    volumeLastGroupSyncTime,
+    actionStartTime,
+    schedulingInterval
+  );
+  // Check for protecting status while progression is active, or during Deployed
+  // within the sync threshold window when protection is still progressing.
+  // This should NOT apply to FailedOver/Relocated phases as they are handled above.
+  // Also, if sync has started, we should NOT show "Protecting" - show health status instead.
+  if (shouldProtect && (!isProgressionCompleted || phase === Phase.Deployed))
     return DRStatus.Protecting;
 
-  // For FailingOver/Relocating phases, always show the action status
+  // Surface protection errors during Deploying even if progression is active
   if (
-    shouldShowActionStatus({
-      phase,
-      progression,
-      volumeReplicationHealth,
-      kubeObjectReplicationHealth,
-    })
-  ) {
-    if (phase === DRPCStatus.FailingOver) return DRStatus.FailingOver;
-    if (phase === DRPCStatus.Relocating) return DRStatus.Relocating;
-  }
+    phase === Phase.Deploying &&
+    shouldShowProtectionError(protectedCondition)
+  )
+    return DRStatus.ProtectionError;
+
+  // Check for protection error after progression completes
+  if (isProgressionCompleted && shouldShowProtectionError(protectedCondition))
+    return DRStatus.ProtectionError;
 
   // For other phases, check health status
   // If any health status is CRITICAL, return Critical status immediately
@@ -579,12 +583,8 @@ const getDRStatus = ({
   return DRStatus.Critical;
 };
 
-const getCleanupMessage = (
-  phase: DRPCStatus,
-  cluster: string,
-  t: TFunction
-) => {
-  return phase === DRPCStatus.FailedOver
+const getCleanupMessage = (phase: Phase, cluster: string, t: TFunction) => {
+  return phase === Phase.FailedOver
     ? t('Clean up application resources on failed cluster {{cluster}}.', {
         cluster,
       })
@@ -596,7 +596,7 @@ const getCleanupMessage = (
 
 type GetDRStatusDetailsParams = {
   isCleanupRequired: boolean;
-  phase: DRPCStatus;
+  phase: Phase;
   volumeReplicationHealth: VolumeReplicationHealth;
   kubeObjectReplicationHealth?: VolumeReplicationHealth;
   progression?: string;
@@ -605,6 +605,9 @@ type GetDRStatusDetailsParams = {
   primaryCluster: string;
   targetCluster: string;
   protectedCondition?: K8sResourceCondition;
+  availableCondition?: K8sResourceCondition;
+  schedulingInterval?: string;
+  actionStartTime?: string;
 };
 
 const getDRStatusDetails = ({
@@ -618,6 +621,9 @@ const getDRStatusDetails = ({
   primaryCluster,
   targetCluster,
   protectedCondition,
+  availableCondition,
+  schedulingInterval,
+  actionStartTime,
 }: GetDRStatusDetailsParams): StatusContent => {
   const drStatus = getDRStatus({
     isCleanupRequired,
@@ -627,6 +633,8 @@ const getDRStatusDetails = ({
     progression,
     volumeLastGroupSyncTime,
     protectedCondition,
+    schedulingInterval,
+    actionStartTime,
   });
 
   switch (drStatus) {
@@ -646,6 +654,15 @@ const getDRStatusDetails = ({
         protectedCondition?.message ||
           t('An error occurred during application protection.'),
         DR_STATUS_CLASS_NAMES.PROTECTION_ERROR
+      );
+
+    case DRStatus.Deleting:
+      return createStatus(
+        DRStatus.Deleting,
+        t('Deleting'),
+        availableCondition?.message ||
+          t('Removing disaster recovery protection.'),
+        DR_STATUS_CLASS_NAMES.PROTECTING
       );
 
     case DRStatus.Healthy: {
@@ -731,6 +748,14 @@ const getDRStatusDetails = ({
         DR_STATUS_CLASS_NAMES.ACTION_NEEDED
       );
     }
+
+    case DRStatus.WaitForUser:
+      return createStatus(
+        DRStatus.WaitForUser,
+        t('Action needed'),
+        availableCondition?.message || t('User action is required to proceed.'),
+        DR_STATUS_CLASS_NAMES.ACTION_NEEDED
+      );
 
     case DRStatus.FailingOver:
       return createStatus(
@@ -847,7 +872,7 @@ const DRStatusPopoverBody: React.FC<{
   const cleanupCluster =
     disasterRecoveryStatus.action === DRActionType.FAILOVER
       ? disasterRecoveryStatus.targetCluster
-      : disasterRecoveryStatus.phase === DRPCStatus.Relocating &&
+      : disasterRecoveryStatus.phase === Phase.Relocating &&
           disasterRecoveryStatus.isDiscoveredApp
         ? disasterRecoveryStatus.primaryCluster
         : disasterRecoveryStatus.targetCluster;
@@ -924,6 +949,9 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         primaryCluster: disasterRecoveryStatus.primaryCluster,
         targetCluster: disasterRecoveryStatus.targetCluster,
         protectedCondition: disasterRecoveryStatus.protectedCondition,
+        availableCondition: disasterRecoveryStatus.availableCondition,
+        schedulingInterval: disasterRecoveryStatus.schedulingInterval,
+        actionStartTime: disasterRecoveryStatus.actionStartTime,
       }),
     [disasterRecoveryStatus, t]
   );
@@ -1017,7 +1045,10 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
           className="dr-status-popover__button"
           data-test-id="dr-status-button"
         >
-          <StatusIconAndText title={status} icon={icon} />{' '}
+          <StatusIconAndText
+            title={getStatusLabel(status, t)}
+            icon={icon}
+          />{' '}
         </Button>
       </Popover>
     )

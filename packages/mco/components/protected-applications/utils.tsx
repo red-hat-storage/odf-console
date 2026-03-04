@@ -22,13 +22,12 @@ import {
 import { IAction } from '@patternfly/react-table';
 import {
   VolumeReplicationHealth,
-  DRPCStatus,
   DR_BASE_ROUTE,
   DRActionType,
   ReplicationType,
   ApplicationType,
 } from '../../constants';
-import { DRPlacementControlKind, Progression } from '../../types';
+import { DRPlacementControlKind, Progression, Phase } from '../../types';
 import { DRPlacementControlParser } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import { AppManagePoliciesModalWrapper } from '../modals/protected-applications/app-manage-policies-modal-wrapper';
 import { ApplicationActionModal } from '../modals/protected-applications/applications-action-modal';
@@ -123,14 +122,13 @@ export const getAlertMessages = (
 export const isFailingOrRelocating = (
   application: DRPlacementControlKind
 ): boolean =>
-  [DRPCStatus.FailingOver, DRPCStatus.Relocating].includes(
-    application?.status?.phase as DRPCStatus
+  [Phase.FailingOver, Phase.Relocating].includes(
+    application?.status?.phase as Phase
   );
 
 export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
-  [DRPCStatus.FailedOver, DRPCStatus.Relocating].includes(
-    drpc?.status?.phase as DRPCStatus
-  ) && drpc?.status?.progression === Progression.WaitOnUserToCleanUp;
+  [Phase.FailedOver, Phase.Relocating].includes(drpc?.status?.phase as Phase) &&
+  drpc?.status?.progression === Progression.WaitOnUserToCleanUp;
 
 export type ReplicationHealthMap = {
   title: string;

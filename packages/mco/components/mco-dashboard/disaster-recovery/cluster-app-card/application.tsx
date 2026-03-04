@@ -3,9 +3,8 @@
  */
 
 import * as React from 'react';
-import { DRPCStatus } from '@odf/mco/constants';
 import { ReplicationType } from '@odf/mco/constants';
-import { PlacementControlInfo, ProtectedAppsMap } from '@odf/mco/types';
+import { PlacementControlInfo, ProtectedAppsMap, Phase } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { fromNow } from '@odf/shared/details-page/datetime';
@@ -61,10 +60,10 @@ export const getCurrentActivity = (
   isCleanupPending?: boolean,
   replicationType?: ReplicationType
 ): { description: string; status: string; icon: JSX.Element } => {
-  const status = currentStatus as DRPCStatus;
+  const status = currentStatus as Phase;
 
   switch (status) {
-    case DRPCStatus.Relocating:
+    case Phase.Relocating:
       return isCleanupPending
         ? {
             description: t(
@@ -82,7 +81,7 @@ export const getCurrentActivity = (
             icon: <InProgressIcon />,
           };
 
-    case DRPCStatus.Relocated:
+    case Phase.Relocated:
       return {
         description: t('Relocated to cluster {{ preferredCluster }}', {
           preferredCluster,
@@ -91,7 +90,7 @@ export const getCurrentActivity = (
         icon: <GreenCheckCircleIcon />,
       };
 
-    case DRPCStatus.FailingOver:
+    case Phase.FailingOver:
       return {
         description: t('FailingOver to cluster {{ failoverCluster }}', {
           failoverCluster,
@@ -100,7 +99,7 @@ export const getCurrentActivity = (
         icon: <InProgressIcon />,
       };
 
-    case DRPCStatus.FailedOver:
+    case Phase.FailedOver:
       if (isCleanupPending) {
         return replicationType === ReplicationType.ASYNC
           ? {

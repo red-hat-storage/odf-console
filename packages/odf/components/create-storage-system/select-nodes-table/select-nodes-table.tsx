@@ -129,19 +129,21 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     [nodesData]
   );
 
-  // Initialize with labeled nodes selected
+  // Initialize with labeled nodes selected (only once on first load, not when user deselects all)
   const [selectedNodes, setSelectedNodes] = React.useState<NodeData[]>([]);
+  const hasInitializedSelection = React.useRef(false);
 
   React.useEffect(() => {
-    if (filteredData.length && !selectedNodes.length) {
-      const preSelected = filteredData.filter((node) =>
-        hasLabel(node, storageLabel)
-      );
-      if (preSelected.length) {
-        setSelectedNodes(preSelected);
-        onRowSelected(preSelected);
-      }
+    if (hasInitializedSelection.current || !filteredData.length) return;
+    if (selectedNodes.length > 0) return;
+    const preSelected = filteredData.filter((node) =>
+      hasLabel(node, storageLabel)
+    );
+    if (preSelected.length) {
+      setSelectedNodes(preSelected);
+      onRowSelected(preSelected);
     }
+    hasInitializedSelection.current = true;
   }, [filteredData, selectedNodes.length, storageLabel, onRowSelected]);
 
   const handleRowSelection = React.useCallback(

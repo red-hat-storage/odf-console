@@ -90,11 +90,18 @@ export const SelectableTable: SelectableTableProps = <
     return [selectableRows, rowIds];
   }, [sortedRows, isRowSelectable]);
 
+  const selectedRowIds = React.useMemo(
+    () => new Set(selectedRows?.map(getUID)),
+    [selectedRows]
+  );
+
   const { onSelect } = useSelectList<T>(
     selectableRows,
     rowIds,
     false,
-    setSelectedRows
+    setSelectedRows,
+    'checkbox',
+    selectedRowIds
   );
 
   const getSortParams = (columnIndex: number): ThProps['sort'] => ({

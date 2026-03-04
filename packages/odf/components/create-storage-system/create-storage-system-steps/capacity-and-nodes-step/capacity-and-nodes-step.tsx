@@ -34,6 +34,7 @@ import {
   getAssociatedNodes,
   isFlexibleScaling,
   getDeviceSetCount,
+  getNodeArchitectureFromState,
   getOsdAmount,
   isCapacityAutoScalingAllowed,
 } from '@odf/core/utils';
@@ -447,6 +448,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   );
   const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
+  const architecture = getNodeArchitectureFromState(nodes);
 
   const validations = capacityAndNodesValidate(
     nodes,
@@ -530,6 +532,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
             osdAmount={osdAmount}
             key={validation}
             validation={validation}
+            architecture={architecture}
           />
         ))}
     </Form>
