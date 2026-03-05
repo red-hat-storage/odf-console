@@ -21,10 +21,12 @@ import {
   NodeObserve,
   NodeResources,
 } from '@odf/shared/topology/sidebar/node';
+import { OSDDetails } from '@odf/shared/topology/sidebar/node/OSDInformation';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKofResource } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
+  NodeKind,
   useK8sModel,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Tab, Tabs, TabTitleText } from '@patternfly/react-core';
@@ -39,6 +41,7 @@ import '@odf/shared/utils/tabs.scss';
 
 type TopologySideBarContentProps = {
   resource: K8sResourceCommon;
+  shouldToggleToOSDInformation?: boolean;
 };
 
 const AlertsTabComponent: React.FC<TopologySideBarContentProps> = ({
@@ -115,14 +118,20 @@ const ObserveTabComponent: React.FC<GenericTabComponentProps> = ({
 
 const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
   resource,
+  shouldToggleToOSDInformation,
 }) => {
   const [activeTab, setActiveTab] = React.useState(0);
   const { t } = useCustomTranslation();
-
   const getResourceStatus =
-    resource.kind === NodeModel.kind ? nodeStatus : null;
+    resource?.kind === NodeModel.kind ? nodeStatus : null;
   const reference = getGVKofResource(resource);
   const [model, inFlight] = useK8sModel(reference);
+
+  React.useEffect(() => {
+    if (shouldToggleToOSDInformation) {
+      setActiveTab(4);
+    }
+  }, [shouldToggleToOSDInformation]);
 
   const onSelect = React.useCallback(
     (_event, tabIndex) => {
@@ -132,10 +141,12 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
   );
 
   const title = <DetailsPageTitle resource={resource} resourceModel={model} />;
+  const { odfNamespace } = useODFNamespaceSelector();
+  const shouldShowOSDInformation = resource?.kind === NodeModel.kind;
 
   const { ref, height } = useAutoExpand();
 
-  return !inFlight ? (
+  return !inFlight && reference !== null ? (
     <div
       className="odf-topology__sidebar"
       ref={ref}
@@ -181,6 +192,18 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
         >
           <ObserveTabComponent resource={resource} />
         </Tab>
+        {shouldShowOSDInformation && (
+          <Tab
+            className="odf-topology-sidebar__tab"
+            eventKey={4}
+            title={<TabTitleText>{t('OSD Information')}</TabTitleText>}
+          >
+            <OSDDetails
+              resource={resource as NodeKind}
+              odfNamespace={odfNamespace}
+            />
+          </Tab>
+        )}
       </Tabs>
     </div>
   ) : (
