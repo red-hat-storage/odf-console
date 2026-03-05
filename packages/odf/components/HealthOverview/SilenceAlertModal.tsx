@@ -1,6 +1,9 @@
 import * as React from 'react';
+import { StorageClusterModel } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
+import { DisabledAlert, StorageClusterKind, Patch } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetch, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
   Button,
@@ -16,9 +19,11 @@ import {
   MenuToggleElement,
   Alert,
   AlertVariant,
+  Radio,
+  Popover,
 } from '@patternfly/react-core';
-import { BellIcon } from '@patternfly/react-icons';
-import { AlertRowData } from './hooks';
+import { BellIcon, HelpIcon } from '@patternfly/react-icons';
+import { AlertRowData, SilenceType } from './hooks';
 
 type DurationUnit = 'hours' | 'days' | 'weeks';
 
@@ -28,6 +33,8 @@ type SilenceAlertModalProps = {
   selectedAlerts: AlertRowData[];
   alertManagerBasePath: string;
   onSuccess?: () => void;
+  storageCluster?: StorageClusterKind;
+  storageClusterLoaded?: boolean;
 };
 
 const DURATION_UNIT_MULTIPLIERS: Record<DurationUnit, number> = {
@@ -42,11 +49,15 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
   selectedAlerts,
   alertManagerBasePath,
   onSuccess,
+  storageCluster,
+  storageClusterLoaded,
 }) => {
   // Custom hooks
   const { t } = useCustomTranslation();
 
   // State hooks
+  const [silenceType, setSilenceType] =
+    React.useState<SilenceType>('time-limited');
   const [durationValue, setDurationValue] = React.useState(1);
   const [durationUnit, setDurationUnit] = React.useState<DurationUnit>('hours');
   const [isUnitSelectOpen, setIsUnitSelectOpen] = React.useState(false);
@@ -90,64 +101,142 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
     []
   );
 
-  const createSilence = async () => {
-    if (!alertManagerBasePath || durationValue <= 0) {
+  /**
+   * Creates indefinite silence by adding alert entries to StorageCluster.spec.monitoring.disabledAlerts
+   */
+  const createIndefiniteSilence = async () => {
+    if (!storageCluster) {
+      throw new Error(t('StorageCluster not available'));
+    }
+
+    const now = new Date().toISOString();
+    const newAlertEntries: DisabledAlert[] = selectedAlerts.map((alert) => ({
+      alertName: alert.alertname,
+      disabledAt: now,
+    }));
+
+    const existingDisabledAlerts =
+      storageCluster.spec?.monitoring?.disabledAlerts || [];
+    const existingAlertNames = new Set(
+      existingDisabledAlerts.map((a) => a.alertName)
+    );
+
+    // Filter out alerts that are already disabled, then merge
+    const alertsToAdd = newAlertEntries.filter(
+      (alert) => !existingAlertNames.has(alert.alertName)
+    );
+
+    // Skip patch if no new alerts to add
+    if (alertsToAdd.length === 0) {
       return;
     }
 
+    const newDisabledAlerts = [...existingDisabledAlerts, ...alertsToAdd];
+
+    const patch: Patch[] = [];
+
+    // If monitoring doesn't exist, add it first
+    if (!storageCluster.spec?.monitoring) {
+      patch.push({
+        op: 'add',
+        path: '/spec/monitoring',
+        value: { disabledAlerts: newDisabledAlerts },
+      });
+    } else if (existingDisabledAlerts.length === 0) {
+      patch.push({
+        op: 'add',
+        path: '/spec/monitoring/disabledAlerts',
+        value: newDisabledAlerts,
+      });
+    } else {
+      patch.push({
+        op: 'replace',
+        path: '/spec/monitoring/disabledAlerts',
+        value: newDisabledAlerts,
+      });
+    }
+
+    await k8sPatch({
+      model: StorageClusterModel,
+      resource: {
+        metadata: {
+          name: getName(storageCluster),
+          namespace: getNamespace(storageCluster),
+        },
+      },
+      data: patch,
+    });
+  };
+
+  /**
+   * Creates time-limited silence via Alertmanager
+   */
+  const createTimeLimitedSilence = async () => {
+    if (!alertManagerBasePath || durationValue <= 0) {
+      throw new Error(t('Invalid duration or Alertmanager unavailable'));
+    }
+
+    const now = new Date();
+    const durationMs = durationValue * DURATION_UNIT_MULTIPLIERS[durationUnit];
+    const endsAt = new Date(now.getTime() + durationMs);
+
+    // Create matchers from all selected alerts' labels
+    // We need to create a separate silence for each alert since they may have different labels
+    const silencePromises = selectedAlerts.map((alert) => {
+      const matchers = Object.entries(alert.labels).map(([name, value]) => ({
+        name,
+        value,
+        isRegex: false,
+        isEqual: true,
+      }));
+
+      const silenceData = {
+        matchers,
+        startsAt: now.toISOString(),
+        endsAt: endsAt.toISOString(),
+        comment: t(
+          'Silenced via ODF Health Overview for {{duration}} {{unit}}',
+          { duration: durationValue, unit: durationUnit }
+        ),
+        createdBy: 'odf-console',
+      };
+
+      return consoleFetch(`${alertManagerBasePath}/api/v2/silences`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(silenceData),
+      }).then((response) => {
+        if (!response?.ok) {
+          throw new Error(
+            `${response.status} ${response.statusText || t('Unknown error')}`
+          );
+        }
+        return response.json();
+      });
+    });
+
+    await Promise.all(silencePromises);
+  };
+
+  const createSilence = async () => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const now = new Date();
-      const durationMs =
-        durationValue * DURATION_UNIT_MULTIPLIERS[durationUnit];
-      const endsAt = new Date(now.getTime() + durationMs);
-
-      // Create matchers from all selected alerts' labels
-      // We need to create a separate silence for each alert since they may have different labels
-      const silencePromises = selectedAlerts.map((alert) => {
-        const matchers = Object.entries(alert.labels).map(([name, value]) => ({
-          name,
-          value,
-          isRegex: false,
-          isEqual: true,
-        }));
-
-        const silenceData = {
-          matchers,
-          startsAt: now.toISOString(),
-          endsAt: endsAt.toISOString(),
-          comment: t(
-            'Silenced via ODF Health Overview for {{duration}} {{unit}}',
-            { duration: durationValue, unit: durationUnit }
-          ),
-          createdBy: 'odf-console',
-        };
-
-        return consoleFetch(`${alertManagerBasePath}/api/v2/silences`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(silenceData),
-        }).then((response) => {
-          if (!response?.ok) {
-            throw new Error(
-              `${response.status} ${response.statusText || t('Unknown error')}`
-            );
-          }
-          return response.json();
-        });
-      });
-
-      await Promise.all(silencePromises);
+      if (silenceType === 'indefinite') {
+        await createIndefiniteSilence();
+      } else {
+        await createTimeLimitedSilence();
+      }
 
       // Success - close modal and notify parent
       onSuccess?.();
       onClose();
 
       // Reset form
+      setSilenceType('time-limited');
       setDurationValue(1);
       setDurationUnit('hours');
     } catch (err) {
@@ -164,14 +253,18 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
   const handleClose = () => {
     if (!isSubmitting) {
       setError(null);
-      // reset duration and unit values on close / cancel
+      // reset form values on close / cancel
+      setSilenceType('time-limited');
       setDurationValue(1);
       setDurationUnit('hours');
       onClose();
     }
   };
 
-  const isSilenceDisabled = durationValue <= 0 || isSubmitting;
+  const isSilenceDisabled =
+    (silenceType === 'time-limited' && durationValue <= 0) ||
+    (silenceType === 'indefinite' && !storageCluster) ||
+    isSubmitting;
 
   const unitToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -202,12 +295,8 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
   return (
     <Modal
       variant={ModalVariant.small}
-      title={
-        <span>
-          <BellIcon className="pf-v6-u-mr-sm" />
-          {t('Silence alert')}
-        </span>
-      }
+      title={t('Silence alert')}
+      titleIconVariant={BellIcon}
       isOpen={isOpen}
       onClose={handleClose}
       actions={[
@@ -248,44 +337,101 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
           </Alert>
         )}
 
-        <FormGroup label={t('Duration')} isRequired>
-          <InputGroup>
-            <InputGroupItem isFill>
-              <NumberInput
-                value={durationValue}
-                onChange={handleDurationChange}
-                onMinus={handleMinus}
-                onPlus={handlePlus}
-                min={0}
-                inputName="duration"
-                inputAriaLabel={t('Duration value')}
-                minusBtnAriaLabel={t('Decrease duration')}
-                plusBtnAriaLabel={t('Increase duration')}
-                widthChars={10}
-                isDisabled={isSubmitting}
-              />
-            </InputGroupItem>
-            <InputGroupItem>
-              <Select
-                isOpen={isUnitSelectOpen}
-                selected={durationUnit}
-                onSelect={handleUnitSelect}
-                onOpenChange={setIsUnitSelectOpen}
-                toggle={unitToggle}
-                shouldFocusFirstItemOnOpen
-                shouldFocusToggleOnSelect
+        <FormGroup
+          label={t('Duration')}
+          isRequired
+          labelHelp={
+            <Popover
+              headerContent={t('Silence types')}
+              bodyContent={
+                <>
+                  <p>
+                    <strong>{t('Indefinite')}</strong>:{' '}
+                    {t(
+                      'Persists across pod restarts and system updates. Stored in StorageCluster configuration.'
+                    )}
+                  </p>
+                  <p className="pf-v6-u-mt-sm">
+                    <strong>{t('Limited time')}</strong>:{' '}
+                    {t(
+                      'Temporary silence via Alertmanager. Will expire after the specified duration.'
+                    )}
+                  </p>
+                </>
+              }
+            >
+              <button
+                type="button"
+                className="pf-v6-c-form__group-label-help"
+                aria-label={t('More information about silence types')}
               >
-                <SelectList>
-                  {durationUnitOptions.map((option) => (
-                    <SelectOption key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectOption>
-                  ))}
-                </SelectList>
-              </Select>
-            </InputGroupItem>
-          </InputGroup>
+                <HelpIcon />
+              </button>
+            </Popover>
+          }
+        >
+          <Radio
+            isChecked={silenceType === 'indefinite'}
+            name="silence-type"
+            onChange={() => setSilenceType('indefinite')}
+            label={t('Indefinite')}
+            description={t('Silence will be recreated if pods restart')}
+            id="silence-type-indefinite"
+            isDisabled={
+              !storageCluster || !storageClusterLoaded || isSubmitting
+            }
+          />
+          <Radio
+            isChecked={silenceType === 'time-limited'}
+            name="silence-type"
+            onChange={() => setSilenceType('time-limited')}
+            label={t('Limited time')}
+            id="silence-type-limited"
+            className="pf-v6-u-mt-sm"
+            isDisabled={isSubmitting}
+          />
         </FormGroup>
+
+        {silenceType === 'time-limited' && (
+          <FormGroup label={t('Time limit')} isRequired>
+            <InputGroup>
+              <InputGroupItem isFill>
+                <NumberInput
+                  value={durationValue}
+                  onChange={handleDurationChange}
+                  onMinus={handleMinus}
+                  onPlus={handlePlus}
+                  min={0}
+                  inputName="duration"
+                  inputAriaLabel={t('Duration value')}
+                  minusBtnAriaLabel={t('Decrease duration')}
+                  plusBtnAriaLabel={t('Increase duration')}
+                  widthChars={10}
+                  isDisabled={isSubmitting}
+                />
+              </InputGroupItem>
+              <InputGroupItem>
+                <Select
+                  isOpen={isUnitSelectOpen}
+                  selected={durationUnit}
+                  onSelect={handleUnitSelect}
+                  onOpenChange={setIsUnitSelectOpen}
+                  toggle={unitToggle}
+                  shouldFocusFirstItemOnOpen
+                  shouldFocusToggleOnSelect
+                >
+                  <SelectList>
+                    {durationUnitOptions.map((option) => (
+                      <SelectOption key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectOption>
+                    ))}
+                  </SelectList>
+                </Select>
+              </InputGroupItem>
+            </InputGroup>
+          </FormGroup>
+        )}
 
         {selectedAlerts.length > 0 && (
           <Alert
