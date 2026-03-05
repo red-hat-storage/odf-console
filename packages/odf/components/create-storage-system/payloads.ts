@@ -153,6 +153,7 @@ export const createStorageCluster = async (
     externalPostgres,
     isDbBackup,
     dbBackup,
+    enableForcefulDeployment,
   } = advancedSettings;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
@@ -211,6 +212,7 @@ export const createStorageCluster = async (
     storageClusterName,
     isDbBackup,
     dbBackup,
+    enableForcefulDeployment,
   });
 
   return k8sCreate({ model: StorageClusterModel, data: payload });
