@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Text, TextVariants } from '@patternfly/react-core';
+import { Content, ContentVariants } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 
 export const ViewDocumentation: React.FC<ViewDocumentationProps> = ({
@@ -14,8 +14,8 @@ export const ViewDocumentation: React.FC<ViewDocumentationProps> = ({
   if (!doclink || hideDocLink) return null;
 
   return (
-    <Text
-      component={TextVariants.a}
+    <Content
+      component={ContentVariants.a}
       isVisitedLink
       href={doclink}
       target="_blank"
@@ -27,7 +27,7 @@ export const ViewDocumentation: React.FC<ViewDocumentationProps> = ({
       }}
     >
       {text || t('View documentation')} <ExternalLinkAltIcon />
-    </Text>
+    </Content>
   );
 };
 

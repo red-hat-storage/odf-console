@@ -3,9 +3,8 @@ import { GetPublicAccessBlockCommandOutput } from '@aws-sdk/client-s3';
 import { TFunction } from 'react-i18next';
 import {
   TreeViewDataItem,
-  TextContent,
-  TextVariants,
-  Text,
+  Content,
+  ContentVariants,
   Label,
 } from '@patternfly/react-core';
 import { BanIcon, ExclamationTriangleIcon } from '@patternfly/react-icons';
@@ -114,11 +113,11 @@ export const getOptions = (
   return [
     {
       name: (
-        <TextContent>
-          <Text component={TextVariants.p}>
+        <Content>
+          <Content component={ContentVariants.p}>
             {t('Block all public access')} {getLabel(manage, checkedItems, t)}
-          </Text>
-          <Text component={TextVariants.small}>
+          </Content>
+          <Content component={ContentVariants.small}>
             {t(
               'Prevent all forms of public access to this bucket and its objects.'
             )}{' '}
@@ -126,16 +125,16 @@ export const getOptions = (
             {t(
               'Overrides all policies and permissions that grant public access. When enabled, it ensures the bucket and all stored data are private and accessible only through explicitly granted permissions.'
             )}
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       ),
       id: 'PublicAccessBlockConfiguration',
       checkProps: { checked: false, disabled: !manage },
       children: [
         {
           name: (
-            <TextContent>
-              <Text component={TextVariants.p}>
+            <Content>
+              <Content component={ContentVariants.p}>
                 {configText[SupportedConfig.BlockPublicPolicy]}{' '}
                 {getChildLabel(
                   manage,
@@ -143,22 +142,22 @@ export const getOptions = (
                   SupportedConfig.BlockPublicPolicy,
                   t
                 )}
-              </Text>
-              <Text component={TextVariants.small}>
+              </Content>
+              <Content component={ContentVariants.small}>
                 {t('Prevent new policies from making your data public.')} <br />
                 {t(
                   'Blocks any newly created bucket policy that grants public access to your data, helping prevent accidental exposure in the future.'
                 )}
-              </Text>
-            </TextContent>
+              </Content>
+            </Content>
           ),
           id: SupportedConfig.BlockPublicPolicy,
           checkProps: { checked: false, disabled: !manage },
         },
         {
           name: (
-            <TextContent>
-              <Text component={TextVariants.p}>
+            <Content>
+              <Content component={ContentVariants.p}>
                 {configText[SupportedConfig.RestrictPublicBuckets]}{' '}
                 {getChildLabel(
                   manage,
@@ -166,8 +165,8 @@ export const getOptions = (
                   SupportedConfig.RestrictPublicBuckets,
                   t
                 )}
-              </Text>
-              <Text component={TextVariants.small}>
+              </Content>
+              <Content component={ContentVariants.small}>
                 {t(
                   'Block all public and cross-account access granted by existing policies.'
                 )}{' '}
@@ -175,8 +174,8 @@ export const getOptions = (
                 {t(
                   'Restrict access from other accounts or the public internet, even if existing policies currently allow it. This is recommended for keeping your data isolated and secure.'
                 )}
-              </Text>
-            </TextContent>
+              </Content>
+            </Content>
           ),
           id: SupportedConfig.RestrictPublicBuckets,
           checkProps: { checked: false, disabled: !manage },

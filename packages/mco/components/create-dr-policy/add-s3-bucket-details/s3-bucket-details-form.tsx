@@ -154,10 +154,10 @@ export const ClusterS3BucketDetailsForm: React.FC<
     { key: 's3ProfileName', label: t('S3 profile name') },
   ];
 
-  const inputPadding = 'pf-v5-u-p-sm pf-v5-u-w-75';
+  const inputPadding = 'pf-v6-u-p-sm pf-v6-u-w-75';
 
   return (
-    <div className="pf-v5-u-p-md">
+    <div className="pf-v6-u-p-md">
       <ExpandableSection
         toggleText={
           areDRClustersAlreadyCreated
@@ -193,12 +193,11 @@ export const ClusterS3BucketDetailsForm: React.FC<
                 </FlexItem>
                 <FlexItem>
                   <Button
+                    icon={show1 ? <EyeSlashIcon /> : <EyeIcon />}
                     variant="plain"
                     onClick={() => setShow1((s) => !s)}
                     aria-label={t('Toggle secret visibility')}
-                  >
-                    {show1 ? <EyeSlashIcon /> : <EyeIcon />}
-                  </Button>
+                  />
                 </FlexItem>
               </Flex>
             ) : (
@@ -221,7 +220,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
           </FormGroup>
         ))}
       </ExpandableSection>
-      <Divider className="pf-v5-u-p-md" />
+      <Divider className="pf-v6-u-p-md" />
       <ExpandableSection
         toggleText={
           areDRClustersAlreadyCreated
@@ -262,13 +261,12 @@ export const ClusterS3BucketDetailsForm: React.FC<
                   onBlur={() => handleBlur(2)}
                 />
                 <Button
+                  icon={show2 ? <EyeSlashIcon /> : <EyeIcon />}
                   variant="plain"
                   onClick={() => setShow2((s) => !s)}
                   aria-label={t('Toggle secret visibility')}
                   isDisabled={useSameConnection}
-                >
-                  {show2 ? <EyeSlashIcon /> : <EyeIcon />}
-                </Button>
+                />
               </div>
             ) : (
               <TextInput

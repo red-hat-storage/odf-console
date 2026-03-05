@@ -141,7 +141,7 @@ export const AzureConfigure: React.FC<KMSConfigureProps> = ({
       <FormGroup
         fieldId="azure-vault-url"
         label={t('Azure Vault URL')}
-        labelIcon={
+        labelHelp={
           <FieldLevelHelp>
             {t(
               'This URL is used to access and manage secrets, keys, and certificates stored in Azure Key Vault.'
@@ -173,14 +173,14 @@ export const AzureConfigure: React.FC<KMSConfigureProps> = ({
       <FormGroup
         fieldId="azure-client-id"
         label={t('Client ID')}
-        labelIcon={
+        labelHelp={
           <FieldLevelHelp>
             <Trans t={t}>
               <div>
                 Client ID is the unique identifier of an application created in
                 Azure AD (Active Directory).
               </div>
-              <div className="pf-v5-u-mt-md">
+              <div className="pf-v6-u-mt-md">
                 You can locate the client ID within Azure Active Directory by
                 accessing the <strong>App registrations</strong> section.
               </div>
@@ -212,7 +212,7 @@ export const AzureConfigure: React.FC<KMSConfigureProps> = ({
       <FormGroup
         fieldId="azure-tenant-id"
         label={t('Tenant ID')}
-        labelIcon={
+        labelHelp={
           <FieldLevelHelp>
             <Trans t={t}>
               <div>
@@ -220,7 +220,7 @@ export const AzureConfigure: React.FC<KMSConfigureProps> = ({
                 application is hosted - it is the same as the organization ID.
                 Also referred to as the Microsoft Entra tenant ID.
               </div>
-              <div className="pf-v5-u-mt-md">
+              <div className="pf-v6-u-mt-md">
                 You can find it by searching for{' '}
                 <strong>Microsoft Entra ID</strong> in the Azure portal.
               </div>

@@ -19,7 +19,7 @@ import {
   Tooltip,
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
-import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens';
+import { t_color_blue_40 as blueInfoColor } from '@patternfly/react-tokens';
 import DeleteBucketPolicyModal from '../../../modals/s3-browser/bucket-policy/DeleteBucketPolicy';
 import SaveBucketPolicyModal from '../../../modals/s3-browser/bucket-policy/SaveBucketPolicy';
 import { PreConfiguredPolicies } from './PreConfiguredPolicies';
@@ -88,11 +88,11 @@ const PolicyHeader: React.FC<PolicyHeaderProps> = ({ success, setSuccess }) => {
       <Title
         headingLevel="h2"
         size="2xl"
-        className="pf-v5-u-mt-lg pf-v5-u-mb-xs"
+        className="pf-v6-u-mt-lg pf-v6-u-mb-xs"
       >
         {t('Bucket policy')}
       </Title>
-      <p className="pf-v5-u-mb-lg">
+      <p className="pf-v6-u-mb-lg">
         {t(
           'Use bucket policy to grant public or restricted access to the objects stored in the bucket.'
         )}
@@ -105,7 +105,7 @@ const PolicyHeader: React.FC<PolicyHeaderProps> = ({ success, setSuccess }) => {
           actionClose={
             <AlertActionCloseButton onClose={() => setSuccess(false)} />
           }
-          className="pf-v5-u-my-sm"
+          className="pf-v6-u-my-sm"
         >
           <p>
             {t(
@@ -155,14 +155,16 @@ const PolicyBody: React.FC<PolicyBodyProps> = ({
           )}
         >
           <Button
+            icon={
+              <Icon size="sm">
+                <PencilAltIcon color={blueInfoColor.value} />
+              </Icon>
+            }
             variant={ButtonVariant.link}
             onClick={onEdit}
-            className="pf-v5-u-my-sm s3-policy-edit--margin"
+            className="pf-v6-u-my-sm s3-policy-edit--margin"
           >
             {t('Edit bucket policy')}{' '}
-            <Icon size="sm">
-              <PencilAltIcon color={blueInfoColor.value} />
-            </Icon>
           </Button>
         </Tooltip>
       )}
@@ -189,7 +191,7 @@ const PolicyBody: React.FC<PolicyBodyProps> = ({
           </Button>
         }
         onEditorDidMount={handleEditorDidMount}
-        className="pf-v5-u-mt-sm pf-v5-u-mb-xl"
+        className="pf-v6-u-mt-sm pf-v6-u-mb-xl"
       />
     </>
   );
@@ -227,36 +229,36 @@ const PolicyFooter: React.FC<PolicyFooterProps> = ({
   return (
     <>
       {noPolicyExists && (
-        <span className="pf-v5-u-mt-sm">
+        <span className="pf-v6-u-mt-sm">
           <Button
             variant={ButtonVariant.primary}
             onClick={launchSaveModal}
-            className="pf-v5-u-mr-xs"
+            className="pf-v6-u-mr-xs"
           >
             {t('Apply policy')}
           </Button>
           <Button
             variant={ButtonVariant.link}
             onClick={() => setCode('')}
-            className="pf-v5-u-ml-xs"
+            className="pf-v6-u-ml-xs"
           >
             {t('Clear')}
           </Button>
         </span>
       )}
       {!noPolicyExists && (
-        <span className="pf-v5-u-mt-sm">
+        <span className="pf-v6-u-mt-sm">
           <Button
             variant={ButtonVariant.secondary}
             onClick={launchSaveModal}
-            className="pf-v5-u-mr-xs"
+            className="pf-v6-u-mr-xs"
           >
             {t('Save changes')}
           </Button>
           <Button
             variant={ButtonVariant.secondary}
             onClick={launchDeleteModal}
-            className="pf-v5-u-mr-xs pf-v5-u-ml-xs"
+            className="pf-v6-u-mr-xs pf-v6-u-ml-xs"
             isDanger
           >
             {t('Delete')}
@@ -264,7 +266,7 @@ const PolicyFooter: React.FC<PolicyFooterProps> = ({
           <Button
             variant={ButtonVariant.link}
             onClick={triggerRefresh}
-            className="pf-v5-u-ml-xs"
+            className="pf-v6-u-ml-xs"
           >
             {t('Cancel')}
           </Button>
@@ -327,7 +329,7 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
   }
 
   return (
-    <div className="pf-v5-u-m-sm">
+    <div className="pf-v6-u-m-sm">
       <PolicyHeader success={success} setSuccess={setSuccess} />
       <PolicyBody
         code={code}

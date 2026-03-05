@@ -1,10 +1,10 @@
 .odf-topology__group {
     &-state--warning path.pf-topology__group__background {
-        stroke: var(--pf-v5-global--warning-color--100)
+        stroke: var(--pf-t--global--color--status--warning--100)
     }
 
     &-state--error path.pf-topology__group__background {
-        stroke: var(--pf-v5-global--danger-color--100)
+        stroke: var(--pf-t--global--color--status--danger--100)
     }
 }
 

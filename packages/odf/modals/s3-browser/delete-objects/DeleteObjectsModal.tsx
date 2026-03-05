@@ -12,11 +12,10 @@ import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
 import {
-  Modal,
-  ModalVariant,
   Button,
   ButtonVariant,
   TextInput,
@@ -301,14 +300,14 @@ const DeleteObjectsModal: React.FC<
               variant={ButtonVariant.danger}
               onClick={onDelete}
               isDisabled={deleteText !== DELETE || inProgress || !!error}
-              className="pf-v5-u-mr-xs"
+              className="pf-v6-u-mr-xs"
             >
               {t('Delete object')}
             </Button>
             <Button
               variant={ButtonVariant.link}
               onClick={closeModal}
-              className="pf-v5-u-ml-xs"
+              className="pf-v6-u-ml-xs"
             >
               {t('Cancel')}
             </Button>
@@ -320,7 +319,7 @@ const DeleteObjectsModal: React.FC<
         <ListFilter
           data={data}
           loaded={true}
-          textInputProps={{ className: 'pf-v5-u-w-50 pf-v5-u-ml-lg' }}
+          textInputProps={{ className: 'pf-v6-u-w-50 pf-v6-u-ml-lg' }}
         >
           {(filteredData): React.ReactNode => (
             <PaginatedListPage
@@ -369,13 +368,13 @@ const DeleteObjectsModal: React.FC<
               </Alert>
             ) : null
           }
-          className="pf-v5-u-my-sm"
+          className="pf-v6-u-my-sm"
         />
       )}
       <FormGroup
         label={getTextInputLabel(t)}
         fieldId="delete-objects"
-        className="pf-v5-u-mt-lg pf-v5-u-mb-sm"
+        className="pf-v6-u-mt-lg pf-v6-u-mb-sm"
       >
         <TextInput
           value={deleteText}

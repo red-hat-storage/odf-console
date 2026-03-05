@@ -8,15 +8,11 @@ import { S3Commands } from '@odf/shared/s3';
 import { isNoCorsRuleError } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { murmur3 } from 'murmurhash-js';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { KeyedMutator } from 'swr';
-import {
-  Modal,
-  ModalVariant,
-  Button,
-  ButtonVariant,
-} from '@patternfly/react-core';
+import { Button, ButtonVariant } from '@patternfly/react-core';
 
 type DeleteCorsRuleModalProps = {
   mutate: KeyedMutator<GetBucketCorsCommandOutput>;
@@ -136,14 +132,14 @@ const DeleteCorsRuleModal: React.FC<
               variant={ButtonVariant.danger}
               onClick={onDelete}
               isDisabled={!!error || inProgress}
-              className="pf-v5-u-mr-xs"
+              className="pf-v6-u-mr-xs"
             >
               {t('Delete')}
             </Button>
             <Button
               variant={ButtonVariant.link}
               onClick={closeModal}
-              className="pf-v5-u-ml-xs"
+              className="pf-v6-u-ml-xs"
             >
               {t('Cancel')}
             </Button>

@@ -21,14 +21,9 @@ import {
   FormHelperText,
   FormSection,
   Title,
-  Page,
-  PageSection,
-  PageSectionVariants,
-  PageBreadcrumb,
   Breadcrumb,
   BreadcrumbItem,
-  TextContent,
-  Text,
+  Content,
   HelperText,
   HelperTextItem,
   ButtonType,
@@ -225,8 +220,8 @@ export const CreateUserFormContent = () => {
   };
 
   return (
-    <Page>
-      <PageBreadcrumb>
+    <div>
+      <div className="pf-v6-u-p-lg pf-v6-u-pb-sm">
         <Breadcrumb>
           <BreadcrumbItem>
             {inProgress ? (
@@ -237,17 +232,17 @@ export const CreateUserFormContent = () => {
           </BreadcrumbItem>
           <BreadcrumbItem isActive>{t('Create user')}</BreadcrumbItem>
         </Breadcrumb>
-      </PageBreadcrumb>
-      <PageSection variant={PageSectionVariants.light} isFilled>
-        <Form onSubmit={handleSubmit(save)} className="pf-v5-u-w-75">
-          <TextContent>
+      </div>
+      <div className="pf-v6-u-p-lg">
+        <Form onSubmit={handleSubmit(save)} className="pf-v6-u-w-75">
+          <Content>
             <Title headingLevel="h1">{t('Create user')}</Title>
-            <Text component="p" className="text-muted">
+            <Content component="p" className="text-muted">
               {t(
                 'Create users to generate and manage access keys and policies.'
               )}
-            </Text>
-          </TextContent>
+            </Content>
+          </Content>
           <FormSection>
             <Alert
               variant="info"
@@ -280,16 +275,16 @@ export const CreateUserFormContent = () => {
             <AddKeyValuePairs pairs={pairs} setPairs={setPairs} />
 
             <FormGroup>
-              <label className="pf-v5-u-pt-sm">
+              <label className="pf-v6-u-pt-sm">
                 {t('Description tag')}
-                <div className="pf-v5-u-pt-md">{t('Value')}</div>
+                <div className="pf-v6-u-pt-md">{t('Value')}</div>
               </label>
               <TextInput
                 type="text"
                 placeholder={t('Input field')}
                 value={descriptionTagValue}
                 onChange={(_event, value) => setDescriptionTagValue(value)}
-                className="pf-v5-u-w-50"
+                className="pf-v6-u-w-50"
                 isDisabled={!isValid}
               />
               <FormHelperText>
@@ -307,7 +302,7 @@ export const CreateUserFormContent = () => {
               errorMessage={aggregatedErrorMessage}
               inProgress={inProgress}
             >
-              <ActionGroup className="pf-v5-c-form">
+              <ActionGroup className="pf-v6-c-form">
                 <Button
                   isDisabled={!isValid || inProgress}
                   isLoading={inProgress}
@@ -329,8 +324,8 @@ export const CreateUserFormContent = () => {
             </ButtonBar>
           </FormSection>
         </Form>
-      </PageSection>
-    </Page>
+      </div>
+    </div>
   );
 };
 

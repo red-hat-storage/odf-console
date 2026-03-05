@@ -10,6 +10,7 @@ import { LoadingInline } from '@odf/shared/generic/Loading';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { useSelector } from 'react-redux';
 import { compose } from 'redux';
 import {
@@ -17,10 +18,8 @@ import {
   Button,
   Flex,
   FlexItem,
-  Modal,
-  ModalVariant,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { useSafeK8sGet } from '../../hooks';
 import { getODFSystemFlags } from '../../redux';
@@ -124,9 +123,9 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
             </Flex>
           </FlexItem>
           <FlexItem>
-            <Text component={TextVariants.h6}>
+            <Content component={ContentVariants.h6}>
               {t('Recommended Ceph Monitor count: 5')}
-            </Text>
+            </Content>
           </FlexItem>
         </Flex>
         {!!errorMessage && (
