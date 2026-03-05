@@ -14,6 +14,7 @@ import {
 import { useAlertManagerBasePath } from '@odf/shared/hooks/custom-prometheus-poll/utils';
 import { PrometheusRuleModel } from '@odf/shared/models';
 import useAlerts from '@odf/shared/monitoring/useAlert';
+import { ExcludedAlert, StorageClusterKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
@@ -366,6 +367,13 @@ type AlertmanagerSilence = {
   updatedAt?: string;
 };
 
+export const SilenceTypes = {
+  TIME_BOUND: 'time-bound',
+  INDEFINITE: 'indefinite',
+} as const;
+
+export type SilenceType = (typeof SilenceTypes)[keyof typeof SilenceTypes];
+
 export type SilencedAlertRowData = K8sResourceCommon & {
   silenceId: string;
   alertname: string;
@@ -373,6 +381,7 @@ export type SilencedAlertRowData = K8sResourceCommon & {
   endsOn?: Date;
   severity: string;
   details: string;
+  silenceType: SilenceType;
 };
 
 const mapSilencesToRows = (
@@ -426,9 +435,32 @@ const mapSilencesToRows = (
         endsOn,
         severity,
         details,
+        silenceType: SilenceTypes.TIME_BOUND,
         metadata: { uid: silence.id },
       } as SilencedAlertRowData;
     });
+};
+
+/**
+ * Maps StorageCluster excludedAlerts to SilencedAlertRowData for indefinite silences.
+ * Note: We don't filter by allowedAlertNames because when an alert is added to
+ * excludedAlerts, the backend removes it from the PrometheusRule - so it won't
+ * be in allowedAlertNames anymore.
+ */
+const mapIndefiniteSilencesToRows = (
+  excludedAlerts: ExcludedAlert[] = [],
+  templateMap: Map<string, string>
+): SilencedAlertRowData[] => {
+  return excludedAlerts.map((alert) => ({
+    silenceId: `indefinite-${alert.alertName}`,
+    alertname: alert.alertName,
+    silencedOn: new Date(alert.disabledAt),
+    endsOn: undefined,
+    severity: alert.severity || 'info', // Use stored severity, fallback to 'info'
+    details: templateMap.get(alert.alertName) || alert.alertName,
+    silenceType: SilenceTypes.INDEFINITE,
+    metadata: { uid: `indefinite-${alert.alertName}` },
+  }));
 };
 
 /**
@@ -466,23 +498,30 @@ const alertMatchesSilence = (
 };
 
 /**
- * Filters out alerts that are currently silenced
+ * Filters out alerts that are currently silenced (via Alertmanager or indefinitely via StorageCluster).
  */
 export const filterOutSilencedAlerts = (
   alerts: AlertRowData[],
-  silences: AlertmanagerSilence[] = []
+  silences: AlertmanagerSilence[] = [],
+  excludedAlerts: ExcludedAlert[] = []
 ): AlertRowData[] => {
-  if (!silences.length) {
+  const excludedSet = new Set(excludedAlerts.map((a) => a.alertName));
+
+  if (!silences.length && !excludedSet.size) {
     return alerts;
   }
 
   return alerts.filter((alert) => {
-    // Check if this alert matches any active silence
+    // Check indefinite silences first (from StorageCluster excludedAlerts)
+    if (excludedSet.has(alert.alertname)) {
+      return false;
+    }
+    // Check Alertmanager silences
     return !silences.some((silence) => alertMatchesSilence(alert, silence));
   });
 };
 
-export const useSilencedAlerts = () => {
+export const useSilencedAlerts = (storageCluster?: StorageClusterKind) => {
   const alertManagerBasePath = useAlertManagerBasePath();
   const silencesURL = alertManagerBasePath
     ? `${alertManagerBasePath}/${ALERTMANAGER_SILENCES_PATH}`
@@ -505,9 +544,24 @@ export const useSilencedAlerts = () => {
     error: rulesError,
   } = useHealthRules();
 
-  const silencedAlerts = React.useMemo(
+  const excludedAlerts = React.useMemo(
+    () => storageCluster?.spec?.monitoring?.excludedAlerts || [],
+    [storageCluster?.spec?.monitoring?.excludedAlerts]
+  );
+
+  const timeLimitedSilences = React.useMemo(
     () => mapSilencesToRows(silences, templates, ruleNames),
     [silences, templates, ruleNames]
+  );
+
+  const indefiniteSilences = React.useMemo(
+    () => mapIndefiniteSilencesToRows(excludedAlerts, templates),
+    [excludedAlerts, templates]
+  );
+
+  const silencedAlerts = React.useMemo(
+    () => [...timeLimitedSilences, ...indefiniteSilences],
+    [timeLimitedSilences, indefiniteSilences]
   );
 
   const refreshSilencedAlerts = React.useCallback(
@@ -528,5 +582,7 @@ export const useSilencedAlerts = () => {
     refreshSilencedAlerts,
     // Expose raw silences for filtering
     silences,
+    // Expose excludedAlerts for filtering
+    excludedAlerts,
   };
 };
