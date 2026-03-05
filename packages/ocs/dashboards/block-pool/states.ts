@@ -1,11 +1,11 @@
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
-import { global_danger_color_300 as veryDangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_300';
-import { global_disabled_color_100 as disabledColor } from '@patternfly/react-tokens/dist/js/global_disabled_color_100';
-import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
-import { global_palette_green_500 as okColor } from '@patternfly/react-tokens/dist/js/global_palette_green_500';
-import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import { TFunction } from 'react-i18next';
+import { t_global_color_status_danger_100 as dangerColor } from '@patternfly/react-tokens';
+import { t_global_color_status_danger_300 as veryDangerColor } from '@patternfly/react-tokens';
+import { t_global_color_disabled_100 as disabledColor } from '@patternfly/react-tokens';
+import { t_color_blue_40 as blueInfoColor } from '@patternfly/react-tokens';
+import { t_color_green_50 as okColor } from '@patternfly/react-tokens';
+import { t_global_color_status_warning_100 as warningColor } from '@patternfly/react-tokens';
 import { ImageStates } from '../../types';
 
 export const ImageStateLegendMap = (

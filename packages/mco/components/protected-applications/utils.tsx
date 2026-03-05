@@ -256,7 +256,7 @@ export const getRowActions = (
       title: (
         <>
           {t('Edit configuration')}
-          <p className="text-muted pf-v5-u-font-size-xs">
+          <p className="text-muted pf-v6-u-font-size-xs">
             {t('Update existing configuration in YAML view')}
           </p>
         </>
@@ -267,7 +267,7 @@ export const getRowActions = (
       title: (
         <>
           {t('Failover')}
-          <p className="text-muted pf-v5-u-font-size-xs">
+          <p className="text-muted pf-v6-u-font-size-xs">
             {t('Move workloads to target cluster')}
           </p>
         </>
@@ -278,7 +278,7 @@ export const getRowActions = (
       title: (
         <>
           {t('Relocate')}
-          <p className="text-muted pf-v5-u-font-size-xs">
+          <p className="text-muted pf-v6-u-font-size-xs">
             {t('Failback workloads to primary cluster')}
           </p>
         </>
@@ -305,7 +305,7 @@ export const getRowActions = (
           title: (
             <>
               {t('Manage disaster recovery')}
-              <p className="text-muted pf-v5-u-font-size-xs">
+              <p className="text-muted pf-v6-u-font-size-xs">
                 {t('Update DR policies and configuration')}
               </p>
             </>

@@ -89,8 +89,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
       enableFlip
       maxWidth="21rem"
     >
-      <Button variant="link">
-        <HelpIcon />
+      <Button icon={<HelpIcon />} variant="link">
         {t('Where can I find Google Cloud credentials?')}
       </Button>
     </Popover>

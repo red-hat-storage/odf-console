@@ -6,13 +6,13 @@ import {
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
-import { global_disabled_color_100 as globalDisable100 } from '@patternfly/react-tokens/dist/js/global_disabled_color_100';
-import { global_info_color_100 as globalInfo100 } from '@patternfly/react-tokens/dist/js/global_info_color_100';
-import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
+import { ChartDonut, ChartLabel } from '@patternfly/react-charts/victory';
 import classNames from 'classnames';
-import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { t_global_color_status_danger_default as globalDanger100 } from '@patternfly/react-tokens';
+import { t_global_color_disabled_100 as globalDisable100 } from '@patternfly/react-tokens';
+import { t_color_blue_50 as globalInfo100 } from '@patternfly/react-tokens';
+import { t_global_color_status_warning_default as globalWarning100 } from '@patternfly/react-tokens';
 import { DANGER_THRESHOLD, WARNING_THRESHOLD } from '../../../constants';
 import './capacity-card.scss';
 
@@ -145,13 +145,15 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
                 constrainToVisibleArea
                 titleComponent={
                   <ChartLabel
-                    style={{ fill: `var(--pf-v5-global--Color--100)` }}
+                    style={{
+                      fill: `var(--pf-t--global--text--color--regular)`,
+                    }}
                   />
                 }
                 subTitleComponent={
                   <ChartLabel
                     dy={5}
-                    style={{ fill: `var(--pf-v5-global--Color--200)` }}
+                    style={{ fill: `var(--pf-t--global--text--color--subtle)` }}
                   />
                 }
               />

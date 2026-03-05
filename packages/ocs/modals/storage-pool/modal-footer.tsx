@@ -145,13 +145,14 @@ export const StoragePoolModalFooter = (props: StoragePoolModalFooterProps) => {
         onClick: onSubmit,
         disable:
           primaryAction !== FooterPrimaryActions(t).DELETE &&
+          primaryAction !== FooterPrimaryActions(t).UPDATE &&
           checkRequiredValues(state.poolName, state.replicaSize),
       },
     ],
   };
 
   return (
-    <ActionGroup className="pf-v5-c-form pf-v5-c-form__actions--right pf-v5-c-form__group--no-top-margin">
+    <ActionGroup className="pf-v6-c-form pf-v6-c-form__actions--right pf-v6-c-form__group--no-top-margin">
       {footerButtonsFactory[state.poolStatus || 'default'].map((buttonProp) => {
         return (
           <Button

@@ -20,8 +20,8 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { Modal, ModalVariant } from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
@@ -179,19 +179,27 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
         payload:
           pool.type === PoolType.FILESYSTEM ? pool.shortName : getName(pool),
       });
-      dispatch({
-        type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
-        payload: pool?.spec.replicated.size.toString(),
-      });
-      dispatch({
-        type: StoragePoolActionType.SET_POOL_COMPRESSED,
-        payload: pool?.spec.compressionMode === COMPRESSION_ON,
-      });
     },
     [dispatch]
   );
 
   const isExternalSC = systemFlags[poolNamespace]?.isExternalMode;
+
+  const isPoolFieldsInitialized = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!isPoolFieldsInitialized.current && resource?.spec) {
+      dispatch({
+        type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
+        payload: resource.spec.replicated.size.toString(),
+      });
+      dispatch({
+        type: StoragePoolActionType.SET_POOL_COMPRESSED,
+        payload: resource.spec.compressionMode === COMPRESSION_ON,
+      });
+      isPoolFieldsInitialized.current = true;
+    }
+  }, [resource, dispatch]);
 
   React.useEffect(() => {
     // restrict pool management for default pool and external cluster
@@ -249,7 +257,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
       header={
         <>
           <ModalTitle>{MODAL_TITLE}</ModalTitle>
-          <StoragePoolDefinitionText className="pf-v5-u-ml-xl" />
+          <StoragePoolDefinitionText className="pf-v6-u-ml-xl" />
         </>
       }
       variant={ModalVariant.medium}
