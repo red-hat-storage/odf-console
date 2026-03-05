@@ -5,6 +5,7 @@
   background: sk.$skeleton-color;
   height: sk.$skeleton-bone-height-1line;
   opacity: 0;
+
   &::after {
     background-repeat: no-repeat;
     content: '';

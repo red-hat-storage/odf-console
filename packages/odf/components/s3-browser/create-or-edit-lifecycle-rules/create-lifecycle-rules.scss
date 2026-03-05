@@ -1,13 +1,13 @@
 .s3-lifecycle--margin {
-    margin-left: calc(var(--pf-v5-global--spacer--md) * -1);
+  margin-left: calc(var(--pf-v5-global--spacer--md) * -1);
 }
 
 .s3-lifecycle-action--margin {
-    margin-top: calc(var(--pf-v5-global--spacer--sm) * -2);
+  margin-top: calc(var(--pf-v5-global--spacer--sm) * -2);
 }
 
 .s3-lifecycle-validation--font-weight {
-    .pf-v5-c-alert__title {
-        font-weight: var(--pf-v5-global--FontWeight--normal);
-    }
+  .pf-v5-c-alert__title {
+    font-weight: var(--pf-v5-global--FontWeight--normal);
+  }
 }

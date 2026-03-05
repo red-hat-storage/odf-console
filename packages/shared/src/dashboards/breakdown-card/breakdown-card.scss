@@ -31,8 +31,9 @@
   background: sk.$skeleton-color;
   opacity: 0;
   border-radius: 6px;
-  margin: 0.5rem 0.7em 0.5rem 0.7em;
+  margin: 0.5rem 0.7em;
   height: 30px;
+
   &::after {
     background-repeat: no-repeat;
     content: '';
@@ -48,10 +49,10 @@
 }
 
 .skeleton-stack-bar {
-  margin: 0.2rem 0.7em 0.2rem 0.7em;
+  margin: 0.2rem 0.7em;
 }
 
 .skeleton-stack-legend {
-  margin: 1.5rem 0.7em 1.5rem 0.7em;
+  margin: 1.5rem 0.7em;
   height: 50px;
 }

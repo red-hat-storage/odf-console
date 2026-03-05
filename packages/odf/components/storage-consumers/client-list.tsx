@@ -376,9 +376,7 @@ const StorageClientRow: React.FC<
                     isDisabled: isLocalClient || hasDeletionTimestamp,
                     component: React.lazy(
                       () =>
-                        import(
-                          '../../modals/ResourceDistributionModal/ResourceDistributionModal'
-                        )
+                        import('../../modals/ResourceDistributionModal/ResourceDistributionModal')
                     ),
                   },
                   {

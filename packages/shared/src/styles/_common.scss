@@ -61,7 +61,7 @@
 }
 
 .odf-required::after {
- color: pf.$pf-v5-color-red-200;
+  color: pf.$pf-v5-color-red-200;
   content: '*';
   font-size: vars.$font-size-base;
   padding-left: 3px;

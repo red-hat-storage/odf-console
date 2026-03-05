@@ -2,6 +2,7 @@
   &--width {
     width: 22rem;
   }
+
   &--spacer {
     margin-right: var(--pf-v5-global--spacer--md);
   }
@@ -20,7 +21,7 @@
 }
 
 .odf-backing-store__ssl {
-  padding-left: var(--pf-v5-global--spacer--xl); 
+  padding-left: var(--pf-v5-global--spacer--xl);
   padding-bottom: var(--pf-v5-global--spacer--xl);  ;
 }
 

@@ -1,53 +1,56 @@
 @use '@odf/shared/styles/skeleton' as sk;
 
 .mco-dashboard {
-    &__title {
-        font-weight: var(--pf-v5-c-card__title--FontWeight);
-        margin-bottom: var(--pf-v5-global--spacer--xs);
-    }
+  &__title {
+    font-weight: var(--pf-v5-c-card__title--FontWeight);
+    margin-bottom: var(--pf-v5-global--spacer--xs);
+  }
 
-    &__contentRow {
-        display: flex;
-        flex-direction: row;
-    }
+  &__contentRow {
+    display: flex;
+    flex-direction: row;
+  }
   
-    &__contentColumn {
-        display: flex;
-        flex-direction: column;
-    }
+  &__contentColumn {
+    display: flex;
+    flex-direction: column;
+  }
 
-    &__centerComponent {
-        align-items: center;
-        display: flex;
-        height: 200px;
-        justify-content: center;
-        width: 100%;
-    }
-    &__statusText--weight {
-        font-weight: var(--pf-v5-global--FontWeight--bold)
-    }
-    &__statusText--size {
-        font-size: var(--pf-v5-global--FontSize--md);
-    }
-    &__statusText--margin {
-        margin-bottom: var(--pf-v5-global--spacer--sm);
-    }
+  &__centerComponent {
+    align-items: center;
+    display: flex;
+    height: 200px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  &__statusText--weight {
+    font-weight: var(--pf-v5-global--FontWeight--bold);
+  }
+
+  &__statusText--size {
+    font-size: var(--pf-v5-global--FontSize--md);
+  }
+
+  &__statusText--margin {
+    margin-bottom: var(--pf-v5-global--spacer--sm);
+  }
 }
 
 .mco-dashboard-loading {
-    &__singleBlock {
-        animation: sk.$skeleton-animation;
-        background: sk.$skeleton-color;
-        height: 35rem;
-        width: 93rem;
-        margin: 2rem;
-    }
+  &__singleBlock {
+    animation: sk.$skeleton-animation;
+    background: sk.$skeleton-color;
+    height: 35rem;
+    width: 93rem;
+    margin: 2rem;
+  }
 
-    &__singleBlockSmall {
-        animation: sk.$skeleton-animation;
-        background: sk.$skeleton-color;
-        height: 10rem;
-        width: 8rem;
-        // margin: 2rem;
-    }
+  &__singleBlockSmall {
+    animation: sk.$skeleton-animation;
+    background: sk.$skeleton-color;
+    height: 10rem;
+    width: 8rem;
+    // margin: 2rem;
+  }
 }
