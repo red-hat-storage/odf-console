@@ -9,12 +9,16 @@ import { FDF_FLAG } from '../../../../redux';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardState } from '../../reducer';
 import { MultusNetworkConfigurationComponent } from './multus';
+import { NICSelectComponent } from './nic';
 import './configure.scss';
 
 export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   setNetworkType,
   networkType,
   setMultusNetwork,
+  setCIDRNetwork,
+  cephPublicCIDR,
+  cephClusterCIDR,
   clusterNetwork,
   publicNetwork,
   systemNamespace,
@@ -80,8 +84,8 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
             isInline
           />
         )}
-      {(networkType === NetworkType.MULTUS ||
-        networkType === NetworkType.DEFAULT) && (
+      {networkType === NetworkType.MULTUS ||
+      networkType === NetworkType.DEFAULT ? (
         <MultusNetworkConfigurationComponent
           setNetwork={setMultusNetwork}
           clusterNetwork={clusterNetwork}
@@ -91,6 +95,19 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           networkType={networkType}
           isMultusAcknowledged={isMultusAcknowledged}
           setIsMultusAcknowledged={setIsMultusAcknowledged}
+        />
+      ) : (
+        <NICSelectComponent
+          cephClusterCIDR={cephClusterCIDR ?? ''}
+          cephPublicCIDR={cephPublicCIDR ?? ''}
+          setCephCIDR={(cephCIDR: string) =>
+            setCIDRNetwork(cephCIDR, cephPublicCIDR ?? '')
+          }
+          setPublicCIDR={(publicCIDR: string) =>
+            setCIDRNetwork(cephClusterCIDR ?? '', publicCIDR)
+          }
+          networkType={networkType}
+          setNetworkType={(type: NetworkType) => setNetworkType(type)}
         />
       )}
     </>
