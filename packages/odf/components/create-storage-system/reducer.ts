@@ -3,6 +3,7 @@ import {
   ExternalCephStateValues,
   ExternalCephStateKeys,
   ResourceProfile,
+  ErasureCodingSchema,
 } from '@odf/core/types';
 import {
   ExternalStateValues,
@@ -45,12 +46,15 @@ export const initialState: CreateStorageSystemState = {
     systemNamespace: '',
     externalStorage: '',
     deployment: DeploymentType.FULL,
+    isVirtualizeStorageClassDefault: null,
   },
   advancedSettings: {
+    useErasureCoding: false,
+    erasureCodingSchema: null,
+  },
+  optionalSettings: {
     enableNFS: false,
-    // using equality check on "null", do not make it "false" as default
     isRBDStorageClassDefault: null,
-    isVirtualizeStorageClassDefault: null,
     useExternalPostgres: false,
     externalPostgres: {
       username: '',
@@ -137,12 +141,16 @@ type CreateStorageSystemState = {
     systemNamespace: string;
     externalStorage: string;
     deployment: DeploymentType;
+    isVirtualizeStorageClassDefault: boolean | null;
   };
   advancedSettings: {
+    useErasureCoding: boolean;
+    erasureCodingSchema: ErasureCodingSchema | null;
+  };
+  optionalSettings: {
     enableNFS: boolean;
     isRBDStorageClassDefault: boolean | null;
     useExternalPostgres: boolean;
-    isVirtualizeStorageClassDefault: boolean | null;
     externalPostgres: {
       username: string;
       password: string;
@@ -258,9 +266,9 @@ const setDeployment = (state: WizardState, deploymentType: DeploymentType) => {
   }
 
   state.backingStorage.deployment = deploymentType;
-  state.advancedSettings.enableNFS = initialState.advancedSettings.enableNFS;
-  state.advancedSettings.isRBDStorageClassDefault =
-    initialState.advancedSettings.isRBDStorageClassDefault;
+  state.optionalSettings.enableNFS = initialState.optionalSettings.enableNFS;
+  state.optionalSettings.isRBDStorageClassDefault =
+    initialState.optionalSettings.isRBDStorageClassDefault;
   return state;
 };
 
@@ -347,73 +355,79 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'backingStorage/setSystemNamespace':
       newState.backingStorage.systemNamespace = action.payload;
       break;
-    case 'advancedSettings/enableNFS':
-      newState.advancedSettings.enableNFS = action.payload;
+    case 'backingStorage/setIsVirtualizeStorageClassDefault':
+      newState.backingStorage.isVirtualizeStorageClassDefault = action.payload;
       break;
-    case 'advancedSettings/setIsRBDStorageClassDefault':
-      newState.advancedSettings.isRBDStorageClassDefault = action.payload;
-      break;
-    case 'advancedSettings/setIsVirtualizeStorageClassDefault':
-      newState.advancedSettings.isVirtualizeStorageClassDefault =
-        action.payload;
-      break;
-    case 'advancedSettings/useExternalPostgres':
-      newState.advancedSettings.useExternalPostgres = action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/setUsername':
-      newState.advancedSettings.externalPostgres.username = action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/setPassword':
-      newState.advancedSettings.externalPostgres.password = action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/setServerName':
-      newState.advancedSettings.externalPostgres.serverName = action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/setPort':
-      newState.advancedSettings.externalPostgres.port = action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/setDatabaseName':
-      newState.advancedSettings.externalPostgres.databaseName = action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/tls/enableTLS':
-      newState.advancedSettings.externalPostgres.tls.enabled = action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/tls/allowSelfSignedCerts':
-      newState.advancedSettings.externalPostgres.tls.allowSelfSignedCerts =
-        action.payload;
-      break;
-
-    case 'advancedSettings/externalPostgres/tls/enableClientSideCerts':
-      newState.advancedSettings.externalPostgres.tls.enableClientSideCerts =
-        action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/tls/keys/setPrivateKey':
-      newState.advancedSettings.externalPostgres.tls.keys.private =
-        action.payload;
-      break;
-    case 'advancedSettings/externalPostgres/tls/keys/setPublicKey':
-      newState.advancedSettings.externalPostgres.tls.keys.public =
-        action.payload;
-      break;
-
     case 'backingStorage/setDeployment':
       return setDeployment(newState, action.payload);
     case 'backingStorage/setExternalStorage':
       newState.backingStorage.externalStorage = action.payload;
       break;
-    case 'advancedSettings/dbBackup/volumeSnapshot/maxSnapshots':
-      newState.advancedSettings.dbBackup.volumeSnapshot.maxSnapshots =
+    case 'advancedSettings/useErasureCoding':
+      newState.advancedSettings.useErasureCoding = action.payload;
+      if (!action.payload) {
+        newState.advancedSettings.erasureCodingSchema = null;
+      }
+      break;
+    case 'advancedSettings/erasureCodingSchema':
+      newState.advancedSettings.erasureCodingSchema = action.payload;
+      break;
+    case 'optionalSettings/enableNFS':
+      newState.optionalSettings.enableNFS = action.payload;
+      break;
+    case 'optionalSettings/setIsRBDStorageClassDefault':
+      newState.optionalSettings.isRBDStorageClassDefault = action.payload;
+      break;
+    case 'optionalSettings/useExternalPostgres':
+      newState.optionalSettings.useExternalPostgres = action.payload;
+      break;
+    case 'optionalSettings/externalPostgres/setUsername':
+      newState.optionalSettings.externalPostgres.username = action.payload;
+      break;
+    case 'optionalSettings/externalPostgres/setPassword':
+      newState.optionalSettings.externalPostgres.password = action.payload;
+      break;
+    case 'optionalSettings/externalPostgres/setServerName':
+      newState.optionalSettings.externalPostgres.serverName = action.payload;
+      break;
+    case 'optionalSettings/externalPostgres/setPort':
+      newState.optionalSettings.externalPostgres.port = action.payload;
+      break;
+    case 'optionalSettings/externalPostgres/setDatabaseName':
+      newState.optionalSettings.externalPostgres.databaseName = action.payload;
+      break;
+    case 'optionalSettings/externalPostgres/tls/enableTLS':
+      newState.optionalSettings.externalPostgres.tls.enabled = action.payload;
+      break;
+    case 'optionalSettings/externalPostgres/tls/allowSelfSignedCerts':
+      newState.optionalSettings.externalPostgres.tls.allowSelfSignedCerts =
         action.payload;
       break;
-    case 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass':
-      newState.advancedSettings.dbBackup.volumeSnapshot.volumeSnapshotClass =
+    case 'optionalSettings/externalPostgres/tls/enableClientSideCerts':
+      newState.optionalSettings.externalPostgres.tls.enableClientSideCerts =
         action.payload;
       break;
-    case 'advancedSettings/dbBackup/schedule':
-      newState.advancedSettings.dbBackup.schedule = action.payload;
+    case 'optionalSettings/externalPostgres/tls/keys/setPrivateKey':
+      newState.optionalSettings.externalPostgres.tls.keys.private =
+        action.payload;
       break;
-    case 'advancedSettings/setDbBackup':
-      newState.advancedSettings.isDbBackup = action.payload;
+    case 'optionalSettings/externalPostgres/tls/keys/setPublicKey':
+      newState.optionalSettings.externalPostgres.tls.keys.public =
+        action.payload;
+      break;
+    case 'optionalSettings/dbBackup/volumeSnapshot/maxSnapshots':
+      newState.optionalSettings.dbBackup.volumeSnapshot.maxSnapshots =
+        action.payload;
+      break;
+    case 'optionalSettings/dbBackup/volumeSnapshot/volumeSnapshotClass':
+      newState.optionalSettings.dbBackup.volumeSnapshot.volumeSnapshotClass =
+        action.payload;
+      break;
+    case 'optionalSettings/dbBackup/schedule':
+      newState.optionalSettings.dbBackup.schedule = action.payload;
+      break;
+    case 'optionalSettings/setDbBackup':
+      newState.optionalSettings.isDbBackup = action.payload;
       break;
     case 'capacityAndNodes/capacity':
       newState.capacityAndNodes.capacity = action.payload;
@@ -523,16 +537,8 @@ export type CreateStorageSystemAction =
       payload: WizardState['backingStorage']['systemNamespace'];
     }
   | {
-      type: 'advancedSettings/enableNFS';
-      payload: WizardState['advancedSettings']['enableNFS'];
-    }
-  | {
-      type: 'advancedSettings/setIsRBDStorageClassDefault';
-      payload: WizardState['advancedSettings']['isRBDStorageClassDefault'];
-    }
-  | {
-      type: 'advancedSettings/setIsVirtualizeStorageClassDefault';
-      payload: WizardState['advancedSettings']['isVirtualizeStorageClassDefault'];
+      type: 'backingStorage/setIsVirtualizeStorageClassDefault';
+      payload: WizardState['backingStorage']['isVirtualizeStorageClassDefault'];
     }
   | {
       type: 'backingStorage/setExternalStorage';
@@ -604,62 +610,78 @@ export type CreateStorageSystemAction =
       payload: WizardState['securityAndNetwork']['networkType'];
     }
   | {
-      type: 'advancedSettings/useExternalPostgres';
-      payload: WizardState['advancedSettings']['useExternalPostgres'];
+      type: 'advancedSettings/useErasureCoding';
+      payload: WizardState['advancedSettings']['useErasureCoding'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/setUsername';
-      payload: WizardState['advancedSettings']['externalPostgres']['username'];
+      type: 'advancedSettings/erasureCodingSchema';
+      payload: WizardState['advancedSettings']['erasureCodingSchema'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/setPassword';
-      payload: WizardState['advancedSettings']['externalPostgres']['password'];
+      type: 'optionalSettings/enableNFS';
+      payload: WizardState['optionalSettings']['enableNFS'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/setServerName';
-      payload: WizardState['advancedSettings']['externalPostgres']['serverName'];
+      type: 'optionalSettings/setIsRBDStorageClassDefault';
+      payload: WizardState['optionalSettings']['isRBDStorageClassDefault'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/setPort';
-      payload: WizardState['advancedSettings']['externalPostgres']['port'];
+      type: 'optionalSettings/useExternalPostgres';
+      payload: WizardState['optionalSettings']['useExternalPostgres'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/setDatabaseName';
-      payload: WizardState['advancedSettings']['externalPostgres']['databaseName'];
+      type: 'optionalSettings/externalPostgres/setUsername';
+      payload: WizardState['optionalSettings']['externalPostgres']['username'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/tls/enableTLS';
-      payload: WizardState['advancedSettings']['externalPostgres']['tls']['enabled'];
+      type: 'optionalSettings/externalPostgres/setPassword';
+      payload: WizardState['optionalSettings']['externalPostgres']['password'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/tls/allowSelfSignedCerts';
-      payload: WizardState['advancedSettings']['externalPostgres']['tls']['allowSelfSignedCerts'];
+      type: 'optionalSettings/externalPostgres/setServerName';
+      payload: WizardState['optionalSettings']['externalPostgres']['serverName'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/tls/enableClientSideCerts';
-      payload: WizardState['advancedSettings']['externalPostgres']['tls']['enableClientSideCerts'];
+      type: 'optionalSettings/externalPostgres/setPort';
+      payload: WizardState['optionalSettings']['externalPostgres']['port'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/tls/keys/setPrivateKey';
-      payload: WizardState['advancedSettings']['externalPostgres']['tls']['keys']['private'];
+      type: 'optionalSettings/externalPostgres/setDatabaseName';
+      payload: WizardState['optionalSettings']['externalPostgres']['databaseName'];
     }
   | {
-      type: 'advancedSettings/externalPostgres/tls/keys/setPublicKey';
-      payload: WizardState['advancedSettings']['externalPostgres']['tls']['keys']['public'];
+      type: 'optionalSettings/externalPostgres/tls/enableTLS';
+      payload: WizardState['optionalSettings']['externalPostgres']['tls']['enabled'];
     }
   | {
-      type: 'advancedSettings/setDbBackup';
-      payload: WizardState['advancedSettings']['isDbBackup'];
+      type: 'optionalSettings/externalPostgres/tls/allowSelfSignedCerts';
+      payload: WizardState['optionalSettings']['externalPostgres']['tls']['allowSelfSignedCerts'];
     }
   | {
-      type: 'advancedSettings/dbBackup/volumeSnapshot/maxSnapshots';
-      payload: WizardState['advancedSettings']['dbBackup']['volumeSnapshot']['maxSnapshots'];
+      type: 'optionalSettings/externalPostgres/tls/enableClientSideCerts';
+      payload: WizardState['optionalSettings']['externalPostgres']['tls']['enableClientSideCerts'];
     }
   | {
-      type: 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass';
-      payload: WizardState['advancedSettings']['dbBackup']['volumeSnapshot']['volumeSnapshotClass'];
+      type: 'optionalSettings/externalPostgres/tls/keys/setPrivateKey';
+      payload: WizardState['optionalSettings']['externalPostgres']['tls']['keys']['private'];
     }
   | {
-      type: 'advancedSettings/dbBackup/schedule';
-      payload: WizardState['advancedSettings']['dbBackup']['schedule'];
+      type: 'optionalSettings/externalPostgres/tls/keys/setPublicKey';
+      payload: WizardState['optionalSettings']['externalPostgres']['tls']['keys']['public'];
+    }
+  | {
+      type: 'optionalSettings/setDbBackup';
+      payload: WizardState['optionalSettings']['isDbBackup'];
+    }
+  | {
+      type: 'optionalSettings/dbBackup/volumeSnapshot/maxSnapshots';
+      payload: WizardState['optionalSettings']['dbBackup']['volumeSnapshot']['maxSnapshots'];
+    }
+  | {
+      type: 'optionalSettings/dbBackup/volumeSnapshot/volumeSnapshotClass';
+      payload: WizardState['optionalSettings']['dbBackup']['volumeSnapshot']['volumeSnapshotClass'];
+    }
+  | {
+      type: 'optionalSettings/dbBackup/schedule';
+      payload: WizardState['optionalSettings']['dbBackup']['schedule'];
     };

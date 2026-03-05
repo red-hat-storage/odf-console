@@ -6,7 +6,7 @@ import './backing-storage-step.scss';
 
 type SetVirtualizeSCDefaultProps = {
   dispatch: WizardDispatch;
-  isVirtualizeStorageClassDefault: WizardState['advancedSettings']['isVirtualizeStorageClassDefault'];
+  isVirtualizeStorageClassDefault: WizardState['backingStorage']['isVirtualizeStorageClassDefault'];
 };
 
 const SetVirtualizeSCDefault: React.FC<SetVirtualizeSCDefaultProps> = ({
@@ -27,7 +27,7 @@ const SetVirtualizeSCDefault: React.FC<SetVirtualizeSCDefaultProps> = ({
         isChecked={isVirtualizeStorageClassDefault || false}
         onChange={() =>
           dispatch({
-            type: 'advancedSettings/setIsVirtualizeStorageClassDefault',
+            type: 'backingStorage/setIsVirtualizeStorageClassDefault',
             payload: !isVirtualizeStorageClassDefault,
           })
         }

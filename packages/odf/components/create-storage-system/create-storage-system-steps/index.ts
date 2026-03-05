@@ -1,5 +1,6 @@
 export { AdvancedSettings } from './advanced-settings-step/advanced-settings-step';
 export { BackingStorage } from './backing-storage-step/backing-storage-step';
+export { OptionalSettings } from './optional-settings-step/optional-settings-step';
 export { CapacityAndNodes } from './capacity-and-nodes-step/capacity-and-nodes-step';
 export { ConnectionDetails } from './connection-details-step';
 export { CreateStorageClass } from './create-storage-class-step/create-storage-class-step';

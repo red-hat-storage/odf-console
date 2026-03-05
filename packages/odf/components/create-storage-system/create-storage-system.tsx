@@ -42,7 +42,7 @@ import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
 import {
   BackingStorage,
-  AdvancedSettings,
+  OptionalSettings,
 } from './create-storage-system-steps';
 import { EXTERNAL_CEPH_STORAGE } from './external-systems/CreateCephSystem/CephConnectionDetails/system-connection-details';
 import { CreateStorageSystemFooter } from './footer';
@@ -193,16 +193,20 @@ const CreateStorageSystem: React.FC<{}> = () => {
           error={anyError}
           loaded={allLoaded}
           supportedExternalStorage={supportedExternalStorage}
+          hasMultipleClusters={hasMultipleClusters}
+          isVirtualizeStorageClassDefault={
+            state.backingStorage?.isVirtualizeStorageClassDefault
+          }
         />
       ),
       canJumpTo: true,
     },
     {
       id: 2,
-      name: StepsName(t)[Steps.AdvancedSettings],
+      name: StepsName(t)[Steps.OptionalSettings],
       component: (
-        <AdvancedSettings
-          state={state.advancedSettings}
+        <OptionalSettings
+          state={state.optionalSettings}
           dispatch={dispatch}
           hasOCS={hasOCS}
           hasMultipleClusters={hasMultipleClusters}
