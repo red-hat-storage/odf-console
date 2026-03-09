@@ -80,6 +80,7 @@
   "dependencies": {
     "@aws-sdk/client-iam": "^3.919.0",
     "@aws-sdk/client-s3": "3.823.0",
+    "@aws-sdk/client-s3vectors": "^3.982.0",
     "@aws-sdk/lib-storage": "3.823.0",
     "@aws-sdk/s3-request-presigner": "3.823.0",
     "@openshift-console/dynamic-plugin-sdk": "1.8.0",
