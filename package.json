@@ -9,10 +9,10 @@
     "packages/*"
   ],
   "scripts": {
-    "analyze-client": "PLUGIN=client yarn analyze-common && PLUGIN=client yarn tsx ./analyzeTest.ts",
+    "analyze-client": "PLUGIN=client I8N_NS=client yarn analyze-common && PLUGIN=client yarn tsx ./analyzeTest.ts",
     "analyze-common": "yarn build:generate && NODE_ENV=production I8N_NS=${I8N_NS} ANALYZE_BUNDLE=true yarn tsx ./node_modules/.bin/webpack -c ./webpack.config.ts",
-    "analyze-mco": "PLUGIN=mco yarn analyze-common && PLUGIN=mco yarn tsx ./analyzeTest.ts",
-    "analyze-odf": "PLUGIN=odf yarn analyze-common && PLUGIN=odf yarn tsx ./analyzeTest.ts",
+    "analyze-mco": "PLUGIN=mco I8N_NS=mco yarn analyze-common && PLUGIN=mco yarn tsx ./analyzeTest.ts",
+    "analyze-odf": "PLUGIN=odf I8N_NS=odf yarn analyze-common && PLUGIN=odf yarn tsx ./analyzeTest.ts",
     "build": "NODE_ENV=production PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
     "build-client": "NODE_ENV=production PLUGIN=client I8N_NS=plugin__odf-client-console yarn build:plugin",
     "build-dev": "NODE_ENV=development PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
@@ -23,18 +23,18 @@
     "clean-client": "cd plugins/client && rm -rf ./dist",
     "clean-mco": "cd plugins/mco && rm -rf ./dist",
     "clean-odf": "cd plugins/odf && rm -rf ./dist",
-    "cypress-generate": "marge -o ./gui-test-screenshots/ -f cypress-report -t 'OpenShift Console Cypress Test Results' -p 'OpenShift Cypress Test Results' --showPassed false --assetsDir ./gui-test-screenshots/cypress/assets ./gui-test-screenshots/cypress.json",
-    "cypress-merge": "mochawesome-merge ./gui-test-screenshots/cypress_report*.json > ./gui-test-screenshots/cypress.json",
+    "cypress-generate": "yarn exec marge -o ./gui-test-screenshots/ -f cypress-report -t 'OpenShift Console Cypress Test Results' -p 'OpenShift Cypress Test Results' --showPassed false --assetsDir ./gui-test-screenshots/cypress/assets ./gui-test-screenshots/cypress.json",
+    "cypress-merge": "yarn exec mochawesome-merge ./gui-test-screenshots/cypress_report*.json > ./gui-test-screenshots/cypress.json",
     "cypress-postreport": "yarn cypress-merge && yarn cypress-generate",
     "dev": "PLUGIN=odf I8N_NS=plugin__odf-console yarn server:plugin",
     "dev-client": "PLUGIN=client I8N_NS=plugin__odf-client-console yarn server:plugin",
     "dev-mco": "PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn server:plugin",
-    "dev:c": "yarn ocp-console & PLUGIN=${PLUGIN:=odf} I8N_NS=${I8N_NS} yarn server:plugin & wait",
+    "dev:c": "yarn ocp-console & PLUGIN=${PLUGIN:-odf} I8N_NS=${I8N_NS} yarn server:plugin & wait",
     "dev:no-type-check": "DEV_NO_TYPE_CHECK=true yarn dev",
     "export-pos": "./scripts/i18n/export-pos.sh",
     "format": "yarn prettier -w .",
     "format-test": "yarn prettier -c .",
-    "i18n": "i18next \"packages/**/*.{ts,tsx}\" [-oc] -c i18next-parser.config.js",
+    "i18n": "i18next \"packages/**/*.{ts,tsx}\" \\[-oc\\] -c i18next-parser.config.js",
     "i18n-test": "yarn i18n --fail-on-update",
     "i18n-to-po": "node ./scripts/i18n/i18n-to-po.mjs",
     "lint": "yarn lint-ts && yarn lint-css",
@@ -55,7 +55,7 @@
     "test": "jest --config=jest/config.js",
     "test-coverage": "jest --config=jest/config.js --silent --coverage --coverageReporters text-summary",
     "test-cypress": "node_modules/.bin/cypress open --e2e --config-file ./cypress/cypress.config.ts --env openshift=true",
-    "test-cypress-headless": "node --max-old-space-size=4096 node_modules/.bin/cypress run --e2e --config-file ./cypress/cypress.config.ts --env openshift=true --browser ${BRIDGE_E2E_BROWSER_NAME:=chrome} --headless",
+    "test-cypress-headless": "node --max-old-space-size=4096 node_modules/.bin/cypress run --e2e --config-file ./cypress/cypress.config.ts --env openshift=true --browser ${BRIDGE_E2E_BROWSER_NAME:-chrome} --headless",
     "test-silent": "JEST_SILENT_REPORTER_DOTS=true jest --config=jest/config.js --reporters jest-silent-reporter"
   },
   "lint-staged": {
@@ -66,6 +66,7 @@
   },
   "resolutions": {
     "@remix-run/router": "1.23.2",
+    "@types/react": "^17.0.0",
     "brace-expansion@1.1.7": "1.1.12",
     "brace-expansion@2.0.1": "2.0.2",
     "fast-xml-parser": "5.3.4",
@@ -189,6 +190,7 @@
     "mocha-junit-reporter": "^2.2.1",
     "mochawesome": "^7.1.3",
     "mochawesome-merge": "^4.4.1",
+    "mochawesome-report-generator": "^6.2.0",
     "prettier": "^3.5.3",
     "stylelint": "^16.19.1",
     "stylelint-config-sass-guidelines": "^12.1.0",
@@ -196,6 +198,7 @@
     "stylelint-order": "^7.0.0",
     "webpack-dev-server": "^5.2.1"
   },
+  "packageManager": "yarn@4.12.0",
   "engines": {
     "node": ">=20.19.2"
   }
