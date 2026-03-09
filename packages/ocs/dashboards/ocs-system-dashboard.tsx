@@ -39,6 +39,7 @@ import { default as ExtUtilizationCard } from './persistent-external/utilization
 import { default as ActivityCard } from './persistent-internal/activity-card/activity-card';
 import BreakdownCard from './persistent-internal/capacity-breakdown-card/capacity-breakdown-card';
 import CapacityTrendCard from './persistent-internal/capacity-trend-card/capacity-trend-card';
+import CephFSSubvolumeCard from './persistent-internal/cephfs-subvolume-card/cephfs-subvolume-card';
 import DetailsCard from './persistent-internal/details-card';
 import InventoryCard from './persistent-internal/inventory-card';
 import PoolUtilizationCard from './persistent-internal/pool-utilization-card/pool-utilization-card';
@@ -87,6 +88,7 @@ const PersistentInternalDashboard: React.FC = () => {
     BreakdownCard,
     PoolUtilizationCard,
     UtilizationCard,
+    CephFSSubvolumeCard,
   ];
   const leftCards: React.ComponentType[] = [
     DetailsCard,
