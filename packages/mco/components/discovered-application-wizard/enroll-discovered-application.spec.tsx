@@ -356,7 +356,7 @@ describe('Test namespace step', () => {
 
     // Footer
     expect(screen.getByText('Next')).toBeInTheDocument();
-    expect(screen.getByText('Back')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
 
     // Validation message
@@ -424,7 +424,7 @@ describe('Test namespace step', () => {
         return (
           content === 'east-1' &&
           element !== null &&
-          element.classList.contains('pf-v5-c-menu-toggle__text')
+          element.classList.contains('pf-v6-c-menu-toggle__text')
         );
       })
     );
@@ -514,7 +514,7 @@ describe('Test configure step', () => {
       return (
         content === 'mock-recipe-1' &&
         element !== null &&
-        element.classList.contains('pf-v5-c-menu-toggle__text')
+        element.classList.contains('pf-v6-c-menu-toggle__text')
       );
     });
   });
@@ -580,7 +580,7 @@ describe('Test replication step', () => {
         return (
           content === 'mock-policy-1' &&
           element !== null &&
-          element.classList.contains('pf-v5-c-menu__item-text')
+          element.classList.contains('pf-v6-c-menu__item-text')
         );
       })
     );

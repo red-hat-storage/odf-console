@@ -1,10 +1,10 @@
 .details-item {
-  padding: var(--pf-v5-global--spacer--xs);
+  padding: var(--pf-t--global--spacer--xs);
   &--border {
-    border: 1px solid var(--pf-v5-global--BorderColor--300);
+    border: 1px solid var(--pf-t--color--gray--10);
   }
 }
 
 .details-item__child--pad {
-  padding-left: var(--pf-v5-global--spacer--md);
+  padding-left: var(--pf-t--global--spacer--md);
 }

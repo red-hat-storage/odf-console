@@ -72,12 +72,12 @@ import { PoolUtilizationDisplay } from './pool-utilization-display';
 import { PopoverHelper } from './popover-helper';
 
 const tableColumnInfo = [
-  { className: 'pf-v5-u-w-16-on-2xl', id: 'name' },
+  { className: 'pf-v6-u-w-16-on-2xl', id: 'name' },
   {
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-md',
-      'pf-v5-u-w-8-on-2xl'
+      'pf-v6-u-w-8-on-2xl'
     ),
     id: 'status',
   },
@@ -89,7 +89,7 @@ const tableColumnInfo = [
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-lg',
-      'pf-v5-u-w-8-on-2xl'
+      'pf-v6-u-w-8-on-2xl'
     ),
     id: 'volumeType',
   },
@@ -97,7 +97,7 @@ const tableColumnInfo = [
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-lg',
-      'pf-v5-u-w-8-on-2xl'
+      'pf-v6-u-w-8-on-2xl'
     ),
     id: 'replica',
   },
@@ -109,7 +109,7 @@ const tableColumnInfo = [
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-2xl',
-      'pf-v5-u-text-align-center'
+      'pf-v6-u-text-align-center'
     ),
     id: 'usedOfMaxAvailable',
   },

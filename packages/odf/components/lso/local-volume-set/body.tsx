@@ -22,8 +22,8 @@ import {
   Radio,
   ExpandableSection,
   TextInputTypes,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Tooltip,
   SelectOption,
 } from '@patternfly/react-core';
@@ -194,12 +194,12 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           }
         />
       </FormGroup>
-      <Text
-        component={TextVariants.h3}
+      <Content
+        component={ContentVariants.h3}
         className="odf-create-lvs__filter-volumes-text--margin"
       >
         {t('Filter disks by')}
-      </Text>
+      </Content>
       <FormGroup fieldId="create-lvs-radio-group-node-selector">
         <div id="create-lvs-radio-group-node-selector">
           <Radio
@@ -249,7 +249,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         />
         {!!diskTypeValidationError && (
           <Alert
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
             variant={diskTypeValidationError.variant || AlertVariant.danger}
             title={diskTypeValidationError.title}
             isInline

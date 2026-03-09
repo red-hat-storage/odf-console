@@ -711,7 +711,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         </Alert>
       )}
       <ButtonBar errorMessage={error}>
-        <ActionGroup className="pf-v5-c-form">
+        <ActionGroup className="pf-v6-c-form">
           <Button
             type={ButtonType.submit}
             variant={ButtonVariant.primary}

@@ -18,7 +18,7 @@ import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { Form, TextContent, TextVariants, Text } from '@patternfly/react-core';
+import { Form, Content, ContentVariants } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './create-storage-class-step.scss';
 
@@ -131,11 +131,11 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
           'data-test': 'storage-class-name',
         }}
       />
-      <TextContent>
-        <Text component={TextVariants.h4}>
+      <Content>
+        <Content component={ContentVariants.h4}>
           {t('{{displayName}} connection details', { displayName })}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
       {Component && (
         <Component control={control} setFormState={setForm} formState={state} />
       )}

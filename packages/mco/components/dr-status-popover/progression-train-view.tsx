@@ -8,7 +8,7 @@ import {
   FlexItem,
   ProgressStep,
   ProgressStepper,
-  Text,
+  Content,
   Alert,
   AlertVariant,
   Button,
@@ -288,12 +288,12 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
       className="progression-train-view"
     >
       <FlexItem>
-        <Text className="progression-train-view__summary">
+        <Content component="p" className="progression-train-view__summary">
           {t('{{completedSteps}} of {{totalSteps}} steps completed', {
             completedSteps,
             totalSteps,
           })}
-        </Text>
+        </Content>
       </FlexItem>
 
       <FlexItem>
@@ -353,7 +353,7 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
               isInline
               icon={<AngleRightIcon />}
               iconPosition="right"
-              className="pf-v5-u-pl-0 pf-v5-u-mt-sm"
+              className="pf-v6-u-pl-0 pf-v6-u-mt-sm"
               component={learnMoreHref ? 'a' : undefined}
               {...(learnMoreHref
                 ? {
@@ -371,9 +371,9 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
 
       {actionStartTime && (
         <FlexItem>
-          <Text>
+          <Content component="p">
             <strong>{t('Started on')}</strong> {formatTime(actionStartTime)}
-          </Text>
+          </Content>
         </FlexItem>
       )}
 
@@ -385,19 +385,21 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
             isInline
             onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
             icon={isDetailsExpanded ? <AngleDownIcon /> : <AngleRightIcon />}
-            className="pf-v5-u-pl-0"
+            className="pf-v6-u-pl-0"
           >
             {isDetailsExpanded ? t('Hide details') : t('View details')}
           </Button>
           {isDetailsExpanded && (
             <>
-              <Text className="pf-v5-u-mt-sm pf-v5-u-mb-sm">
+              <Content component="p" className="pf-v6-u-mt-sm pf-v6-u-mb-sm">
                 <strong>{t('Current progression')}:</strong>{' '}
                 {currentProgression || t('Unavailable')}
-              </Text>
+              </Content>
               {progressionDetails && progressionDetails.length > 0 ? (
                 <>
-                  <Text className="pf-v5-u-mb-xs">{t('Details')}</Text>
+                  <Content component="p" className="pf-v6-u-mb-xs">
+                    {t('Details')}
+                  </Content>
                   <CodeBlock className="progression-train-view__details">
                     <CodeBlockCode>
                       {progressionDetails.map((detail, index) => (
@@ -410,9 +412,9 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
                   </CodeBlock>
                 </>
               ) : (
-                <Text className="pf-v5-u-mb-sm">
+                <Content component="p" className="pf-v6-u-mb-sm">
                   {t('No additional details are available.')}
-                </Text>
+                </Content>
               )}
             </>
           )}

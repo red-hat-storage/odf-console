@@ -29,9 +29,8 @@ import {
   CardHeader,
   CardTitle,
   FormGroup,
-  TextContent,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { SyncAltIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
@@ -117,9 +116,9 @@ const BucketsListPageBody: React.FC<BucketsListPageBodyProps> = ({
         setEmptyBucketResponse={setEmptyBucketResponse}
         triggerRefresh={triggerRefresh}
       />
-      <Flex className="pf-v5-u-mt-md">
+      <Flex className="pf-v6-u-mt-md">
         <Flex flex={{ default: 'flex_1' }}>
-          <FlexItem className="pf-v5-u-mr-md">
+          <FlexItem className="pf-v6-u-mr-md">
             <ListPageFilter
               loaded={true}
               hideLabelFilter={true}
@@ -130,13 +129,12 @@ const BucketsListPageBody: React.FC<BucketsListPageBodyProps> = ({
           </FlexItem>
           <FlexItem>
             <Button
+              icon={<SyncAltIcon />}
               data-test="bucket-list-sync-button"
               variant={ButtonVariant.plain}
               onClick={triggerRefresh}
               isDisabled={!fresh}
-            >
-              <SyncAltIcon />
-            </Button>
+            />
           </FlexItem>
         </Flex>
         <Flex>
@@ -225,11 +223,13 @@ const StorageEndpoint: React.FC<StorageEndpointProps> = ({
   return (
     <FormGroup
       label={
-        <TextContent className="pf-v5-u-mt-md">
-          <Text component={TextVariants.h1}>{t('Storage endpoint')}</Text>
-        </TextContent>
+        <Content className="pf-v6-u-mt-md">
+          <Content component={ContentVariants.h1}>
+            {t('Storage endpoint')}
+          </Content>
+        </Content>
       }
-      className="pf-v5-u-mx-lg"
+      className="pf-v6-u-mx-lg"
     >
       <Flex direction={{ default: 'row' }}>
         <FlexItem>

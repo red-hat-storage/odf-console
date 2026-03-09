@@ -34,8 +34,8 @@ import {
   Flex,
   FlexItem,
   SearchInput,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { DRPlacementControlType } from '../utils/types';
 
@@ -66,9 +66,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({ group, t }) => (
     alignItems={{ default: 'alignItemsCenter' }}
   >
     <FlexItem>
-      <Text component={TextVariants.h5}>
+      <Content component={ContentVariants.h5}>
         {t('Group name: {{ groupName }}', { groupName: group.name })}
-      </Text>
+      </Content>
     </FlexItem>
     {group.synced ? (
       <FlexItem>
@@ -84,9 +84,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({ group, t }) => (
 
 const NamespaceInfo: React.FC<NamespaceInfoProps> = ({ t, namespace }) => {
   return (
-    <div className="pf-v5-u-mt-md">
-      <Text component={TextVariants.h6}>{t('Namespace')}</Text>
-      <Text>{namespace}</Text>
+    <div className="pf-v6-u-mt-md">
+      <Content component={ContentVariants.h6}>{t('Namespace')}</Content>
+      <Content component="p">{namespace}</Content>
     </div>
   );
 };
@@ -100,9 +100,11 @@ const PVCList: React.FC<PVCInfoProps> = ({ pvcs, t }) => {
   const visiblePVCs = showAll ? pvcs : pvcs.slice(0, maxVisiblePVCs);
 
   return (
-    <div className="pf-v5-u-mt-md">
-      <Text component={TextVariants.h6}>{t('Persistent volume claims')}</Text>
-      <Text component={TextVariants.p}>
+    <div className="pf-v6-u-mt-md">
+      <Content component={ContentVariants.h6}>
+        {t('Persistent volume claims')}
+      </Content>
+      <Content component={ContentVariants.p}>
         {visiblePVCs.join(', ')}
         {hasMorePVCs && (
           <>
@@ -111,7 +113,7 @@ const PVCList: React.FC<PVCInfoProps> = ({ pvcs, t }) => {
               variant={ButtonVariant.link}
               onClick={() => setShowAll((prev) => !prev)}
               isInline
-              className="pf-v5-u-ml-sm"
+              className="pf-v6-u-ml-sm"
             >
               {showAll
                 ? t('Show less')
@@ -119,17 +121,17 @@ const PVCList: React.FC<PVCInfoProps> = ({ pvcs, t }) => {
             </Button>
           </>
         )}
-      </Text>
+      </Content>
     </div>
   );
 };
 
 const GroupCard: React.FC<GroupCardProps> = ({ group, isLast, t }) => (
-  <div key={group.name} className="pf-v5-u-mb-lg">
+  <div key={group.name} className="pf-v6-u-mb-lg">
     <GroupInfo group={group} t={t} />
     <NamespaceInfo namespace={group.namespace} t={t} />
     <PVCList pvcs={group.pvcs} t={t} />
-    {!isLast && <Divider className="pf-v5-u-mt-md pf-v5-u-mb-md" />}
+    {!isLast && <Divider className="pf-v6-u-mt-md pf-v6-u-mb-md" />}
   </div>
 );
 
@@ -145,7 +147,9 @@ const GroupList: React.FC<GroupListProps> = ({ filteredGroups, t }) => (
         />
       ))
     ) : (
-      <Text>{t('No volume consistency groups match your search')}</Text>
+      <Content component="p">
+        {t('No volume consistency groups match your search')}
+      </Content>
     )}
   </div>
 );
@@ -154,9 +158,9 @@ const NoConsistencyGroups: React.FC = () => {
   const { t } = useCustomTranslation();
 
   return (
-    <Text className="pf-v5-u-text-align-center pf-v5-u-mt-lg">
+    <Content component="p" className="pf-v6-u-text-align-center pf-v6-u-mt-lg">
       {t('No volume consistency groups found for this application')}
-    </Text>
+    </Content>
   );
 };
 
@@ -183,11 +187,11 @@ export const ConsistencyGroupsContent: React.FC<
         EmptyMsg={NoConsistencyGroups}
         data={consistencyGroups}
       >
-        <Text component={TextVariants.h3} className="pf-v5-u-mb-md">
+        <Content component={ContentVariants.h3} className="pf-v6-u-mb-md">
           {t('Volume consistency groups')}
-        </Text>
+        </Content>
 
-        <Flex className="pf-v5-u-mb-lg">
+        <Flex className="pf-v6-u-mb-lg">
           <FlexItem grow={{ default: 'grow' }}>
             <SearchInput
               placeholder={t(
