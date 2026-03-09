@@ -75,7 +75,7 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
 
   const replicationDropdownItems = Object.entries(
     REPLICATION_DISPLAY_TEXT(t)
-  ).map((key, value) => (
+  ).map(([key, value]) => (
     <SelectOption
       key={key}
       id={key}

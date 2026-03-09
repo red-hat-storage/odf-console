@@ -5,7 +5,7 @@
   position: relative;
 }
 
-.pf-v5-c-clipboard-copy__group-copy.odf-copy-to-clipboard__btn {
+.pf-v6-c-clipboard-copy__group-copy.odf-copy-to-clipboard__btn {
   position: absolute;
   right: 0;
   top: 3px;
@@ -31,26 +31,26 @@
 }
 
 .odf-copy-to-clipboard__pre {
-  background-color: var(--pf-v5-c-code-block--BackgroundColor);
-  color: var(--pf-v5-global--Color--100);
+  background-color: var(--pf-v6-c-code-block--BackgroundColor);
+  color: var(--pf-t--global--text--color--regular);
   display: block;
-  font-family: var(--pf-v5-c-code-block__pre--FontFamily);
-  font-size: var(--pf-v5-c-code-block__pre--FontSize);
+  font-family: var(--pf-v6-c-code-block__pre--FontFamily);
+  font-size: var(--pf-v6-c-code-block__pre--FontSize);
   overflow-wrap: break-word;
-  padding: var(--pf-v5-global--spacer--md);
+  padding: var(--pf-t--global--spacer--md);
   white-space: pre-wrap;
 }
 
-.pf-v5-c-button.odf-copy-to-clipboard__btn,
-.pf-v5-c-button.odf-copy-to-clipboard__btn:hover {
-  --pf-v5-c-button--PaddingTop: var(--pf-v5-global--spacer--sm);
-  --pf-v5-c-button--PaddingRight: var(--pf-v5-global--spacer--md);
-  --pf-v5-c-button--PaddingBottom: var(--pf-v5-global--spacer--sm);
-  --pf-v5-c-button--PaddingLeft: var(--pf-v5-global--spacer--md);
-  --pf-v5-c-button--BorderRadius: 0;
-  --pf-v5-c-button--hover--BorderWidth: var(--pf-v5-global--BorderWidth--sm) solid
-    var(--pf-v5-global--BorderColor--100);
-  --pf-v5-c-button--LineHeight: var(--pf-v5-global--BorderWidth--lg);
+.pf-v6-c-button.odf-copy-to-clipboard__btn,
+.pf-v6-c-button.odf-copy-to-clipboard__btn:hover {
+  --pf-v6-c-button--PaddingTop: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-button--PaddingRight: var(--pf-t--global--spacer--md);
+  --pf-v6-c-button--PaddingBottom: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-button--PaddingLeft: var(--pf-t--global--spacer--md);
+  --pf-v6-c-button--BorderRadius: 0;
+  --pf-v6-c-button--hover--BorderWidth: var(--pf-t--global--border--width--regular)
+    solid var(--pf-t--global--border--color--100);
+  --pf-v6-c-button--LineHeight: var(--pf-t--global--border--width--extra-strong);
 }
 .odf-copy-to-clipboard__btn--icon-only {
   position: unset !important;

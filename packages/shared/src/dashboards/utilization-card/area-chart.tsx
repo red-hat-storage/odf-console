@@ -12,7 +12,6 @@ import useRefWidth from '@odf/shared/hooks/ref-width';
 import { DataPoint, humanizeNumber } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
-import i18n from 'i18next';
 import {
   ChartVoronoiContainer,
   ChartGroup,
@@ -22,7 +21,8 @@ import {
   ChartThemeColor,
   Chart,
   ChartAxis,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
+import i18n from 'i18next';
 
 export const AreaChart: React.FC<AreaChartProps> = ({
   data = [],
