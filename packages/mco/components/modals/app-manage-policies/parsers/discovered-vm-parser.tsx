@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { getPlacementKindObj } from '@odf/mco/components/discovered-application-wizard/utils/k8s-utils';
-import {
-  DISCOVERED_APP_NS,
-  DRApplication,
-  ODF_RESOURCE_TYPE_LABEL,
-} from '@odf/mco/constants';
+import { DISCOVERED_APP_NS, DRApplication } from '@odf/mco/constants';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -15,15 +11,15 @@ import {
   findDRPolicyUsingDRPC,
   getSearchResultItems,
   queryAppWorkloadPVCs,
+  findDRPCByNsClusterAndVMName,
 } from '@odf/mco/utils';
-import { getName, getNamespace, VirtualMachineModel } from '@odf/shared';
+import { getLabels, getName, getNamespace } from '@odf/shared';
 import {
   K8sResourceCommon,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalContextViewer } from '../modal-context-viewer';
 import {
-  findDRPCUsingVM,
   generateApplicationInfo,
   generateDRInfo,
   generateDRPlacementControlInfo,
@@ -53,12 +49,6 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
   >(
     getDRPlacementControlResourceObj({
       namespace: DISCOVERED_APP_NS,
-      selector: {
-        matchLabels: {
-          // To optimize the VM DRPC watch
-          [ODF_RESOURCE_TYPE_LABEL]: VirtualMachineModel.kind.toLowerCase(),
-        },
-      },
     })
   );
 
@@ -92,7 +82,14 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
     if (!isLoadedWOError) return {};
 
-    const drpc = findDRPCUsingVM(drpcs, vmName, vmNamespace, cluster);
+    const vmLabels = getLabels(virtualMachine);
+    const drpc = findDRPCByNsClusterAndVMName(
+      drpcs,
+      vmNamespace,
+      cluster,
+      vmName,
+      vmLabels
+    );
     const drPolicy = drpc && findDRPolicyUsingDRPC(drpc, drPolicies);
     const placementName =
       drpc?.spec.placementRef?.name ?? `${vmName}-placement-1`;
