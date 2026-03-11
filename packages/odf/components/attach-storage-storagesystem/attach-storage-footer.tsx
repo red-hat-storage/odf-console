@@ -41,7 +41,7 @@ export const AttachStorageFormFooter = (
 
   return (
     <ButtonBar errorMessage={state.errorMessage} inProgress={state.inProgress}>
-      <ActionGroup className="pf-v5-c-form pf-v5-c-form__actions--left pf-v5-u-pb-xl">
+      <ActionGroup className="pf-v6-c-form pf-v6-c-form__actions--left pf-v6-u-pb-xl">
         <Button
           type={ButtonType.button}
           variant={ButtonVariant.primary}

@@ -11,13 +11,13 @@
 
 .odf-block-pool-mirroring-help {
   &:hover .ceph-block-pool-mirroring-help__icon {
-    color: var(--pf-v5-global--Color--dark-100);
+    color: var(--pf-t--global--dark--text--color--100);
   }
 
   .odf-block-pool-mirroring-help__icon {
-    color: var(--pf-v5-global--Color--dark-200);
+    color: var(--pf-t--global--dark--text--color--200); 
     font-size: 12px;
-    margin-right: var(--pf-v5-global--spacer--sm);
+    margin-right: var(--pf-t--global--spacer--sm);
   }
 }
 

@@ -15,6 +15,7 @@ import {
   k8sPatch,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import {
@@ -23,8 +24,6 @@ import {
   Flex,
   FlexItem,
   FormGroup,
-  Modal,
-  ModalVariant,
 } from '@patternfly/react-core';
 
 type RemoveClientModalProps = CommonModalProps<{
@@ -129,7 +128,7 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
         <input
           type="text"
           data-test="project-name-input"
-          className="pf-v5-c-form-control"
+          className="pf-v6-c-form-control"
           onKeyUp={onKeyUp}
           placeholder={t('Enter name')}
           aria-label={t('Type client name to confirm {{label}}', {

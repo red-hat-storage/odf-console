@@ -1,20 +1,20 @@
 .odf-multiselect-menu-toggle {
   cursor: pointer;
-  --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--200);
+  --pf-v6-c-menu-toggle__text--Color: var(--pf-t--global--text--color--subtle);
 
   &--has-selection {
     cursor: pointer;
-    --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--100);
+    --pf-v6-c-menu-toggle__text--Color: var(--pf-t--global--text--color--regular);
   }
 }
 
 .odf-multiselect-input {
-  color: var(--pf-v5-global--Color--200);
+  color: var(--pf-t--global--text--color--subtle);
   font-weight: 400;
   cursor: pointer;
 
   &--has-selection {
-    --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--100);
+    --pf-v6-c-menu-toggle__text--Color: var(--pf-t--global--text--color--regular);
     font-weight: 600;
     cursor: pointer;
   }

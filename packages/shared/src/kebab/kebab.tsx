@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Dropdown,
   DropdownItem,
+  DropdownList,
   DropdownPopperProps,
   MenuToggle,
   Tooltip,
@@ -97,6 +98,7 @@ const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
     <DropdownItem
       key={ModalKeys.EDIT_LABELS}
       id={ModalKeys.EDIT_LABELS}
+      value={ModalKeys.EDIT_LABELS}
       data-test-action="Edit labels"
     >
       {t('Edit labels')}
@@ -106,6 +108,7 @@ const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
     <DropdownItem
       key={ModalKeys.EDIT_ANN}
       id={ModalKeys.EDIT_ANN}
+      value={ModalKeys.EDIT_ANN}
       data-test-action="Edit annotations"
     >
       {t('Edit annotations')}
@@ -115,6 +118,7 @@ const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
     <DropdownItem
       key={ModalKeys.EDIT_RES}
       id={ModalKeys.EDIT_RES}
+      value={ModalKeys.EDIT_RES}
       data-test-action={`Edit ${resourceLabel}`}
     >
       {t('Edit {{resourceLabel}}', { resourceLabel })}
@@ -124,6 +128,7 @@ const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
     <DropdownItem
       key={ModalKeys.DELETE}
       id={ModalKeys.DELETE}
+      value={ModalKeys.DELETE}
       data-test-action={`Delete ${resourceLabel}`}
     >
       {t('Delete {{resourceLabel}}', { resourceLabel })}
@@ -195,10 +200,13 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
     [customKebabItems]
   );
 
-  const onClick = (event?: React.SyntheticEvent<HTMLDivElement>) => {
+  const onClick = (
+    _event?: React.MouseEvent<Element, MouseEvent>,
+    value?: string | number
+  ) => {
     setOpen(false);
     const modalComponentProps = { extraProps, isOpen: true };
-    const actionKey = event.currentTarget.id;
+    const actionKey = value as string;
     const modalComponent =
       customKebabItemsMap[actionKey]?.component || defaultModalMap[actionKey];
     const redirectLink = customKebabItemsMap[actionKey]?.redirect;
@@ -243,6 +251,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
           <DropdownItem
             key={k}
             id={k}
+            value={k}
             data-test-action={obj?.value}
             isDisabled={obj?.isDisabled}
             description={obj?.description}
@@ -329,10 +338,10 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
         }}
         shouldFocusFirstItemOnOpen={false}
       >
-        {dropdownItems}
+        <DropdownList>{dropdownItems}</DropdownList>
       </Dropdown>
     </Tooltip>
   );
 };
 
-Kebab.columnClass = 'dropdown-kebab-pf pf-v5-c-table__action pf-v5-u-min-width';
+Kebab.columnClass = 'dropdown-kebab-pf pf-v6-c-table__action pf-v6-u-min-width';

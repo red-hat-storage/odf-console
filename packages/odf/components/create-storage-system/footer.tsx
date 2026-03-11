@@ -18,6 +18,7 @@ import {
   isResourceProfileAllowed,
   isFlexibleScaling,
   getDeviceSetCount,
+  getNodeArchitectureFromState,
   getOsdAmount,
   isValidCapacityAutoScalingConfig,
 } from '@odf/core/utils';
@@ -218,7 +219,8 @@ const canJumpToNextStep = (
         isValidDiskSize &&
         isValidDeviceType
       );
-    case StepsName(t)[Steps.CapacityAndNodes]:
+    case StepsName(t)[Steps.CapacityAndNodes]: {
+      const architecture = getNodeArchitectureFromState(nodes);
       return (
         nodes.length >= MINIMUM_NODES &&
         capacity &&
@@ -229,13 +231,15 @@ const canJumpToNextStep = (
           resourceProfile,
           getTotalCpu(nodes),
           getTotalMemoryInGiB(nodes),
-          osdAmount
+          osdAmount,
+          architecture
         ) &&
         isValidCapacityAutoScalingConfig(
           capacityAndNodes.capacityAutoScaling.enable,
           capacityAndNodes.capacityAutoScaling.capacityLimit
         )
       );
+    }
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {
         return canGoToNextStep(connectionDetails, storageClass.name);
@@ -479,6 +483,7 @@ export const CreateStorageSystemFooter: React.FC<
           }
           variant="primary"
           onClick={handleNext}
+          className="pf-v6-u-mr-sm"
         >
           {stepName === StepsName(t)[Steps.ReviewAndCreate]
             ? t('Create storage system')
@@ -493,11 +498,12 @@ export const CreateStorageSystemFooter: React.FC<
             requestInProgress ||
             !isNsSafe
           }
+          className="pf-v6-u-mr-sm"
         >
           {t('Back')}
         </Button>
         <Button
-          variant="link"
+          variant="secondary"
           onClick={() => navigate(-1)}
           isDisabled={requestInProgress}
         >

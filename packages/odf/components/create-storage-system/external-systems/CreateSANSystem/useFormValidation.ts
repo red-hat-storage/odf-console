@@ -18,16 +18,28 @@ const LUN_GROUP_NAME_MIN_LENGTH = 1;
 
 export type SANSystemFormSchema = Yup.ObjectSchema<{
   lunGroupName: Yup.StringSchema;
+  imageRegistryUrl: Yup.StringSchema;
+  imageRepositoryName: Yup.StringSchema;
+  secretKey: Yup.StringSchema;
+  caCertificateSecret: Yup.StringSchema;
+  privateKeySecret: Yup.StringSchema;
 }>;
 
 export type SANSystemFormData = {
   lunGroupName: string;
+  imageRegistryUrl: string;
+  imageRepositoryName: string;
+  secretKey: string;
+  caCertificateSecret: string;
+  privateKeySecret: string;
 };
 
 export type SANSystemFormValidation = {
   formSchema: SANSystemFormSchema;
   fieldRequirements: {
     lunGroupName: string[];
+    imageRegistryUrl: string[];
+    imageRepositoryName: string[];
   };
   control: Control<FieldValues>;
   handleSubmit: UseFormHandleSubmit<SANSystemFormData>;
@@ -62,6 +74,14 @@ const useSANSystemFormValidation = (
       ),
     };
 
+    const imageRegistryUrlRequirements = {
+      required: t('Image registry URL is required'),
+      validUrl: t('Must be a valid URL (e.g. https://quay.io)'),
+    };
+    const imageRepositoryNameRequirements = {
+      required: t('Image repository name is required'),
+    };
+
     const formSchema = Yup.object({
       lunGroupName: Yup.string()
         .required(t('LUN group name is required'))
@@ -77,12 +97,33 @@ const useSANSystemFormValidation = (
           createUniquenessValidator(existingNames)
         )
         .transform((value: string) => (!!value ? value : '')),
+      imageRegistryUrl: Yup.string()
+        .required(imageRegistryUrlRequirements.required)
+        .url(imageRegistryUrlRequirements.validUrl)
+        .transform((value: string) => (!!value ? value : '')),
+      imageRepositoryName: Yup.string()
+        .required(imageRepositoryNameRequirements.required)
+        .transform((value: string) => (!!value ? value : '')),
+      secretKey: Yup.string()
+        .required(t('Secret key is required'))
+        .transform((value: string) => (!!value ? value : '')),
+      caCertificateSecret: Yup.string()
+        .required(t('CA certificate secret is required'))
+        .transform((value: string) => (!!value ? value : '')),
+      privateKeySecret: Yup.string()
+        .required(t('Private key secret is required'))
+        .transform((value: string) => (!!value ? value : '')),
     });
 
     return {
       formSchema: formSchema as unknown as SANSystemFormSchema,
       fieldRequirements: {
         lunGroupName: Object.values(lunGroupNameFieldRequirements),
+        imageRegistryUrl: [
+          imageRegistryUrlRequirements.required,
+          imageRegistryUrlRequirements.validUrl,
+        ],
+        imageRepositoryName: [imageRepositoryNameRequirements.required],
       },
     };
   }, [t, existingNames]);
@@ -100,6 +141,11 @@ const useSANSystemFormValidation = (
     resolver,
     defaultValues: {
       lunGroupName: '',
+      imageRegistryUrl: '',
+      imageRepositoryName: '',
+      secretKey: '',
+      caCertificateSecret: '',
+      privateKeySecret: '',
     },
   });
 

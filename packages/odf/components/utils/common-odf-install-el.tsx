@@ -34,13 +34,15 @@ export const VALIDATIONS = (
   t: TFunction,
   resourceProfile?: ResourceProfile,
   osdAmount?: number,
-  volumeValidationType?: VolumeTypeValidation
+  volumeValidationType?: VolumeTypeValidation,
+  architecture?: string
 ): Validation => {
   switch (type) {
     case ValidationType.MINIMAL: {
       const { minCpu, minMem } = getResourceProfileRequirements(
         ResourceProfile.Balanced,
-        osdAmount
+        osdAmount,
+        architecture
       );
       return {
         variant: AlertVariant.warning,
@@ -219,6 +221,7 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
   volumeValidationType,
   validation,
   osdAmount,
+  architecture,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -234,7 +237,8 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
     t,
     resourceProfile,
     osdAmount,
-    volumeValidationType
+    volumeValidationType,
+    architecture
   );
   return actionLinkStep ? (
     <Alert
@@ -263,6 +267,7 @@ type ValidationMessageProps = {
   validation: keyof typeof ValidationType;
   osdAmount?: number;
   volumeValidationType?: VolumeTypeValidation;
+  architecture?: string;
 };
 
 export const getEncryptionLevel = (obj: EncryptionType, t: TFunction) => {

@@ -5,8 +5,6 @@ import useRefWidth from '@odf/shared/hooks/ref-width';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint } from '@odf/shared/utils';
 import { humanizeDecimalBytesPerSec, humanizeSeconds } from '@odf/shared/utils';
-import classNames from 'classnames';
-import * as _ from 'lodash-es';
 import {
   Chart,
   ChartVoronoiContainer,
@@ -16,7 +14,9 @@ import {
   ChartGroup,
   ChartLine,
   ChartLegend,
-} from '@patternfly/react-charts';
+} from '@patternfly/react-charts/victory';
+import classNames from 'classnames';
+import * as _ from 'lodash-es';
 import { Metrics, CHART_LABELS } from '../../../constants';
 import { convertNaNToNull, getLatestValue } from '../../../utils';
 import './data-consumption-card.scss';

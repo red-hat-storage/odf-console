@@ -12,6 +12,7 @@ import {
 import { useNodesData } from '@odf/core/hooks';
 import { ResourceProfile } from '@odf/core/types';
 import {
+  getNodeArchitectureFromState,
   getResourceProfileRequirements,
   isResourceProfileAllowed,
   nodesWithoutTaints,
@@ -20,21 +21,22 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'react-i18next';
-import {
-  Text,
-  TextVariants,
-  TextContent,
-  SelectOption,
-} from '@patternfly/react-core';
+import { Content, ContentVariants, SelectOption } from '@patternfly/react-core';
 import './configure-performance.scss';
 
-const selectOptions = (t: TFunction, forceLean: boolean, osdAmount: number) =>
+const selectOptions = (
+  t: TFunction,
+  forceLean: boolean,
+  osdAmount: number,
+  architecture?: string
+) =>
   Object.entries(ResourceProfile).map((value: [string, ResourceProfile]) => {
     const displayName = t('{{mode}} mode', { mode: value[0] });
     let profile = value[1];
     const { minCpu, minMem } = getResourceProfileRequirements(
       profile,
-      osdAmount
+      osdAmount,
+      architecture
     );
     const description = `CPUs required: ${minCpu}, Memory required: ${minMem} GiB`;
     const isDisabled =
@@ -56,30 +58,32 @@ const selectOptions = (t: TFunction, forceLean: boolean, osdAmount: number) =>
 export const PerformanceHeaderText: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <Text id="configure-performance" component={TextVariants.h4}>
-      <span className="pf-v5-u-mr-sm">{t('Configure performance')}</span>
+    <Content id="configure-performance" component={ContentVariants.h4}>
+      <span className="pf-v6-u-mr-sm">{t('Configure performance')}</span>
       <FieldLevelHelp>{resourceProfileTooltip(t)}</FieldLevelHelp>
-    </Text>
+    </Content>
   );
 };
 
 type ProfileRequirementsTextProps = {
   selectedProfile: ResourceProfile;
   osdAmount: number;
+  architecture?: string;
 };
 
 export const ProfileRequirementsText: React.FC<
   ProfileRequirementsTextProps
-> = ({ selectedProfile, osdAmount }) => {
+> = ({ selectedProfile, osdAmount, architecture }) => {
   const { t } = useCustomTranslation();
   const { minCpu, minMem } = getResourceProfileRequirements(
     selectedProfile,
-    osdAmount
+    osdAmount,
+    architecture
   );
   return (
-    <TextContent>
-      <Text id="resource-requirements" component={TextVariants.h4}>
-        <span className="pf-v5-u-mr-sm">
+    <Content>
+      <Content id="resource-requirements" component={ContentVariants.h4}>
+        <span className="pf-v6-u-mr-sm">
           {t('Aggregate resource requirements for {{selectedProfile}} mode', {
             selectedProfile,
           })}
@@ -87,26 +91,30 @@ export const ProfileRequirementsText: React.FC<
         {selectedProfile === ResourceProfile.Performance && (
           <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
         )}
-      </Text>
-      <Text id="cpu-requirements-desc" className="pf-v5-u-font-size-sm">
-        <div className="pf-v5-u-mb-sm">
-          <span className="pf-v5-u-disabled-color-100">
+      </Content>
+      <Content
+        component="p"
+        id="cpu-requirements-desc"
+        className="pf-v6-u-font-size-sm"
+      >
+        <div className="pf-v6-u-mb-sm">
+          <span className="pf-v6-u-disabled-color-100">
             {t('CPUs required')}:
           </span>{' '}
-          <span className="pf-v5-u-font-size-md">
+          <span className="pf-v6-u-font-size-md">
             {minCpu} {t('CPUs')}
           </span>
         </div>
         <div>
-          <span className="pf-v5-u-disabled-color-100">
+          <span className="pf-v6-u-disabled-color-100">
             {t('Memory required')}:
           </span>{' '}
-          <span className="pf-v5-u-font-size-md">
+          <span className="pf-v6-u-font-size-md">
             {minMem} {t('GiB')}
           </span>
         </div>
-      </Text>
-    </TextContent>
+      </Content>
+    </Content>
   );
 };
 
@@ -139,12 +147,14 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
     );
     const allCpu = getTotalCpu(selectableNodes);
     const allMem = getTotalMemoryInGiB(selectableNodes);
+    const architecture = getNodeArchitectureFromState(selectableNodes);
     if (
       !isResourceProfileAllowed(
         ResourceProfile.Balanced,
         allCpu,
         allMem,
-        osdAmount
+        osdAmount,
+        architecture
       )
     ) {
       forceLean = true;
@@ -155,36 +165,39 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
   }
 
   // Set error icon in dropdown when appropriate.
+  const architecture = getNodeArchitectureFromState(selectedNodes);
   const isProfileAllowed = resourceProfile
     ? isResourceProfileAllowed(
         resourceProfile,
         getTotalCpu(selectedNodes),
         getTotalMemoryInGiB(selectedNodes),
-        osdAmount
+        osdAmount,
+        architecture
       )
     : true;
   const validated =
     selectedNodes.length === 0 || isProfileAllowed ? 'default' : 'error';
 
   return (
-    <div className="pf-v5-u-mb-lg">
-      <TextContent className="pf-v5-u-mb-md">
+    <div className="pf-v6-u-mb-lg">
+      <Content className="pf-v6-u-mb-md">
         {HeaderTextComponent && <HeaderTextComponent />}
-        <Text
+        <Content
+          component="p"
           id="configure-performance-desc"
-          className="pf-v5-u-font-size-sm pf-v5-u-disabled-color-100"
+          className="pf-v6-u-font-size-sm pf-v6-u-disabled-color-100"
         >
           {t(
             'Select a profile to customise the performance of the Data Foundation cluster to meet your requirements.'
           )}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
       <SingleSelectDropdown
         aria-label={t('Select a performance mode from the list')}
         selectedKey={resourceProfile}
         id="resource-profile"
-        className="odf-configure-performance__selector pf-v5-u-mb-md"
-        selectOptions={selectOptions(t, forceLean, osdAmount)}
+        className="odf-configure-performance__selector pf-v6-u-mb-md"
+        selectOptions={selectOptions(t, forceLean, osdAmount, architecture)}
         onChange={onResourceProfileChange}
         validated={validated}
       />
@@ -192,6 +205,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         <ProfileRequirementsTextComponent
           selectedProfile={resourceProfile}
           osdAmount={osdAmount}
+          architecture={architecture}
         />
       )}
     </div>

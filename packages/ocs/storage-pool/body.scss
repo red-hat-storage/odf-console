@@ -1,5 +1,5 @@
 .ceph-block-pool-body__input {
-  margin: var(--pf-v5-global--spacer--lg) 0 !important;
+  margin: var(--pf-t--global--spacer--lg) 0 !important;
 
   .field-requirements-input-section {
     align-items: center;
@@ -20,27 +20,27 @@
 }
 
 .ceph-block-pool__switch {
-  --pf-v5-c-switch--FontSize: var(--pf-v5-global--FontSize--xs) !important;
-  --pf-v5-c-switch__input--focus__toggle--OutlineWidth: 0 !important; // To disable the switch focus border
+  --pf-v6-c-switch--FontSize: var(--pf-t--global--font--size--xs) !important;
+  --pf-v6-c-switch__input--focus__toggle--OutlineWidth: 0 !important; // To disable the switch focus border
 }
 
 .ceph-block-pool__error-icon {
-  color: var(--pf-v5-global--danger-color--100) !important;
+  color: var(--pf-t--global--color--status--danger--default) !important;
 }
 
 .ceph-block-pool__check-icon {
-  color: var(--pf-v5-global--success-color--100) !important;
+  color: var(--pf-t--global--color--status--success--default) !important;
 }
 
 .ceph-block-pool__alert {
-  --pf-v5-global--FontSize--md: 0.8rem;
+  --pf-t--global--font--size--md: 0.8rem;
 }
 
 .ceph-block-pool__dropdown-description > div {
   white-space: pre-line;
 }
 
-.ceph-pool__radio-flex .pf-v5-c-radio {
+.ceph-pool__radio-flex .pf-v6-c-radio {
   width: unset;
 }
 
