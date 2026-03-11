@@ -17,6 +17,11 @@ export enum StorageClusterPhase {
   Error = 'Error',
 }
 
+export type ManagedResourcesCephClusterKind = {
+  cleanupPolicy: CleanupPolicy;
+  monCount: 3 | 5;
+};
+
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
     network?: {
@@ -39,9 +44,7 @@ export type StorageClusterKind = K8sResourceCommon & {
       enable?: boolean;
     };
     managedResources?: {
-      cephCluster: {
-        monCount: 3 | 5;
-      };
+      cephCluster: ManagedResourcesCephClusterKind;
       cephBlockPools?: {
         defaultStorageClass?: boolean;
         defaultVirtualizationStorageClass?: boolean;
@@ -243,6 +246,10 @@ type ClientStatus = {
 export type StorageConsumerKind = K8sResourceCommon & {
   spec?: StorageConsumerSpec;
   status?: StorageConsumerStatus;
+};
+
+export type CleanupPolicy = {
+  wipeDevicesFromOtherClusters: boolean;
 };
 
 export type NoobaaSystemKind = K8sResourceCommon;

@@ -26,6 +26,7 @@ import {
 } from '@odf/shared/constants';
 import { getLabel, getName, getNamespace, getUID } from '@odf/shared/selectors';
 import {
+  ManagedResourcesCephClusterKind,
   NetworkAttachmentDefinitionKind,
   NodeKind,
   StorageClusterKind,
@@ -431,6 +432,7 @@ export type OCSRequestData = {
   storageClusterName: string;
   isDbBackup?: boolean;
   dbBackup?: WizardState['advancedSettings']['dbBackup'];
+  enableForcefulDeployment?: boolean;
 };
 
 export const getOCSRequestData = ({
@@ -457,6 +459,7 @@ export const getOCSRequestData = ({
   storageClusterName,
   isDbBackup,
   dbBackup,
+  enableForcefulDeployment,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -590,6 +593,14 @@ export const getOCSRequestData = ({
         schedule: dbBackup.schedule,
         volumeSnapshot: dbBackup.volumeSnapshot,
       },
+    };
+  }
+  // Add forceful deployment configuration if enabled
+  if (isNoProvisioner && enableForcefulDeployment) {
+    requestData.spec.managedResources.cephCluster = {
+      ...(requestData.spec.managedResources.cephCluster ||
+        ({} as ManagedResourcesCephClusterKind)),
+      cleanupPolicy: { wipeDevicesFromOtherClusters: true },
     };
   }
 

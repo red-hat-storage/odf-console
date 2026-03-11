@@ -59,7 +59,12 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
   const { deployment, externalStorage, type } = backingStorage;
-  const { isDbBackup, enableNFS, isRBDStorageClassDefault } = advancedSettings;
+  const {
+    isDbBackup,
+    enableNFS,
+    isRBDStorageClassDefault,
+    enableForcefulDeployment,
+  } = advancedSettings;
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
@@ -96,6 +101,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     advancedSettings.isVirtualizeStorageClassDefault
       ? t('Enabled')
       : t('Disabled');
+  const forcefulDeploymentStatus = enableForcefulDeployment
+    ? t('Enabled')
+    : t('Disabled');
 
   const kmsStatus = encryption.advanced
     ? kms.providerState.name.value
@@ -163,6 +171,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
           <ListItem>
             {t('Automatic backup: {{isDbBackupEnabled}}', {
               isDbBackupEnabled,
+            })}
+          </ListItem>
+        )}
+        {enableForcefulDeployment && (
+          <ListItem>
+            {t('Forceful deployment: {{forcefulDeploymentStatus}}', {
+              forcefulDeploymentStatus,
             })}
           </ListItem>
         )}
