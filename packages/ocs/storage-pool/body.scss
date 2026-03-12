@@ -48,3 +48,12 @@
   min-width: 16.8em;
   width: unset;
 }
+
+// Muted/secondary text — use semantic tokens consistent with repo (no --200/--100)
+.ceph-block-pool-body__muted-text {
+  color: var(--pf-t--color--gray--50);
+}
+
+.ceph-block-pool-body__disabled-text {
+  color: var(--pf-t--global--text--color--disabled);
+}

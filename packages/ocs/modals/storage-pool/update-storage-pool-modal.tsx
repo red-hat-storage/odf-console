@@ -179,10 +179,32 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
         payload:
           pool.type === PoolType.FILESYSTEM ? pool.shortName : getName(pool),
       });
-      dispatch({
-        type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
-        payload: pool?.spec.replicated.size.toString(),
-      });
+      const ec = pool?.spec?.dataPool?.erasureCoded ?? pool?.spec?.erasureCoded;
+      if (ec?.dataChunks > 0 && ec?.codingChunks > 0) {
+        dispatch({
+          type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY,
+          payload: 'erasure-coding',
+        });
+        dispatch({
+          type: StoragePoolActionType.SET_ERASURE_CODING_SCHEMA,
+          payload: { k: ec.dataChunks, m: ec.codingChunks },
+        });
+        const failureDomain =
+          pool?.spec?.dataPool?.failureDomain ??
+          pool?.spec?.failureDomain ??
+          '';
+        if (failureDomain) {
+          dispatch({
+            type: StoragePoolActionType.SET_FAILURE_DOMAIN,
+            payload: failureDomain,
+          });
+        }
+      } else {
+        dispatch({
+          type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
+          payload: pool?.spec?.replicated?.size?.toString() ?? '',
+        });
+      }
       dispatch({
         type: StoragePoolActionType.SET_POOL_COMPRESSED,
         payload: pool?.spec.compressionMode === COMPRESSION_ON,
@@ -222,12 +244,9 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
       updateRequest = updateFsPoolRequest(state, storageCluster);
     } else {
       updateRequest = () => {
-        const patch = [
-          {
-            op: 'replace',
-            path: '/spec/replicated/size',
-            value: Number(state.replicaSize),
-          },
+        const isErasureCoding =
+          resource?.spec?.dataPool ?? resource?.spec?.erasureCoded;
+        const patch: Patch[] = [
           {
             op: 'replace',
             path: '/spec/compressionMode',
@@ -239,6 +258,13 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
             value: state.isCompressed ? COMPRESSION_ON : 'none',
           },
         ];
+        if (!isErasureCoding && resource?.spec?.replicated != null) {
+          patch.push({
+            op: 'replace',
+            path: '/spec/replicated/size',
+            value: Number(state.replicaSize),
+          });
+        }
         return k8sPatch({
           model: CephBlockPoolModel,
           resource,

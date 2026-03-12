@@ -1,7 +1,8 @@
 import { DefaultRequestSize } from '@odf/core/constants';
-import { PoolType } from '@odf/ocs/constants';
+import { ERASURE_CODING_FAILURE_DOMAIN, PoolType } from '@odf/ocs/constants';
 import {
   blockPoolInitialState,
+  ErasureCodingSchemaState,
   StoragePoolState,
 } from '@odf/ocs/storage-pool/reducer';
 import { ReclaimPolicy, VolumeBindingMode } from '@odf/shared';
@@ -14,6 +15,12 @@ type StorageClassDetails = {
   encryptionKMSID: string;
 };
 
+/** Erasure coding spec under dataPool (aligned with CephBlockPool spec.dataPool). */
+type DataPoolErasureCoding = {
+  failureDomain: string;
+  erasureCoded: { dataChunks: number; codingChunks: number };
+};
+
 type PoolDetails = {
   volumeType: string;
   poolName: string;
@@ -21,6 +28,10 @@ type PoolDetails = {
   enableCompression: boolean;
   fileSystemName: string;
   failureDomain: string;
+  /** Erasure coding: only set when dataProtectionPolicy represents EC. Prefer dataPool for EC. */
+  erasureCoded?: { dataChunks: number; codingChunks: number };
+  /** When EC, pool spec in same shape as CephBlockPool spec.dataPool. */
+  dataPool?: DataPoolErasureCoding;
 };
 
 export type AttachStorageFormState = StoragePoolState & {
@@ -66,14 +77,28 @@ export const createPayload = (
   fileSystemName: string,
   deviceSetCount: number
 ): AttachStoragePayload => {
-  const dataProtectionPolicy = Number(state.replicaSize) || 0;
+  const isErasureCoding =
+    state.dataProtectionPolicy === 'erasure-coding' &&
+    state.erasureCodingSchema != null;
+  const dataProtectionPolicy = isErasureCoding
+    ? state.erasureCodingSchema!.k + state.erasureCodingSchema!.m
+    : Number(state.replicaSize) || 0;
   const poolDetails: PoolDetails = {
     volumeType: state.poolType.toLocaleLowerCase(),
     poolName: state.poolName,
-    dataProtectionPolicy: dataProtectionPolicy,
+    dataProtectionPolicy,
     enableCompression: state.isCompressed,
     fileSystemName,
     failureDomain,
+    ...(isErasureCoding && {
+      dataPool: {
+        failureDomain: ERASURE_CODING_FAILURE_DOMAIN,
+        erasureCoded: {
+          dataChunks: state.erasureCodingSchema!.k,
+          codingChunks: state.erasureCodingSchema!.m,
+        },
+      },
+    }),
   };
 
   const payload: AttachStoragePayload = {
@@ -109,6 +134,8 @@ export enum AttachStorageActionType {
   SET_STORAGECLASS_RECLAIM_POLICY = 'SET_STORAGECLASS_RECLAIM_POLICY',
   SET_STORAGECLASS_VOLUME_BINDING_MODE = 'SET_STORAGECLASS_VOLUME_BINDING_MODE',
   SET_DEVICE_CLASS = 'SET_DEVICE_CLASS',
+  SET_DATA_PROTECTION_POLICY = 'SET_DATA_PROTECTION_POLICY',
+  SET_ERASURE_CODING_SCHEMA = 'SET_ERASURE_CODING_SCHEMA',
 }
 
 export type AttachStorageAction =
@@ -152,6 +179,14 @@ export type AttachStorageAction =
   | {
       type: AttachStorageActionType.SET_DEVICE_CLASS;
       payload: string;
+    }
+  | {
+      type: AttachStorageActionType.SET_DATA_PROTECTION_POLICY;
+      payload: StoragePoolState['dataProtectionPolicy'];
+    }
+  | {
+      type: AttachStorageActionType.SET_ERASURE_CODING_SCHEMA;
+      payload: ErasureCodingSchemaState;
     };
 
 export const attachStorageReducer = (
@@ -274,6 +309,19 @@ export const attachStorageReducer = (
       return {
         ...state,
         deviceClass: action.payload,
+      };
+    }
+    case AttachStorageActionType.SET_DATA_PROTECTION_POLICY: {
+      return {
+        ...state,
+        dataProtectionPolicy: action.payload,
+        ...(action.payload === 'replication' && { erasureCodingSchema: null }),
+      };
+    }
+    case AttachStorageActionType.SET_ERASURE_CODING_SCHEMA: {
+      return {
+        ...state,
+        erasureCodingSchema: action.payload,
       };
     }
     default:

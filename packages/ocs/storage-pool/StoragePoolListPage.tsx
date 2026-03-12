@@ -99,7 +99,7 @@ const tableColumnInfo = [
       'pf-m-visible-on-lg',
       'pf-v6-u-w-8-on-2xl'
     ),
-    id: 'replica',
+    id: 'dataProtectionPolicy',
   },
   {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
@@ -169,7 +169,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Replica'),
+        title: t('Data protection policy'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -348,7 +348,30 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         {poolType}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        <span data-test={`${name}-replicas`}>{replica}</span>
+        {(() => {
+          const ec = obj.spec?.dataPool?.erasureCoded ?? obj.spec?.erasureCoded;
+          return ec?.dataChunks > 0 && ec?.codingChunks > 0 ? (
+            <div>
+              <div>{t('Erasure coding')}</div>
+              <div
+                className="pf-v6-u-font-size-sm"
+                style={{ color: 'var(--pf-t--color--gray--50)' }}
+              >
+                {`${ec.dataChunks}+${ec.codingChunks}`}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div>{t('Replication')}</div>
+              <div
+                className="pf-v6-u-font-size-sm"
+                style={{ color: 'var(--pf-t--color--gray--50)' }}
+              >
+                {t('Replica {{size}}', { size: replica ?? '-' })}
+              </div>
+            </div>
+          );
+        })()}
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         {mirroringStatus ? t('Enabled') : t('Disabled')}

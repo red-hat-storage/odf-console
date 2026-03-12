@@ -1,0 +1,32 @@
+.odf-erasure-coding-schema-table {
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  // Radio select column: narrow fixed width
+  th:first-child,
+  td:first-child {
+    width: 2.5rem;
+  }
+
+  // Data columns: equal width for even spacing (Scheme, Storage overhead, Effective capacity)
+  th:nth-child(2),
+  th:nth-child(3),
+  th:nth-child(4),
+  td:nth-child(2),
+  td:nth-child(3),
+  td:nth-child(4) {
+    width: 33.33%;
+  }
+
+  // When only Scheme + Storage overhead (showOnlySchemeAndOverhead): two equal data columns
+  &.odf-erasure-coding-schema-table--two-cols {
+    th:nth-child(2),
+    th:nth-child(3),
+    td:nth-child(2),
+    td:nth-child(3) {
+      width: 50%;
+    }
+  }
+}
