@@ -64,6 +64,7 @@
     "fileSystemDetails": "@odf/core/components/FileSystem/FileSystemDetails",
     "iamUserOverview": "@odf/core/components/s3-iam/user-overview/UserOverview",
     "iam": "@odf/core/components/s3-iam/EmptyIamUserPage",
-    "createIAMUser": "@odf/core/components/s3-iam/create-user/CreateUserForm"
+    "createIAMUser": "@odf/core/components/s3-iam/create-user/CreateUserForm",
+    "createVectorIndex": "@odf/core/components/s3-vectors/create-vector-index/CreateVectorIndex"
   }
 }
