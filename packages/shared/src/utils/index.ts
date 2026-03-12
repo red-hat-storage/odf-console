@@ -13,4 +13,5 @@ export * from './link';
 export * from './valid-k8s-resources';
 export * from './table';
 export * from './namespace';
+export * from './KeyListEditor';
 export * from './validation';
