@@ -32,6 +32,7 @@ import { Button, Content, ContentVariants } from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
+  ERASURE_CODING_FAILURE_DOMAIN,
   PoolState,
   PoolType,
 } from '../constants';
@@ -56,10 +57,28 @@ export const createFsPoolRequest = (
   state: StoragePoolState,
   storageCluster: StorageClusterKind
 ) => {
+  const isErasureCoding =
+    state.dataProtectionPolicy === 'erasure-coding' &&
+    state.erasureCodingSchema != null;
   const patchPool: DataPool = {
     name: state.poolName,
-    replicated: { size: Number(state.replicaSize) },
-    compressionMode: state.isCompressed ? COMPRESSION_ON : 'none',
+    compressionMode:
+      state.dataProtectionPolicy === 'erasure-coding'
+        ? 'none'
+        : state.isCompressed
+          ? COMPRESSION_ON
+          : 'none',
+    ...(isErasureCoding
+      ? {
+          failureDomain: ERASURE_CODING_FAILURE_DOMAIN,
+          erasureCoded: {
+            dataChunks: state.erasureCodingSchema!.k,
+            codingChunks: state.erasureCodingSchema!.m,
+          },
+        }
+      : {
+          replicated: { size: Number(state.replicaSize) },
+        }),
   };
   const patch: Patch = storageCluster?.spec?.managedResources?.cephFilesystems
     ?.additionalDataPools
@@ -86,27 +105,116 @@ export const getPoolKindObj = (
   state: StoragePoolState,
   ns: string,
   deviceClass: StoragePoolKind['spec']['deviceClass']
-): StoragePoolKind => ({
-  apiVersion: getAPIVersionForModel(CephBlockPoolModel),
-  kind: CephBlockPoolModel.kind,
-  metadata: {
-    name: state.poolName,
-    namespace: ns,
-  },
-  spec: {
-    compressionMode: state.isCompressed ? COMPRESSION_ON : 'none',
-    // without explicit "true" Rook will not allow updating CRUSH Rules ("deviceClass" will not be set)
-    enableCrushUpdates: true,
-    deviceClass: deviceClass,
-    failureDomain: state.failureDomain,
-    parameters: {
-      compression_mode: state.isCompressed ? COMPRESSION_ON : 'none',
+): StoragePoolKind => {
+  const isErasureCoding =
+    state.dataProtectionPolicy === 'erasure-coding' &&
+    state.erasureCodingSchema != null;
+  const compressionMode =
+    state.dataProtectionPolicy === 'erasure-coding'
+      ? 'none'
+      : state.isCompressed
+        ? COMPRESSION_ON
+        : 'none';
+  return {
+    apiVersion: getAPIVersionForModel(CephBlockPoolModel),
+    kind: CephBlockPoolModel.kind,
+    metadata: {
+      name: state.poolName,
+      namespace: ns,
     },
-    replicated: {
-      size: Number(state.replicaSize),
+    spec: {
+      compressionMode,
+      enableCrushUpdates: true,
+      deviceClass: deviceClass,
+      parameters: {
+        compression_mode: compressionMode,
+      },
+      ...(isErasureCoding
+        ? {
+            dataPool: {
+              failureDomain: ERASURE_CODING_FAILURE_DOMAIN,
+              erasureCoded: {
+                dataChunks: state.erasureCodingSchema!.k,
+                codingChunks: state.erasureCodingSchema!.m,
+              },
+            },
+          }
+        : {
+            failureDomain: state.failureDomain,
+            replicated: {
+              size: Number(state.replicaSize),
+            },
+          }),
     },
-  },
-});
+  };
+};
+
+/**
+ * Day-2 RBD: Ensure StorageCluster has CreateEcMetadataPool set so the operator
+ * can create the replicated metadata pool for EC block pools. Patch if not set.
+ */
+/** Extended managedResources for Day-2 EC (operator supports these fields). */
+type ManagedResourcesEC = StorageClusterKind['spec']['managedResources'] & {
+  CreateEcMetadataPool?: boolean;
+  cephFilesystems?: {
+    enableEcStorageclass?: boolean;
+    additionalDataPools?: unknown;
+  };
+};
+
+export const ensureCreateEcMetadataPool = (
+  storageCluster: StorageClusterKind
+): Promise<K8sResourceCommon> => {
+  const mr = storageCluster.spec?.managedResources as
+    | ManagedResourcesEC
+    | undefined;
+  if (mr?.CreateEcMetadataPool === true) {
+    return Promise.resolve(storageCluster as K8sResourceCommon);
+  }
+  const currentMR = storageCluster.spec?.managedResources ?? {};
+  const merged = { ...currentMR, CreateEcMetadataPool: true };
+  const patch: Patch = {
+    op: 'replace',
+    path: '/spec/managedResources',
+    value: merged,
+  };
+  return k8sPatch({
+    model: StorageClusterModel,
+    resource: storageCluster,
+    data: [patch],
+  });
+};
+
+/**
+ * Day-2 CephFS: Ensure StorageCluster has enableEcStorageclass set so the
+ * operator can create the EC StorageClass. Patch if not set before adding pool.
+ */
+export const ensureEnableEcStorageclass = (
+  storageCluster: StorageClusterKind
+): Promise<K8sResourceCommon> => {
+  const mr = storageCluster.spec?.managedResources as
+    | ManagedResourcesEC
+    | undefined;
+  if (mr?.cephFilesystems?.enableEcStorageclass === true) {
+    return Promise.resolve(storageCluster as K8sResourceCommon);
+  }
+  const currentMR = storageCluster.spec?.managedResources ?? {};
+  const currentCF = mr?.cephFilesystems ?? {};
+  const merged = {
+    ...currentMR,
+    cephFilesystems: { ...currentCF, enableEcStorageclass: true },
+  };
+  const patch: Patch = {
+    op: 'replace',
+    path: '/spec/managedResources',
+    value: merged,
+  };
+  return k8sPatch({
+    model: StorageClusterModel,
+    resource: storageCluster,
+    data: [patch],
+  });
+};
 
 export const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
@@ -278,50 +386,89 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
     navigate(-1);
   };
 
-  // Create new pool
-  const createPool = () => {
-    if (cephCluster?.status?.phase === PoolState.READY) {
-      let createRequest: () => Promise<K8sResourceCommon>;
-      if (poolType === PoolType.FILESYSTEM) {
-        createRequest = createFsPoolRequest(state, storageCluster);
-      } else {
-        const poolObj: StoragePoolKind = getPoolKindObj(
-          state,
-          poolNs,
-          defaultDeviceClass
-        );
-        createRequest = () =>
-          k8sCreate({ model: CephBlockPoolModel, data: poolObj });
-      }
+  // Create new pool: allow when CephCluster is Ready OR StorageCluster is Ready (fallback when CephCluster is missing or not yet Ready)
+  const isClusterReady =
+    cephCluster?.status?.phase === PoolState.READY ||
+    storageCluster?.status?.phase === 'Ready';
 
-      dispatch({ type: StoragePoolActionType.SET_INPROGRESS, payload: true });
-      createRequest()
-        .then(() =>
-          poolType === PoolType.BLOCK
-            ? navigate(
-                `${blockPoolPageUrl}/${state.poolName}?namespace=${poolNs}`
-              )
-            : navigate(`${blockPoolPageUrl}`)
-        )
-        .finally(() =>
-          dispatch({
-            type: StoragePoolActionType.SET_INPROGRESS,
-            payload: false,
-          })
-        )
-        .catch((err) =>
-          dispatch({
-            type: StoragePoolActionType.SET_ERROR_MESSAGE,
-            payload: getErrorMessage(err.message) || 'Could not create Pool.',
-          })
-        );
-    } else
+  const createPool = () => {
+    if (!isClusterReady) {
       dispatch({
         type: StoragePoolActionType.SET_ERROR_MESSAGE,
         payload: t(
           "Data Foundation's StorageCluster is not available. Try again after the StorageCluster is ready to use."
         ),
       });
+      return;
+    }
+    if (
+      state.dataProtectionPolicy === 'erasure-coding' &&
+      !state.erasureCodingSchema
+    ) {
+      dispatch({
+        type: StoragePoolActionType.SET_ERROR_MESSAGE,
+        payload: t('Please select an erasure coding scheme.'),
+      });
+      return;
+    }
+    if (state.dataProtectionPolicy === 'replication' && !state.replicaSize) {
+      dispatch({
+        type: StoragePoolActionType.SET_ERROR_MESSAGE,
+        payload: t('Please select a replication size.'),
+      });
+      return;
+    }
+
+    let createRequest: () => Promise<K8sResourceCommon>;
+    if (poolType === PoolType.FILESYSTEM) {
+      createRequest = createFsPoolRequest(state, storageCluster);
+    } else {
+      const poolObj: StoragePoolKind = getPoolKindObj(
+        state,
+        poolNs,
+        defaultDeviceClass
+      );
+      createRequest = () =>
+        k8sCreate({ model: CephBlockPoolModel, data: poolObj });
+    }
+
+    const runCreate = async () => {
+      if (
+        poolType === PoolType.BLOCK &&
+        state.dataProtectionPolicy === 'erasure-coding'
+      ) {
+        await ensureCreateEcMetadataPool(storageCluster);
+      }
+      if (
+        poolType === PoolType.FILESYSTEM &&
+        state.dataProtectionPolicy === 'erasure-coding'
+      ) {
+        await ensureEnableEcStorageclass(storageCluster);
+      }
+      return createRequest();
+    };
+
+    dispatch({ type: StoragePoolActionType.SET_INPROGRESS, payload: true });
+    runCreate()
+      .then(() =>
+        poolType === PoolType.BLOCK
+          ? navigate(
+              `${blockPoolPageUrl}/${state.poolName}?namespace=${poolNs}`
+            )
+          : navigate(`${blockPoolPageUrl}`)
+      )
+      .finally(() =>
+        dispatch({
+          type: StoragePoolActionType.SET_INPROGRESS,
+          payload: false,
+        })
+      )
+      .catch((err) =>
+        dispatch({
+          type: StoragePoolActionType.SET_ERROR_MESSAGE,
+          payload: getErrorMessage(err.message) || 'Could not create Pool.',
+        })
+      );
   };
 
   if (isExternalStorageSystem) {

@@ -1,3 +1,7 @@
+export type DataProtectionPolicyType = 'replication' | 'erasure-coding';
+
+export type ErasureCodingSchemaState = { k: number; m: number } | null;
+
 export type StoragePoolState = {
   poolName: string;
   poolStatus: string;
@@ -7,6 +11,8 @@ export type StoragePoolState = {
   failureDomain: string;
   inProgress: boolean;
   errorMessage: string;
+  dataProtectionPolicy: DataProtectionPolicyType;
+  erasureCodingSchema: ErasureCodingSchemaState;
 };
 
 export enum StoragePoolActionType {
@@ -18,6 +24,8 @@ export enum StoragePoolActionType {
   SET_FAILURE_DOMAIN = 'SET_FAILURE_DOMAIN',
   SET_INPROGRESS = 'SET_INPROGRESS',
   SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE',
+  SET_DATA_PROTECTION_POLICY = 'SET_DATA_PROTECTION_POLICY',
+  SET_ERASURE_CODING_SCHEMA = 'SET_ERASURE_CODING_SCHEMA',
 }
 
 export const blockPoolInitialState: StoragePoolState = {
@@ -29,6 +37,8 @@ export const blockPoolInitialState: StoragePoolState = {
   failureDomain: '',
   inProgress: false,
   errorMessage: '',
+  dataProtectionPolicy: 'replication',
+  erasureCodingSchema: null,
 };
 
 export type StoragePoolAction =
@@ -39,7 +49,15 @@ export type StoragePoolAction =
   | { type: StoragePoolActionType.SET_POOL_ARBITER; payload: boolean }
   | { type: StoragePoolActionType.SET_FAILURE_DOMAIN; payload: string }
   | { type: StoragePoolActionType.SET_INPROGRESS; payload: boolean }
-  | { type: StoragePoolActionType.SET_ERROR_MESSAGE; payload: string };
+  | { type: StoragePoolActionType.SET_ERROR_MESSAGE; payload: string }
+  | {
+      type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY;
+      payload: DataProtectionPolicyType;
+    }
+  | {
+      type: StoragePoolActionType.SET_ERASURE_CODING_SCHEMA;
+      payload: ErasureCodingSchemaState;
+    };
 
 export const storagePoolReducer = (
   state: StoragePoolState,
@@ -92,6 +110,19 @@ export const storagePoolReducer = (
       return {
         ...state,
         errorMessage: action.payload,
+      };
+    }
+    case StoragePoolActionType.SET_DATA_PROTECTION_POLICY: {
+      return {
+        ...state,
+        dataProtectionPolicy: action.payload,
+        ...(action.payload === 'replication' && { erasureCodingSchema: null }),
+      };
+    }
+    case StoragePoolActionType.SET_ERASURE_CODING_SCHEMA: {
+      return {
+        ...state,
+        erasureCodingSchema: action.payload,
       };
     }
     default:

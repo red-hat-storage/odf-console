@@ -1,6 +1,13 @@
 import * as React from 'react';
 import { AttachStorageAction } from '@odf/core/components/attach-storage-storagesystem/state';
-import { checkArbiterCluster } from '@odf/core/utils';
+import { ErasureCodingSchemaTable } from '@odf/core/components/create-storage-system/create-storage-system-steps/advanced-settings-step/erasure-coding/erasure-coding-schema-table';
+import { ERASURE_CODING_MIN_NODES } from '@odf/core/constants';
+import { odfPodsResource } from '@odf/core/resources';
+import {
+  checkArbiterCluster,
+  checkFlexibleScaling,
+  getNodeCountWithOSDsAndSSDDeviceClass,
+} from '@odf/core/utils';
 import {
   fieldRequirementsTranslations,
   formSettings,
@@ -13,10 +20,12 @@ import {
   ListKind,
   StorageClusterKind,
   CephClusterKind,
+  PodKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -36,6 +45,7 @@ import {
 } from '@patternfly/react-core';
 import { CaretDownIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import {
+  ERASURE_CODING_FAILURE_DOMAIN,
   OCS_DEVICE_REPLICA,
   PoolProgress,
   PoolState,
@@ -92,6 +102,8 @@ export type StoragePoolBodyProps = {
   prefixName?: string;
   usePrefix?: boolean;
   placeholder?: string;
+  /** When provided (e.g. attach storage flow), use this for EC schema validation instead of OSD pod-based count. */
+  nodeCountForErasureCoding?: number;
 };
 
 export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
@@ -107,6 +119,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   prefixName,
   usePrefix,
   placeholder,
+  nodeCountForErasureCoding: nodeCountForErasureCodingProp,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -197,6 +210,38 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   // Check storage cluster is in ready state
   const isClusterReady: boolean =
     cephCluster?.status?.phase === PoolState.READY;
+
+  const currentStorageCluster = storageCluster?.items?.[0];
+  const flexibleScaling = checkFlexibleScaling(currentStorageCluster);
+
+  const [pods] = useK8sWatchResource<PodKind[]>(odfPodsResource(poolNs ?? ''));
+  // Use nodes with OSD pods (SSD device class) for erasure coding schema table so minimal schemes are available when applicable.
+  const nodeCountForEC =
+    nodeCountForErasureCodingProp !== undefined
+      ? nodeCountForErasureCodingProp
+      : currentStorageCluster
+        ? getNodeCountWithOSDsAndSSDDeviceClass(
+            currentStorageCluster,
+            pods ?? []
+          )
+        : 0;
+  // Show erasure coding only when flexibleScaling is enabled and we have enough nodes with OSD (SSD) for at least the minimal schema.
+  const canShowErasureCoding =
+    flexibleScaling && nodeCountForEC >= ERASURE_CODING_MIN_NODES;
+
+  // When switching to erasure coding, disable compression and set failure domain to host (required for EC).
+  React.useEffect(() => {
+    if (state.dataProtectionPolicy === 'erasure-coding') {
+      dispatch({
+        type: StoragePoolActionType.SET_POOL_COMPRESSED,
+        payload: false,
+      });
+      dispatch({
+        type: StoragePoolActionType.SET_FAILURE_DOMAIN,
+        payload: ERASURE_CODING_FAILURE_DOMAIN,
+      });
+    }
+  }, [state.dataProtectionPolicy, dispatch]);
 
   // Check storage cluster is arbiter
   React.useEffect(() => {
@@ -334,7 +379,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
               <Icon status="info">
                 <InfoCircleIcon />
               </Icon>
-              <span className="pf-v6-u-disabled-color-100 pf-v6-u-font-size-sm pf-v6-u-ml-sm">
+              <span className="ceph-block-pool-body__disabled-text pf-v6-u-font-size-sm pf-v6-u-ml-sm">
                 {t(
                   'The pool name comprises a prefix followed by the user-provided name.'
                 )}
@@ -356,24 +401,79 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           )
         }
       />
-      <div className="form-group ceph-block-pool-body__input">
-        <label
-          className="control-label co-required"
-          htmlFor="pool-replica-size"
-        >
-          {t('Data protection policy')}
-        </label>
-        <Dropdown
-          className="dropdown--full-width"
-          isOpen={isReplicaOpen}
-          onSelect={() => setReplicaOpen(false)}
-          onOpenChange={(open: boolean) => setReplicaOpen(open)}
-          toggle={replicaDropdownToggle}
-          popperProps={{ width: 'trigger' }}
-        >
-          <DropdownList>{replicaDropdownItems}</DropdownList>
-        </Dropdown>
-      </div>
+      <FormGroup
+        label={t('Data protection policy')}
+        fieldId="data-protection-policy"
+        isRequired
+        className="ceph-block-pool-body__input"
+      >
+        <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-gap-md">
+          <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-gap-sm">
+            <Radio
+              label={t('Replication')}
+              value="replication"
+              id="policy-replication"
+              data-test="policy-replication"
+              name="data-protection-policy"
+              isChecked={state.dataProtectionPolicy === 'replication'}
+              onChange={() =>
+                dispatch({
+                  type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY,
+                  payload: 'replication',
+                })
+              }
+            />
+            {state.dataProtectionPolicy === 'replication' && (
+              <div className="pf-v6-u-ml-lg ceph-block-pool__replica-dropdown-wrap">
+                <Dropdown
+                  className="ceph-block-pool__replica-dropdown"
+                  isOpen={isReplicaOpen}
+                  onSelect={() => setReplicaOpen(false)}
+                  onOpenChange={(open: boolean) => setReplicaOpen(open)}
+                  toggle={replicaDropdownToggle}
+                  popperProps={{ width: 'trigger' }}
+                >
+                  <DropdownList>{replicaDropdownItems}</DropdownList>
+                </Dropdown>
+              </div>
+            )}
+            {canShowErasureCoding && (
+              <div className="pf-v6-u-mt-md">
+                <Radio
+                  label={t('Erasure coding')}
+                  value="erasure-coding"
+                  id="policy-erasure-coding"
+                  data-test="policy-erasure-coding"
+                  name="data-protection-policy"
+                  isChecked={state.dataProtectionPolicy === 'erasure-coding'}
+                  onChange={() =>
+                    dispatch({
+                      type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY,
+                      payload: 'erasure-coding',
+                    })
+                  }
+                />
+              </div>
+            )}
+          </div>
+          {state.dataProtectionPolicy === 'erasure-coding' &&
+            canShowErasureCoding && (
+              <div className="pf-v6-u-mt-md">
+                <ErasureCodingSchemaTable
+                  nodeCount={nodeCountForEC}
+                  selectedSchema={state.erasureCodingSchema}
+                  onSelectSchema={(selectedSchema) =>
+                    dispatch({
+                      type: StoragePoolActionType.SET_ERASURE_CODING_SCHEMA,
+                      payload: selectedSchema,
+                    })
+                  }
+                  showOnlySchemeAndOverhead
+                />
+              </div>
+            )}
+        </div>
+      </FormGroup>
       <div className="form-group ceph-block-pool-body__input">
         <label className="control-label" htmlFor="compression-check">
           {t('Data compression')}
@@ -387,7 +487,12 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
                 payload: event.target.checked,
               })
             }
-            checked={state.isCompressed}
+            checked={
+              state.dataProtectionPolicy === 'erasure-coding'
+                ? false
+                : state.isCompressed
+            }
+            disabled={state.dataProtectionPolicy === 'erasure-coding'}
             id="compression-check"
             name="compression-check"
             data-test="compression-checkbox"
@@ -396,6 +501,11 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
             'Optimize storage efficiency by enabling data compression within replicas.'
           )}
         </div>
+        {state.dataProtectionPolicy === 'erasure-coding' && (
+          <span className="pf-v6-u-font-size-sm ceph-block-pool-body__muted-text">
+            {t('Data compression is not used with erasure coding.')}
+          </span>
+        )}
       </div>
       {state.isCompressed && (
         <Alert

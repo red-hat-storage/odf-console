@@ -11,6 +11,8 @@ export enum PoolType {
   FILESYSTEM = 'Filesystem',
 }
 export const POOL_FS_DEFAULT = 'data0';
+/** Failure domain required for erasure coding pools (must be host). */
+export const ERASURE_CODING_FAILURE_DOMAIN = 'host';
 export const ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH =
   '/spec/managedResources/cephFilesystems/additionalDataPools';
 

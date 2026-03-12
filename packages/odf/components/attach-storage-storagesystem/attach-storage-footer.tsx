@@ -34,7 +34,8 @@ export const AttachStorageFormFooter = (
       name,
       enableStorageClassEncryption,
       encryptionKMSID,
-      deviceClass
+      deviceClass,
+      state
     ) ||
     inProgress ||
     !!errorMessage;

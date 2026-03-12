@@ -1,11 +1,14 @@
 import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
 import { NodeData, ResourceProfile } from '@odf/core/types';
 import { OCS_PROVISIONERS } from '@odf/shared';
+import { DEFAULT_DEVICECLASS } from '@odf/shared/constants';
 import { NamespaceModel } from '@odf/shared/models';
 import {
   DeviceSet,
   K8sResourceKind,
   NodeKind,
+  PodKind,
+  PodPhase,
   ResourceConstraints,
   StorageClassResourceKind,
   StorageClusterKind,
@@ -26,6 +29,10 @@ import {
   HOSTNAME_LABEL_KEY,
   LABEL_OPERATOR,
   MINIMUM_NODES,
+  OSD_APP_LABEL_KEY,
+  OSD_DEVICE_CLASS_LABEL,
+  OSD_DEVICE_SET_LABEL,
+  ROOK_CEPH_OSD,
   ocsTaint,
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
   S390X_CPU_ADJUSTMENTS,
@@ -350,3 +357,56 @@ export const labelOCSNamespace = (ns: string): Promise<any> =>
       },
     ],
   });
+
+/**
+ * Counts nodes that have at least one Running OSD pod with SSD device class.
+ * Uses pod list: filters OSD pods by OSD_APP_LABEL_KEY and ROOK_CEPH_OSD, checks phase=Running,
+ * maps each pod's OSD_DEVICE_SET_LABEL to deviceClass via StorageCluster,
+ * and counts nodes that have at least one such SSD OSD pod.
+ * Used for Day-2 storage pool erasure coding (k+m node count).
+ */
+export const getNodeCountWithOSDsAndSSDDeviceClass = (
+  storageCluster: StorageClusterKind | undefined,
+  pods: PodKind[]
+): number => {
+  if (!storageCluster?.metadata?.namespace || !pods?.length) {
+    return 0;
+  }
+  const clusterNs = storageCluster.metadata.namespace;
+  const deviceSets = storageCluster.spec?.storageDeviceSets ?? [];
+  const nodesWithSSDOSD = new Set<string>();
+  for (const pod of pods) {
+    if (pod.metadata?.namespace !== clusterNs) {
+      // skip pods in other namespaces
+    } else if (pod.status?.phase !== PodPhase.Running) {
+      // skip non-running pods
+    } else {
+      const appLabel = pod.metadata?.labels?.[OSD_APP_LABEL_KEY];
+      if (appLabel !== ROOK_CEPH_OSD) {
+        // skip non-OSD pods
+      } else {
+        const deviceSetLabel = pod.metadata?.labels?.[OSD_DEVICE_SET_LABEL];
+        const deviceClassLabel =
+          pod.metadata?.labels?.[OSD_DEVICE_CLASS_LABEL]?.toLowerCase();
+        const deviceClassFromCR =
+          deviceSetLabel != null
+            ? (deviceSets
+                .find(
+                  (ds) =>
+                    deviceSetLabel === ds.name ||
+                    deviceSetLabel.startsWith(`${ds.name}-`)
+                )
+                ?.deviceClass?.toLowerCase() ?? '')
+            : '';
+        const isSSD =
+          deviceClassFromCR === DEFAULT_DEVICECLASS ||
+          deviceClassLabel === DEFAULT_DEVICECLASS;
+        if (isSSD) {
+          const nodeName = pod.spec?.nodeName;
+          if (nodeName) nodesWithSSDOSD.add(nodeName);
+        }
+      }
+    }
+  }
+  return nodesWithSSDOSD.size;
+};

@@ -29,11 +29,14 @@ type StoragePoolFormProps = {
   state: AttachStorageFormState;
   dispatch: React.Dispatch<AttachStorageAction>;
   clusterName: string;
+  /** When provided (attach storage flow), use for EC schema validation so only valid schemes are shown. */
+  nodeCountForErasureCoding?: number;
 };
 const StoragePoolForm: React.FC<StoragePoolFormProps> = ({
   state,
   dispatch,
   clusterName,
+  nodeCountForErasureCoding,
 }) => {
   const { t } = useTranslation();
   const { namespace } = useParams();
@@ -110,6 +113,7 @@ const StoragePoolForm: React.FC<StoragePoolFormProps> = ({
           }
           usePrefix={state.poolType !== PoolType.FILESYSTEM}
           placeholder={state.lsoStorageClassName}
+          nodeCountForErasureCoding={nodeCountForErasureCoding}
         />
       )}
     </div>

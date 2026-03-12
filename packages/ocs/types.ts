@@ -23,6 +23,15 @@ type MirroringStatus = {
   };
 };
 
+/** Erasure coding pool spec under spec.dataPool (CephBlockPool EC structure). */
+export type DataPoolErasureCoding = {
+  failureDomain: string;
+  erasureCoded: {
+    dataChunks: number;
+    codingChunks: number;
+  };
+};
+
 export type StoragePoolKind = K8sResourceCommon & {
   spec: DataPool & {
     enableCrushUpdates?: boolean;
@@ -31,6 +40,13 @@ export type StoragePoolKind = K8sResourceCommon & {
     parameters?: {
       compression_mode: string;
     };
+    /** Erasure coding: data and coding chunks (e.g. 4+2). Top-level for backward compatibility. */
+    erasureCoded?: {
+      dataChunks: number;
+      codingChunks: number;
+    };
+    /** When present, erasure coding is specified under dataPool (failureDomain + erasureCoded). */
+    dataPool?: DataPoolErasureCoding;
   };
   status?: {
     phase?: PoolState;
