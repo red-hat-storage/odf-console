@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { ODF_ADMIN } from '@odf/core/features';
 import { S3ProviderType } from '@odf/core/types';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import {
   S3_CREDENTIALS_SESSION_STORE_KEY,
   S3_CREDENTIALS_LOCAL_STORE_KEY,
@@ -62,15 +64,14 @@ const clearStore = (storageType: StorageType) => {
   }
 };
 
-// We only need this hook for non-admin users
-export const useStorage = (
-  provider: S3ProviderType,
-  isAdmin: boolean = false
-) => {
+// We only need this hook for non-admin (Provider) & Client cluster users
+export const useStorage = (provider: S3ProviderType) => {
   const [secretRef, setSecretRef] = React.useState<SecretRef | null>(null);
   const [storageType, setStorageType] = React.useState<StorageType | null>(
     null
   );
+
+  const isAdmin = useFlag(ODF_ADMIN);
 
   // Current-tab, initial load (session has more priority than local)
   React.useEffect(() => {

@@ -3,6 +3,7 @@ import { S3ProviderType } from '@odf/core/types';
 import { IAM_PROVIDER_REGISTRY } from '../registry/iam-providers';
 import { S3_PROVIDER_REGISTRY, ProviderConfig } from '../registry/s3-providers';
 import { ClientType } from '../types';
+import { useStorageClientInfo } from './useStorageClientInfo';
 import { useSystemInfo } from './useSystemInfo';
 
 type UseProviderConfigResult = {
@@ -15,7 +16,20 @@ export const useProviderConfig = (
   providerType: S3ProviderType,
   type: ClientType = ClientType.S3
 ): UseProviderConfigResult => {
-  const { data: systemInfo, odfNamespace, isLoading, error } = useSystemInfo();
+  const {
+    data: systemInfo,
+    odfNamespace,
+    isLoading: systemLoading,
+    error: systemInfoError,
+  } = useSystemInfo();
+  const {
+    data: storageClientInfo,
+    isLoaded: clientsLoaded,
+    clientsError,
+  } = useStorageClientInfo();
+
+  const isLoading = systemLoading || !clientsLoaded;
+  const error = systemInfoError || clientsError;
 
   return React.useMemo(() => {
     const registryEntry =
@@ -40,7 +54,11 @@ export const useProviderConfig = (
 
     const transformedConfig =
       !!systemInfo && registryEntry.dynamicConfig
-        ? registryEntry.dynamicConfig.getConfig(systemInfo, odfNamespace)
+        ? registryEntry.dynamicConfig.getConfig(
+            systemInfo,
+            odfNamespace,
+            storageClientInfo
+          )
         : null;
 
     if (!!transformedConfig && !transformedConfig.adminSecretNamespace) {
@@ -52,5 +70,13 @@ export const useProviderConfig = (
       isLoading,
       error,
     };
-  }, [providerType, type, odfNamespace, systemInfo, isLoading, error]);
+  }, [
+    providerType,
+    type,
+    odfNamespace,
+    systemInfo,
+    storageClientInfo,
+    isLoading,
+    error,
+  ]);
 };
