@@ -1,20 +1,24 @@
 import * as React from 'react';
 import { DASH, getAlertManagerSilenceEndpoint } from '@odf/shared';
 import { dateTimeFormatter } from '@odf/shared/details-page/datetime';
+import { StorageClusterModel } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   SelectableTable,
   TableColumnProps,
   RowComponentType,
   TableVariant,
 } from '@odf/shared/table';
+import { StorageClusterKind, Patch } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { fuzzyCaseInsensitive } from '@odf/shared/utils';
-import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetch, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert,
   AlertVariant,
   Button,
   ButtonVariant,
+  Divider,
   MenuToggle,
   MenuToggleElement,
   SearchInput,
@@ -35,13 +39,18 @@ type SilencedAlertsTableProps = {
   error?: any;
   alertManagerBasePath: string;
   onRefresh: () => void;
+  storageCluster?: StorageClusterKind;
 };
 
 const RowRenderer: React.FC<RowComponentType<SilencedAlertRowData>> = ({
   row,
 }) => {
   const { t } = useCustomTranslation();
-  const silencedOnDisplay = row.silencedOn
+  const isIndefinite = row.silenceType === 'indefinite';
+
+  // Check if silencedOn is a valid date (not epoch which is used as placeholder for indefinite)
+  const isValidDate = row.silencedOn && row.silencedOn.getTime() > 0;
+  const silencedOnDisplay = isValidDate
     ? dateTimeFormatter.format(row.silencedOn)
     : DASH;
   const untilDisplay = row.endsOn ? dateTimeFormatter.format(row.endsOn) : DASH;
@@ -51,7 +60,11 @@ const RowRenderer: React.FC<RowComponentType<SilencedAlertRowData>> = ({
       <Td dataLabel={t('Silenced on')}>
         <div>{silencedOnDisplay}</div>
         <div className="pf-v6-u-color-200">
-          {row.endsOn ? t('Until {{time}}', { time: untilDisplay }) : DASH}
+          {isIndefinite
+            ? t('Indefinite')
+            : row.endsOn
+              ? t('Until {{time}}', { time: untilDisplay })
+              : DASH}
         </div>
       </Td>
       <Td dataLabel={t('Check')}>
@@ -63,86 +76,190 @@ const RowRenderer: React.FC<RowComponentType<SilencedAlertRowData>> = ({
   );
 };
 
+// Severity filter values
+const SEVERITY_FILTERS = ['critical', 'moderate', 'minor'] as const;
+// Silence type filter values
+const SILENCE_TYPE_FILTERS = ['indefinite', 'time-limited'] as const;
+
 export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
   alerts,
   loaded,
   error,
   alertManagerBasePath,
   onRefresh,
+  storageCluster,
 }) => {
   const { t } = useCustomTranslation();
   const [selectedAlerts, setSelectedAlerts] = React.useState<
     SilencedAlertRowData[]
   >([]);
   const [nameFilter, setNameFilter] = React.useState('');
-  const [severityFilter, setSeverityFilter] = React.useState('all');
-  const [isSeverityOpen, setIsSeverityOpen] = React.useState(false);
+  const [selectedFilters, setSelectedFilters] = React.useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [isUnsilencing, setIsUnsilencing] = React.useState(false);
   const [actionError, setActionError] = React.useState<any>();
 
-  const severityOptions = React.useMemo(
+  const filterOptions = React.useMemo(
     () => [
-      { value: 'all', label: t('All checks') },
-      { value: 'critical', label: t('Critical') },
-      { value: 'moderate', label: t('Moderate') },
-      { value: 'minor', label: t('Minor') },
+      { value: 'all', label: t('All checks'), isAllOption: true },
+      { value: 'divider-top', label: '', isDivider: true },
+      { value: 'critical', label: t('Critical'), category: 'severity' },
+      { value: 'moderate', label: t('Moderate'), category: 'severity' },
+      { value: 'minor', label: t('Minor'), category: 'severity' },
+      { value: 'divider', label: '', isDivider: true },
+      { value: 'indefinite', label: t('Indefinite'), category: 'silenceType' },
+      {
+        value: 'time-limited',
+        label: t('Time-limited'),
+        category: 'silenceType',
+      },
     ],
     [t]
   );
 
-  const filteredAlerts = React.useMemo(
-    () =>
-      alerts.filter((alert) => {
-        // Filter by severity using the SEVERITY_MAP
-        let severityMatch = true;
-        if (severityFilter !== 'all') {
-          const targetSeverity = SEVERITY_MAP[severityFilter];
-          if (targetSeverity) {
-            severityMatch =
-              alert.severity.toLowerCase() === targetSeverity.toLowerCase();
-          }
-        }
+  const filteredAlerts = React.useMemo(() => {
+    // Extract selected severity and silence type filters
+    const selectedSeverities = selectedFilters.filter((f) =>
+      SEVERITY_FILTERS.includes(f as (typeof SEVERITY_FILTERS)[number])
+    );
+    const selectedSilenceTypes = selectedFilters.filter((f) =>
+      SILENCE_TYPE_FILTERS.includes(f as (typeof SILENCE_TYPE_FILTERS)[number])
+    );
 
-        const nameMatch =
-          !nameFilter.trim() ||
-          fuzzyCaseInsensitive(nameFilter, alert.alertname) ||
-          fuzzyCaseInsensitive(nameFilter, alert.details);
-        return severityMatch && nameMatch;
-      }),
-    [alerts, severityFilter, nameFilter]
+    return alerts.filter((alert) => {
+      // If no filters selected, show all
+      // If severity filters selected, alert must match one of them
+      if (selectedSeverities.length > 0) {
+        const alertSeverity = alert.severity.toLowerCase();
+        const matchesSeverity = selectedSeverities.some((filter) => {
+          const targetSeverity = SEVERITY_MAP[filter];
+          return (
+            targetSeverity && alertSeverity === targetSeverity.toLowerCase()
+          );
+        });
+        if (!matchesSeverity) return false;
+      }
+
+      // If silence type filters selected, alert must match one of them
+      if (selectedSilenceTypes.length > 0) {
+        if (!selectedSilenceTypes.includes(alert.silenceType)) return false;
+      }
+
+      // Name filter
+      const nameMatch =
+        !nameFilter.trim() ||
+        fuzzyCaseInsensitive(nameFilter, alert.alertname) ||
+        fuzzyCaseInsensitive(nameFilter, alert.details);
+      return nameMatch;
+    });
+  }, [alerts, selectedFilters, nameFilter]);
+
+  const onFilterSelect = React.useCallback(
+    (_event: React.MouseEvent | undefined, selection: string) => {
+      // Ignore divider clicks
+      if (selection === 'divider' || selection === 'divider-top') return;
+
+      // "All checks" clears all filters
+      if (selection === 'all') {
+        setSelectedFilters([]);
+        setIsFilterOpen(false);
+        return;
+      }
+
+      setSelectedFilters((prev) => {
+        if (prev.includes(selection)) {
+          // Remove if already selected
+          return prev.filter((f) => f !== selection);
+        } else {
+          // Add to selection
+          return [...prev, selection];
+        }
+      });
+    },
+    []
   );
 
-  const onSeveritySelect = React.useCallback((_event, selection: string) => {
-    setSeverityFilter(selection);
-    setIsSeverityOpen(false);
+  const clearFilters = React.useCallback(() => {
+    setSelectedFilters([]);
   }, []);
 
   const onUnsilence = async () => {
-    if (!alertManagerBasePath) {
-      return;
-    }
     setIsUnsilencing(true);
     setActionError(undefined);
     try {
-      await Promise.all(
-        selectedAlerts.map((alert) =>
-          consoleFetch(
-            getAlertManagerSilenceEndpoint(
-              alertManagerBasePath,
-              alert.silenceId
-            ),
-            {
-              method: 'DELETE',
-            }
-          ).then((response) => {
-            if (!response?.ok) {
-              throw new Error(
-                `${response.status} ${response.statusText || t('Unknown error')}`
-              );
-            }
-          })
-        )
+      // Segregate by type
+      const indefiniteAlerts = selectedAlerts.filter(
+        (a) => a.silenceType === 'indefinite'
       );
+      const timeLimitedAlerts = selectedAlerts.filter(
+        (a) => a.silenceType === 'time-limited'
+      );
+
+      const promises: Promise<unknown>[] = [];
+
+      // Handle time-limited via Alertmanager DELETE
+      if (timeLimitedAlerts.length > 0 && alertManagerBasePath) {
+        promises.push(
+          ...timeLimitedAlerts.map((alert) =>
+            consoleFetch(
+              getAlertManagerSilenceEndpoint(
+                alertManagerBasePath,
+                alert.silenceId
+              ),
+              {
+                method: 'DELETE',
+              }
+            ).then((response) => {
+              if (!response?.ok) {
+                throw new Error(
+                  `${response.status} ${response.statusText || t('Unknown error')}`
+                );
+              }
+            })
+          )
+        );
+      }
+
+      // Handle indefinite via StorageCluster CR patch
+      if (indefiniteAlerts.length > 0 && storageCluster) {
+        const alertNamesToRemove = new Set(
+          indefiniteAlerts.map((a) => a.alertname)
+        );
+        const currentDisabledAlerts =
+          storageCluster.spec?.monitoring?.disabledAlerts || [];
+        const newDisabledAlerts = currentDisabledAlerts.filter(
+          (alert) => !alertNamesToRemove.has(alert.alertName)
+        );
+
+        // Skip patch if nothing changed (alerts to remove weren't in the list)
+        if (newDisabledAlerts.length !== currentDisabledAlerts.length) {
+          const patch: Patch[] =
+            newDisabledAlerts.length === 0
+              ? [{ op: 'remove', path: '/spec/monitoring/disabledAlerts' }]
+              : [
+                  {
+                    op: 'replace',
+                    path: '/spec/monitoring/disabledAlerts',
+                    value: newDisabledAlerts,
+                  },
+                ];
+
+          promises.push(
+            k8sPatch({
+              model: StorageClusterModel,
+              resource: {
+                metadata: {
+                  name: getName(storageCluster),
+                  namespace: getNamespace(storageCluster),
+                },
+              },
+              data: patch,
+            })
+          );
+        }
+      }
+
+      await Promise.all(promises);
       setSelectedAlerts([]);
     } catch (err) {
       setActionError(err);
@@ -178,21 +295,54 @@ export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
     [t]
   );
 
-  const isUnsilenceDisabled =
-    !selectedAlerts.length || !alertManagerBasePath || isUnsilencing;
+  // Check if any selected alerts can be unsilenced
+  const hasTimeLimited = selectedAlerts.some(
+    (a) => a.silenceType === 'time-limited'
+  );
+  const hasIndefinite = selectedAlerts.some(
+    (a) => a.silenceType === 'indefinite'
+  );
+  const canUnsilenceTimeLimited = hasTimeLimited && alertManagerBasePath;
+  const canUnsilenceIndefinite = hasIndefinite && storageCluster;
 
-  const renderSeverityToggle = React.useCallback(
+  const isUnsilenceDisabled =
+    !selectedAlerts.length ||
+    isUnsilencing ||
+    (hasTimeLimited && !alertManagerBasePath) ||
+    (hasIndefinite && !storageCluster) ||
+    (!canUnsilenceTimeLimited && !canUnsilenceIndefinite);
+
+  const getFilterToggleText = React.useCallback(() => {
+    if (selectedFilters.length === 0) {
+      return t('All checks');
+    }
+    if (selectedFilters.length === 1) {
+      return (
+        filterOptions.find((opt) => opt.value === selectedFilters[0])?.label ||
+        selectedFilters[0]
+      );
+    }
+    return t('{{count}} filters', { count: selectedFilters.length });
+  }, [selectedFilters, filterOptions, t]);
+
+  const renderFilterToggle = React.useCallback(
     (toggleRef: React.Ref<MenuToggleElement>) => (
       <MenuToggle
         ref={toggleRef}
-        onClick={() => setIsSeverityOpen((prev) => !prev)}
-        isExpanded={isSeverityOpen}
+        onClick={() => setIsFilterOpen((prev) => !prev)}
+        isExpanded={isFilterOpen}
+        badge={
+          selectedFilters.length > 0 ? (
+            <span className="pf-v6-c-menu-toggle__count">
+              {selectedFilters.length}
+            </span>
+          ) : undefined
+        }
       >
-        {severityOptions.find((opt) => opt.value === severityFilter)?.label ||
-          t('All checks')}
+        {getFilterToggleText()}
       </MenuToggle>
     ),
-    [severityFilter, isSeverityOpen, severityOptions, t]
+    [isFilterOpen, selectedFilters.length, getFilterToggleText]
   );
 
   return (
@@ -201,24 +351,43 @@ export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
         <ToolbarContent>
           <ToolbarItem>
             <Select
-              aria-label={t('Filter by severity')}
-              isOpen={isSeverityOpen}
-              toggle={renderSeverityToggle}
-              onOpenChange={setIsSeverityOpen}
-              onSelect={onSeveritySelect}
-              selected={severityFilter}
+              aria-label={t('Filter by type')}
+              isOpen={isFilterOpen}
+              toggle={renderFilterToggle}
+              onOpenChange={setIsFilterOpen}
+              onSelect={onFilterSelect}
+              selected={selectedFilters}
               shouldFocusFirstItemOnOpen
-              shouldFocusToggleOnSelect
             >
               <SelectList>
-                {severityOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
+                {filterOptions.map((option) =>
+                  option.isDivider ? (
+                    <Divider key={option.value} component="li" />
+                  ) : option.isAllOption ? (
+                    <SelectOption key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectOption>
+                  ) : (
+                    <SelectOption
+                      key={option.value}
+                      value={option.value}
+                      hasCheckbox
+                      isSelected={selectedFilters.includes(option.value)}
+                    >
+                      {option.label}
+                    </SelectOption>
+                  )
+                )}
               </SelectList>
             </Select>
           </ToolbarItem>
+          {selectedFilters.length > 0 && (
+            <ToolbarItem>
+              <Button variant={ButtonVariant.link} onClick={clearFilters}>
+                {t('Clear filters')}
+              </Button>
+            </ToolbarItem>
+          )}
           <ToolbarItem>
             <SearchInput
               aria-label={t('Find by name')}

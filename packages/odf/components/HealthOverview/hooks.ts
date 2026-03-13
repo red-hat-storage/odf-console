@@ -14,6 +14,7 @@ import {
 import { useAlertManagerBasePath } from '@odf/shared/hooks/custom-prometheus-poll/utils';
 import { PrometheusRuleModel } from '@odf/shared/models';
 import useAlerts from '@odf/shared/monitoring/useAlert';
+import { DisabledAlert, StorageClusterKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
@@ -366,6 +367,8 @@ type AlertmanagerSilence = {
   updatedAt?: string;
 };
 
+export type SilenceType = 'time-limited' | 'indefinite';
+
 export type SilencedAlertRowData = K8sResourceCommon & {
   silenceId: string;
   alertname: string;
@@ -373,6 +376,7 @@ export type SilencedAlertRowData = K8sResourceCommon & {
   endsOn?: Date;
   severity: string;
   details: string;
+  silenceType: SilenceType;
 };
 
 const mapSilencesToRows = (
@@ -426,9 +430,32 @@ const mapSilencesToRows = (
         endsOn,
         severity,
         details,
+        silenceType: 'time-limited',
         metadata: { uid: silence.id },
       } as SilencedAlertRowData;
     });
+};
+
+/**
+ * Maps StorageCluster disabledAlerts to SilencedAlertRowData for indefinite silences.
+ */
+const mapIndefiniteSilencesToRows = (
+  disabledAlerts: DisabledAlert[] = [],
+  templateMap: Map<string, string>,
+  allowedAlertNames: Set<string>
+): SilencedAlertRowData[] => {
+  return disabledAlerts
+    .filter((alert) => allowedAlertNames.has(alert.alertName))
+    .map((alert) => ({
+      silenceId: `indefinite-${alert.alertName}`,
+      alertname: alert.alertName,
+      silencedOn: new Date(alert.disabledAt),
+      endsOn: undefined,
+      severity: 'info',
+      details: templateMap.get(alert.alertName) || alert.alertName,
+      silenceType: 'indefinite' as SilenceType,
+      metadata: { uid: `indefinite-${alert.alertName}` },
+    }));
 };
 
 /**
@@ -466,23 +493,30 @@ const alertMatchesSilence = (
 };
 
 /**
- * Filters out alerts that are currently silenced
+ * Filters out alerts that are currently silenced (via Alertmanager or indefinitely via StorageCluster).
  */
 export const filterOutSilencedAlerts = (
   alerts: AlertRowData[],
-  silences: AlertmanagerSilence[] = []
+  silences: AlertmanagerSilence[] = [],
+  disabledAlerts: DisabledAlert[] = []
 ): AlertRowData[] => {
-  if (!silences.length) {
+  const disabledSet = new Set(disabledAlerts.map((a) => a.alertName));
+
+  if (!silences.length && !disabledSet.size) {
     return alerts;
   }
 
   return alerts.filter((alert) => {
-    // Check if this alert matches any active silence
+    // Check indefinite silences first (from StorageCluster disabledAlerts)
+    if (disabledSet.has(alert.alertname)) {
+      return false;
+    }
+    // Check Alertmanager silences
     return !silences.some((silence) => alertMatchesSilence(alert, silence));
   });
 };
 
-export const useSilencedAlerts = () => {
+export const useSilencedAlerts = (storageCluster?: StorageClusterKind) => {
   const alertManagerBasePath = useAlertManagerBasePath();
   const silencesURL = alertManagerBasePath
     ? `${alertManagerBasePath}/${ALERTMANAGER_SILENCES_PATH}`
@@ -505,9 +539,24 @@ export const useSilencedAlerts = () => {
     error: rulesError,
   } = useHealthRules();
 
-  const silencedAlerts = React.useMemo(
+  const disabledAlerts = React.useMemo(
+    () => storageCluster?.spec?.monitoring?.disabledAlerts || [],
+    [storageCluster?.spec?.monitoring?.disabledAlerts]
+  );
+
+  const timeLimitedSilences = React.useMemo(
     () => mapSilencesToRows(silences, templates, ruleNames),
     [silences, templates, ruleNames]
+  );
+
+  const indefiniteSilences = React.useMemo(
+    () => mapIndefiniteSilencesToRows(disabledAlerts, templates, ruleNames),
+    [disabledAlerts, templates, ruleNames]
+  );
+
+  const silencedAlerts = React.useMemo(
+    () => [...timeLimitedSilences, ...indefiniteSilences],
+    [timeLimitedSilences, indefiniteSilences]
   );
 
   const refreshSilencedAlerts = React.useCallback(
@@ -528,5 +577,7 @@ export const useSilencedAlerts = () => {
     refreshSilencedAlerts,
     // Expose raw silences for filtering
     silences,
+    // Expose disabledAlerts for filtering
+    disabledAlerts,
   };
 };
