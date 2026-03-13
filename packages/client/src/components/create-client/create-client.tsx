@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ButtonBar, useCustomTranslation } from '@odf/shared';
+import { StorageClientModel } from '@odf/shared/models';
 import {
   getAPIVersionForModel,
   k8sCreate,
@@ -21,7 +22,6 @@ import {
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
-import { StorageClientModel } from '../../models';
 import './create-client.scss';
 import '../../../style.scss';
 
