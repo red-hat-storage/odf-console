@@ -1,3 +1,4 @@
+import { ODF_ADMIN } from '@odf/core/features';
 import { ODF_PROXY_ROOT_PATH } from '@odf/shared/constants';
 import { NooBaaObjectBucketModel } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -5,8 +6,12 @@ import {
   referenceForModel,
   getValidWatchK8sResourceObj,
   swrFetcher,
+  isClientPlugin,
 } from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useK8sWatchResource,
+  useFlag,
+} from '@openshift-console/dynamic-plugin-sdk';
 import useSWR from 'swr';
 
 enum CreationMethod {
@@ -25,10 +30,15 @@ type UseBucketOriginResult = {
 
 export const useBucketOrigin = (
   bucketName: string,
-  foldersPath: string | null,
-  isAdmin: boolean
+  foldersPath: string | null
 ): UseBucketOriginResult => {
-  // Admin flow: Use K8s watch resource (only when isAdmin is true)
+  const isAdmin = useFlag(ODF_ADMIN);
+  const isClientCluster = isClientPlugin();
+
+  const isAdminOrClientCluster = isAdmin || isClientCluster;
+
+  // Admin (Provider) flow & Client cluster flow:
+  // Use K8s watch resource to fetch CRs
   const [objectBuckets, objectBucketsLoaded, objectBucketsError] =
     useK8sWatchResource<K8sResourceKind[]>(
       getValidWatchK8sResourceObj(
@@ -37,13 +47,14 @@ export const useBucketOrigin = (
           namespaced: false,
           isList: true,
         },
-        isAdmin && !foldersPath // Only watch when admin and not in folder view
+        // Only watch when admin or client cluster, and not in folder view
+        isAdminOrClientCluster && !foldersPath
       )
     );
 
-  // Non-admin flow: Use SWR to fetch from proxy endpoint (only when isAdmin is false)
-  // Key will be "null" for admin users, preventing SWR from making requests
-  const swrKey = !isAdmin
+  // Non-admin (Provider) flow: Use SWR to fetch from proxy endpoint
+  // Key will be "null", preventing SWR from making requests
+  const swrKey = !isAdminOrClientCluster
     ? `${ODF_PROXY_ROOT_PATH}/provider-proxy/info/bucket/${encodeURIComponent(bucketName)}`
     : null;
 
@@ -53,7 +64,7 @@ export const useBucketOrigin = (
     isLoading: swrLoading,
   } = useSWR<BucketResponse>(swrKey, swrFetcher);
 
-  if (isAdmin) {
+  if (isAdminOrClientCluster) {
     // Use K8s watch data
     const noobaaObjectBucket: K8sResourceKind = objectBuckets?.find(
       (ob) => ob.spec?.endpoint?.bucketName === bucketName

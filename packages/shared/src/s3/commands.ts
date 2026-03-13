@@ -197,3 +197,22 @@ export class S3Commands extends S3Client {
     return uploader;
   };
 }
+
+// Management operations (ListBuckets, CORS, Policy, Rules etc) will tunnel through the cluster (via a nginx "reverse proxy")
+// Data operations (upload, getObject etc) will go directly to the S3 endpoint (eg: Route)
+const DATA_OPERATION_COMMANDS = ['getObject', 'getSignedUrl', 'getUploader'];
+export const dataPathSeparationProxy = (
+  managementOpsClient: S3Commands,
+  dataOpsClient: S3Commands | null
+): S3Commands => {
+  return new Proxy(managementOpsClient, {
+    get(target, prop) {
+      const value = target[prop];
+      if (typeof value !== 'function') return value;
+      const isDataOp =
+        !!dataOpsClient && DATA_OPERATION_COMMANDS.includes(prop as string);
+      const client = isDataOp ? dataOpsClient : target;
+      return client[prop].bind(client);
+    },
+  });
+};

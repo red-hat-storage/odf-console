@@ -5,6 +5,7 @@ import {
   useODFNamespaceSelector,
 } from '@odf/core/redux';
 import { ODF_PROXY_ROOT_PATH } from '@odf/shared/constants/common';
+import { isClientPlugin } from '@odf/shared/utils';
 import {
   useFlag,
   consoleFetchJSON,
@@ -39,19 +40,23 @@ type UseSystemInfoResult = {
   error: unknown;
 };
 
+// We only need this hook for Provider (admin or non-admin) cluster users
 export const useSystemInfo = (): UseSystemInfoResult => {
   const isAdmin = useFlag(ODF_ADMIN);
   const isMcg = useFlag(MCG_FLAG);
+  const isClientCluster = isClientPlugin();
 
-  // For admin users, use ODF "systemFlags" (since it's already fetched)
+  const isAdminOrClientCluster = isAdmin || isClientCluster;
+
+  // For admin (Provider) users, use ODF "systemFlags" (since it's already fetched)
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
 
-  // For non-admin users, use SWR with conditional polling (since user won't have access to the ODF "systemFlags")
+  // For non-admin (Provider) users, use SWR with conditional polling (since user won't have access to the ODF "systemFlags")
   // Key will be "null" for admin users, preventing SWR from making requests
-  const swrKey = !isAdmin
+  const swrKey = !isAdminOrClientCluster
     ? `${ODF_PROXY_ROOT_PATH}/provider-proxy/info/storages`
     : null;
 
@@ -80,15 +85,15 @@ export const useSystemInfo = (): UseSystemInfoResult => {
   // Trigger one last fetch when "MCG" flag flips to true
   // Also abort any previous poll fetch (if any)
   React.useEffect(() => {
-    if (isMcg && !isAdmin && prevIsMcg.current !== isMcg) {
+    if (isMcg && !isAdminOrClientCluster && prevIsMcg.current !== isMcg) {
       abortRef.current?.abort();
       mutate();
     }
     prevIsMcg.current = isMcg;
-  }, [isMcg, isAdmin, mutate]);
+  }, [isMcg, isAdminOrClientCluster, mutate]);
 
   const swrConvertedData = React.useMemo(() => {
-    if (isAdmin) return null;
+    if (isAdminOrClientCluster) return null;
 
     return Object.entries(swrData?.clusterNamespaces || {}).reduce(
       (acc, [namespace, info]) => {
@@ -103,7 +108,7 @@ export const useSystemInfo = (): UseSystemInfoResult => {
       },
       {} as SystemInfoData
     );
-  }, [swrData, isAdmin]);
+  }, [swrData, isAdminOrClientCluster]);
 
   if (isAdmin) {
     return {

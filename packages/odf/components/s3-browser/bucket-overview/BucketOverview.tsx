@@ -209,7 +209,7 @@ const BucketOverview: React.FC<{}> = () => {
 
   // "isCreatedByOBC" denotes whether bucket is created via OBC or S3 endpoint (will be false if we are inside folder view)
   const { isCreatedByOBC, noobaaObjectBucket, isLoading, error } =
-    useBucketOrigin(bucketName, foldersPath, isAdmin);
+    useBucketOrigin(bucketName, foldersPath);
 
   const allowResourceEditing = isAdmin && isCreatedByOBC && _.isEmpty(error);
 
