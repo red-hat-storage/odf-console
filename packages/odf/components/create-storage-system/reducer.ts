@@ -109,6 +109,8 @@ export const initialState: CreateStorageSystemState = {
     chartNodes: new Set(),
   },
   securityAndNetwork: {
+    usePublicNetwork: false,
+    useClusterNetwork: false,
     encryption: {
       inTransit: false,
       clusterWide: false,
@@ -183,6 +185,8 @@ type CreateStorageSystemState = {
     volumeValidationType: VolumeTypeValidation;
   };
   securityAndNetwork: {
+    usePublicNetwork: boolean;
+    useClusterNetwork: boolean;
     encryption: EncryptionType;
     kms: KMSConfig;
     publicNetwork: NetworkAttachmentDefinitionKind;
@@ -211,6 +215,7 @@ export type WizardNodeState = {
   labels: NodeKind['metadata']['labels'];
   taints: NodeKind['spec']['taints'];
   architecture: string;
+  annotations?: NodeKind['metadata']['annotations'];
 };
 
 export type CapacityAutoScalingState = {
@@ -462,6 +467,24 @@ export const reducer: WizardReducer = (prevState, action) => {
       break;
     case 'securityAndNetwork/setNetworkType':
       newState.securityAndNetwork.networkType = action.payload;
+      if (action.payload !== NetworkType.NIC) {
+        newState.securityAndNetwork.usePublicNetwork = false;
+        newState.securityAndNetwork.useClusterNetwork = false;
+        newState.securityAndNetwork.addressRanges.public = [];
+        newState.securityAndNetwork.addressRanges.cluster = [];
+      }
+      break;
+    case 'securityAndNetwork/setUsePublicNetwork':
+      newState.securityAndNetwork.usePublicNetwork = action.payload;
+      if (!action.payload) {
+        newState.securityAndNetwork.addressRanges.public = [];
+      }
+      break;
+    case 'securityAndNetwork/setUseClusterNetwork':
+      newState.securityAndNetwork.useClusterNetwork = action.payload;
+      if (!action.payload) {
+        newState.securityAndNetwork.addressRanges.cluster = [];
+      }
       break;
     case 'securityAndNetwork/setPublicCIDR':
       newState.securityAndNetwork.addressRanges.public = action.payload;
@@ -602,6 +625,14 @@ export type CreateStorageSystemAction =
   | {
       type: 'securityAndNetwork/setNetworkType';
       payload: WizardState['securityAndNetwork']['networkType'];
+    }
+  | {
+      type: 'securityAndNetwork/setUsePublicNetwork';
+      payload: boolean;
+    }
+  | {
+      type: 'securityAndNetwork/setUseClusterNetwork';
+      payload: boolean;
     }
   | {
       type: 'advancedSettings/useExternalPostgres';
