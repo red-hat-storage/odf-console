@@ -1,16 +1,8 @@
 import * as React from 'react';
-import { HEALTH_SCORE_QUERY } from '@odf/core/components/odf-dashboard/queries';
 import { TWENTY_FOUR_HOURS } from '@odf/shared/constants';
-import {
-  useCustomPrometheusPoll,
-  usePrometheusBasePath,
-} from '@odf/shared/hooks/custom-prometheus-poll';
 import useRefWidth from '@odf/shared/hooks/ref-width';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  AlertSeverity,
-  PrometheusEndpoint,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { AlertSeverity } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Chart,
   ChartArea,
@@ -42,28 +34,22 @@ import {
   useSilencedAlerts,
   filterOutSilencedAlerts,
 } from '../../HealthOverview/hooks';
+import { useHealthScoreData } from './useHealthScoreData';
 import './health-overview-card.scss';
-
-type HealthDataPoint = {
-  x: number;
-  y: number;
-  name: string;
-};
 
 export const HealthOverviewCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
   const [chartRef, chartWidth] = useRefWidth();
-  const basePath = usePrometheusBasePath();
 
-  // Fetch health score metric over time (range query)
-  const [healthScoreData, healthScoreError, healthScoreLoading] =
-    useCustomPrometheusPoll({
-      query: HEALTH_SCORE_QUERY,
-      endpoint: PrometheusEndpoint.QUERY_RANGE,
-      basePath,
-      timespan: TWENTY_FOUR_HOURS,
-    });
+  // Hybrid approach: instant query for current score, range query for chart
+  // Auto-refetch is enabled when stale data is detected
+  const {
+    currentHealthScore,
+    chartData,
+    isLoading: healthScoreLoading,
+    error: healthScoreError,
+  } = useHealthScoreData();
 
   // Fetch alerts for counting active issues by severity
   const [healthAlerts, healthAlertsLoaded, healthAlertsError] =
@@ -99,32 +85,6 @@ export const HealthOverviewCard: React.FC = () => {
     );
   }, [healthAlerts, silences]);
 
-  // Process health score data for chart
-  const chartData: HealthDataPoint[] = React.useMemo(() => {
-    if (!healthScoreData?.data?.result?.[0]?.values) return [];
-
-    return healthScoreData.data.result[0].values
-      .map((value): HealthDataPoint | null => {
-        const [timestamp, scoreValue] = value;
-        const score = parseFloat(scoreValue);
-        if (Number.isNaN(score)) {
-          return null;
-        }
-        const date = new Date(timestamp * 1000);
-
-        return {
-          x: timestamp * 1000, // Use milliseconds for x-axis
-          y: score,
-          name: `${score.toFixed(1)}% at ${date.toLocaleTimeString()}`,
-        };
-      })
-      .filter((item): item is HealthDataPoint => item !== null);
-  }, [healthScoreData]);
-
-  // Get current health score (latest value)
-  const currentHealthScore =
-    chartData.length > 0 ? chartData[chartData.length - 1].y : null;
-
   // Calculate fixed 24-hour x-axis domain (now - 24h to now)
   const xDomain = React.useMemo((): [number, number] => {
     const now = Date.now();
@@ -136,7 +96,7 @@ export const HealthOverviewCard: React.FC = () => {
   const isLoading = healthScoreLoading || isAlertsLoading;
 
   const hasError = healthScoreError || healthAlertsError || silencedAlertsError;
-  const hasNoData = chartData.length === 0;
+  const hasNoData = chartData.length === 0 && currentHealthScore === null;
   const showEmptyState = isLoading || hasError || hasNoData;
 
   // Determine specific error message
