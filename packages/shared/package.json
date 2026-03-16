@@ -1,7 +1,6 @@
 {
   "name": "@odf-console/shared",
   "version": "0.0.0-beta17",
-  "private": false,
   "description": "ODF console shared code.",
   "keywords": [
     "openshift",
