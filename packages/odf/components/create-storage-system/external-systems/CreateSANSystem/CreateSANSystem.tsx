@@ -28,6 +28,7 @@ import {
 } from '@patternfly/react-core';
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
+import type { ExternalKMMRegistryConfig } from '../common/payload';
 import {
   configureMetricsNamespaceLabels,
   createScaleLocalClusterPayload,
@@ -76,19 +77,26 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
 
   const existingFileSystemNames = useExistingFileSystemNames();
 
+  const [
+    hasPersistentRegistry,
+    hasPersistentRegistryLoaded,
+    hasPersistentRegistryError,
+  ] = usePersistentRegistryCheck();
+
+  const showRegistrySection =
+    hasPersistentRegistryLoaded && !hasPersistentRegistryError;
+
   const {
     fieldRequirements,
     control,
     formState: { isSubmitted },
     watch,
     getValues,
-  } = useSANSystemFormValidation(existingFileSystemNames);
-
-  const [
-    hasPersistentRegistry,
-    hasPersistentRegistryLoaded,
-    hasPersistentRegistryError,
-  ] = usePersistentRegistryCheck();
+  } = useSANSystemFormValidation(
+    existingFileSystemNames,
+    hasPersistentRegistry ?? false,
+    showRegistrySection
+  );
 
   const selectedNodes = componentState.selectedNodes;
 
@@ -99,16 +107,16 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
   const imageRegistryUrl = watch('imageRegistryUrl');
   const imageRepositoryName = watch('imageRepositoryName');
   const secretKey = watch('secretKey');
-  const caCertificateSecret = watch('caCertificateSecret');
-  const privateKeySecret = watch('privateKeySecret');
+
+  const registryFieldsValid = !showRegistrySection
+    ? true
+    : hasPersistentRegistry
+      ? !!(imageRegistryUrl && imageRepositoryName)
+      : !!secretKey;
 
   const isFormValid = !!(
     lunGroupName &&
-    imageRegistryUrl &&
-    imageRepositoryName &&
-    secretKey &&
-    caCertificateSecret &&
-    privateKeySecret &&
+    registryFieldsValid &&
     componentState.selectedNodes.length > 0 &&
     componentState.selectedLUNs.size > 0
   );
@@ -128,24 +136,30 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     try {
       if (!isLocalClusterConfigured) {
         await labelNodes(componentState.selectedNodes)();
-        const externalKmmRegistry =
-          !hasPersistentRegistry &&
-          (() => {
-            const values = getValues();
-            return values.imageRegistryUrl &&
-              values.imageRepositoryName &&
-              values.secretKey &&
-              values.caCertificateSecret &&
-              values.privateKeySecret
-              ? {
-                  imageRegistryUrl: values.imageRegistryUrl,
-                  imageRepositoryName: values.imageRepositoryName,
-                  secretKey: values.secretKey,
-                  caCertificateSecret: values.caCertificateSecret,
-                  privateKeySecret: values.privateKeySecret,
-                }
-              : undefined;
-          })();
+        const values = getValues();
+        const hasImageRegistry =
+          !!values.imageRegistryUrl && !!values.imageRepositoryName;
+        const buildExternalKmmRegistry = ():
+          | ExternalKMMRegistryConfig
+          | undefined => {
+          if (hasPersistentRegistry && !hasImageRegistry) return undefined;
+          if (!hasPersistentRegistry && !values.secretKey) return undefined;
+          const config: ExternalKMMRegistryConfig = {
+            secretKey: values.secretKey || '',
+          };
+          if (hasImageRegistry) {
+            config.imageRegistryUrl = values.imageRegistryUrl;
+            config.imageRepositoryName = values.imageRepositoryName;
+          }
+          if (values.caCertificateSecret) {
+            config.caCertificateSecret = values.caCertificateSecret;
+          }
+          if (values.privateKeySecret) {
+            config.privateKeySecret = values.privateKeySecret;
+          }
+          return config;
+        };
+        const externalKmmRegistry = buildExternalKmmRegistry();
         await createScaleLocalClusterPayload(externalKmmRegistry)();
         await createCSIDriver();
         await configureMetricsNamespaceLabels();
@@ -185,14 +199,13 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         <FormGroup label={t('Connection name')} fieldId="connectionName">
           <div data-test="san-connection-name">{t('SAN-based storage')}</div>
         </FormGroup>
-        {hasPersistentRegistryLoaded &&
-          !hasPersistentRegistryError &&
-          !hasPersistentRegistry && (
-            <ExternalRegistryFormSection
-              control={control}
-              fieldRequirements={fieldRequirements}
-            />
-          )}
+        {showRegistrySection && (
+          <ExternalRegistryFormSection
+            control={control}
+            fieldRequirements={fieldRequirements}
+            showImageRegistryFields={hasPersistentRegistry}
+          />
+        )}
         <FormGroup label={t('Select local cluster nodes')} isRequired>
           <NodesSection
             isDisabled={isLocalClusterConfigured}
