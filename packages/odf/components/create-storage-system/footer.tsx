@@ -28,7 +28,7 @@ import {
   StorageAutoScalerModel,
   StorageClusterModel,
 } from '@odf/shared/models';
-import { getName, getNamespace } from '@odf/shared/selectors';
+import { getAnnotations, getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getStorageAutoScalerName, isNotFoundError } from '@odf/shared/utils';
 import {
@@ -39,7 +39,6 @@ import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { useWizardContext, WizardFooterWrapper } from '@patternfly/react-core';
 import { Button, Alert, AlertActionCloseButton } from '@patternfly/react-core';
-import './create-storage-system.scss';
 import {
   NetworkType,
   BackingStorageType,
@@ -47,6 +46,8 @@ import {
   VolumeTypeValidation,
 } from '../../types';
 import { createClusterKmsResources } from '../kms-config/utils';
+import { isIpInCidr, isValidCIDRFormat } from './cidr-utils';
+import './create-storage-system.scss';
 import {
   createNoobaaExternalPostgresResources,
   createStorageCluster,
@@ -171,15 +172,55 @@ const canJumpToNextStep = (
   } = capacityAndNodes;
   const { chartNodes, volumeSetName, isValidDiskSize, isValidDeviceType } =
     createLocalVolumeSet;
-  const { encryption, kms, networkType, publicNetwork, clusterNetwork } =
-    securityAndNetwork;
+  const {
+    encryption,
+    kms,
+    networkType,
+    publicNetwork,
+    clusterNetwork,
+    addressRanges,
+    usePublicNetwork,
+    useClusterNetwork,
+  } = securityAndNetwork;
   const { canGoToNextStep } =
     getExternalStorage(externalStorage, supportedExternalStorage) || {};
+
+  const publicCidr = addressRanges?.public?.[0]?.trim() ?? '';
+  const clusterCidr = addressRanges?.cluster?.[0]?.trim() ?? '';
+  const hasValidNICNetwork =
+    networkType === NetworkType.NIC &&
+    ((usePublicNetwork && isValidCIDRFormat(publicCidr)) ||
+      (useClusterNetwork && isValidCIDRFormat(clusterCidr)));
 
   const hasConfiguredNetwork =
     networkType === NetworkType.MULTUS
       ? !!(publicNetwork || clusterNetwork)
-      : true;
+      : networkType === NetworkType.NIC
+        ? hasValidNICNetwork
+        : true;
+
+  const MON_IP_ANNOTATION = 'network.rook.io/mon-ip';
+  const getMonIp = (node: (typeof nodes)[number]) =>
+    getAnnotations(node as any, node.annotations)?.[
+      MON_IP_ANNOTATION
+    ]?.trim?.();
+  const hasDedicatedStorageWithCidr =
+    networkType === NetworkType.NIC &&
+    ((usePublicNetwork && publicCidr) || (useClusterNetwork && clusterCidr));
+  const allNodesHaveMonIpAnnotation =
+    !hasDedicatedStorageWithCidr ||
+    nodes.every((node) => (getMonIp(node)?.length ?? 0) > 0);
+  const allMonIpsInCidr =
+    !hasDedicatedStorageWithCidr ||
+    nodes.every((node) => {
+      const ip = getMonIp(node);
+      if (!ip) return true;
+      const inPublic =
+        !usePublicNetwork || !publicCidr || isIpInCidr(ip, publicCidr);
+      const inCluster =
+        !useClusterNetwork || !clusterCidr || isIpInCidr(ip, clusterCidr);
+      return inPublic && inCluster;
+    });
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
   const flexibleScaling = isFlexibleScaling(
@@ -213,7 +254,7 @@ const canJumpToNextStep = (
       );
     case StepsName(t)[Steps.CreateLocalVolumeSet]:
       return (
-        // "chartNodes.size === 0" signify no SSDs are attached, but no need to add that as it's already covered by "chartNodes.size >= MINIMUM_NODES" condition
+        // "chartNodes.size === 0" signify no SSDs are attached
         chartNodes.size >= MINIMUM_NODES &&
         volumeSetName.trim().length &&
         isValidDiskSize &&
@@ -247,7 +288,9 @@ const canJumpToNextStep = (
       return (
         encryption.hasHandled &&
         kms.providerState.hasHandled &&
-        hasConfiguredNetwork
+        hasConfiguredNetwork &&
+        allNodesHaveMonIpAnnotation &&
+        allMonIpsInCidr
       );
     case StepsName(t)[Steps.Security]:
       return encryption.hasHandled && kms.providerState.hasHandled;
