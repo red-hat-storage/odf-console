@@ -1,16 +1,26 @@
 import { NodeModel } from '@odf/shared';
 import { Patch } from '@openshift-console/dynamic-plugin-sdk';
 import { WizardNodeState } from '../../reducer';
-import { labelNodes } from './payload';
+import {
+  labelNodes,
+  createScaleLocalClusterPayload,
+  ExternalKMMRegistryConfig,
+} from './payload';
 
 const DAEMON_SELECTOR_LABEL_KEY = 'scale.spectrum.ibm.com/daemon-selector/';
 const LABEL_PATH = '/metadata/labels/scale.spectrum.ibm.com~1daemon-selector';
 
 const mockK8sPatchByName = jest.fn().mockResolvedValue({});
+const mockK8sCreate = jest.fn().mockResolvedValue({});
 
 jest.mock('@odf/shared/utils', () => ({
   ...jest.requireActual('@odf/shared/utils'),
   k8sPatchByName: (...args: unknown[]) => mockK8sPatchByName(...args),
+}));
+
+jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
+  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
+  k8sCreate: (...args: unknown[]) => mockK8sCreate(...args),
 }));
 
 describe('payload', () => {
@@ -333,6 +343,125 @@ describe('payload', () => {
       const result = await execute();
 
       expect(result).toEqual([resolved]);
+    });
+  });
+
+  describe('createScaleLocalClusterPayload', () => {
+    beforeEach(() => {
+      mockK8sCreate.mockClear();
+    });
+
+    it('should not set gpfsModuleManagement when externalKmmRegistry is undefined', async () => {
+      const execute = createScaleLocalClusterPayload();
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.gpfsModuleManagement).toBeUndefined();
+    });
+
+    it('should not set gpfsModuleManagement when only secretKey is provided (no image registry, no secure boot)', async () => {
+      const config: ExternalKMMRegistryConfig = {
+        secretKey: 'my-secret',
+      };
+      const execute = createScaleLocalClusterPayload(config);
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.gpfsModuleManagement).toBeUndefined();
+    });
+
+    it('should set imageRepository only when both imageRegistryUrl and imageRepositoryName are provided', async () => {
+      const config: ExternalKMMRegistryConfig = {
+        imageRegistryUrl: 'https://quay.io',
+        imageRepositoryName: 'my-repo',
+        secretKey: 'reg-secret',
+      };
+      const execute = createScaleLocalClusterPayload(config);
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.gpfsModuleManagement?.kmm?.imageRepository).toEqual({
+        registry: 'https://quay.io',
+        repo: 'my-repo',
+        registrySecret: 'reg-secret',
+      });
+      expect(
+        payload.spec.gpfsModuleManagement?.kmm?.moduleSigning
+      ).toBeUndefined();
+    });
+
+    it('should set moduleSigning only when both caCertificateSecret and privateKeySecret are provided (secure boot)', async () => {
+      const config: ExternalKMMRegistryConfig = {
+        secretKey: 'reg-secret',
+        caCertificateSecret: 'ca-secret',
+        privateKeySecret: 'key-secret',
+      };
+      const execute = createScaleLocalClusterPayload(config);
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.gpfsModuleManagement?.kmm?.moduleSigning).toEqual({
+        keySecret: 'key-secret',
+        certSecret: 'ca-secret',
+      });
+      expect(
+        payload.spec.gpfsModuleManagement?.kmm?.imageRepository
+      ).toBeUndefined();
+    });
+
+    it('should not set moduleSigning when only one of caCertificateSecret or privateKeySecret is provided (no secure boot)', async () => {
+      const configOnlyCa: ExternalKMMRegistryConfig = {
+        secretKey: 'reg-secret',
+        caCertificateSecret: 'ca-secret',
+      };
+      const executeOnlyCa = createScaleLocalClusterPayload(configOnlyCa);
+      await executeOnlyCa();
+
+      let payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(
+        payload.spec.gpfsModuleManagement?.kmm?.moduleSigning
+      ).toBeUndefined();
+
+      mockK8sCreate.mockClear();
+      const configOnlyKey: ExternalKMMRegistryConfig = {
+        secretKey: 'reg-secret',
+        privateKeySecret: 'key-secret',
+      };
+      const executeOnlyKey = createScaleLocalClusterPayload(configOnlyKey);
+      await executeOnlyKey();
+
+      payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(
+        payload.spec.gpfsModuleManagement?.kmm?.moduleSigning
+      ).toBeUndefined();
+    });
+
+    it('should set both imageRepository and moduleSigning when all fields provided (registry + secure boot)', async () => {
+      const config: ExternalKMMRegistryConfig = {
+        imageRegistryUrl: 'https://quay.io',
+        imageRepositoryName: 'my-repo',
+        secretKey: 'reg-secret',
+        caCertificateSecret: 'ca-secret',
+        privateKeySecret: 'key-secret',
+      };
+      const execute = createScaleLocalClusterPayload(config);
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.gpfsModuleManagement?.kmm?.imageRepository).toEqual({
+        registry: 'https://quay.io',
+        repo: 'my-repo',
+        registrySecret: 'reg-secret',
+      });
+      expect(payload.spec.gpfsModuleManagement?.kmm?.moduleSigning).toEqual({
+        keySecret: 'key-secret',
+        certSecret: 'ca-secret',
+      });
     });
   });
 });

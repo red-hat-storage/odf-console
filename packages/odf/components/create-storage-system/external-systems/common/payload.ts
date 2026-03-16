@@ -18,13 +18,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { WizardNodeState } from '../../reducer';
 
-/** External KMM registry config from the SAN external registry form (when cluster has no persistent image registry) */
+/** External KMM registry config from the SAN external registry form. Secure boot when both caCertificateSecret and privateKeySecret are provided. */
 export type ExternalKMMRegistryConfig = {
-  imageRegistryUrl: string;
-  imageRepositoryName: string;
+  imageRegistryUrl?: string;
+  imageRepositoryName?: string;
   secretKey: string;
-  caCertificateSecret: string;
-  privateKeySecret: string;
+  caCertificateSecret?: string;
+  privateKeySecret?: string;
 };
 
 export const labelNodes = (nodes: WizardNodeState[]) => {
@@ -80,19 +80,32 @@ export const createScaleLocalClusterPayload = (
   };
 
   if (externalKmmRegistry) {
-    spec.gpfsModuleManagement = {
-      kmm: {
-        imageRepository: {
-          registry: externalKmmRegistry.imageRegistryUrl,
-          repo: externalKmmRegistry.imageRepositoryName,
-          registrySecret: externalKmmRegistry.secretKey,
+    const hasImageRegistry =
+      !!externalKmmRegistry.imageRegistryUrl &&
+      !!externalKmmRegistry.imageRepositoryName;
+    const isSecureBoot =
+      !!externalKmmRegistry.caCertificateSecret &&
+      !!externalKmmRegistry.privateKeySecret;
+
+    if (hasImageRegistry || isSecureBoot) {
+      spec.gpfsModuleManagement = {
+        kmm: {
+          ...(hasImageRegistry && {
+            imageRepository: {
+              registry: externalKmmRegistry.imageRegistryUrl!,
+              repo: externalKmmRegistry.imageRepositoryName!,
+              registrySecret: externalKmmRegistry.secretKey,
+            },
+          }),
+          ...(isSecureBoot && {
+            moduleSigning: {
+              keySecret: externalKmmRegistry.privateKeySecret,
+              certSecret: externalKmmRegistry.caCertificateSecret,
+            },
+          }),
         },
-        moduleSigning: {
-          keySecret: externalKmmRegistry.privateKeySecret,
-          certSecret: externalKmmRegistry.caCertificateSecret,
-        },
-      },
-    };
+      };
+    }
   }
 
   const payload: ClusterKind = {

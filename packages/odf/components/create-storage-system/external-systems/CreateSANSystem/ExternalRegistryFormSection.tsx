@@ -20,59 +20,65 @@ type ExternalRegistryFieldRequirements = {
 type ExternalRegistryFormSectionProps = {
   control: Control<FieldValues>;
   fieldRequirements: ExternalRegistryFieldRequirements;
+  /** When true (OpenShift registry present), show Image registry URL and Image repository name. When false, hide them. */
+  showImageRegistryFields: boolean;
 };
 
 export const ExternalRegistryFormSection: React.FC<
   ExternalRegistryFormSectionProps
-> = ({ control, fieldRequirements }) => {
+> = ({ control, fieldRequirements, showImageRegistryFields }) => {
   const { t } = useCustomTranslation();
 
   return (
     <Grid hasGutter>
-      <GridItem span={6}>
-        <TextInputWithFieldRequirements
-          control={control}
-          fieldRequirements={fieldRequirements.imageRegistryUrl}
-          popoverProps={{
-            headerContent: t('Image registry URL requirements'),
-            footerContent: `${t('Example')}: quay.io`,
-          }}
-          formGroupProps={{
-            label: t('Image registry URL'),
-            fieldId: 'imageRegistryUrl',
-            isRequired: true,
-          }}
-          textInputProps={{
-            id: 'imageRegistryUrl',
-            name: 'imageRegistryUrl',
-            type: 'text',
-            'data-test': 'image-registry-url',
-          }}
-          helperText={t('URL of the image registry.')}
-        />
-      </GridItem>
-      <GridItem span={6}>
-        <TextInputWithFieldRequirements
-          control={control}
-          fieldRequirements={fieldRequirements.imageRepositoryName}
-          popoverProps={{
-            headerContent: t('Image repository name requirements'),
-            footerContent: `${t('Example')}: my-repo`,
-          }}
-          formGroupProps={{
-            label: t('Image repository name'),
-            fieldId: 'imageRepositoryName',
-            isRequired: true,
-          }}
-          textInputProps={{
-            id: 'imageRepositoryName',
-            name: 'imageRepositoryName',
-            type: 'text',
-            'data-test': 'image-repository-name',
-          }}
-          helperText={t('Name of the image repository.')}
-        />
-      </GridItem>
+      {showImageRegistryFields && (
+        <>
+          <GridItem span={6}>
+            <TextInputWithFieldRequirements
+              control={control}
+              fieldRequirements={fieldRequirements.imageRegistryUrl}
+              popoverProps={{
+                headerContent: t('Image registry URL requirements'),
+                footerContent: `${t('Example')}: quay.io`,
+              }}
+              formGroupProps={{
+                label: t('Image registry URL'),
+                fieldId: 'imageRegistryUrl',
+                isRequired: true,
+              }}
+              textInputProps={{
+                id: 'imageRegistryUrl',
+                name: 'imageRegistryUrl',
+                type: 'text',
+                'data-test': 'image-registry-url',
+              }}
+              helperText={t('URL of the image registry.')}
+            />
+          </GridItem>
+          <GridItem span={6}>
+            <TextInputWithFieldRequirements
+              control={control}
+              fieldRequirements={fieldRequirements.imageRepositoryName}
+              popoverProps={{
+                headerContent: t('Image repository name requirements'),
+                footerContent: `${t('Example')}: my-repo`,
+              }}
+              formGroupProps={{
+                label: t('Image repository name'),
+                fieldId: 'imageRepositoryName',
+                isRequired: true,
+              }}
+              textInputProps={{
+                id: 'imageRepositoryName',
+                name: 'imageRepositoryName',
+                type: 'text',
+                'data-test': 'image-repository-name',
+              }}
+              helperText={t('Name of the image repository.')}
+            />
+          </GridItem>
+        </>
+      )}
       <GridItem span={12}>
         <FormGroupController
           name="secretKey"
@@ -107,8 +113,10 @@ export const ExternalRegistryFormSection: React.FC<
           formGroupProps={{
             label: t('CA certificate secret'),
             fieldId: 'caCertificateSecret',
-            isRequired: true,
-            helperText: t('Select a secret containing the CA certificate.'),
+            isRequired: false,
+            helperText: t(
+              'Optional. Select a secret containing the CA certificate. With private key, enables secure boot.'
+            ),
           }}
           render={({ onChange, onBlur }) => (
             <ResourceDropdown<SecretKind>
@@ -134,8 +142,10 @@ export const ExternalRegistryFormSection: React.FC<
           formGroupProps={{
             label: t('Private key secret'),
             fieldId: 'privateKeySecret',
-            isRequired: true,
-            helperText: t('Select a secret containing the private key.'),
+            isRequired: false,
+            helperText: t(
+              'Optional. Select a secret containing the private key. With CA certificate, enables secure boot.'
+            ),
           }}
           render={({ onChange, onBlur }) => (
             <ResourceDropdown<SecretKind>

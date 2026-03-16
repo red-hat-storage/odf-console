@@ -49,7 +49,11 @@ export type SANSystemFormValidation = {
 };
 
 const useSANSystemFormValidation = (
-  existingNames?: Set<string>
+  existingNames?: Set<string>,
+  /** When true (OpenShift registry present), image registry and repo name are required. */
+  hasPersistentRegistry?: boolean,
+  /** When true, registry section is visible and secretKey is required. */
+  showRegistrySection?: boolean
 ): SANSystemFormValidation => {
   const { t } = useCustomTranslation();
 
@@ -98,21 +102,36 @@ const useSANSystemFormValidation = (
         )
         .transform((value: string) => (!!value ? value : '')),
       imageRegistryUrl: Yup.string()
-        .required(imageRegistryUrlRequirements.required)
-        .url(imageRegistryUrlRequirements.validUrl)
+        .when([], {
+          is: () => !!hasPersistentRegistry,
+          then: (schema) =>
+            schema
+              .required(imageRegistryUrlRequirements.required)
+              .url(imageRegistryUrlRequirements.validUrl),
+          otherwise: (schema) => schema,
+        })
         .transform((value: string) => (!!value ? value : '')),
       imageRepositoryName: Yup.string()
-        .required(imageRepositoryNameRequirements.required)
+        .when([], {
+          is: () => !!hasPersistentRegistry,
+          then: (schema) =>
+            schema.required(imageRepositoryNameRequirements.required),
+          otherwise: (schema) => schema,
+        })
         .transform((value: string) => (!!value ? value : '')),
       secretKey: Yup.string()
-        .required(t('Secret key is required'))
+        .when([], {
+          is: () => !!showRegistrySection,
+          then: (schema) => schema.required(t('Secret key is required')),
+          otherwise: (schema) => schema,
+        })
         .transform((value: string) => (!!value ? value : '')),
-      caCertificateSecret: Yup.string()
-        .required(t('CA certificate secret is required'))
-        .transform((value: string) => (!!value ? value : '')),
-      privateKeySecret: Yup.string()
-        .required(t('Private key secret is required'))
-        .transform((value: string) => (!!value ? value : '')),
+      caCertificateSecret: Yup.string().transform((value: string) =>
+        !!value ? value : ''
+      ),
+      privateKeySecret: Yup.string().transform((value: string) =>
+        !!value ? value : ''
+      ),
     });
 
     return {
@@ -126,7 +145,7 @@ const useSANSystemFormValidation = (
         imageRepositoryName: [imageRepositoryNameRequirements.required],
       },
     };
-  }, [t, existingNames]);
+  }, [t, existingNames, hasPersistentRegistry, showRegistrySection]);
 
   const resolver = useYupValidationResolver(formSchema) as any;
 
