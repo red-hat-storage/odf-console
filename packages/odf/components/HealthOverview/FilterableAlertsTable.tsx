@@ -3,6 +3,7 @@ import { fuzzyCaseInsensitive } from '@odf/shared/utils';
 import { AlertsTable } from './AlertsTable';
 import { HealthOverviewFilterToolbox } from './HealthOverviewFilterToolbox';
 import { AlertRowData } from './hooks';
+import { ZoomDomain } from './InfraHealthGraph';
 import { SEVERITY_MAP, parseDateTimeToTimestamp } from './utils';
 
 type FilterableAlertsTableProps = {
@@ -11,6 +12,7 @@ type FilterableAlertsTableProps = {
   error?: any;
   onSilenceClick?: (selectedAlerts: AlertRowData[]) => void;
   onFilteredAlertsChange?: (filteredAlerts: AlertRowData[]) => void;
+  zoomDomain?: ZoomDomain;
 };
 
 export const FilterableAlertsTable: React.FC<FilterableAlertsTableProps> = ({
@@ -19,6 +21,7 @@ export const FilterableAlertsTable: React.FC<FilterableAlertsTableProps> = ({
   error,
   onSilenceClick,
   onFilteredAlertsChange,
+  zoomDomain,
 }) => {
   // State hooks
   const [selectedAlerts, setSelectedAlerts] = React.useState<AlertRowData[]>(
@@ -79,6 +82,19 @@ export const FilterableAlertsTable: React.FC<FilterableAlertsTableProps> = ({
           }
         }
 
+        // Filter by zoom domain if set (from graph zoom interaction)
+        if (zoomDomain) {
+          const alertStart = alert.startTime.getTime();
+          const alertEnd = (alert.endTime || new Date()).getTime();
+          const zoomStart = zoomDomain.start.getTime();
+          const zoomEnd = zoomDomain.end.getTime();
+
+          // Include alert if it overlaps with the zoom range
+          if (alertEnd < zoomStart || alertStart > zoomEnd) {
+            return false;
+          }
+        }
+
         return true;
       }),
     [
@@ -89,6 +105,7 @@ export const FilterableAlertsTable: React.FC<FilterableAlertsTableProps> = ({
       endDate,
       endTime,
       searchValue,
+      zoomDomain,
     ]
   );
 
