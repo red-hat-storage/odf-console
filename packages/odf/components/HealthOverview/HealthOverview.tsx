@@ -17,7 +17,7 @@ import {
   AlertRowData,
   filterOutSilencedAlerts,
 } from './hooks';
-import InfraHealthGraph from './InfraHealthGraph';
+import InfraHealthGraph, { ZoomDomain } from './InfraHealthGraph';
 import { SilenceAlertModal } from './SilenceAlertModal';
 import { SilencedAlertsTable } from './SilencedAlertsTable';
 
@@ -103,6 +103,13 @@ const HealthOverview: React.FC = () => {
   const [filteredAlerts, setFilteredAlerts] =
     React.useState<AlertRowData[]>(activeAlerts);
 
+  // Zoom domain state for graph-to-table sync
+  const [zoomDomain, setZoomDomain] = React.useState<ZoomDomain>(null);
+
+  const handleZoomDomainChange = React.useCallback((domain: ZoomDomain) => {
+    setZoomDomain(domain);
+  }, []);
+
   // Silence modal state
   const [isSilenceModalOpen, setIsSilenceModalOpen] = React.useState(false);
   const [alertsToSilence, setAlertsToSilence] = React.useState<AlertRowData[]>(
@@ -155,6 +162,7 @@ const HealthOverview: React.FC = () => {
               alerts={filteredAlerts}
               alertsLoaded={healthAlertsLoaded}
               alertsError={healthAlertsError}
+              onZoomDomainChange={handleZoomDomainChange}
             />
             <FilterableAlertsTable
               alerts={activeAlerts}
@@ -162,6 +170,7 @@ const HealthOverview: React.FC = () => {
               error={healthAlertsError}
               onSilenceClick={handleSilenceAlerts}
               onFilteredAlertsChange={handleFilteredAlertsChange}
+              zoomDomain={zoomDomain}
             />
           </>
         )}
