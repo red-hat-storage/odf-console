@@ -29,13 +29,13 @@ export const GettingStartedCard: React.FC = () => {
       title={t('Getting started with disaster recovery')}
       hideExpandable={!isMonitoringEnabled}
     >
-      <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-column pf-v5-u-flex-direction-row-on-lg pf-v5-u-justify-content-space-between">
+      <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-flex-direction-row-on-lg pf-v6-u-justify-content-space-between">
         {gettingStartedSteps(t, mcoDocVersion).map((step) => {
           const stepCount = step.stepCount;
           const FooterComponent = step.FooterComponent;
           return (
             <div
-              className="pf-v5-u-display-flex pf-v5-u-flex-direction-column pf-v5-u-p-sm pf-v5-u-w-25-on-lg"
+              className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-p-sm pf-v6-u-w-25-on-lg"
               key={stepCount}
             >
               <HeaderSection

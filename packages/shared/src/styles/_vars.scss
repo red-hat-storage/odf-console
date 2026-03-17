@@ -40,9 +40,9 @@ $pf-v6-global--breakpoint--sm-max: (pf.$pf-v6-global--breakpoint--sm - 1);
 $pf-v6-global--breakpoint--md-max: (pf.$pf-v6-global--breakpoint--md - 1);
 $pf-v6-global--breakpoint--lg-max: (pf.$pf-v6-global--breakpoint--lg - 1);
 
-// Can not use --pf-v5-global--gutter --pf-v5-global--gutter--md because you can't get a negative value of a scss variable that is assigned a css custom property.
-$pf-v6-global-gutter: 1rem; // Matches --pf-v5-global--gutter
-$pf-v6-global-gutter--md: 1.5rem; // Matches --pf-v5-global--gutter--md
+// Can not use --pf-v6-global--gutter --pf-v6-global--gutter--md because you can't get a negative value of a scss variable that is assigned a css custom property.
+$pf-v6-global-gutter: 1rem; // Matches --pf-v6-global--gutter
+$pf-v6-global-gutter--md: 1.5rem; // Matches --pf-v6-global--gutter--md
 
 // == Colors
 $color-container-dark: var(--pf-t--color--blue--50);
