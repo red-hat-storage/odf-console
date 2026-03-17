@@ -469,5 +469,26 @@ describe('payload', () => {
         certSecret: 'ca-secret',
       });
     });
+
+    it('should not add cluster labels when addClusterLabels is false or undefined', async () => {
+      const execute = createScaleLocalClusterPayload();
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.metadata.labels).toBeUndefined();
+    });
+
+    it('should add cluster labels when addClusterLabels is true', async () => {
+      const execute = createScaleLocalClusterPayload(undefined, true);
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.metadata.labels).toEqual({
+        'app.kubernetes.io/instance': 'ibm-spectrum-scale',
+        'app.kubernetes.io/name': 'cluster',
+      });
+    });
   });
 });
