@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { getManagedClusterResourceObj } from '@odf/mco/hooks';
+import { useStorageProvisioners } from '@odf/mco/hooks/use-storage-provisioner';
 import { ACMManagedClusterViewModel } from '@odf/shared';
+import { DASH } from '@odf/shared/constants';
+import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName } from '@odf/shared/selectors';
 import {
   GreenCheckCircleIcon,
@@ -26,9 +29,12 @@ import {
   Pagination,
   PaginationVariant,
   Content,
+  Popover,
+  Button,
 } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {
+  BackendType,
   MCO_CREATED_BY_LABEL_KEY,
   MCO_CREATED_BY_MC_CONTROLLER,
 } from '../../constants';
@@ -55,34 +61,34 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
   const { odfInfo, isManagedClusterAvailable } = cluster;
   const clientName = odfInfo?.storageClusterInfo?.clientInfo?.name;
   const odfVersion = odfInfo?.odfVersion;
-  /*   const providers = cluster.providers || [];
+  const providers = cluster.providers || [];
   const count = providers.reduce((acc, provider) => acc + provider.count, 0);
   const storageProvisioners = !count ? (
-        DASH
-      ) : (
-        <Popover
-          headerContent={t('Storage provisioners')}
-          bodyContent={
-            <ul className="pf-v6-u-m-0 pf-v6-u-pl-xs">
-              {providers.map((p) => (
-                <li key={p.displayName}>
-                  {p.displayName}
-                  {p.count > 1 && ` (${p.count})`}
-                </li>
-              ))}
-            </ul>
-          }
-          maxWidth="20rem"
-        >
-          <Button variant="link" isInline>
-            {count > 1
-              ? t('{{count}} provisioners', {
-                  count: count,
-                })
-              : t('{{count}} provisioner', { count })}
-          </Button>
-        </Popover>
-      ) */
+    DASH
+  ) : (
+    <Popover
+      headerContent={t('Storage provisioners')}
+      bodyContent={
+        <ul className="pf-v6-u-m-0 pf-v6-u-pl-xs">
+          {providers.map((p) => (
+            <li key={p.displayName}>
+              {p.displayName}
+              {p.count > 1 && ` (${p.count})`}
+            </li>
+          ))}
+        </ul>
+      }
+      maxWidth="20rem"
+    >
+      <Button variant="link" isInline>
+        {count > 1
+          ? t('{{count}} provisioners', {
+              count: count,
+            })
+          : t('{{count}} provisioner', { count })}
+      </Button>
+    </Popover>
+  );
   return (
     <>
       <Td
@@ -118,7 +124,13 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
           {odfVersion || t('Not Installed')}
         </Content>
       </Td>
-
+      <Td
+        dataLabel={
+          getColumnHelper(ClusterListColumns.StorageProvisioners, t).columnName
+        }
+      >
+        {storageProvisioners}
+      </Td>
       <Td
         dataLabel={
           getColumnHelper(ClusterListColumns.StorageClients, t).columnName
@@ -236,7 +248,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     isList: true,
   });
 
-  /*  const clusterNames = useDeepCompareMemoize(
+  const clusterNames = useDeepCompareMemoize(
     managedClusters.map((c) => getName(c)),
     true
   );
@@ -245,10 +257,10 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     providersByCluster,
     loaded: providersLoaded,
     error,
-  } = useStorageProvisioners(clusterNames); */
+  } = useStorageProvisioners(clusterNames);
 
-  const allLoaded = loaded && mcvsLoaded; // && providersLoaded;
-  const anyError = loadError || mcvsLoadError; // || error;
+  const allLoaded = loaded && mcvsLoaded && providersLoaded;
+  const anyError = loadError || mcvsLoadError || error;
 
   const clusters: ManagedClusterInfoType[] = React.useMemo(() => {
     if (!!requiredODFVersion && allLoaded && !anyError)
@@ -257,8 +269,8 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       return getManagedClusterInfoTypes(
         managedClusters,
         mcvs,
-        requiredODFVersion
-        //  providersByCluster
+        requiredODFVersion,
+        providersByCluster
       );
 
     return [];
@@ -268,7 +280,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     mcvs,
     allLoaded,
     anyError,
-    // providersByCluster,
+    providersByCluster,
   ]);
 
   const onChange = (selectedClusterList: ManagedClusterInfoType[]) => {
@@ -277,7 +289,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       payload: selectedClusterList,
     });
 
-    /*   if (selectedClusterList?.length >= 2) {
+    if (selectedClusterList?.length >= 2) {
       const doClustersHaveODF = selectedClusterList?.every(
         (cluster) => cluster?.odfInfo?.isValidODFVersion
       );
@@ -292,17 +304,17 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
           ? BackendType.DataFoundation
           : BackendType.ThirdParty,
       });
-    } */
+    }
     if (selectedClusterList.length < 2) {
       dispatch({
         type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
         payload: false,
       });
 
-      /*   dispatch({
+      dispatch({
         type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
         payload: false,
-      }); */
+      });
     }
   };
 
