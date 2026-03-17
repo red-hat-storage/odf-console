@@ -1,3 +1,6 @@
+import { MON_IP_ANNOTATION } from '@odf/core/constants/network';
+import { getAnnotations } from '@odf/shared/selectors';
+
 /**
  * IPv4 CIDR utilities. IPv6 is not supported.
  */
@@ -46,3 +49,12 @@ export const isValidCIDRFormat = (value: string): boolean => {
   if (isNaN(mask) || mask < 0 || mask > 32) return false;
   return ipToNumber(base) !== null;
 };
+
+/**
+ * Extract mon-ip annotation from node (supports both WizardNodeState and NodeKind via getAnnotations)
+ */
+export const getMonIp = (node: {
+  annotations?: Record<string, string>;
+  metadata?: { annotations?: Record<string, string> };
+}): string | undefined =>
+  getAnnotations(node as any, node.annotations)?.[MON_IP_ANNOTATION]?.trim?.();
