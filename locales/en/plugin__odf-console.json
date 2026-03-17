@@ -1040,7 +1040,7 @@
   "Failed to create FileSystem: {{error}}": "Failed to create FileSystem: {{error}}",
   "Failed to create LocalDisks: {{error}}": "Failed to create LocalDisks: {{error}}",
   "Failed to create silence. Please try again.": "Failed to create silence. Please try again.",
-  "Failed to create StorageClass: {{error}}": "Failed to create StorageClass: {{error}}",
+  "Failed to create StorageClasses: {{error}}": "Failed to create StorageClasses: {{error}}",
   "Failed to delete {{ errorCount }} object from the bucket. View deletion summary for details.": "Failed to delete {{ errorCount }} object from the bucket. View deletion summary for details.",
   "Failed to delete {{ errorCount }} objects from the bucket. View deletion summary for details.": "Failed to delete {{ errorCount }} objects from the bucket. View deletion summary for details.",
   "Failed to delete LUN group": "Failed to delete LUN group",

@@ -119,7 +119,7 @@ export const createLocalFileSystem = async (
 export const createStorageClass = async (
   fileSystem: FileSystemKind,
   t: TFunction
-): Promise<StorageClassResourceKind> => {
+): Promise<StorageClassResourceKind[]> => {
   if (!fileSystem) {
     throw new Error(t('FileSystem is required for StorageClass creation'));
   }
@@ -129,11 +129,12 @@ export const createStorageClass = async (
     throw new Error(t('FileSystem name is required'));
   }
 
-  const storageClassPayload: StorageClassResourceKind = {
+  // StorageClass for containers
+  const containerStorageClassPayload: StorageClassResourceKind = {
     apiVersion: 'storage.k8s.io/v1',
     kind: StorageClassModel.kind,
     metadata: {
-      name: fileSystemName,
+      name: `san-${fileSystemName}`,
     },
     provisioner: SCALE_PROVISIONER,
     reclaimPolicy: 'Delete',
@@ -141,17 +142,42 @@ export const createStorageClass = async (
     volumeBindingMode: 'Immediate',
     parameters: {
       volBackendFs: fileSystemName,
+      filesetType: 'Independent',
+    },
+  };
+
+  // StorageClass for VMs
+  const vmStorageClassPayload: StorageClassResourceKind = {
+    apiVersion: 'storage.k8s.io/v1',
+    kind: StorageClassModel.kind,
+    metadata: {
+      name: `san-${fileSystemName}-vm`,
+    },
+    provisioner: SCALE_PROVISIONER,
+    reclaimPolicy: 'Delete',
+    allowVolumeExpansion: true,
+    volumeBindingMode: 'Immediate',
+    parameters: {
+      volBackendFs: fileSystemName,
+      filesetType: 'Independent',
+      volumeType: 'vmDisk',
     },
   };
 
   try {
-    return await k8sCreate({
-      model: StorageClassModel,
-      data: storageClassPayload,
-    });
+    return await Promise.all([
+      k8sCreate({
+        model: StorageClassModel,
+        data: containerStorageClassPayload,
+      }),
+      k8sCreate({
+        model: StorageClassModel,
+        data: vmStorageClassPayload,
+      }),
+    ]);
   } catch (error) {
     throw new Error(
-      t('Failed to create StorageClass: {{error}}', {
+      t('Failed to create StorageClasses: {{error}}', {
         error: error instanceof Error ? error.message : 'Unknown error',
       })
     );

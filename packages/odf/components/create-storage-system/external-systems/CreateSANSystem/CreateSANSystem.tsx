@@ -160,7 +160,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           return config;
         };
         const externalKmmRegistry = buildExternalKmmRegistry();
-        await createScaleLocalClusterPayload(externalKmmRegistry)();
+        await createScaleLocalClusterPayload(externalKmmRegistry, true)();
         await createCSIDriver();
         await configureMetricsNamespaceLabels();
       }
