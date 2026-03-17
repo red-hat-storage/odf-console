@@ -10,3 +10,5 @@ export const NetworkTypeLabels = {
   [NetworkType.MULTUS]: 'Custom (Multus)',
   [NetworkType.HOST]: 'Host',
 };
+
+export const MON_IP_ANNOTATION = 'network.rook.io/mon-ip';
