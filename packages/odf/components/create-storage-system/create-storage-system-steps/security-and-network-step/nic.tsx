@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { NetworkType } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared';
-import { getAnnotations } from '@odf/shared/selectors';
 import {
   FormGroup,
   TextInput,
@@ -10,17 +9,12 @@ import {
   HelperTextItem,
   Checkbox,
 } from '@patternfly/react-core';
-import { isIpInCidr, isValidCIDRFormat } from '../../cidr-utils';
+import {
+  isIpInCidr,
+  isValidCIDRFormat,
+  getMonIp,
+} from '../../../utils/cidr-utils';
 import './nic.scss';
-
-const MON_IP_ANNOTATION = 'network.rook.io/mon-ip';
-
-/** Get mon-ip from node (supports both WizardNodeState and NodeKind via getAnnotations) */
-const getMonIp = (node: {
-  annotations?: Record<string, string>;
-  metadata?: { annotations?: Record<string, string> };
-}): string | undefined =>
-  getAnnotations(node as any, node.annotations)?.[MON_IP_ANNOTATION]?.trim?.();
 
 type NICSelectComponentProps = {
   cephPublicCIDR: string;

@@ -175,10 +175,9 @@ export const capacityAndNodesValidate = (
   if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
-  const minNodes = MINIMUM_NODES;
-  if (!enableStretchCluster && nodes.length && nodes.length < minNodes) {
+  if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
     validations.push(ValidationType.MINIMUMNODES);
-  } else if (nodes.length && nodes.length >= minNodes) {
+  } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
     if (
       !isResourceProfileAllowed(
         resourceProfile,

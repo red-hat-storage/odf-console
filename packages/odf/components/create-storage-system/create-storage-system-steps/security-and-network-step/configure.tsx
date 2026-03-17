@@ -105,23 +105,25 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           setIsMultusAcknowledged={setIsMultusAcknowledged}
         />
       ) : (
-        <NICSelectComponent
-          cephClusterCIDR={cephClusterCIDR ?? ''}
-          cephPublicCIDR={cephPublicCIDR ?? ''}
-          setCephCIDR={(cephCIDR: string) =>
-            setCIDRNetwork(cephCIDR, cephPublicCIDR ?? '')
-          }
-          setPublicCIDR={(publicCIDR: string) =>
-            setCIDRNetwork(cephClusterCIDR ?? '', publicCIDR)
-          }
-          networkType={networkType}
-          setNetworkType={(type: NetworkType) => setNetworkType(type)}
-          usePublicNetwork={usePublicNetwork}
-          useClusterNetwork={useClusterNetwork}
-          setUsePublicNetwork={setUsePublicNetwork}
-          setUseClusterNetwork={setUseClusterNetwork}
-          nodes={nodes}
-        />
+        isFDF && (
+          <NICSelectComponent
+            cephClusterCIDR={cephClusterCIDR ?? ''}
+            cephPublicCIDR={cephPublicCIDR ?? ''}
+            setCephCIDR={(cephCIDR: string) =>
+              setCIDRNetwork(cephCIDR, cephPublicCIDR ?? '')
+            }
+            setPublicCIDR={(publicCIDR: string) =>
+              setCIDRNetwork(cephClusterCIDR ?? '', publicCIDR)
+            }
+            networkType={networkType}
+            setNetworkType={(type: NetworkType) => setNetworkType(type)}
+            usePublicNetwork={usePublicNetwork}
+            useClusterNetwork={useClusterNetwork}
+            setUsePublicNetwork={setUsePublicNetwork}
+            setUseClusterNetwork={setUseClusterNetwork}
+            nodes={nodes}
+          />
+        )
       )}
     </>
   );
