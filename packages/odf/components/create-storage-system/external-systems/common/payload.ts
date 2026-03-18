@@ -52,7 +52,8 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
 };
 
 export const createScaleLocalClusterPayload = (
-  externalKmmRegistry?: ExternalKMMRegistryConfig
+  externalKmmRegistry?: ExternalKMMRegistryConfig,
+  addClusterLabels?: boolean
 ) => {
   const spec: ClusterKind['spec'] = {
     daemon: {
@@ -112,6 +113,12 @@ export const createScaleLocalClusterPayload = (
     kind: 'Cluster',
     metadata: {
       name: IBM_SCALE_LOCAL_CLUSTER_NAME,
+      ...(addClusterLabels && {
+        labels: {
+          'app.kubernetes.io/instance': 'ibm-spectrum-scale',
+          'app.kubernetes.io/name': 'cluster',
+        },
+      }),
     },
     spec,
   };
