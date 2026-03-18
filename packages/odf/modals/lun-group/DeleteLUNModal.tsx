@@ -197,8 +197,8 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
         json: null,
       });
 
-      // Delete associated LocalDisks
-      await Promise.allSettled(
+      // Delete associated LocalDisks (allSettled never rejects — inspect results for failures)
+      const localDiskResults = await Promise.allSettled(
         associatedDisks.map((disk) =>
           k8sDelete({
             model: LocalDiskModel,
@@ -208,6 +208,16 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
           })
         )
       );
+
+      const diskFailures = localDiskResults.filter(
+        (r): r is PromiseRejectedResult => r.status === 'rejected'
+      );
+
+      if (diskFailures.length > 0) {
+        setError(diskFailures.map(({ reason }) => String(reason)).join('\n'));
+        setInProgress(false);
+        return;
+      }
 
       setInProgress(false);
       closeModal();
