@@ -61,7 +61,6 @@ const getOptions = (
   <SelectOption
     key={getUID(drPolicyControlState?.drPlacementControl)}
     value={getName(drPolicyControlState?.drPlacementControl)}
-    isChecked={isValid}
     isDisabled={!isValid}
     data-test={`option-${getName(drPolicyControlState?.drPlacementControl)}`}
   >

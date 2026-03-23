@@ -3,7 +3,8 @@ import { CREATE_SS_PAGE_URL } from '@odf/core/constants';
 import { StartingPoint } from '@odf/core/types/install-ui';
 import { useCustomTranslation } from '@odf/shared';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { Modal } from '@patternfly/react-core/deprecated';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Flex,
   FlexItem,
@@ -11,9 +12,7 @@ import {
   CardHeader,
   CardTitle,
   CardBody,
-  TextContent,
-  Text,
-  Modal,
+  Content,
   Title,
   Button,
 } from '@patternfly/react-core';
@@ -30,6 +29,11 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
   const launchModal = useModal();
+  const location = useLocation();
+
+  const shouldShowExternalSystems = location.pathname.includes(
+    StartingPoint.OVERVIEW
+  );
 
   const redirectTo = (installationFlow: StartingPoint) => () => {
     const urlParams = new URLSearchParams({ mode: installationFlow });
@@ -64,41 +68,43 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
             <CardTitle>{t('Create Storage Cluster')}</CardTitle>
           </CardHeader>
           <CardBody>
-            <TextContent>
-              <Text component="small">
+            <Content>
+              <Content component="small">
                 {t(
                   'Provision a storage cluster using local devices on your OpenShift nodes.'
                 )}
-              </Text>
-            </TextContent>
+              </Content>
+            </Content>
           </CardBody>
         </Card>
       </FlexItem>
-      <FlexItem>
-        <Card
-          isClickable
-          id="connect-external-system"
-          className="odf-storage-cluster-create-modal__setup-card"
-        >
-          <CardHeader
-            selectableActions={{
-              onClickAction: showExternalSystems,
-              selectableActionId: 'external-system',
-            }}
+      {shouldShowExternalSystems && (
+        <FlexItem>
+          <Card
+            isClickable
+            id="connect-external-system"
+            className="odf-storage-cluster-create-modal__setup-card"
           >
-            <CardTitle>{t('Connect to an external system')}</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <TextContent>
-              <Text component="small">
-                {t(
-                  'Integrate Data Foundation with an existing storage backend such as external Ceph cluster or IBM FlashSystem.'
-                )}
-              </Text>
-            </TextContent>
-          </CardBody>
-        </Card>
-      </FlexItem>
+            <CardHeader
+              selectableActions={{
+                onClickAction: showExternalSystems,
+                selectableActionId: 'external-system',
+              }}
+            >
+              <CardTitle>{t('Connect to an external system')}</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <Content>
+                <Content component="small">
+                  {t(
+                    'Integrate Data Foundation with an existing storage backend such as external Ceph cluster or IBM FlashSystem.'
+                  )}
+                </Content>
+              </Content>
+            </CardBody>
+          </Card>
+        </FlexItem>
+      )}
       <FlexItem>
         <Card
           id="setup-object-storage"
@@ -114,13 +120,13 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
             <CardTitle>{t('Setup Multicloud Object Gateway')}</CardTitle>
           </CardHeader>
           <CardBody>
-            <TextContent>
-              <Text component="small">
+            <Content>
+              <Content component="small">
                 {t(
                   'Enable S3-compatible object storage that spans across multiple cloud providers or hybrid environments'
                 )}
-              </Text>
-            </TextContent>
+              </Content>
+            </Content>
           </CardBody>
         </Card>
       </FlexItem>
@@ -135,13 +141,13 @@ const ModalHeader: React.FC = () => {
       <Title headingLevel="h1" id="welcome-df-modal-title">
         {t('Welcome to Data Foundation')}
       </Title>
-      <TextContent>
-        <Text component="small">
+      <Content>
+        <Content component="small">
           {t(
             'Data Foundation simplifies persistent storage and data services across your infrastructure.'
           )}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
     </>
   );
 };
@@ -174,16 +180,16 @@ export const StorageClusterCreateModal: React.FC<
         </Button>,
       ]}
     >
-      <TextContent className="odf-storage-cluster-create-modal__body-text">
-        <Text component="h4">
+      <Content className="odf-storage-cluster-create-modal__body-text">
+        <Content component="h4">
           {t('Choose how to set your Data Foundation cluster')}
-        </Text>
-        <Text component="small">
+        </Content>
+        <Content component="small">
           {t(
             'This selection determines the storage capabilities of your cluster. Once configured it cannot be changed.'
           )}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
       <ConfigureDFSelections closeModal={closeModal} />
     </Modal>
   );

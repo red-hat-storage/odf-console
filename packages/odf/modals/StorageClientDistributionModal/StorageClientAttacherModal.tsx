@@ -18,7 +18,8 @@ import {
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { Button, Flex, FlexItem, Modal } from '@patternfly/react-core';
+import { Modal } from '@patternfly/react-core/deprecated';
+import { Button, Flex, FlexItem } from '@patternfly/react-core';
 import { generatePatchForDistributionOfResources } from '../../components/ResourceDistribution/utils';
 import './storageClientAttacherComponent.scss';
 import { StorageConsumerTable } from './StorageConsumerTable';

@@ -2,11 +2,11 @@
     margin-left: 5px;
 
     &:hover .odf-field-level-help__icon {
-        color: var(--pf-v5-global--Color--dark-100);
+        color: var(--pf-t--global--text--color--regular);
     }
 
     .odf-field-level-help__icon {
-        color: var(--pf-v5-global--Color--dark-200);
+        color: var(--pf-t--global--text--color--subtle);
         font-size: 12px;
     }
 }

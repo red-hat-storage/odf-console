@@ -22,11 +22,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
+  ARCHITECTURE_S390X,
   HOSTNAME_LABEL_KEY,
   LABEL_OPERATOR,
   MINIMUM_NODES,
   ocsTaint,
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
+  S390X_CPU_ADJUSTMENTS,
   ZONE_LABELS,
 } from '../constants';
 
@@ -114,14 +116,31 @@ export const isFlexibleScaling = (
   getAllZone(nodes).size < 3;
 
 /**
+ * Returns the architecture from the first node in the given wizard node state.
+ * Used when architecture is needed from WizardNodeState[] (e.g. for resource profile requirements).
+ */
+export const getNodeArchitectureFromState = (
+  nodes: WizardNodeState[]
+): string => nodes[0]?.architecture ?? '';
+
+/**
  * Returns the minimum required resources taking into account the OSD pods.
  * Default requirements assume 3 OSDs deployed.
+ * For s390x: uses S390X_CPU_ADJUSTMENTS for CPU values
  */
 export const getResourceProfileRequirements = (
   profile: ResourceProfile,
-  osdAmount: number
+  osdAmount: number,
+  architecture?: string
 ): { minCpu: number; minMem: number } => {
-  const { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
+  let { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
+
+  if (architecture === ARCHITECTURE_S390X) {
+    const s390xAdjustments = S390X_CPU_ADJUSTMENTS[profile];
+    minCpu = s390xAdjustments.minCpu;
+    osd.cpu = s390xAdjustments.osdCpu;
+  }
+
   const extraOsds = osdAmount - 3;
   let cpu = minCpu;
   let mem = minMem;
@@ -137,16 +156,22 @@ export const getResourceProfileRequirements = (
  * @param profile A resource profile.
  * @param cpu The amount CPUs.
  * @param memory The amount of selected nodes' memory in GiB.
- * @param memory The amount of OSD pods.
+ * @param osdAmount The amount of OSD pods.
+ * @param architecture The node architecture.
  * @returns boolean
  */
 export const isResourceProfileAllowed = (
   profile: ResourceProfile,
   cpu: number,
   memory: number,
-  osdAmount: number
+  osdAmount: number,
+  architecture?: string
 ): boolean => {
-  const { minCpu, minMem } = getResourceProfileRequirements(profile, osdAmount);
+  const { minCpu, minMem } = getResourceProfileRequirements(
+    profile,
+    osdAmount,
+    architecture
+  );
 
   return cpu >= minCpu && memory >= minMem;
 };

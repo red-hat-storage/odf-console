@@ -18,6 +18,7 @@ import {
   isResourceProfileAllowed,
   isFlexibleScaling,
   getDeviceSetCount,
+  getNodeArchitectureFromState,
   getOsdAmount,
   isValidCapacityAutoScalingConfig,
 } from '@odf/core/utils';
@@ -38,7 +39,6 @@ import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { useWizardContext, WizardFooterWrapper } from '@patternfly/react-core';
 import { Button, Alert, AlertActionCloseButton } from '@patternfly/react-core';
-import './create-storage-system.scss';
 import {
   NetworkType,
   BackingStorageType,
@@ -46,6 +46,8 @@ import {
   VolumeTypeValidation,
 } from '../../types';
 import { createClusterKmsResources } from '../kms-config/utils';
+import { isIpInCidr, isValidCIDRFormat, getMonIp } from '../utils/cidr-utils';
+import './create-storage-system.scss';
 import {
   createNoobaaExternalPostgresResources,
   createStorageCluster,
@@ -170,15 +172,50 @@ const canJumpToNextStep = (
   } = capacityAndNodes;
   const { chartNodes, volumeSetName, isValidDiskSize, isValidDeviceType } =
     createLocalVolumeSet;
-  const { encryption, kms, networkType, publicNetwork, clusterNetwork } =
-    securityAndNetwork;
+  const {
+    encryption,
+    kms,
+    networkType,
+    publicNetwork,
+    clusterNetwork,
+    addressRanges,
+    usePublicNetwork,
+    useClusterNetwork,
+  } = securityAndNetwork;
   const { canGoToNextStep } =
     getExternalStorage(externalStorage, supportedExternalStorage) || {};
+
+  const publicCidr = addressRanges?.public?.[0]?.trim() ?? '';
+  const clusterCidr = addressRanges?.cluster?.[0]?.trim() ?? '';
+  const hasValidNICNetwork =
+    networkType === NetworkType.NIC &&
+    ((usePublicNetwork && isValidCIDRFormat(publicCidr)) ||
+      (useClusterNetwork && isValidCIDRFormat(clusterCidr)));
 
   const hasConfiguredNetwork =
     networkType === NetworkType.MULTUS
       ? !!(publicNetwork || clusterNetwork)
-      : true;
+      : networkType === NetworkType.NIC
+        ? hasValidNICNetwork
+        : true;
+
+  const hasDedicatedStorageWithCidr =
+    networkType === NetworkType.NIC &&
+    ((usePublicNetwork && publicCidr) || (useClusterNetwork && clusterCidr));
+  const allNodesHaveMonIpAnnotation =
+    !hasDedicatedStorageWithCidr ||
+    nodes.every((node) => (getMonIp(node)?.length ?? 0) > 0);
+  const allMonIpsInCidr =
+    !hasDedicatedStorageWithCidr ||
+    nodes.every((node) => {
+      const ip = getMonIp(node);
+      if (!ip) return true;
+      const inPublic =
+        !usePublicNetwork || !publicCidr || isIpInCidr(ip, publicCidr);
+      const inCluster =
+        !useClusterNetwork || !clusterCidr || isIpInCidr(ip, clusterCidr);
+      return inPublic && inCluster;
+    });
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
   const flexibleScaling = isFlexibleScaling(
@@ -218,7 +255,8 @@ const canJumpToNextStep = (
         isValidDiskSize &&
         isValidDeviceType
       );
-    case StepsName(t)[Steps.CapacityAndNodes]:
+    case StepsName(t)[Steps.CapacityAndNodes]: {
+      const architecture = getNodeArchitectureFromState(nodes);
       return (
         nodes.length >= MINIMUM_NODES &&
         capacity &&
@@ -229,13 +267,15 @@ const canJumpToNextStep = (
           resourceProfile,
           getTotalCpu(nodes),
           getTotalMemoryInGiB(nodes),
-          osdAmount
+          osdAmount,
+          architecture
         ) &&
         isValidCapacityAutoScalingConfig(
           capacityAndNodes.capacityAutoScaling.enable,
           capacityAndNodes.capacityAutoScaling.capacityLimit
         )
       );
+    }
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {
         return canGoToNextStep(connectionDetails, storageClass.name);
@@ -243,7 +283,9 @@ const canJumpToNextStep = (
       return (
         encryption.hasHandled &&
         kms.providerState.hasHandled &&
-        hasConfiguredNetwork
+        hasConfiguredNetwork &&
+        allNodesHaveMonIpAnnotation &&
+        allMonIpsInCidr
       );
     case StepsName(t)[Steps.Security]:
       return encryption.hasHandled && kms.providerState.hasHandled;
@@ -479,6 +521,7 @@ export const CreateStorageSystemFooter: React.FC<
           }
           variant="primary"
           onClick={handleNext}
+          className="pf-v6-u-mr-sm"
         >
           {stepName === StepsName(t)[Steps.ReviewAndCreate]
             ? t('Create storage system')
@@ -493,11 +536,12 @@ export const CreateStorageSystemFooter: React.FC<
             requestInProgress ||
             !isNsSafe
           }
+          className="pf-v6-u-mr-sm"
         >
           {t('Back')}
         </Button>
         <Button
-          variant="link"
+          variant="secondary"
           onClick={() => navigate(-1)}
           isDisabled={requestInProgress}
         >

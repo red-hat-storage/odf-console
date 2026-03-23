@@ -22,138 +22,194 @@ export type ContainerResources = {
   requests?: Record<string, IntOrString>;
 };
 
-export type ClusterKind = K8sResourceCommon & {
-  spec: {
-    license: {
-      accept: boolean;
-      license: 'data-access' | 'data-management' | 'erasure-code';
-    };
+// Scale edition for Cluster license (IBM Spectrum Scale)
+export type ScaleEdition = 'data-access' | 'data-management';
 
-    site: {
-      name: string;
-      zone: string;
-    };
+// License specifies acceptance and IBM Spectrum Scale edition
+export type License = {
+  accept: boolean;
+  license: ScaleEdition;
+};
 
-    networkPolicy?: Record<string, any>;
+// KMMImageRegistry defines container image registry details for Kernel Module Management
+export type KMMImageRegistry = {
+  registry?: string;
+  repo?: string;
+  registrySecret?: string;
+};
 
-    daemon?: {
-      clusterNameOverride?: string;
+// KMMModuleSign specifies Secrets containing signing keys for kernel modules
+export type KMMModuleSign = {
+  keySecret?: string;
+  certSecret?: string;
+};
 
-      hostAliases?: {
-        hostname: string;
-        ip: string;
-      }[];
+// KernelModuleManagement configures kernel module build via Kernel Module Management Operator
+export type KernelModuleManagement = {
+  imageRepository?: KMMImageRegistry;
+  moduleSigning?: KMMModuleSign;
+};
 
-      nodeSelector?: LabelMap;
+// GPFSModuleManagement specifies how to build GPFS kernel modules (KMM or MCO)
+export type GPFSModuleManagement = {
+  kmm?: KernelModuleManagement;
+};
 
-      nodeSelectorExpressions?: {
-        key: string;
-        operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist' | 'Gt' | 'Lt';
-        values?: string[];
-      }[];
+// CsiContainer identifies a CSI container (driver or sidecar)
+export type CsiContainer = 'driver' | 'sidecar';
 
-      tolerations?: Toleration[];
-
-      nsdDevicesConfig?: {
-        bypassDiscovery?: boolean;
-        localDevicePaths?: {
-          devicePath?: string;
-          deviceType?: string;
-        }[];
-      };
-
-      update?: {
-        maxUnavailable?: IntOrString;
-        paused?: boolean;
-        pools?: {
-          name: string;
-          maxUnavailable?: IntOrString;
-          paused?: boolean;
-          nodeSelector?: {
-            matchLabels?: LabelMap;
-            matchExpressions?: {
-              key: string;
-              operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
-              values?: string[];
-            }[];
-          };
-        }[];
-      };
-
-      clusterProfile?: {
-        verbsRdma?: 'enable' | 'disable';
-        verbsRdmaSend?: 'yes' | 'no';
-        verbsRdmaCm?: 'enable' | 'disable';
-        proactiveReconnect?: 'yes' | 'no';
-        ignoreReplicationForQuota?: 'yes' | 'no';
-        ignoreReplicationOnStatfs?: 'yes' | 'no';
-        readReplicaPolicy?: 'default' | 'local' | 'fastest';
-        traceGenSubDir?: '/var/mmfs/tmp/traces';
-        cloudEnv?: 'general';
-        [key: string]: string | undefined;
-      };
-
-      roles?: {
-        name: 'afm' | 'storage' | 'client';
-        limits?: ResourceRequirements;
-        resources?: ResourceRequirements;
-        profile?: {
-          verbsRdma?: 'enable' | 'disable';
-          verbsRdmaSend?: 'yes' | 'no';
-          proactiveReconnect?: 'yes' | 'no';
-          [key: string]: string | undefined;
-        };
-      }[];
-    };
-
-    grafanaBridge?: {
-      enablePrometheusExporter?: boolean;
-      nodeSelector?: LabelMap;
-      tolerations?: Toleration[];
-    };
-
-    regionalDR?: {
-      nodeSelector?: LabelMap;
-      tolerations?: Toleration[];
-    };
-
-    pmcollector?: {
-      nodeSelector?: LabelMap;
-      storageClass?: string;
-      tolerations?: Toleration[];
-      pmcollectorContainerResources?: {
-        name: 'sysmon' | 'pmcollector';
-        resources: ContainerResources;
-      }[];
-    };
-
-    csi?: {
-      sidecar?: {
-        nodeSelector?: LabelMap;
-      };
-    };
-
-    gui?: {
-      enableSessionIPCheck?: boolean;
-      nodeSelector?: LabelMap;
-      tolerations?: Toleration[];
-      containerResources?: {
-        name: 'liberty' | 'postgres';
-        resources: ContainerResources;
-      }[];
-    };
+// CsiContainerResource specifies resources for a CSI container
+export type CsiContainerResource = {
+  name: CsiContainer;
+  resources: {
+    limits?: Record<string, string>;
+    requests?: Record<string, string>;
   };
+};
 
-  status?: {
-    conditions?: {
-      lastTransitionTime: string;
-      message: string;
-      observedGeneration?: number;
-      reason: string;
-      status: 'True' | 'False' | 'Unknown';
-      type: string;
+// SideCar specifies configuration for CSI sidecar pods
+export type SideCar = {
+  nodeSelector?: LabelMap;
+};
+
+// CsiSpec defines Container Storage Interface (CSI) configuration
+export type CsiSpec = {
+  sidecar?: SideCar;
+  containerResources?: CsiContainerResource[];
+};
+
+// NetworkPolicyConfig holds network policy options (empty for now)
+export type NetworkPolicyConfig = Record<string, never>;
+
+// DebugConfig holds configuration for debugging functionality
+export type DebugConfig = {
+  threadDeadlockCapture?: boolean;
+};
+
+// ClusterCondition is the observed state condition (metav1.Condition)
+export type ClusterCondition = {
+  lastTransitionTime: string;
+  message: string;
+  observedGeneration?: number;
+  reason: string;
+  status: 'True' | 'False' | 'Unknown';
+  type: string;
+};
+
+// ClusterStatus defines the observed state of Cluster
+export type ClusterStatus = {
+  conditions?: ClusterCondition[];
+};
+
+// ClusterSpec defines the desired state of Cluster (matches Go ClusterSpec)
+export type ClusterSpec = {
+  license: License;
+  daemon?: DaemonUserSpec;
+  gui?: GuiSpec;
+  pmcollector?: PmcollectorSpec;
+  grafanaBridge?: GrafanaBridgeSpec;
+  networkPolicy?: NetworkPolicyConfig;
+  csi?: CsiSpec;
+  debugConfig?: DebugConfig;
+  gpfsModuleManagement?: GPFSModuleManagement;
+};
+
+// DaemonUserSpec tells the operator how to configure gpfs daemons
+export type DaemonUserSpec = {
+  clusterNameOverride?: string;
+  hostAliases?: {
+    hostname: string;
+    ip: string;
+  }[];
+  nodeSelector?: LabelMap;
+  nodeSelectorExpressions?: {
+    key: string;
+    operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist' | 'Gt' | 'Lt';
+    values?: string[];
+  }[];
+  tolerations?: Toleration[];
+  nsdDevicesConfig?: {
+    bypassDiscovery?: boolean;
+    localDevicePaths?: {
+      devicePath?: string;
+      deviceType?: string;
     }[];
   };
+  update?: {
+    maxUnavailable?: IntOrString;
+    paused?: boolean;
+    pools?: {
+      name: string;
+      maxUnavailable?: IntOrString;
+      paused?: boolean;
+      nodeSelector?: {
+        matchLabels?: LabelMap;
+        matchExpressions?: {
+          key: string;
+          operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
+          values?: string[];
+        }[];
+      };
+    }[];
+  };
+  clusterProfile?: {
+    verbsRdma?: 'enable' | 'disable';
+    verbsRdmaSend?: 'yes' | 'no';
+    verbsRdmaCm?: 'enable' | 'disable';
+    proactiveReconnect?: 'yes' | 'no';
+    ignoreReplicationForQuota?: 'yes' | 'no';
+    ignoreReplicationOnStatfs?: 'yes' | 'no';
+    readReplicaPolicy?: 'default' | 'local' | 'fastest';
+    traceGenSubDir?: '/var/mmfs/tmp/traces';
+    cloudEnv?: 'general';
+    [key: string]: string | undefined;
+  };
+  roles?: {
+    name: 'afm' | 'storage' | 'client';
+    limits?: ResourceRequirements;
+    resources?: ResourceRequirements;
+    profile?: {
+      verbsRdma?: 'enable' | 'disable';
+      verbsRdmaSend?: 'yes' | 'no';
+      proactiveReconnect?: 'yes' | 'no';
+      [key: string]: string | undefined;
+    };
+  }[];
+  nodeProfiles?: { name: string }[]; // nodeProfiles and roles cannot both be set; roles is deprecated
+};
+
+// GuiSpec tells the operator how to configure the GUIs (default: enableSessionIPCheck: true)
+export type GuiSpec = {
+  enableSessionIPCheck?: boolean;
+  nodeSelector?: LabelMap;
+  tolerations?: Toleration[];
+  containerResources?: {
+    name: 'liberty' | 'postgres';
+    resources: ContainerResources;
+  }[];
+};
+
+// PmcollectorSpec tells the operator how to configure pmcollectors
+export type PmcollectorSpec = {
+  nodeSelector?: LabelMap;
+  storageClass?: string;
+  tolerations?: Toleration[];
+  pmcollectorContainerResources?: {
+    name: 'sysmon' | 'pmcollector';
+    resources: ContainerResources;
+  }[];
+};
+
+// GrafanaBridgeSpec tells the operator how to configure Grafana Bridge
+export type GrafanaBridgeSpec = {
+  enablePrometheusExporter?: boolean;
+  nodeSelector?: LabelMap;
+  tolerations?: Toleration[];
+};
+
+export type ClusterKind = K8sResourceCommon & {
+  spec: ClusterSpec;
+  status?: ClusterStatus;
 };
 
 export type FileSystemKind = K8sResourceCommon & {
