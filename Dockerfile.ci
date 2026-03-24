@@ -7,6 +7,8 @@ ENV OPENSHIFT_CI=${OPENSHIFT_CI}
 
 WORKDIR /app
 
+ENV COREPACK_ENABLE_NETWORK=0
+
 # Enable Corepack and install Yarn v4
 RUN corepack enable && \
     corepack prepare yarn@4.12.0 --activate
