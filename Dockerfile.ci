@@ -9,7 +9,6 @@ WORKDIR /app
 
 COPY . /app
 
-ENV YARN=node:/app/.yarn/releases/yarn-4.12.0.cjs
 RUN node .yarn/releases/yarn-4.12.0.cjs workspaces focus --all --production
 RUN BUILD_SCRIPT=build; \
     if [ "$PLUGIN" = "client" ]; then \
