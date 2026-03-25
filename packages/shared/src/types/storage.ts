@@ -1,6 +1,17 @@
 import { ResourceProfile } from '@odf/core/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
+export type ErasureCodedPoolSpec = {
+  failureDomain?: string;
+  /** Align with storageDeviceSets / default CephBlockPool device class (not a literal pool type). */
+  deviceClass?: string;
+  erasureCoded: {
+    dataChunks: number;
+    codingChunks: number;
+  };
+};
+
+/** Pool type (replicated or EC). EC fields come from ErasureCodedPoolSpec (optional). */
 export type DataPool = {
   compressionMode?: string;
   mirroring?: {
@@ -10,7 +21,7 @@ export type DataPool = {
   replicated?: {
     size: number;
   };
-};
+} & Partial<ErasureCodedPoolSpec>;
 
 export enum StorageClusterPhase {
   Ready = 'Ready',
@@ -45,12 +56,25 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephBlockPools?: {
         defaultStorageClass?: boolean;
         defaultVirtualizationStorageClass?: boolean;
+        /** Replicated pool name for RBD metadata when poolSpec uses erasure coding. */
+        erasureCodedMetadataPool?: string;
+        poolSpec?: {
+          failureDomain?: string;
+          deviceClass?: string;
+          erasureCoded: {
+            dataChunks: number;
+            codingChunks: number;
+          };
+        };
       };
       cephFilesystems?: {
         additionalDataPools?: DataPool[];
+        /** CephFS data pool name used by the default StorageClass when additional EC pools exist. */
+        defaultStorageClassDataPoolName?: string;
       };
       cephObjectStores?: {
-        hostNetwork: boolean;
+        hostNetwork?: boolean;
+        dataPoolSpec?: ErasureCodedPoolSpec;
       };
     };
     storageDeviceSets?: DeviceSet[];

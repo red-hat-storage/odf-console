@@ -51,6 +51,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     createLocalVolumeSet,
     backingStorage,
     advancedSettings,
+    optionalSettings,
     connectionDetails,
     createStorageClass,
     nodes,
@@ -59,7 +60,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
   const { deployment, externalStorage, type } = backingStorage;
-  const { isDbBackup, enableNFS, isRBDStorageClassDefault } = advancedSettings;
+  const { useErasureCoding, erasureCodingSchema } = advancedSettings;
+  const {
+    isDbBackup,
+    enableNFS,
+    isRBDStorageClassDefault,
+    useExternalPostgres,
+  } = optionalSettings;
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
@@ -93,9 +100,12 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     : t('Disabled');
   const isDbBackupEnabled = isDbBackup ? t('Enabled') : t('Disabled');
   const isVirtualizeStorageClassDefault =
-    advancedSettings.isVirtualizeStorageClassDefault
+    backingStorage.isVirtualizeStorageClassDefault
       ? t('Enabled')
       : t('Disabled');
+  const useExternalPostgresStatus = useExternalPostgres
+    ? t('Enabled')
+    : t('Disabled');
 
   const kmsStatus = encryption.advanced
     ? kms.providerState.name.value
@@ -129,8 +139,18 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             })}
           </ListItem>
         )}
+        {deployment === DeploymentType.FULL && !hasMultipleClusters && (
+          <ListItem>
+            {t(
+              'Default StorageClass for virtualization : {{isVirtualizeStorageClassDefault}}',
+              {
+                isVirtualizeStorageClassDefault,
+              }
+            )}
+          </ListItem>
+        )}
       </ReviewItem>
-      <ReviewItem title={t('Advanced settings')}>
+      <ReviewItem title={t('Optional settings')}>
         {deployment === DeploymentType.FULL &&
           type !== BackingStorageType.EXTERNAL && (
             <ListItem>
@@ -140,24 +160,21 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             </ListItem>
           )}
         {deployment === DeploymentType.FULL && !hasMultipleClusters && (
-          <>
-            <ListItem>
-              {t(
-                'Ceph RBD as the default StorageClass: {{isCephRBDSetAsDefault}}',
-                {
-                  isCephRBDSetAsDefault,
-                }
-              )}
-            </ListItem>
-            <ListItem>
-              {t(
-                'Default StorageClass for virtualization : {{isVirtualizeStorageClassDefault}}',
-                {
-                  isVirtualizeStorageClassDefault,
-                }
-              )}
-            </ListItem>
-          </>
+          <ListItem>
+            {t(
+              'Ceph RBD as the default StorageClass: {{isCephRBDSetAsDefault}}',
+              {
+                isCephRBDSetAsDefault,
+              }
+            )}
+          </ListItem>
+        )}
+        {!hasOCS && (
+          <ListItem>
+            {t('Use external PostgreSQL: {{useExternalPostgresStatus}}', {
+              useExternalPostgresStatus,
+            })}
+          </ListItem>
         )}
         {isDbBackup && (
           <ListItem>
@@ -167,6 +184,21 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
           </ListItem>
         )}
       </ReviewItem>
+
+      {useErasureCoding && erasureCodingSchema && (
+        <ReviewItem title={t('Advanced setting')}>
+          <ListItem>
+            {t(
+              'Erasure coding: {{k}} + {{m}} ( k = {{k}} , m = {{m}} ) for Block (RBD), File (Ceph FS), and Object (RGW)',
+              {
+                k: erasureCodingSchema.k,
+                m: erasureCodingSchema.m,
+              }
+            )}
+          </ListItem>
+        </ReviewItem>
+      )}
+
       {!isMCG && !isRhcs && !isStandaloneExternal && (
         <ReviewItem title={t('Capacity and nodes')}>
           <ListItem>

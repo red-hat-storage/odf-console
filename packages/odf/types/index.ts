@@ -8,3 +8,4 @@ export * from './storage-consumer';
 export * from './s3-browser';
 export * from './install-ui';
 export * from './s3-iam';
+export * from './erasure-coding';

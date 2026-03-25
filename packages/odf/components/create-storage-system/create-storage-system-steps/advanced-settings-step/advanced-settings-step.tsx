@@ -1,112 +1,81 @@
 import * as React from 'react';
-import { BackingStorageType, DeploymentType } from '@odf/core/types';
-import { TechPreviewBadge } from '@odf/shared';
+import type { ErasureCodingSchema } from '@odf/core/types';
+import {
+  getErasureCodingNodeValidation,
+  isFlexibleScaling,
+} from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Form, FormGroup, Checkbox } from '@patternfly/react-core';
+import type { WizardNodeState } from '../../reducer';
 import { WizardState, WizardDispatch } from '../../reducer';
-import { EnableNFS } from '../backing-storage-step/enable-nfs';
-import { PostgresConnectionDetails } from '../backing-storage-step/noobaa-external-postgres/postgres-connection-details';
-import { SetCephRBDStorageClassDefault } from '../backing-storage-step/set-rbd-sc-default';
-import SetVirtualizeSCDefault from '../backing-storage-step/set-virtualize-sc-default';
-import { AutomaticBackup } from './automatic-backup/automatic-backup';
+import { ErasureCodingSchemaTable } from './erasure-coding/erasure-coding-schema-table';
 
 export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   state,
   dispatch,
-  hasOCS,
-  hasMultipleClusters,
-  deployment,
-  backingStorageType,
+  nodeCount = 0,
+  capacity,
+  nodes = [],
+  isNoProvisioner = false,
+  enableArbiter = false,
 }) => {
   const { t } = useCustomTranslation();
-  const {
-    enableNFS,
-    isRBDStorageClassDefault,
-    externalPostgres,
-    useExternalPostgres,
-    isDbBackup,
-    dbBackup,
-  } = state;
+  const { useErasureCoding, erasureCodingSchema } = state;
+  const flexibleScaling = React.useMemo(
+    () => isFlexibleScaling(nodes, isNoProvisioner, enableArbiter),
+    [nodes, isNoProvisioner, enableArbiter]
+  );
+  const ecValidation = React.useMemo(
+    () => getErasureCodingNodeValidation(nodeCount),
+    [nodeCount]
+  );
+  // Clear erasure coding when flexible scaling is not available
+  React.useEffect(() => {
+    if (!flexibleScaling && useErasureCoding) {
+      dispatch({
+        type: 'advancedSettings/useErasureCoding',
+        payload: false,
+      });
+    }
+  }, [flexibleScaling, useErasureCoding, dispatch]);
+  const onSelectSchema = React.useCallback(
+    (schema: ErasureCodingSchema) => {
+      dispatch({
+        type: 'advancedSettings/erasureCodingSchema',
+        payload: schema,
+      });
+    },
+    [dispatch]
+  );
 
-  const isFullDeployment = deployment === DeploymentType.FULL;
-
-  const isMCG = deployment === DeploymentType.MCG;
   return (
     <Form>
       <FormGroup label={t('Advanced Settings')} fieldId="advanced-settings">
-        {/* Should be visible for both external and internal mode (but only single NooBaa is allowed, so should be hidden if any cluster already exists) */}
-        {isFullDeployment && !hasMultipleClusters && (
-          <>
-            <EnableNFS
-              dispatch={dispatch}
-              nfsEnabled={enableNFS}
-              backingStorageType={backingStorageType}
+        <Checkbox
+          id="use-erasure-coding"
+          label={t('Use erasure coding')}
+          description={t(
+            'Use erasure coding instead of replication to protect the cluster data.'
+          )}
+          isChecked={useErasureCoding}
+          isDisabled={!flexibleScaling || !ecValidation.valid}
+          onChange={() => {
+            dispatch({
+              type: 'advancedSettings/useErasureCoding',
+              payload: !useErasureCoding,
+            });
+          }}
+          className="odf-advanced-settings__checkbox odf-backing-store__radio--margin-bottom"
+        />
+        {useErasureCoding && ecValidation.valid && flexibleScaling && (
+          <FormGroup fieldId="erasure-coding-schema" className="pf-v6-u-mt-md">
+            <ErasureCodingSchemaTable
+              nodeCount={nodeCount}
+              selectedSchema={erasureCodingSchema}
+              onSelectSchema={onSelectSchema}
+              rawCapacityBytes={typeof capacity === 'number' ? capacity : null}
             />
-            <SetCephRBDStorageClassDefault
-              dispatch={dispatch}
-              isRBDStorageClassDefault={isRBDStorageClassDefault}
-            />
-          </>
-        )}
-        {isFullDeployment && !hasMultipleClusters && (
-          <SetVirtualizeSCDefault
-            dispatch={dispatch}
-            isVirtualizeStorageClassDefault={
-              state.isVirtualizeStorageClassDefault
-            }
-          />
-        )}
-        {/* Should be visible for both external and internal mode (but only single NooBaa is allowed, so should be hidden if any cluster already exists) */}
-        {!hasOCS && (
-          <Checkbox
-            id="use-external-postgress"
-            label={
-              <>
-                {t('Use external PostgreSQL')}
-                <span className="pf-v6-u-ml-sm">
-                  <TechPreviewBadge />
-                </span>
-              </>
-            }
-            description={t(
-              'Allow Noobaa to connect to an external postgres server'
-            )}
-            isChecked={useExternalPostgres}
-            onChange={() =>
-              dispatch({
-                type: 'advancedSettings/useExternalPostgres',
-                payload: !useExternalPostgres,
-              })
-            }
-            className="odf-backing-store__radio--margin-bottom"
-            isDisabled={isDbBackup}
-          />
-        )}
-        {useExternalPostgres && !hasOCS && (
-          <PostgresConnectionDetails
-            dispatch={dispatch}
-            tlsFiles={[
-              externalPostgres.tls.keys.private,
-              externalPostgres.tls.keys.public,
-            ]}
-            tlsEnabled={externalPostgres.tls.enabled}
-            allowSelfSignedCerts={externalPostgres.tls.allowSelfSignedCerts}
-            username={externalPostgres.username}
-            password={externalPostgres.password}
-            serverName={externalPostgres.serverName}
-            databaseName={externalPostgres.databaseName}
-            port={externalPostgres.port}
-            enableClientSideCerts={externalPostgres.tls.enableClientSideCerts}
-          />
-        )}
-        {!hasOCS && (
-          <AutomaticBackup
-            isDbBackup={isDbBackup}
-            dispatch={dispatch}
-            isMCG={isMCG}
-            dbBackup={dbBackup}
-            isExternalPostgresEnabled={useExternalPostgres}
-          />
+          </FormGroup>
         )}
       </FormGroup>
     </Form>
@@ -116,8 +85,11 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
 type AdvancedSettingsProps = {
   dispatch: WizardDispatch;
   state: WizardState['advancedSettings'];
-  hasOCS: boolean;
-  hasMultipleClusters: boolean;
-  deployment: DeploymentType;
-  backingStorageType: BackingStorageType;
+  /** For erasure coding: node count and capacity from Capacity and nodes step */
+  nodeCount?: number;
+  capacity?: string | number | null;
+  /** Used to compute flexible scaling (erasure coding available when true). */
+  nodes?: WizardNodeState[] | null;
+  isNoProvisioner?: boolean;
+  enableArbiter?: boolean;
 };
