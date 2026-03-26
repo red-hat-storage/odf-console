@@ -17,6 +17,7 @@ import {
   HealthState,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -50,6 +51,7 @@ const getRemoteClusterConnectionHealth = (
 
 const StatusCard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
+  const { systemName } = useParams();
   const [csvs, csvsLoaded, csvsLoadError] = useK8sWatchResource<
     ClusterServiceVersionKind[]
   >({
@@ -59,11 +61,12 @@ const StatusCard: React.FC<{}> = () => {
     namespace: IBM_SCALE_NAMESPACE,
   });
 
-  const [remoteClusters, remoteClustersLoaded, remoteClustersLoadError] =
-    useK8sWatchResource<RemoteClusterKind[]>({
+  const [remoteCluster, remoteClustersLoaded, remoteClustersLoadError] =
+    useK8sWatchResource<RemoteClusterKind>({
       kind: referenceForModel(RemoteClusterModel),
-      isList: true,
+      isList: false,
       namespace: IBM_SCALE_NAMESPACE,
+      name: systemName,
     });
 
   const ibmCSV = csvs?.find((csv) =>
@@ -76,7 +79,7 @@ const StatusCard: React.FC<{}> = () => {
   );
 
   const remoteClusterConnectionHealth = getRemoteClusterConnectionHealth(
-    remoteClusters?.[0],
+    remoteCluster,
     !remoteClustersLoaded,
     remoteClustersLoadError
   );
