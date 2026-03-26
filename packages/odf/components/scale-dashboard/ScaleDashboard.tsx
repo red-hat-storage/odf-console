@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ClusterKind } from '@odf/core/types/scale';
 import {
   ClusterModel,
   Kebab,
@@ -10,15 +11,17 @@ import {
   Overview,
   OverviewGrid,
   OverviewGridCard,
+  useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
+import { useParams } from 'react-router-dom-v5-compat';
 import ActivityCard from './ActivityCard';
 import CapacityCard from './CapacityCard';
 import DetailsCard from './DetailsCard';
 import FileSystemCard from './FileSystems';
 import StatusCard from './StatusCard';
 
-const scaleDashboardActions = (t: TFunction) => {
+const scaleDashboardActions = (t: TFunction, clusterResource: ClusterKind) => {
   const actions = [
     {
       key: 'ADD_REMOTE_FILE_SYSTEM',
@@ -31,7 +34,7 @@ const scaleDashboardActions = (t: TFunction) => {
   return (
     <Kebab
       extraProps={{
-        resource: null,
+        resource: clusterResource,
         resourceModel: ClusterModel,
       }}
       customKebabItems={actions}
@@ -54,6 +57,16 @@ const ScaleDashboard: React.FC = () => {
     { Card: FileSystemCard },
   ];
 
+  const { systemName } = useParams<{ systemName: string }>();
+  const [resource] = useK8sWatchResource<ClusterKind>({
+    groupVersionKind: {
+      group: ClusterModel.apiGroup,
+      version: ClusterModel.apiVersion,
+      kind: ClusterModel.kind,
+    },
+    name: systemName,
+  });
+
   const leftCards: OverviewGridCard[] = [{ Card: DetailsCard }];
 
   const rightCards: OverviewGridCard[] = [{ Card: ActivityCard }];
@@ -73,7 +86,7 @@ const ScaleDashboard: React.FC = () => {
             path: '',
           },
         ]}
-        actions={() => scaleDashboardActions(t)}
+        actions={() => scaleDashboardActions(t, resource)}
       />
       <Overview>
         <OverviewGrid
