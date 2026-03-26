@@ -38,7 +38,7 @@ describe('useSANSystemFormValidation', () => {
   describe('Secure boot: CA certificate and Private key optional', () => {
     it('should allow form to be valid without CA certificate and Private key (unsecure boot)', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), true, true)
+        useSANSystemFormValidation(new Set(), true)
       );
       const valid = await result.current.formSchema.isValid({
         ...baseValidValues,
@@ -50,7 +50,7 @@ describe('useSANSystemFormValidation', () => {
 
     it('should allow form to be valid with both CA certificate and Private key (secure boot)', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), true, true)
+        useSANSystemFormValidation(new Set(), true)
       );
       const valid = await result.current.formSchema.isValid({
         ...baseValidValues,
@@ -61,26 +61,26 @@ describe('useSANSystemFormValidation', () => {
     });
   });
 
-  describe('Registry configuration: image registry/repo required only when OpenShift registry present', () => {
-    it('when hasPersistentRegistry is true, should require imageRegistryUrl and imageRepositoryName', async () => {
+  describe('Registry configuration: image registry/repo required only when OpenShift registry absent', () => {
+    it('when hasPersistentRegistry is true, should not require imageRegistryUrl and imageRepositoryName', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), true, true)
+        useSANSystemFormValidation(new Set(), false)
       );
       const validWithoutRegistry = await result.current.formSchema.isValid({
         ...baseValidValues,
         imageRegistryUrl: '',
         imageRepositoryName: '',
       });
-      expect(validWithoutRegistry).toBe(false);
+      expect(validWithoutRegistry).toBe(true);
 
       const validWithRegistry =
         await result.current.formSchema.isValid(baseValidValues);
       expect(validWithRegistry).toBe(true);
     });
 
-    it('when hasPersistentRegistry is false, should not require imageRegistryUrl and imageRepositoryName', async () => {
+    it('when hasPersistentRegistry is false, should require imageRegistryUrl and imageRepositoryName', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), false, true)
+        useSANSystemFormValidation(new Set(), true)
       );
       const validWithoutRegistry = await result.current.formSchema.isValid({
         lunGroupName: baseValidValues.lunGroupName,
@@ -90,25 +90,14 @@ describe('useSANSystemFormValidation', () => {
         caCertificateSecret: '',
         privateKeySecret: '',
       });
-      expect(validWithoutRegistry).toBe(true);
+      expect(validWithoutRegistry).toBe(false);
     });
   });
 
   describe('Secret key required only when registry section is shown and no persistent registry', () => {
-    it('when showRegistrySection is true and no persistent registry, should require secretKey', async () => {
+    it('when showRegistrySection is false and no persistent registry, should require secretKey', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), false, true)
-      );
-      const validWithoutSecret = await result.current.formSchema.isValid({
-        ...baseValidValues,
-        secretKey: '',
-      });
-      expect(validWithoutSecret).toBe(false);
-    });
-
-    it('when showRegistrySection is true and persistent registry present, should not require secretKey', async () => {
-      const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), true, true)
+        useSANSystemFormValidation(new Set(), false)
       );
       const validWithoutSecret = await result.current.formSchema.isValid({
         ...baseValidValues,
@@ -117,9 +106,20 @@ describe('useSANSystemFormValidation', () => {
       expect(validWithoutSecret).toBe(true);
     });
 
+    it('when showRegistrySection is true and persistent registry present, should require secretKey', async () => {
+      const { result } = renderHook(() =>
+        useSANSystemFormValidation(new Set(), true)
+      );
+      const validWithoutSecret = await result.current.formSchema.isValid({
+        ...baseValidValues,
+        secretKey: '',
+      });
+      expect(validWithoutSecret).toBe(false);
+    });
+
     it('when showRegistrySection is false, should not require secretKey', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), false, false)
+        useSANSystemFormValidation(new Set(), false)
       );
       const validWithoutSecret = await result.current.formSchema.isValid({
         lunGroupName: baseValidValues.lunGroupName,
@@ -136,7 +136,7 @@ describe('useSANSystemFormValidation', () => {
   describe('Testing combinations', () => {
     it('OpenShift registry present + all optional cert fields empty: valid with registry filled', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), true, true)
+        useSANSystemFormValidation(new Set(), true)
       );
       expect(await result.current.formSchema.isValid(baseValidValues)).toBe(
         true
@@ -145,7 +145,7 @@ describe('useSANSystemFormValidation', () => {
 
     it('OpenShift registry present + secure boot (CA + key): valid', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), true, true)
+        useSANSystemFormValidation(new Set(), true)
       );
       expect(
         await result.current.formSchema.isValid({
@@ -158,7 +158,7 @@ describe('useSANSystemFormValidation', () => {
 
     it('No OpenShift registry + secretKey only: valid', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), false, true)
+        useSANSystemFormValidation(new Set(), false)
       );
       expect(
         await result.current.formSchema.isValid({
@@ -174,7 +174,7 @@ describe('useSANSystemFormValidation', () => {
 
     it('No OpenShift registry + secretKey + secure boot: valid', async () => {
       const { result } = renderHook(() =>
-        useSANSystemFormValidation(new Set(), false, true)
+        useSANSystemFormValidation(new Set(), false)
       );
       expect(
         await result.current.formSchema.isValid({
