@@ -20,6 +20,13 @@ export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
 export const MINIMUM_NODES = 3;
+/** Label key for Ceph daemon pod type (e.g. app=rook-ceph-osd). */
+export const OSD_APP_LABEL_KEY = 'app';
+/** Label on OSD pods for the device set name; maps to deviceClass via StorageCluster. */
+export const OSD_DEVICE_SET_LABEL = 'ceph.rook.io/DeviceSet';
+/** Label on OSD pods for device class (e.g. ssd); used when DeviceSet does not match CR. */
+export const OSD_DEVICE_CLASS_LABEL = 'device-class';
+export const ROOK_CEPH_OSD = 'rook-ceph-osd';
 export const SECOND = 1000;
 
 // ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters

@@ -1,6 +1,13 @@
 import * as React from 'react';
 import { AttachStorageAction } from '@odf/core/components/attach-storage-storagesystem/state';
-import { checkArbiterCluster } from '@odf/core/utils';
+import { ErasureCodingSchemaTable } from '@odf/core/components/create-storage-system/create-storage-system-steps/advanced-settings-step/erasure-coding/erasure-coding-schema-table';
+import { ERASURE_CODING_MIN_NODES } from '@odf/core/constants';
+import { odfPodsResource } from '@odf/core/resources';
+import {
+  checkArbiterCluster,
+  checkFlexibleScaling,
+  getNodeCountWithOSDsForDeviceClass,
+} from '@odf/core/utils';
 import {
   fieldRequirementsTranslations,
   formSettings,
@@ -13,15 +20,19 @@ import {
   ListKind,
   StorageClusterKind,
   CephClusterKind,
+  PodKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import {
   Alert,
+  AlertVariant,
+  Checkbox,
   EmptyState,
   EmptyStateBody,
   Radio,
@@ -33,6 +44,7 @@ import {
   DropdownList,
   MenuToggle,
   MenuToggleElement,
+  Spinner,
 } from '@patternfly/react-core';
 import { CaretDownIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import {
@@ -54,18 +66,28 @@ import {
 import '../style.scss';
 import './body.scss';
 
+const ProgressSpinnerIcon: React.FC<{ className?: string }> = () => (
+  <Spinner size="lg" />
+);
+
 export const StoragePoolStatus: React.FC<StoragePoolStatusProps> = ({
   status,
   name,
   error = '',
 }) => {
   const { t } = useCustomTranslation();
-  const statusObj: ProgressStatusProps = PROGRESS_STATUS(t, name).find(
-    (state) => state.name === status
+  const allStatuses = PROGRESS_STATUS(t, name);
+  const statusObj: ProgressStatusProps =
+    allStatuses.find((state) => state.name === status) ?? allStatuses[0];
+
+  const emptyStateIcon = React.useMemo(
+    () =>
+      status === PoolProgress.PROGRESS ? ProgressSpinnerIcon : statusObj.icon,
+    [status, statusObj]
   );
 
   return (
-    <EmptyState icon={statusObj.icon}>
+    <EmptyState variant="sm" icon={emptyStateIcon}>
       <EmptyStateBody data-test="empty-state-body">
         {error ? getErrorMessage(error) : statusObj.desc}
       </EmptyStateBody>
@@ -92,6 +114,10 @@ export type StoragePoolBodyProps = {
   prefixName?: string;
   usePrefix?: boolean;
   placeholder?: string;
+  /** When provided (e.g. attach storage flow), use this for EC schema validation instead of OSD pod-based count. */
+  nodeCountForErasureCoding?: number;
+  /** Default CephBlockPool deviceClass (from default block pool); used to count OSD nodes for EC when not using nodeCountForErasureCoding. */
+  erasureCodingDeviceClass?: string;
 };
 
 export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
@@ -107,6 +133,8 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   prefixName,
   usePrefix,
   placeholder,
+  nodeCountForErasureCoding: nodeCountForErasureCodingProp,
+  erasureCodingDeviceClass,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -198,6 +226,25 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   const isClusterReady: boolean =
     cephCluster?.status?.phase === PoolState.READY;
 
+  const currentStorageCluster = storageCluster?.items?.[0];
+  const flexibleScaling = checkFlexibleScaling(currentStorageCluster);
+
+  const [pods] = useK8sWatchResource<PodKind[]>(odfPodsResource(poolNs ?? ''));
+  // Use nodes with OSD pods for the default block pool's device class for erasure coding schema validation.
+  const nodeCountForEC =
+    nodeCountForErasureCodingProp !== undefined
+      ? nodeCountForErasureCodingProp
+      : currentStorageCluster
+        ? getNodeCountWithOSDsForDeviceClass(
+            currentStorageCluster,
+            pods ?? [],
+            erasureCodingDeviceClass ?? ''
+          )
+        : 0;
+  // Show erasure coding only when flexibleScaling is enabled and there are enough nodes.
+  const canShowErasureCoding =
+    flexibleScaling && nodeCountForEC >= ERASURE_CODING_MIN_NODES;
+
   // Check storage cluster is arbiter
   React.useEffect(() => {
     const isArbiterCluster: boolean = checkArbiterCluster(
@@ -237,17 +284,16 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
     return (
       <DropdownItem
         key={`replica-${OCS_DEVICE_REPLICA[replica]}`}
-        component="button"
-        id={replica}
+        value={replica}
         data-test-id="replica-dropdown-item"
         className="ceph-block-pool__dropdown-description"
         description={warning}
-        onClick={(e) =>
+        onClick={() => {
           dispatch({
             type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
-            payload: e.currentTarget.id,
-          })
-        }
+            payload: replica,
+          });
+        }}
       >
         {t('{{replica}} Replication', {
           replica: OCS_DEVICE_REPLICA[replica],
@@ -277,11 +323,16 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
 
   return isClusterReady || !showPoolStatus ? (
     <>
-      <FormGroup label={t('Volume type')} className="pf-v6-u-pt-xl" isRequired>
+      <FormGroup
+        label={t('Volume type')}
+        className="pf-v6-u-pt-xl"
+        isRequired
+        role="radiogroup"
+        fieldId="volume-type-group"
+      >
         <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-row ceph-pool__radio-flex">
           <Radio
             label={t('Filesystem')}
-            value="filesystem"
             id="type-filesystem"
             data-test="type-filesystem"
             name="volume-type"
@@ -294,7 +345,6 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           />
           <Radio
             label={t('Block')}
-            value="block"
             id="type-block"
             data-test="type-block"
             name="volume-type"
@@ -334,7 +384,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
               <Icon status="info">
                 <InfoCircleIcon />
               </Icon>
-              <span className="pf-v6-u-disabled-color-100 pf-v6-u-font-size-sm pf-v6-u-ml-sm">
+              <span className="ceph-block-pool-body__disabled-text pf-v6-u-font-size-sm pf-v6-u-ml-sm">
                 {t(
                   'The pool name comprises a prefix followed by the user-provided name.'
                 )}
@@ -356,51 +406,103 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           )
         }
       />
-      <div className="form-group ceph-block-pool-body__input">
-        <label
-          className="control-label co-required"
-          htmlFor="pool-replica-size"
-        >
-          {t('Data protection policy')}
-        </label>
-        <Dropdown
-          className="dropdown--full-width"
-          isOpen={isReplicaOpen}
-          onSelect={() => setReplicaOpen(false)}
-          onOpenChange={(open: boolean) => setReplicaOpen(open)}
-          toggle={replicaDropdownToggle}
-          popperProps={{ width: 'trigger' }}
-        >
-          <DropdownList>{replicaDropdownItems}</DropdownList>
-        </Dropdown>
-      </div>
-      <div className="form-group ceph-block-pool-body__input">
-        <label className="control-label" htmlFor="compression-check">
-          {t('Data compression')}
-        </label>
-        <div className="checkbox ceph-block-pool-body__compression">
-          <input
-            type="checkbox"
-            onChange={(event) =>
-              dispatch({
-                type: StoragePoolActionType.SET_POOL_COMPRESSED,
-                payload: event.target.checked,
-              })
-            }
-            checked={state.isCompressed}
-            id="compression-check"
-            name="compression-check"
-            data-test="compression-checkbox"
-          />
-          {t(
+      <FormGroup
+        label={t('Data protection policy')}
+        fieldId="data-protection-policy"
+        isRequired
+        role="radiogroup"
+        className="ceph-block-pool-body__input"
+      >
+        <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-gap-md">
+          <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-gap-sm">
+            <Radio
+              label={t('Replication')}
+              id="policy-replication"
+              data-test="policy-replication"
+              name="data-protection-policy"
+              isChecked={state.dataProtectionPolicy === 'replication'}
+              onChange={() =>
+                dispatch({
+                  type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY,
+                  payload: 'replication',
+                })
+              }
+            />
+            {state.dataProtectionPolicy === 'replication' && (
+              <div className="pf-v6-u-ml-lg ceph-block-pool__replica-dropdown-wrap">
+                <Dropdown
+                  className="ceph-block-pool__replica-dropdown"
+                  isOpen={isReplicaOpen}
+                  onSelect={() => setReplicaOpen(false)}
+                  onOpenChange={(open: boolean) => setReplicaOpen(open)}
+                  toggle={replicaDropdownToggle}
+                  popperProps={{ width: 'trigger' }}
+                >
+                  <DropdownList>{replicaDropdownItems}</DropdownList>
+                </Dropdown>
+              </div>
+            )}
+            {canShowErasureCoding && (
+              <div className="pf-v6-u-mt-md">
+                <Radio
+                  label={t('Erasure coding')}
+                  id="policy-erasure-coding"
+                  data-test="policy-erasure-coding"
+                  name="data-protection-policy"
+                  isChecked={state.dataProtectionPolicy === 'erasure-coding'}
+                  onChange={() =>
+                    dispatch({
+                      type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY,
+                      payload: 'erasure-coding',
+                    })
+                  }
+                />
+              </div>
+            )}
+          </div>
+          {state.dataProtectionPolicy === 'erasure-coding' &&
+            canShowErasureCoding && (
+              <div className="pf-v6-u-mt-md">
+                <ErasureCodingSchemaTable
+                  nodeCount={nodeCountForEC}
+                  selectedSchema={state.erasureCodingSchema}
+                  onSelectSchema={(selectedSchema) =>
+                    dispatch({
+                      type: StoragePoolActionType.SET_ERASURE_CODING_SCHEMA,
+                      payload: selectedSchema,
+                    })
+                  }
+                  showOnlySchemeAndOverhead
+                />
+              </div>
+            )}
+        </div>
+      </FormGroup>
+      <FormGroup
+        label={t('Data compression')}
+        fieldId="compression-check"
+        className="ceph-block-pool-body__input"
+      >
+        <Checkbox
+          id="compression-check"
+          name="compression-check"
+          data-test="compression-checkbox"
+          label={t(
             'Optimize storage efficiency by enabling data compression within replicas.'
           )}
-        </div>
-      </div>
+          isChecked={state.isCompressed}
+          onChange={(_event, checked) =>
+            dispatch({
+              type: StoragePoolActionType.SET_POOL_COMPRESSED,
+              payload: checked,
+            })
+          }
+        />
+      </FormGroup>
       {state.isCompressed && (
         <Alert
-          className="co-alert ceph-block-pool__alert"
-          variant="info"
+          className="ceph-block-pool__alert"
+          variant={AlertVariant.info}
           title={t(
             'Enabling compression may result in little or no space savings for encrypted or random data. Also, enabling compression may have an impact on I/O performance.'
           )}

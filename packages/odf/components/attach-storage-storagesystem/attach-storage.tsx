@@ -8,6 +8,7 @@ import { NodeData } from '@odf/core/types';
 import {
   checkArbiterCluster,
   checkFlexibleScaling,
+  getAssociatedNodes,
   getDeviceSetCount,
   getSCAvailablePVs,
 } from '@odf/core/utils';
@@ -165,7 +166,10 @@ const AttachStorage = () => {
         state.lsoStorageClassName
       );
       const availablePvsCount = pvs.length || 0;
-      const failureDomain = storageCluster?.status?.failureDomain;
+      const failureDomain =
+        state.dataProtectionPolicy === 'replication'
+          ? storageCluster?.status?.failureDomain
+          : undefined;
       const deviceSetCount = getDeviceSetCount(availablePvsCount, replica);
       const filesystemName = `${clusterName}-cephfilesystem`;
       const payload = createPayload(
@@ -236,6 +240,13 @@ const AttachStorage = () => {
       ? state.lsoStorageClassName
       : `${state.lsoStorageClassName}-${selectedStorageClassCount}`;
 
+  // Total number of nodes that have PVs (for selected LSO SC); used for valid erasure coding schema in storage pool form.
+  const nodeCountForErasureCoding = React.useMemo(() => {
+    if (!state.lsoStorageClassName || !pvData?.length) return undefined;
+    const availablePVs = getSCAvailablePVs(pvData, state.lsoStorageClassName);
+    return getAssociatedNodes(availablePVs).length;
+  }, [state.lsoStorageClassName, pvData]);
+
   React.useEffect(() => {
     if (!state.lsoStorageClassName) return;
 
@@ -285,6 +296,7 @@ const AttachStorage = () => {
               state={state}
               dispatch={dispatch}
               clusterName={clusterName}
+              nodeCountForErasureCoding={nodeCountForErasureCoding}
             />
           </div>
           <StorageClassForm state={state} dispatch={dispatch} />

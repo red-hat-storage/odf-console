@@ -4,10 +4,14 @@ import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { ODFSystemFlagsPayload } from '@odf/core/redux/actions';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { StoragePoolDefinitionText } from '@odf/ocs/storage-pool/CreateStoragePool';
+import { useCephBlockPools } from '@odf/ocs/storage-pool/hooks';
 import { CephBlockPoolModel } from '@odf/shared';
-import { ModalFooter, ModalTitle } from '@odf/shared/generic/ModalTitle';
+import {
+  ModalFooter as SharedModalFooter,
+  ModalTitle,
+} from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { CommonModalProps, ModalBody } from '@odf/shared/modals/Modal';
+import { CommonModalProps } from '@odf/shared/modals/Modal';
 import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { CephClusterKind, StorageClusterKind } from '@odf/shared/types';
@@ -20,8 +24,15 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalVariant,
+} from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
@@ -170,6 +181,9 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
     poolNamespace
   ) as CephClusterKind;
 
+  const clusterName = systemFlags[poolNamespace]?.ocsClusterName;
+  const { defaultDeviceClass } = useCephBlockPools(clusterName, poolNamespace);
+
   const MODAL_TITLE = t('Edit Storage Pool');
 
   const populateStoragePoolData = React.useCallback(
@@ -179,10 +193,22 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
         payload:
           pool.type === PoolType.FILESYSTEM ? pool.shortName : getName(pool),
       });
-      dispatch({
-        type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
-        payload: pool?.spec.replicated.size.toString(),
-      });
+      const ec = pool?.spec?.erasureCoded;
+      if (ec?.dataChunks > 0 && ec?.codingChunks > 0) {
+        dispatch({
+          type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY,
+          payload: 'erasure-coding',
+        });
+        dispatch({
+          type: StoragePoolActionType.SET_ERASURE_CODING_SCHEMA,
+          payload: { k: ec.dataChunks, m: ec.codingChunks },
+        });
+      } else {
+        dispatch({
+          type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
+          payload: pool?.spec?.replicated?.size?.toString() ?? '',
+        });
+      }
       dispatch({
         type: StoragePoolActionType.SET_POOL_COMPRESSED,
         payload: pool?.spec.compressionMode === COMPRESSION_ON,
@@ -222,12 +248,8 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
       updateRequest = updateFsPoolRequest(state, storageCluster);
     } else {
       updateRequest = () => {
-        const patch = [
-          {
-            op: 'replace',
-            path: '/spec/replicated/size',
-            value: Number(state.replicaSize),
-          },
+        const isErasureCoding = resource?.spec?.erasureCoded;
+        const patch: Patch[] = [
           {
             op: 'replace',
             path: '/spec/compressionMode',
@@ -239,6 +261,13 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
             value: state.isCompressed ? COMPRESSION_ON : 'none',
           },
         ];
+        if (!isErasureCoding && resource?.spec?.replicated != null) {
+          patch.push({
+            op: 'replace',
+            path: '/spec/replicated/size',
+            value: Number(state.replicaSize),
+          });
+        }
         return k8sPatch({
           model: CephBlockPoolModel,
           resource,
@@ -257,18 +286,20 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
     <Modal
       className="modal-content storage-pool__modal"
       isOpen={isOpen}
-      header={
-        <>
-          <ModalTitle>{MODAL_TITLE}</ModalTitle>
-          <StoragePoolDefinitionText className="pf-v6-u-ml-xl" />
-        </>
-      }
       variant={ModalVariant.medium}
       onClose={closeModal}
     >
+      <ModalHeader>
+        <div className="pf-v6-u-display-flex pf-v6-u-flex-wrap-wrap pf-v6-u-align-items-baseline">
+          <ModalTitle>{MODAL_TITLE}</ModalTitle>
+          <StoragePoolDefinitionText className="pf-v6-u-ml-xl" />
+        </div>
+      </ModalHeader>
       {cephClustersLoaded && !cephClustersLoadError ? (
         <>
-          <ModalBody>
+          <ModalBody
+            className={classNames('modal--padding', 'modal--overflow')}
+          >
             {state.poolStatus ? (
               <div key="progress-modal">
                 <StoragePoolStatus
@@ -287,26 +318,31 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
                 disablePoolType
                 isUpdate
                 prefixName={PoolType.FILESYSTEM && resource.fsName}
+                erasureCodingDeviceClass={defaultDeviceClass}
               />
             )}
           </ModalBody>
-          <ModalFooter inProgress={inProgress}>
-            <StoragePoolModalFooter
-              state={state}
-              dispatch={dispatch}
-              onSubmit={updatePool}
-              cancel={closeModal}
-              close={closeModal}
-              primaryAction={FooterPrimaryActions(t).UPDATE}
-            />
+          <ModalFooter>
+            <SharedModalFooter inProgress={inProgress}>
+              <StoragePoolModalFooter
+                state={state}
+                dispatch={dispatch}
+                onSubmit={updatePool}
+                cancel={closeModal}
+                close={closeModal}
+                primaryAction={FooterPrimaryActions(t).UPDATE}
+              />
+            </SharedModalFooter>
           </ModalFooter>
         </>
       ) : (
-        <StatusBox
-          loadError={cephClustersLoadError}
-          loaded={cephClustersLoaded}
-          label={t('Storage pool update form')}
-        />
+        <ModalBody className={classNames('modal--padding', 'modal--overflow')}>
+          <StatusBox
+            loadError={cephClustersLoadError}
+            loaded={cephClustersLoaded}
+            label={t('Storage pool update form')}
+          />
+        </ModalBody>
       )}
     </Modal>
   );

@@ -3,6 +3,11 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 export type DataPool = {
   compressionMode?: string;
+  failureDomain?: string;
+  erasureCoded?: {
+    dataChunks: number;
+    codingChunks: number;
+  };
   mirroring?: {
     enabled: boolean;
   };
@@ -45,6 +50,14 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephBlockPools?: {
         defaultStorageClass?: boolean;
         defaultVirtualizationStorageClass?: boolean;
+        /** Replicated pool backing EC block pool metadata (day-1 / operator). */
+        erasureCodedMetadataPool?: string;
+        poolSpec?: {
+          erasureCoded?: {
+            dataChunks?: number;
+            codingChunks?: number;
+          };
+        };
       };
       cephFilesystems?: {
         additionalDataPools?: DataPool[];

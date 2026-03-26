@@ -3378,7 +3378,7 @@ __metadata:
 
 "@odf/shared@file:../shared::locator=%40odf%2Fclient%40workspace%3Apackages%2Fclient":
   version: 0.0.0-beta17
-  resolution: "@odf/shared@file:../shared#../shared::hash=43889c&locator=%40odf%2Fclient%40workspace%3Apackages%2Fclient"
+  resolution: "@odf/shared@file:../shared#../shared::hash=ccae95&locator=%40odf%2Fclient%40workspace%3Apackages%2Fclient"
   dependencies:
     "@patternfly/patternfly": "npm:6.4.0"
     "@patternfly/react-charts": "npm:8.4.0"
@@ -3415,13 +3415,13 @@ __metadata:
     react-dom: ^17.0.1
     react-i18next: ^11.11.4
     react-router-dom-v5-compat: ^6.30.3
-  checksum: 10/4a52dd172ed164d15ade81406125a44803d1c2792bb9e0825d466666979fbb1c4f9c6efd91facdbbcb64941f5fcf62cac5472660ddfb3c93f73eca4b6478811b
+  checksum: 10/e600f9553a57c161889bd99b9b546edbb86aca6482d60caef6031c5eb63e732447c69c60859080e1e73564960ff285cd19e96b881a1a4a59d9989a69ee6b1242
   languageName: node
   linkType: hard
 
 "@odf/shared@file:../shared::locator=%40odf%2Fcore%40workspace%3Apackages%2Fodf":
   version: 0.0.0-beta17
-  resolution: "@odf/shared@file:../shared#../shared::hash=43889c&locator=%40odf%2Fcore%40workspace%3Apackages%2Fodf"
+  resolution: "@odf/shared@file:../shared#../shared::hash=ccae95&locator=%40odf%2Fcore%40workspace%3Apackages%2Fodf"
   dependencies:
     "@patternfly/patternfly": "npm:6.4.0"
     "@patternfly/react-charts": "npm:8.4.0"
@@ -3458,13 +3458,13 @@ __metadata:
     react-dom: ^17.0.1
     react-i18next: ^11.11.4
     react-router-dom-v5-compat: ^6.30.3
-  checksum: 10/4a52dd172ed164d15ade81406125a44803d1c2792bb9e0825d466666979fbb1c4f9c6efd91facdbbcb64941f5fcf62cac5472660ddfb3c93f73eca4b6478811b
+  checksum: 10/e600f9553a57c161889bd99b9b546edbb86aca6482d60caef6031c5eb63e732447c69c60859080e1e73564960ff285cd19e96b881a1a4a59d9989a69ee6b1242
   languageName: node
   linkType: hard
 
 "@odf/shared@file:../shared::locator=%40odf%2Fmco%40workspace%3Apackages%2Fmco":
   version: 0.0.0-beta17
-  resolution: "@odf/shared@file:../shared#../shared::hash=43889c&locator=%40odf%2Fmco%40workspace%3Apackages%2Fmco"
+  resolution: "@odf/shared@file:../shared#../shared::hash=ccae95&locator=%40odf%2Fmco%40workspace%3Apackages%2Fmco"
   dependencies:
     "@patternfly/patternfly": "npm:6.4.0"
     "@patternfly/react-charts": "npm:8.4.0"
@@ -3501,13 +3501,13 @@ __metadata:
     react-dom: ^17.0.1
     react-i18next: ^11.11.4
     react-router-dom-v5-compat: ^6.30.3
-  checksum: 10/4a52dd172ed164d15ade81406125a44803d1c2792bb9e0825d466666979fbb1c4f9c6efd91facdbbcb64941f5fcf62cac5472660ddfb3c93f73eca4b6478811b
+  checksum: 10/e600f9553a57c161889bd99b9b546edbb86aca6482d60caef6031c5eb63e732447c69c60859080e1e73564960ff285cd19e96b881a1a4a59d9989a69ee6b1242
   languageName: node
   linkType: hard
 
 "@odf/shared@file:../shared::locator=%40odf%2Focs%40workspace%3Apackages%2Focs":
   version: 0.0.0-beta17
-  resolution: "@odf/shared@file:../shared#../shared::hash=43889c&locator=%40odf%2Focs%40workspace%3Apackages%2Focs"
+  resolution: "@odf/shared@file:../shared#../shared::hash=ccae95&locator=%40odf%2Focs%40workspace%3Apackages%2Focs"
   dependencies:
     "@patternfly/patternfly": "npm:6.4.0"
     "@patternfly/react-charts": "npm:8.4.0"
@@ -3544,7 +3544,7 @@ __metadata:
     react-dom: ^17.0.1
     react-i18next: ^11.11.4
     react-router-dom-v5-compat: ^6.30.3
-  checksum: 10/4a52dd172ed164d15ade81406125a44803d1c2792bb9e0825d466666979fbb1c4f9c6efd91facdbbcb64941f5fcf62cac5472660ddfb3c93f73eca4b6478811b
+  checksum: 10/e600f9553a57c161889bd99b9b546edbb86aca6482d60caef6031c5eb63e732447c69c60859080e1e73564960ff285cd19e96b881a1a4a59d9989a69ee6b1242
   languageName: node
   linkType: hard
 

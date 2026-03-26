@@ -1,15 +1,12 @@
 import * as React from 'react';
-import {
-  useSafeK8sGet,
-  useSafeK8sList,
-  useSafeK8sWatchResource,
-} from '@odf/core/hooks';
+import { ERASURE_CODING_BLOCK_METADATA_POOL_NAME } from '@odf/core/constants';
+import { useSafeK8sGet, useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
+import { ModalFooter as SharedModalFooter } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
-import { getName } from '@odf/shared/selectors';
 import {
   CephClusterKind,
   DataPool,
@@ -26,9 +23,18 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Modal } from '@patternfly/react-core/deprecated';
+import classNames from 'classnames';
 import { useParams, useNavigate } from 'react-router-dom-v5-compat';
-import { Button, Content, ContentVariants } from '@patternfly/react-core';
+import {
+  Button,
+  Content,
+  ContentVariants,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalVariant,
+} from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
@@ -36,13 +42,10 @@ import {
   PoolType,
 } from '../constants';
 import { CephFilesystemKind, StoragePoolKind } from '../types';
-import {
-  getErrorMessage,
-  getExistingBlockPoolNames,
-  getExistingFsPoolNames,
-} from '../utils';
+import { getErrorMessage, getExistingFsPoolNames } from '../utils';
 import { StoragePoolBody } from './body';
 import { StoragePoolFooter } from './footer';
+import { useCephBlockPools } from './hooks';
 import {
   StoragePoolActionType,
   blockPoolInitialState,
@@ -56,10 +59,22 @@ export const createFsPoolRequest = (
   state: StoragePoolState,
   storageCluster: StorageClusterKind
 ) => {
+  const isErasureCoding =
+    state.dataProtectionPolicy === 'erasure-coding' &&
+    state.erasureCodingSchema != null;
   const patchPool: DataPool = {
     name: state.poolName,
-    replicated: { size: Number(state.replicaSize) },
     compressionMode: state.isCompressed ? COMPRESSION_ON : 'none',
+    ...(isErasureCoding
+      ? {
+          erasureCoded: {
+            dataChunks: state.erasureCodingSchema!.k,
+            codingChunks: state.erasureCodingSchema!.m,
+          },
+        }
+      : {
+          replicated: { size: Number(state.replicaSize) },
+        }),
   };
   const patch: Patch = storageCluster?.spec?.managedResources?.cephFilesystems
     ?.additionalDataPools
@@ -86,27 +101,77 @@ export const getPoolKindObj = (
   state: StoragePoolState,
   ns: string,
   deviceClass: StoragePoolKind['spec']['deviceClass']
-): StoragePoolKind => ({
-  apiVersion: getAPIVersionForModel(CephBlockPoolModel),
-  kind: CephBlockPoolModel.kind,
-  metadata: {
-    name: state.poolName,
-    namespace: ns,
-  },
-  spec: {
-    compressionMode: state.isCompressed ? COMPRESSION_ON : 'none',
-    // without explicit "true" Rook will not allow updating CRUSH Rules ("deviceClass" will not be set)
-    enableCrushUpdates: true,
-    deviceClass: deviceClass,
-    failureDomain: state.failureDomain,
-    parameters: {
-      compression_mode: state.isCompressed ? COMPRESSION_ON : 'none',
+): StoragePoolKind => {
+  const isErasureCoding =
+    state.dataProtectionPolicy === 'erasure-coding' &&
+    state.erasureCodingSchema != null;
+  const compressionMode = state.isCompressed ? COMPRESSION_ON : 'none';
+  return {
+    apiVersion: getAPIVersionForModel(CephBlockPoolModel),
+    kind: CephBlockPoolModel.kind,
+    metadata: {
+      name: state.poolName,
+      namespace: ns,
     },
-    replicated: {
-      size: Number(state.replicaSize),
+    spec: {
+      compressionMode,
+      enableCrushUpdates: true,
+      deviceClass: deviceClass,
+      parameters: {
+        compression_mode: compressionMode,
+      },
+      ...(isErasureCoding
+        ? {
+            erasureCoded: {
+              dataChunks: state.erasureCodingSchema!.k,
+              codingChunks: state.erasureCodingSchema!.m,
+            },
+          }
+        : {
+            failureDomain: state.failureDomain,
+            replicated: {
+              size: Number(state.replicaSize),
+            },
+          }),
     },
-  },
-});
+  };
+};
+
+/**
+ * Day-2 RBD EC: Ensure StorageCluster references the replicated metadata pool for
+ * EC block pools (`managedResources.cephBlockPools.erasureCodedMetadataPool`), as
+ * set at day-1 or required by the operator. No-op if already correct.
+ */
+export const ensureErasureCodedMetadataPoolRef = (
+  storageCluster: StorageClusterKind
+): Promise<K8sResourceCommon> => {
+  const mr = storageCluster.spec?.managedResources;
+  const cephBlockPools = mr?.cephBlockPools;
+  if (
+    cephBlockPools?.erasureCodedMetadataPool ===
+    ERASURE_CODING_BLOCK_METADATA_POOL_NAME
+  ) {
+    return Promise.resolve(storageCluster as K8sResourceCommon);
+  }
+  const currentMR = mr ?? {};
+  const merged = {
+    ...currentMR,
+    cephBlockPools: {
+      ...(cephBlockPools ?? {}),
+      erasureCodedMetadataPool: ERASURE_CODING_BLOCK_METADATA_POOL_NAME,
+    },
+  };
+  const patch: Patch = {
+    op: 'replace',
+    path: '/spec/managedResources',
+    value: merged as StorageClusterKind['spec']['managedResources'],
+  };
+  return k8sPatch({
+    model: StorageClusterModel,
+    resource: storageCluster,
+    data: [patch],
+  });
+};
 
 export const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
@@ -175,25 +240,12 @@ const CreateStoragePool: React.FC<{}> = ({}) => {
     poolNs
   ) as CephClusterKind;
 
-  // Collect existing block pool names to check against new pool name.
-  // Also get the block default deviceClass.
-  const defaultBlockPoolName = `${clusterName}-cephblockpool`;
-  const [blockPools, blockPoolsLoaded, blockPoolsLoadError] =
-    useSafeK8sList<StoragePoolKind>(CephBlockPoolModel);
-
-  const [blockExistingNames, defaultDeviceClass] = React.useMemo(() => {
-    let blockPoolNames = [];
-    let defaultDeviceClass = '';
-    if (blockPoolsLoaded && !blockPoolsLoadError) {
-      blockPoolNames = getExistingBlockPoolNames(blockPools);
-      defaultDeviceClass =
-        blockPools.find(
-          (blockPool) => getName(blockPool) === defaultBlockPoolName
-        )?.spec?.deviceClass || '';
-    }
-
-    return [blockPoolNames, defaultDeviceClass];
-  }, [blockPools, blockPoolsLoaded, blockPoolsLoadError, defaultBlockPoolName]);
+  const {
+    blockExistingNames,
+    defaultDeviceClass,
+    blockPoolsLoaded,
+    blockPoolsLoadError,
+  } = useCephBlockPools(clusterName, poolNs);
 
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
     useSafeK8sGet<StorageClusterKind>(StorageClusterModel, clusterName, poolNs);
@@ -278,71 +330,106 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
     navigate(-1);
   };
 
-  // Create new pool
-  const createPool = () => {
-    if (cephCluster?.status?.phase === PoolState.READY) {
-      let createRequest: () => Promise<K8sResourceCommon>;
-      if (poolType === PoolType.FILESYSTEM) {
-        createRequest = createFsPoolRequest(state, storageCluster);
-      } else {
-        const poolObj: StoragePoolKind = getPoolKindObj(
-          state,
-          poolNs,
-          defaultDeviceClass
-        );
-        createRequest = () =>
-          k8sCreate({ model: CephBlockPoolModel, data: poolObj });
-      }
+  // Create new pool: allow when CephCluster is Ready OR StorageCluster is Ready (fallback when CephCluster is missing or not yet Ready)
+  const isClusterReady =
+    cephCluster?.status?.phase === PoolState.READY ||
+    storageCluster?.status?.phase === 'Ready';
 
-      dispatch({ type: StoragePoolActionType.SET_INPROGRESS, payload: true });
-      createRequest()
-        .then(() =>
-          poolType === PoolType.BLOCK
-            ? navigate(
-                `${blockPoolPageUrl}/${state.poolName}?namespace=${poolNs}`
-              )
-            : navigate(`${blockPoolPageUrl}`)
-        )
-        .finally(() =>
-          dispatch({
-            type: StoragePoolActionType.SET_INPROGRESS,
-            payload: false,
-          })
-        )
-        .catch((err) =>
-          dispatch({
-            type: StoragePoolActionType.SET_ERROR_MESSAGE,
-            payload: getErrorMessage(err.message) || 'Could not create Pool.',
-          })
-        );
-    } else
+  const createPool = () => {
+    if (!isClusterReady) {
       dispatch({
         type: StoragePoolActionType.SET_ERROR_MESSAGE,
         payload: t(
           "Data Foundation's StorageCluster is not available. Try again after the StorageCluster is ready to use."
         ),
       });
+      return;
+    }
+    if (
+      state.dataProtectionPolicy === 'erasure-coding' &&
+      !state.erasureCodingSchema
+    ) {
+      dispatch({
+        type: StoragePoolActionType.SET_ERROR_MESSAGE,
+        payload: t('Please select an erasure coding scheme.'),
+      });
+      return;
+    }
+    if (state.dataProtectionPolicy === 'replication' && !state.replicaSize) {
+      dispatch({
+        type: StoragePoolActionType.SET_ERROR_MESSAGE,
+        payload: t('Please select a replication size.'),
+      });
+      return;
+    }
+
+    let createRequest: () => Promise<K8sResourceCommon>;
+    if (poolType === PoolType.FILESYSTEM) {
+      createRequest = createFsPoolRequest(state, storageCluster);
+    } else {
+      const poolObj: StoragePoolKind = getPoolKindObj(
+        state,
+        poolNs,
+        defaultDeviceClass
+      );
+      createRequest = () =>
+        k8sCreate({ model: CephBlockPoolModel, data: poolObj });
+    }
+
+    const runCreate = async () => {
+      if (
+        poolType === PoolType.BLOCK &&
+        state.dataProtectionPolicy === 'erasure-coding'
+      ) {
+        await ensureErasureCodedMetadataPoolRef(storageCluster);
+      }
+      return createRequest();
+    };
+
+    dispatch({ type: StoragePoolActionType.SET_INPROGRESS, payload: true });
+    runCreate()
+      .then(() =>
+        poolType === PoolType.BLOCK
+          ? navigate(
+              `${blockPoolPageUrl}/${state.poolName}?namespace=${poolNs}`
+            )
+          : navigate(`${blockPoolPageUrl}`)
+      )
+      .finally(() =>
+        dispatch({
+          type: StoragePoolActionType.SET_INPROGRESS,
+          payload: false,
+        })
+      )
+      .catch((err) =>
+        dispatch({
+          type: StoragePoolActionType.SET_ERROR_MESSAGE,
+          payload: getErrorMessage(err.message) || 'Could not create Pool.',
+        })
+      );
   };
 
   if (isExternalStorageSystem) {
     return (
-      <Modal
-        title={t('Create storage pool')}
-        titleIconVariant="warning"
-        isOpen
-        onClose={onClose}
-        variant="small"
-        actions={[
-          <Button key="confirm" variant="primary" onClick={onClose}>
-            {t('Close')}
-          </Button>,
-        ]}
-      >
-        <strong>
-          {t(
-            "Pool creation is not supported for Data Foundation's external RHCS storage system."
-          )}
-        </strong>
+      <Modal isOpen onClose={onClose} variant={ModalVariant.small}>
+        <ModalHeader
+          title={t('Create storage pool')}
+          titleIconVariant="warning"
+        />
+        <ModalBody className={classNames('modal--padding', 'modal--overflow')}>
+          <strong>
+            {t(
+              "Pool creation is not supported for Data Foundation's external RHCS storage system."
+            )}
+          </strong>
+        </ModalBody>
+        <ModalFooter>
+          <SharedModalFooter inProgress={false}>
+            <Button variant="primary" onClick={onClose}>
+              {t('Close')}
+            </Button>
+          </SharedModalFooter>
+        </ModalFooter>
       </Modal>
     );
   }
@@ -367,6 +454,7 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
           existingNames={existingNames}
           onPoolTypeChange={onPoolTypeChange}
           prefixName={fsName}
+          erasureCodingDeviceClass={defaultDeviceClass}
         />
         <StoragePoolFooter
           state={state}

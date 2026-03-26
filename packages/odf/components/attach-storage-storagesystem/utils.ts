@@ -1,3 +1,5 @@
+import { AttachStorageFormState } from './state';
+
 export const checkRequiredValues = (
   poolName: string,
   replicaSize: string,
@@ -5,11 +7,20 @@ export const checkRequiredValues = (
   storageClassName: string,
   enableStorageClassEncryption: boolean,
   encryptionKMSID: string,
-  deviceClass: string
-): boolean =>
-  !poolName ||
-  !replicaSize ||
-  !lsoStorageClassName ||
-  !storageClassName ||
-  !deviceClass ||
-  (enableStorageClassEncryption ? !encryptionKMSID : false);
+  deviceClass: string,
+  state?: AttachStorageFormState
+): boolean => {
+  const dataProtectionValid = !state
+    ? !!replicaSize
+    : state.dataProtectionPolicy === 'erasure-coding'
+      ? !!state.erasureCodingSchema
+      : !!replicaSize;
+  return (
+    !poolName ||
+    !dataProtectionValid ||
+    !lsoStorageClassName ||
+    !storageClassName ||
+    !deviceClass ||
+    (enableStorageClassEncryption ? !encryptionKMSID : false)
+  );
+};
