@@ -6,6 +6,7 @@ import {
   NodeData,
   VolumeTypeValidation,
   NetworkType,
+  ErasureCodingSchema,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
@@ -53,6 +54,8 @@ import {
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
+  ERASURE_CODING_BLOCK_METADATA_POOL_NAME,
+  ERASURE_CODING_FILESYSTEM_DATA_POOL_NAME,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
@@ -438,7 +441,9 @@ export type OCSRequestData = {
   enableNoobaaClientSideCerts?: boolean;
   storageClusterName: string;
   isDbBackup?: boolean;
-  dbBackup?: WizardState['advancedSettings']['dbBackup'];
+  dbBackup?: WizardState['optionalSettings']['dbBackup'];
+  useErasureCoding?: boolean;
+  erasureCodingSchema?: ErasureCodingSchema | null;
 };
 
 export const getOCSRequestData = ({
@@ -465,9 +470,13 @@ export const getOCSRequestData = ({
   storageClusterName,
   isDbBackup,
   dbBackup,
+  useErasureCoding,
+  erasureCodingSchema,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
+  /** Same device class as storageDeviceSets; matches default CephBlockPool after install (see CreateStoragePool defaultDeviceClass). */
+  const storageDeviceClass = DEFAULT_DEVICECLASS;
   const isPortable: boolean = flexibleScaling ? false : !isNoProvisioner;
   const deviceSetReplica: number = getDeviceSetReplica(
     stretchClusterChecked,
@@ -521,7 +530,7 @@ export const getOCSRequestData = ({
           deviceSetReplica,
           deviceSetCount,
           undefined,
-          DEFAULT_DEVICECLASS
+          storageDeviceClass
         ),
       ],
       ...Object.assign(
@@ -536,6 +545,39 @@ export const getOCSRequestData = ({
     };
   }
 
+  if (!isMCG && useErasureCoding && erasureCodingSchema) {
+    const k = erasureCodingSchema.k;
+    const m = erasureCodingSchema.m;
+    const erasureCoded = { dataChunks: k, codingChunks: m };
+    const fsEcPoolName = ERASURE_CODING_FILESYSTEM_DATA_POOL_NAME;
+    const ecPoolSharedFields = {
+      ...(storageDeviceClass && { deviceClass: storageDeviceClass }),
+    };
+    requestData.spec.managedResources = {
+      ...requestData.spec.managedResources,
+      cephObjectStores: {
+        ...requestData.spec.managedResources?.cephObjectStores,
+        dataPoolSpec: { erasureCoded, ...ecPoolSharedFields },
+      },
+      cephBlockPools: {
+        ...requestData.spec.managedResources?.cephBlockPools,
+        erasureCodedMetadataPool: ERASURE_CODING_BLOCK_METADATA_POOL_NAME,
+        poolSpec: { erasureCoded, ...ecPoolSharedFields },
+      },
+      cephFilesystems: {
+        ...requestData.spec.managedResources?.cephFilesystems,
+        defaultStorageClassDataPoolName: fsEcPoolName,
+        additionalDataPools: [
+          {
+            name: fsEcPoolName,
+            erasureCoded,
+            ...ecPoolSharedFields,
+          },
+        ],
+      },
+    };
+  }
+
   if (
     networkConfiguration.networkType === NetworkType.HOST ||
     networkConfiguration.networkType === NetworkType.NIC
@@ -543,7 +585,10 @@ export const getOCSRequestData = ({
     requestData.spec.hostNetwork = true;
     requestData.spec.managedResources = {
       ...requestData.spec.managedResources,
-      cephObjectStores: { hostNetwork: false },
+      cephObjectStores: {
+        ...requestData.spec.managedResources?.cephObjectStores,
+        hostNetwork: false,
+      },
     };
   }
 

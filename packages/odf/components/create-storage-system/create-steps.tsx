@@ -4,9 +4,10 @@ import { StorageClusterModel } from '@odf/shared/models';
 import { InfraProviders } from '@odf/shared/types';
 import { TFunction } from 'react-i18next';
 import { WizardStepProps } from '@patternfly/react-core';
-import { Steps, StepsName } from '../../constants';
+import { NO_PROVISIONER, Steps, StepsName } from '../../constants';
 import { BackingStorageType, DeploymentType } from '../../types';
 import {
+  AdvancedSettings,
   CapacityAndNodes,
   CreateStorageClass,
   ReviewAndCreate,
@@ -43,6 +44,7 @@ export const createSteps = (
   const { encryption, kms } = securityAndNetwork;
 
   const isMCG = deployment === DeploymentType.MCG;
+  const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 
   const commonSteps = {
     capacityAndNodes: {
@@ -56,6 +58,20 @@ export const createSteps = (
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
           systemNamespace={systemNamespace}
+        />
+      ),
+    },
+    advancedSettings: {
+      name: StepsName(t)[Steps.AdvancedSettings],
+      component: (
+        <AdvancedSettings
+          state={state.advancedSettings}
+          dispatch={dispatch}
+          nodeCount={nodes?.length ?? 0}
+          capacity={capacityAndNodes.capacity}
+          nodes={nodes}
+          isNoProvisioner={isNoProvisioner}
+          enableArbiter={capacityAndNodes.enableArbiter}
         />
       ),
     },
@@ -102,9 +118,14 @@ export const createSteps = (
     canJumpTo: boolean;
   })[] = [
     {
+      id: 4,
+      canJumpTo: stepIdReached >= 4,
+      ...commonSteps.advancedSettings,
+    },
+    {
       name: StepsName(t)[Steps.SecurityAndNetwork],
-      canJumpTo: stepIdReached >= 3,
-      id: 3,
+      canJumpTo: stepIdReached >= 5,
+      id: 5,
       component: (
         <SecurityAndNetwork
           securityAndNetworkState={securityAndNetwork}
@@ -120,8 +141,8 @@ export const createSteps = (
     },
     {
       name: StepsName(t)[Steps.ReviewAndCreate],
-      canJumpTo: stepIdReached >= 4,
-      id: 4,
+      canJumpTo: stepIdReached >= 6,
+      id: 6,
       ...commonSteps.reviewAndCreate,
     },
   ];
@@ -130,8 +151,8 @@ export const createSteps = (
     component: React.ReactElement;
     canJumpTo: boolean;
   } = {
-    canJumpTo: stepIdReached >= 3,
-    id: 3,
+    canJumpTo: stepIdReached >= 4,
+    id: 4,
     name: StepsName(t)[Steps.CreateStorageClass],
     component: (
       <CreateStorageClass
@@ -149,8 +170,8 @@ export const createSteps = (
     canJumpTo: boolean;
   } = {
     name: StepsName(t)[Steps.CreateLocalVolumeSet],
-    canJumpTo: stepIdReached >= 3,
-    id: 3,
+    canJumpTo: stepIdReached >= 4,
+    id: 4,
     component: (
       <CreateLocalVolumeSet
         state={createLocalVolumeSet}
@@ -169,46 +190,61 @@ export const createSteps = (
       if (isMCG) {
         return [
           {
-            id: 3,
-            canJumpTo: stepIdReached >= 3,
-            ...commonSteps.security,
-          },
-          {
             id: 4,
             canJumpTo: stepIdReached >= 4,
-            ...commonSteps.reviewAndCreate,
-          },
-        ];
-      } else
-        return [
-          {
-            id: 3,
-            canJumpTo: stepIdReached >= 3,
-            ...commonSteps.capacityAndNodes,
-          },
-          {
-            id: 4,
-            canJumpTo: stepIdReached >= 4,
-            ...commonSteps.securityAndNetwork,
+            ...commonSteps.advancedSettings,
           },
           {
             id: 5,
             canJumpTo: stepIdReached >= 5,
+            ...commonSteps.security,
+          },
+          {
+            id: 6,
+            canJumpTo: stepIdReached >= 6,
             ...commonSteps.reviewAndCreate,
           },
         ];
+      }
+      return [
+        {
+          id: 4,
+          canJumpTo: stepIdReached >= 4,
+          ...commonSteps.capacityAndNodes,
+        },
+        {
+          id: 5,
+          canJumpTo: stepIdReached >= 5,
+          ...commonSteps.advancedSettings,
+        },
+        {
+          id: 6,
+          canJumpTo: stepIdReached >= 6,
+          ...commonSteps.securityAndNetwork,
+        },
+        {
+          id: 7,
+          canJumpTo: stepIdReached >= 7,
+          ...commonSteps.reviewAndCreate,
+        },
+      ];
     case BackingStorageType.LOCAL_DEVICES:
       if (isMCG) {
         return [
           createLocalVolumeSetStep,
           {
-            id: 4,
-            canJumpTo: stepIdReached >= 4,
+            id: 5,
+            canJumpTo: stepIdReached >= 5,
+            ...commonSteps.advancedSettings,
+          },
+          {
+            id: 6,
+            canJumpTo: stepIdReached >= 6,
             ...commonSteps.security,
           },
           {
-            id: 5,
-            canJumpTo: stepIdReached >= 5,
+            id: 7,
+            canJumpTo: stepIdReached >= 7,
             ...commonSteps.reviewAndCreate,
           },
         ];
@@ -216,21 +252,24 @@ export const createSteps = (
       return [
         createLocalVolumeSetStep,
         {
-          canJumpTo: stepIdReached >= 4,
-          ...commonSteps.capacityAndNodes,
-          id: 4,
-        },
-        {
-          canJumpTo: stepIdReached >= 5,
-          name: StepsName(t)[Steps.SecurityAndNetwork],
-          ...commonSteps.securityAndNetwork,
           id: 5,
+          canJumpTo: stepIdReached >= 5,
+          ...commonSteps.capacityAndNodes,
         },
         {
-          canJumpTo: stepIdReached >= 6,
-          name: StepsName(t)[Steps.ReviewAndCreate],
-          ...commonSteps.reviewAndCreate,
           id: 6,
+          canJumpTo: stepIdReached >= 6,
+          ...commonSteps.advancedSettings,
+        },
+        {
+          id: 7,
+          canJumpTo: stepIdReached >= 7,
+          ...commonSteps.securityAndNetwork,
+        },
+        {
+          id: 8,
+          canJumpTo: stepIdReached >= 8,
+          ...commonSteps.reviewAndCreate,
         },
       ];
     case BackingStorageType.EXTERNAL:
@@ -242,31 +281,41 @@ export const createSteps = (
           ? [
               nonRhcsExternalProviderStep,
               {
-                id: 4,
-                canJumpTo: stepIdReached >= 4,
+                id: 5,
+                canJumpTo: stepIdReached >= 5,
+                ...commonSteps.advancedSettings,
+              },
+              {
+                id: 6,
+                canJumpTo: stepIdReached >= 6,
                 ...commonSteps.security,
               },
               {
-                id: 5,
-                canJumpTo: stepIdReached >= 5,
+                id: 7,
+                canJumpTo: stepIdReached >= 7,
                 ...commonSteps.reviewAndCreate,
               },
             ]
           : [
               nonRhcsExternalProviderStep,
               {
-                canJumpTo: stepIdReached >= 4,
-                id: 4,
+                id: 5,
+                canJumpTo: stepIdReached >= 5,
                 ...commonSteps.capacityAndNodes,
               },
               {
-                canJumpTo: stepIdReached >= 5,
-                id: 5,
+                id: 6,
+                canJumpTo: stepIdReached >= 6,
+                ...commonSteps.advancedSettings,
+              },
+              {
+                id: 7,
+                canJumpTo: stepIdReached >= 7,
                 ...commonSteps.securityAndNetwork,
               },
               {
-                canJumpTo: stepIdReached >= 6,
-                id: 6,
+                id: 8,
+                canJumpTo: stepIdReached >= 8,
                 ...commonSteps.reviewAndCreate,
               },
             ];
@@ -274,8 +323,13 @@ export const createSteps = (
       return [
         nonRhcsExternalProviderStep,
         {
-          canJumpTo: stepIdReached >= 4,
-          id: 4,
+          id: 5,
+          canJumpTo: stepIdReached >= 5,
+          ...commonSteps.advancedSettings,
+        },
+        {
+          canJumpTo: stepIdReached >= 6,
+          id: 6,
           ...commonSteps.reviewAndCreate,
         },
       ];
