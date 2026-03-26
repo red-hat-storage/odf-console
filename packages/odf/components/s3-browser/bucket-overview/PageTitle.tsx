@@ -20,14 +20,15 @@ import { BUCKET_BOOKMARKS_USER_SETTINGS_KEY } from '../../../constants';
 import { getPath, getProviderLabel } from '../../../utils';
 import './bucket-overview.scss';
 
-type TitleProps = {
+type TitleProps = Partial<{
   bucketName: string;
   providerType: S3ProviderType;
   foldersPath: string;
   currentFolder: string;
   isCreatedByOBC: boolean;
   noobaaObjectBucket: K8sResourceKind;
-};
+  isVectorBucket: boolean;
+}>;
 
 type BucketResourceStatusProps = { resourceStatus: string };
 
@@ -74,6 +75,7 @@ export const PageTitle: React.FC<TitleProps> = ({
   currentFolder,
   isCreatedByOBC,
   noobaaObjectBucket,
+  isVectorBucket = false,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -81,7 +83,11 @@ export const PageTitle: React.FC<TitleProps> = ({
   const resourceStatus = isCreatedByOBC
     ? getResourceStatus(noobaaObjectBucket)
     : null;
-  const createdBy = isCreatedByOBC ? t('Created via OBC') : t('Created via S3');
+  const createdBy = isVectorBucket
+    ? t('S3 Vectors')
+    : isCreatedByOBC
+      ? t('Created via OBC')
+      : t('Created via S3');
 
   return (
     <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column">
@@ -90,13 +96,15 @@ export const PageTitle: React.FC<TitleProps> = ({
         {!foldersPath && (
           <>
             <Favorite bucketName={bucketName} />
-            <Label
-              color="yellow"
-              className="pf-v6-u-mt-sm bucket-label--height"
-              isCompact
-            >
-              {getProviderLabel(providerType)}
-            </Label>
+            {!isVectorBucket && (
+              <Label
+                color="yellow"
+                className="pf-v5-u-mt-sm bucket-label--height"
+                isCompact
+              >
+                {getProviderLabel(providerType)}
+              </Label>
+            )}
             <Label
               className="pf-v6-u-ml-sm pf-v6-u-mt-sm bucket-label--height"
               isCompact
