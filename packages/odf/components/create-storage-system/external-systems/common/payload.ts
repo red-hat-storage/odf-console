@@ -93,8 +93,8 @@ export const createScaleLocalClusterPayload = (
       kmm: {
         ...(hasImageRegistry && {
           imageRepository: {
-            registry: externalKmmRegistry.imageRegistryUrl!,
-            repo: externalKmmRegistry.imageRepositoryName!,
+            registry: externalKmmRegistry.imageRegistryUrl,
+            repo: externalKmmRegistry.imageRepositoryName,
             registrySecret: externalKmmRegistry.secretKey,
           },
         }),
