@@ -50,9 +50,6 @@ export type SANSystemFormValidation = {
 
 const useSANSystemFormValidation = (
   existingNames?: Set<string>,
-  /** When true (OpenShift registry present), image registry and repo name are required. */
-  hasPersistentRegistry?: boolean,
-  /** When true, registry section is visible and secretKey is required. */
   showRegistrySection?: boolean
 ): SANSystemFormValidation => {
   const { t } = useCustomTranslation();
@@ -103,7 +100,7 @@ const useSANSystemFormValidation = (
         .transform((value: string) => (!!value ? value : '')),
       imageRegistryUrl: Yup.string()
         .when([], {
-          is: () => !!hasPersistentRegistry,
+          is: () => !!showRegistrySection,
           then: (schema) =>
             schema
               .required(imageRegistryUrlRequirements.required)
@@ -113,7 +110,7 @@ const useSANSystemFormValidation = (
         .transform((value: string) => (!!value ? value : '')),
       imageRepositoryName: Yup.string()
         .when([], {
-          is: () => !!hasPersistentRegistry,
+          is: () => !!showRegistrySection,
           then: (schema) =>
             schema.required(imageRepositoryNameRequirements.required),
           otherwise: (schema) => schema,
@@ -121,7 +118,7 @@ const useSANSystemFormValidation = (
         .transform((value: string) => (!!value ? value : '')),
       secretKey: Yup.string()
         .when([], {
-          is: () => !!showRegistrySection && !hasPersistentRegistry,
+          is: () => !!showRegistrySection,
           then: (schema) => schema.required(t('Secret key is required')),
           otherwise: (schema) => schema,
         })
@@ -145,7 +142,7 @@ const useSANSystemFormValidation = (
         imageRepositoryName: [imageRepositoryNameRequirements.required],
       },
     };
-  }, [t, existingNames, hasPersistentRegistry, showRegistrySection]);
+  }, [t, existingNames, showRegistrySection]);
 
   const resolver = useYupValidationResolver(formSchema) as any;
 
