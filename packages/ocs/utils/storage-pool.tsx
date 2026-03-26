@@ -180,6 +180,7 @@ export const getStoragePoolsFromFilesystem = (
       },
       spec: {
         compressionMode: dataPool?.compressionMode,
+        erasureCoded: dataPool?.erasureCoded,
         replicated: dataPool?.replicated,
       },
       status: { phase: fs.status?.phase },

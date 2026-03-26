@@ -4,12 +4,14 @@ import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { CephBlockPoolModel } from '@odf/shared';
 import { ONE_SECOND } from '@odf/shared/constants';
 import { StatusBox } from '@odf/shared/generic';
-import { ModalTitle, ModalFooter } from '@odf/shared/generic/ModalTitle';
+import {
+  ModalFooter as SharedModalFooter,
+  ModalTitle,
+} from '@odf/shared/generic/ModalTitle';
 import {
   HandlePromiseProps,
   withHandlePromise,
 } from '@odf/shared/generic/promise-component';
-import { ModalBody } from '@odf/shared/modals/Modal';
 import { StorageClusterModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import { CephClusterKind, StorageClusterKind } from '@odf/shared/types';
@@ -25,7 +27,14 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import classNames from 'classnames';
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalVariant,
+} from '@patternfly/react-core';
 import { PoolState, PoolProgress, PoolType } from '../../constants';
 import { StoragePoolStatus, StoragePoolBody } from '../../storage-pool/body';
 import {
@@ -207,14 +216,16 @@ export const CreateStoragePoolModal = withHandlePromise(
           onClose={props.closeModal}
           className="modal-content storage-pool__modal"
           variant={ModalVariant.medium}
-          header={
-            <>
+        >
+          <ModalHeader>
+            <div className="pf-v6-u-display-flex pf-v6-u-flex-wrap-wrap pf-v6-u-align-items-baseline">
               <ModalTitle>{MODAL_TITLE}</ModalTitle>
               <StoragePoolDefinitionText className="pf-v6-u-ml-xl" />
-            </>
-          }
-        >
-          <ModalBody>
+            </div>
+          </ModalHeader>
+          <ModalBody
+            className={classNames('modal--padding', 'modal--overflow')}
+          >
             {state.poolStatus ? (
               <div key="progress-modal">
                 <StoragePoolStatus
@@ -233,18 +244,23 @@ export const CreateStoragePoolModal = withHandlePromise(
                 existingNames={existingNames}
                 disablePoolType
                 prefixName={filesystemName}
+                erasureCodingDeviceClass={defaultDeviceClass}
               />
             )}
           </ModalBody>
-          <ModalFooter inProgress={state.poolStatus === PoolProgress.PROGRESS}>
-            <StoragePoolModalFooter
-              state={state}
-              dispatch={dispatch}
-              onSubmit={createPool}
-              cancel={props.closeModal}
-              close={props.closeModal}
-              primaryAction={FooterPrimaryActions(t).CREATE}
-            />
+          <ModalFooter>
+            <SharedModalFooter
+              inProgress={state.poolStatus === PoolProgress.PROGRESS}
+            >
+              <StoragePoolModalFooter
+                state={state}
+                dispatch={dispatch}
+                onSubmit={createPool}
+                cancel={props.closeModal}
+                close={props.closeModal}
+                primaryAction={FooterPrimaryActions(t).CREATE}
+              />
+            </SharedModalFooter>
           </ModalFooter>
         </Modal>
       );

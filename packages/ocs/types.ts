@@ -31,6 +31,11 @@ export type StoragePoolKind = K8sResourceCommon & {
     parameters?: {
       compression_mode: string;
     };
+    /** Erasure coding: data and coding chunks (e.g. 4+2). */
+    erasureCoded?: {
+      dataChunks: number;
+      codingChunks: number;
+    };
   };
   status?: {
     phase?: PoolState;

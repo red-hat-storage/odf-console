@@ -48,3 +48,12 @@
   min-width: 16.8em;
   width: unset;
 }
+
+// Secondary / helper copy — match shared tokens (e.g. OverviewDetailItem, field-level-help)
+.ceph-block-pool-body__muted-text {
+  color: var(--pf-t--global--text--color--subtle);
+}
+
+.ceph-block-pool-body__disabled-text {
+  color: var(--pf-t--global--text--color--disabled);
+}
