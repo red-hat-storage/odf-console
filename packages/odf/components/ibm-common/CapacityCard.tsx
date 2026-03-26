@@ -72,8 +72,10 @@ const filterSANStorageClasses = (
     (fs) => fs.spec.local && _.isEmpty(fs.spec.remote)
   );
   const localFileSystemsNames = localFileSystems.map((fs) => getName(fs));
-  const scaleStorageClasses = storageClasses.filter((sc) =>
-    localFileSystemsNames.includes(getName(sc))
+  const scaleStorageClasses = storageClasses.filter(
+    (sc) =>
+      sc.parameters?.volBackendFs &&
+      localFileSystemsNames.includes(sc.parameters?.volBackendFs)
   );
   return scaleStorageClasses;
 };

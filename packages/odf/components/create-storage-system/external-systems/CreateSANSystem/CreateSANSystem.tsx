@@ -84,7 +84,9 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
   ] = usePersistentRegistryCheck();
 
   const showRegistrySection =
-    hasPersistentRegistryLoaded && !hasPersistentRegistryError;
+    !hasPersistentRegistry &&
+    hasPersistentRegistryLoaded &&
+    !hasPersistentRegistryError;
 
   const {
     fieldRequirements,
@@ -92,11 +94,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     formState: { isSubmitted },
     watch,
     getValues,
-  } = useSANSystemFormValidation(
-    existingFileSystemNames,
-    hasPersistentRegistry ?? false,
-    showRegistrySection
-  );
+  } = useSANSystemFormValidation(existingFileSystemNames, showRegistrySection);
 
   const selectedNodes = componentState.selectedNodes;
 
@@ -142,8 +140,6 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         const buildExternalKmmRegistry = ():
           | ExternalKMMRegistryConfig
           | undefined => {
-          if (hasPersistentRegistry && !hasImageRegistry) return undefined;
-          if (!hasPersistentRegistry && !values.secretKey) return undefined;
           const config: ExternalKMMRegistryConfig = {
             secretKey: values.secretKey || '',
           };
@@ -186,7 +182,6 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     componentState.selectedLUNs,
     componentState.selectedNodes,
     isLocalClusterConfigured,
-    hasPersistentRegistry,
     getValues,
     lunGroupName,
     navigate,
@@ -199,13 +194,11 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         <FormGroup label={t('Connection name')} fieldId="connectionName">
           <div data-test="san-connection-name">{t('SAN-based storage')}</div>
         </FormGroup>
-        {showRegistrySection && (
-          <ExternalRegistryFormSection
-            control={control}
-            fieldRequirements={fieldRequirements}
-            showImageRegistryFields={hasPersistentRegistry}
-          />
-        )}
+        <ExternalRegistryFormSection
+          control={control}
+          fieldRequirements={fieldRequirements}
+          showImageRegistryFields={showRegistrySection}
+        />
         <FormGroup label={t('Select local cluster nodes')} isRequired>
           <NodesSection
             isDisabled={isLocalClusterConfigured}
