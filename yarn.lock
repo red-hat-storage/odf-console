@@ -3292,7 +3292,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@odf-console/shared@workspace:packages/shared":
+"@odf-console/shared@workspace:*, @odf-console/shared@workspace:packages/shared":
   version: 0.0.0-use.local
   resolution: "@odf-console/shared@workspace:packages/shared"
   dependencies:
@@ -3338,9 +3338,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@odf/client@workspace:packages/client"
   dependencies:
+    "@odf-console/shared": "workspace:*"
     "@odf/core": "npm:0.0.0"
     "@odf/ocs": "npm:0.0.0"
-    "@odf/shared": "file:../shared"
   languageName: unknown
   linkType: soft
 
@@ -3348,8 +3348,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@odf/core@workspace:packages/odf"
   dependencies:
+    "@odf-console/shared": "workspace:*"
     "@odf/odf-plugin-sdk": "npm:0.0.0"
-    "@odf/shared": "file:../shared"
   languageName: unknown
   linkType: soft
 
@@ -3357,7 +3357,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@odf/mco@workspace:packages/mco"
   dependencies:
-    "@odf/shared": "file:../shared"
+    "@odf-console/shared": "workspace:*"
   languageName: unknown
   linkType: soft
 
@@ -3365,8 +3365,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@odf/ocs@workspace:packages/ocs"
   dependencies:
+    "@odf-console/shared": "workspace:*"
     "@odf/core": "npm:0.0.0"
-    "@odf/shared": "file:../shared"
   languageName: unknown
   linkType: soft
 
@@ -3375,178 +3375,6 @@ __metadata:
   resolution: "@odf/odf-plugin-sdk@workspace:packages/odf-plugin-sdk"
   languageName: unknown
   linkType: soft
-
-"@odf/shared@file:../shared::locator=%40odf%2Fclient%40workspace%3Apackages%2Fclient":
-  version: 0.0.0-beta17
-  resolution: "@odf/shared@file:../shared#../shared::hash=43889c&locator=%40odf%2Fclient%40workspace%3Apackages%2Fclient"
-  dependencies:
-    "@patternfly/patternfly": "npm:6.4.0"
-    "@patternfly/react-charts": "npm:8.4.0"
-    "@patternfly/react-core": "npm:6.4.0"
-    "@patternfly/react-icons": "npm:6.4.0"
-    "@patternfly/react-table": "npm:6.4.0"
-    "@patternfly/react-tokens": "npm:6.4.0"
-    "@patternfly/react-topology": "npm:6.4.0"
-    classnames: "npm:^2.5.1"
-    fuzzysearch: "npm:^1.0.3"
-    i18next-parser: "npm:9.3.0"
-    js-base64: "npm:^3.7.7"
-    js-yaml: "npm:^4.1.1"
-    lodash-es: "npm:^4.17.23"
-    murmurhash-js: "npm:^1.0.0"
-    react-copy-to-clipboard: "npm:5.x"
-    react-dnd: "npm:^15.1.1"
-    react-dnd-html5-backend: "npm:^15.1.2"
-    react-helmet: "npm:^6.1.0"
-    react-hook-form: "npm:^7.56.4"
-    react-linkify: "npm:^0.2.2"
-    react-tagsinput: "npm:^3.20.3"
-    resolve-url-loader: "npm:^5.0.0"
-    sass: "npm:^1.89.0"
-    typescript: "npm:^5.8.3"
-    victory: "npm:^37.3.6"
-    victory-core: "npm:^37.3.6"
-    yup: "npm:^1.6.1"
-  peerDependencies:
-    "@openshift-console/dynamic-plugin-sdk": 1.8.0
-    "@openshift-console/dynamic-plugin-sdk-internal": 1.0.0
-    i18next: ^25.2.1
-    react: ^17.0.1
-    react-dom: ^17.0.1
-    react-i18next: ^11.11.4
-    react-router-dom-v5-compat: ^6.30.3
-  checksum: 10/4a52dd172ed164d15ade81406125a44803d1c2792bb9e0825d466666979fbb1c4f9c6efd91facdbbcb64941f5fcf62cac5472660ddfb3c93f73eca4b6478811b
-  languageName: node
-  linkType: hard
-
-"@odf/shared@file:../shared::locator=%40odf%2Fcore%40workspace%3Apackages%2Fodf":
-  version: 0.0.0-beta17
-  resolution: "@odf/shared@file:../shared#../shared::hash=43889c&locator=%40odf%2Fcore%40workspace%3Apackages%2Fodf"
-  dependencies:
-    "@patternfly/patternfly": "npm:6.4.0"
-    "@patternfly/react-charts": "npm:8.4.0"
-    "@patternfly/react-core": "npm:6.4.0"
-    "@patternfly/react-icons": "npm:6.4.0"
-    "@patternfly/react-table": "npm:6.4.0"
-    "@patternfly/react-tokens": "npm:6.4.0"
-    "@patternfly/react-topology": "npm:6.4.0"
-    classnames: "npm:^2.5.1"
-    fuzzysearch: "npm:^1.0.3"
-    i18next-parser: "npm:9.3.0"
-    js-base64: "npm:^3.7.7"
-    js-yaml: "npm:^4.1.1"
-    lodash-es: "npm:^4.17.23"
-    murmurhash-js: "npm:^1.0.0"
-    react-copy-to-clipboard: "npm:5.x"
-    react-dnd: "npm:^15.1.1"
-    react-dnd-html5-backend: "npm:^15.1.2"
-    react-helmet: "npm:^6.1.0"
-    react-hook-form: "npm:^7.56.4"
-    react-linkify: "npm:^0.2.2"
-    react-tagsinput: "npm:^3.20.3"
-    resolve-url-loader: "npm:^5.0.0"
-    sass: "npm:^1.89.0"
-    typescript: "npm:^5.8.3"
-    victory: "npm:^37.3.6"
-    victory-core: "npm:^37.3.6"
-    yup: "npm:^1.6.1"
-  peerDependencies:
-    "@openshift-console/dynamic-plugin-sdk": 1.8.0
-    "@openshift-console/dynamic-plugin-sdk-internal": 1.0.0
-    i18next: ^25.2.1
-    react: ^17.0.1
-    react-dom: ^17.0.1
-    react-i18next: ^11.11.4
-    react-router-dom-v5-compat: ^6.30.3
-  checksum: 10/4a52dd172ed164d15ade81406125a44803d1c2792bb9e0825d466666979fbb1c4f9c6efd91facdbbcb64941f5fcf62cac5472660ddfb3c93f73eca4b6478811b
-  languageName: node
-  linkType: hard
-
-"@odf/shared@file:../shared::locator=%40odf%2Fmco%40workspace%3Apackages%2Fmco":
-  version: 0.0.0-beta17
-  resolution: "@odf/shared@file:../shared#../shared::hash=43889c&locator=%40odf%2Fmco%40workspace%3Apackages%2Fmco"
-  dependencies:
-    "@patternfly/patternfly": "npm:6.4.0"
-    "@patternfly/react-charts": "npm:8.4.0"
-    "@patternfly/react-core": "npm:6.4.0"
-    "@patternfly/react-icons": "npm:6.4.0"
-    "@patternfly/react-table": "npm:6.4.0"
-    "@patternfly/react-tokens": "npm:6.4.0"
-    "@patternfly/react-topology": "npm:6.4.0"
-    classnames: "npm:^2.5.1"
-    fuzzysearch: "npm:^1.0.3"
-    i18next-parser: "npm:9.3.0"
-    js-base64: "npm:^3.7.7"
-    js-yaml: "npm:^4.1.1"
-    lodash-es: "npm:^4.17.23"
-    murmurhash-js: "npm:^1.0.0"
-    react-copy-to-clipboard: "npm:5.x"
-    react-dnd: "npm:^15.1.1"
-    react-dnd-html5-backend: "npm:^15.1.2"
-    react-helmet: "npm:^6.1.0"
-    react-hook-form: "npm:^7.56.4"
-    react-linkify: "npm:^0.2.2"
-    react-tagsinput: "npm:^3.20.3"
-    resolve-url-loader: "npm:^5.0.0"
-    sass: "npm:^1.89.0"
-    typescript: "npm:^5.8.3"
-    victory: "npm:^37.3.6"
-    victory-core: "npm:^37.3.6"
-    yup: "npm:^1.6.1"
-  peerDependencies:
-    "@openshift-console/dynamic-plugin-sdk": 1.8.0
-    "@openshift-console/dynamic-plugin-sdk-internal": 1.0.0
-    i18next: ^25.2.1
-    react: ^17.0.1
-    react-dom: ^17.0.1
-    react-i18next: ^11.11.4
-    react-router-dom-v5-compat: ^6.30.3
-  checksum: 10/4a52dd172ed164d15ade81406125a44803d1c2792bb9e0825d466666979fbb1c4f9c6efd91facdbbcb64941f5fcf62cac5472660ddfb3c93f73eca4b6478811b
-  languageName: node
-  linkType: hard
-
-"@odf/shared@file:../shared::locator=%40odf%2Focs%40workspace%3Apackages%2Focs":
-  version: 0.0.0-beta17
-  resolution: "@odf/shared@file:../shared#../shared::hash=43889c&locator=%40odf%2Focs%40workspace%3Apackages%2Focs"
-  dependencies:
-    "@patternfly/patternfly": "npm:6.4.0"
-    "@patternfly/react-charts": "npm:8.4.0"
-    "@patternfly/react-core": "npm:6.4.0"
-    "@patternfly/react-icons": "npm:6.4.0"
-    "@patternfly/react-table": "npm:6.4.0"
-    "@patternfly/react-tokens": "npm:6.4.0"
-    "@patternfly/react-topology": "npm:6.4.0"
-    classnames: "npm:^2.5.1"
-    fuzzysearch: "npm:^1.0.3"
-    i18next-parser: "npm:9.3.0"
-    js-base64: "npm:^3.7.7"
-    js-yaml: "npm:^4.1.1"
-    lodash-es: "npm:^4.17.23"
-    murmurhash-js: "npm:^1.0.0"
-    react-copy-to-clipboard: "npm:5.x"
-    react-dnd: "npm:^15.1.1"
-    react-dnd-html5-backend: "npm:^15.1.2"
-    react-helmet: "npm:^6.1.0"
-    react-hook-form: "npm:^7.56.4"
-    react-linkify: "npm:^0.2.2"
-    react-tagsinput: "npm:^3.20.3"
-    resolve-url-loader: "npm:^5.0.0"
-    sass: "npm:^1.89.0"
-    typescript: "npm:^5.8.3"
-    victory: "npm:^37.3.6"
-    victory-core: "npm:^37.3.6"
-    yup: "npm:^1.6.1"
-  peerDependencies:
-    "@openshift-console/dynamic-plugin-sdk": 1.8.0
-    "@openshift-console/dynamic-plugin-sdk-internal": 1.0.0
-    i18next: ^25.2.1
-    react: ^17.0.1
-    react-dom: ^17.0.1
-    react-i18next: ^11.11.4
-    react-router-dom-v5-compat: ^6.30.3
-  checksum: 10/4a52dd172ed164d15ade81406125a44803d1c2792bb9e0825d466666979fbb1c4f9c6efd91facdbbcb64941f5fcf62cac5472660ddfb3c93f73eca4b6478811b
-  languageName: node
-  linkType: hard
 
 "@openshift-console/dynamic-plugin-sdk-internal@npm:1.0.0":
   version: 1.0.0
