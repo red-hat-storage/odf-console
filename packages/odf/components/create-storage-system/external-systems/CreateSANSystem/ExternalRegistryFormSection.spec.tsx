@@ -7,38 +7,61 @@ import { ExternalRegistryFormSection } from './ExternalRegistryFormSection';
 
 jest.mock('@odf/shared', () => {
   const actual = jest.requireActual('@odf/shared');
+  const { Controller } = require('react-hook-form');
   return {
     ...actual,
     FormGroupController: ({
       name,
       formGroupProps,
+      control,
       render: RenderProp,
     }: {
       name: string;
       formGroupProps: { label: string; isRequired?: boolean };
+      control: any;
       render: (props: {
         onChange: (v: string) => void;
         onBlur: () => void;
-      }) => React.ReactNode;
+      }) => any;
     }) => (
       <div data-testid={`form-group-${name}`}>
         <label>
           {formGroupProps.label}
           {formGroupProps.isRequired && ' (required)'}
         </label>
-        {RenderProp({ onChange: jest.fn(), onBlur: jest.fn() })}
+        <Controller
+          name={name}
+          control={control}
+          render={({ field }) =>
+            RenderProp({
+              onChange: field.onChange,
+              onBlur: field.onBlur,
+            })
+          }
+        />
       </div>
     ),
     TextInputWithFieldRequirements: ({
       formGroupProps,
       textInputProps,
+      control,
     }: {
       formGroupProps: { label: string; fieldId: string; isRequired: boolean };
-      textInputProps: { 'data-test': string };
+      textInputProps: { name: string; 'data-test': string };
+      control: any;
     }) => (
       <div data-testid={textInputProps['data-test']}>
         <label>{formGroupProps.label}</label>
-        <input data-testid={`input-${textInputProps['data-test']}`} />
+        <Controller
+          name={textInputProps.name}
+          control={control}
+          render={({ field }) => (
+            <input
+              {...field}
+              data-testid={`input-${textInputProps['data-test']}`}
+            />
+          )}
+        />
       </div>
     ),
     ResourceDropdown: () => <div data-testid="resource-dropdown" />,
@@ -79,11 +102,13 @@ const FormWrapper: React.FC<{
 
 describe('ExternalRegistryFormSection', () => {
   describe('Image registry and repo name visibility', () => {
-    it('should show Image registry URL and Image repository name when showImageRegistryFields is true (external registry, no persistent)', () => {
-      render(<FormWrapper showImageRegistryFields={true} />);
+    it('should not show Image registry URL and Image repository name when showImageRegistryFields is false (external registry, no persistent)', () => {
+      render(<FormWrapper showImageRegistryFields={false} />);
 
-      expect(screen.getByText('Image registry URL')).toBeInTheDocument();
-      expect(screen.getByText('Image repository name')).toBeInTheDocument();
+      expect(screen.queryByText('Image registry URL')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Image repository name')
+      ).not.toBeInTheDocument();
     });
 
     it('should hide Image registry URL and Image repository name when showImageRegistryFields is false (persistent registry present)', () => {
@@ -144,6 +169,138 @@ describe('ExternalRegistryFormSection', () => {
       expect(screen.queryByText(/Secret key/)).not.toBeInTheDocument();
       expect(screen.getByText('CA certificate secret')).toBeInTheDocument();
       expect(screen.getByText('Private key secret')).toBeInTheDocument();
+    });
+  });
+
+  describe('Form payload validation', () => {
+    let getValuesRef: any = null;
+
+    const FormWrapperWithPayloadTest: React.FC<{
+      showImageRegistryFields: boolean;
+      defaultValues?: any;
+    }> = ({ showImageRegistryFields, defaultValues }) => {
+      const methods = useForm({
+        defaultValues: defaultValues || {
+          imageRegistryUrl: '',
+          imageRepositoryName: '',
+          secretKey: '',
+          caCertificateSecret: '',
+          privateKeySecret: '',
+        },
+      });
+
+      // Expose getValues for testing
+      React.useEffect(() => {
+        getValuesRef = methods.getValues;
+      });
+
+      return (
+        <FormProvider {...methods}>
+          <ExternalRegistryFormSection
+            control={methods.control as unknown as Control<FieldValues>}
+            fieldRequirements={fieldRequirements}
+            showImageRegistryFields={showImageRegistryFields}
+          />
+        </FormProvider>
+      );
+    };
+
+    it('should have all registry field values when showImageRegistryFields is true and all fields are set', () => {
+      render(
+        <FormWrapperWithPayloadTest
+          showImageRegistryFields={true}
+          defaultValues={{
+            imageRegistryUrl: 'https://quay.io',
+            imageRepositoryName: 'my-repo',
+            secretKey: 'my-secret',
+            caCertificateSecret: 'ca-cert',
+            privateKeySecret: 'private-key',
+          }}
+        />
+      );
+
+      const values = getValuesRef();
+      expect(values).toEqual({
+        imageRegistryUrl: 'https://quay.io',
+        imageRepositoryName: 'my-repo',
+        secretKey: 'my-secret',
+        caCertificateSecret: 'ca-cert',
+        privateKeySecret: 'private-key',
+      });
+    });
+
+    it('should have empty registry fields when showImageRegistryFields is false', () => {
+      render(<FormWrapperWithPayloadTest showImageRegistryFields={false} />);
+
+      const values = getValuesRef();
+      expect(values).toEqual({
+        imageRegistryUrl: '',
+        imageRepositoryName: '',
+        secretKey: '',
+        caCertificateSecret: '',
+        privateKeySecret: '',
+      });
+    });
+
+    it('should maintain partial field values correctly', () => {
+      render(
+        <FormWrapperWithPayloadTest
+          showImageRegistryFields={true}
+          defaultValues={{
+            imageRegistryUrl: 'https://quay.io',
+            imageRepositoryName: '',
+            secretKey: '',
+            caCertificateSecret: 'ca-cert',
+            privateKeySecret: '',
+          }}
+        />
+      );
+
+      const values = getValuesRef();
+      expect(values).toEqual({
+        imageRegistryUrl: 'https://quay.io',
+        imageRepositoryName: '',
+        secretKey: '',
+        caCertificateSecret: 'ca-cert',
+        privateKeySecret: '',
+      });
+    });
+
+    it('should preserve form values even when fields are hidden (showImageRegistryFields=false)', () => {
+      render(
+        <FormWrapperWithPayloadTest
+          showImageRegistryFields={false}
+          defaultValues={{
+            imageRegistryUrl: 'https://prefilled.io',
+            imageRepositoryName: 'prefilled-repo',
+            secretKey: 'prefilled-secret',
+            caCertificateSecret: 'ca-cert',
+            privateKeySecret: 'private-key',
+          }}
+        />
+      );
+
+      const values = getValuesRef();
+      expect(values).toEqual({
+        imageRegistryUrl: 'https://prefilled.io',
+        imageRepositoryName: 'prefilled-repo',
+        secretKey: 'prefilled-secret',
+        caCertificateSecret: 'ca-cert',
+        privateKeySecret: 'private-key',
+      });
+    });
+
+    it('should have empty strings for all fields when no default values provided', () => {
+      render(<FormWrapperWithPayloadTest showImageRegistryFields={true} />);
+
+      const values = getValuesRef();
+      expect(values).toEqual({
+        imageRegistryUrl: '',
+        imageRepositoryName: '',
+        secretKey: '',
+        caCertificateSecret: '',
+        privateKeySecret: '',
+      });
     });
   });
 });
