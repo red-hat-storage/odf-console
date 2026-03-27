@@ -29,8 +29,8 @@ const FILESYSTEM_NAME_MAX_LENGTH = 63;
 const FILESYSTEM_NAME_MIN_LENGTH = 3;
 
 const AddRemoteFileSystemModal: React.FC<
-  CommonModalProps<{ remoteClusterName: string }>
-> = ({ closeModal, isOpen, extraProps: { remoteClusterName } }) => {
+  CommonModalProps<{ resource: string }>
+> = ({ closeModal, isOpen, extraProps: { resource: remoteClusterName } }) => {
   const { t } = useCustomTranslation();
   const [inProgress, setInProgress] = React.useState(false);
   const [error, setError] = React.useState(null);
