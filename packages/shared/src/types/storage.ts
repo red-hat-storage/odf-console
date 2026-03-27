@@ -17,6 +17,11 @@ export enum StorageClusterPhase {
   Error = 'Error',
 }
 
+export type DisabledAlert = {
+  alertName: string;
+  disabledAt: string; // ISO 8601 timestamp (metav1.Time)
+};
+
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
     network?: {
@@ -96,6 +101,9 @@ export type StorageClusterKind = K8sResourceCommon & {
     externalStorage?: {};
     allowRemoteStorageConsumers?: boolean;
     hostNetwork?: boolean;
+    monitoring?: {
+      disabledAlerts?: DisabledAlert[];
+    };
   };
   status?: {
     phase: StorageClusterPhase | string;

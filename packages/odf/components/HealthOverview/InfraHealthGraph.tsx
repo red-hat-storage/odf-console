@@ -16,18 +16,25 @@ import {
   ChartGroup,
   ChartLegend,
   ChartLine,
-  ChartVoronoiContainer,
+  createContainer,
 } from '@patternfly/react-charts/victory';
+import { Button, Label } from '@patternfly/react-core';
 import { t_global_color_nonstatus_blue_default as activeColor } from '@patternfly/react-tokens';
 import { HEALTH_SCORE_QUERY } from '../odf-dashboard/queries';
 import { AlertRowData } from './hooks';
 import { getSeverityColor } from './utils';
 import './infra-health-graph.scss';
 
+// Create a container that supports both zoom and voronoi (tooltips)
+const ZoomVoronoiContainer = createContainer('zoom', 'voronoi');
+
+export type ZoomDomain = { start: Date; end: Date } | null;
+
 type InfraHealthGraphProps = {
   alerts?: AlertRowData[];
   alertsLoaded?: boolean;
   alertsError?: unknown;
+  onZoomDomainChange?: (domain: ZoomDomain) => void;
 };
 
 const getScoreSeries = (
@@ -81,10 +88,33 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
   alerts = [],
   alertsLoaded = true,
   alertsError = null,
+  onZoomDomainChange,
 }) => {
   const { t } = useCustomTranslation();
 
   const [ref, width] = useRefWidth();
+
+  // Zoom state for controlled zoom
+  const [zoomDomain, setZoomDomain] = React.useState<
+    { x: [Date, Date] } | undefined
+  >();
+
+  const handleZoomDomainChange = React.useCallback(
+    (domain: { x?: [Date, Date] }) => {
+      setZoomDomain(domain?.x ? { x: domain.x } : undefined);
+      if (onZoomDomainChange) {
+        onZoomDomainChange(
+          domain?.x ? { start: domain.x[0], end: domain.x[1] } : null
+        );
+      }
+    },
+    [onZoomDomainChange]
+  );
+
+  const handleResetZoom = React.useCallback(() => {
+    setZoomDomain(undefined);
+    onZoomDomainChange?.(null);
+  }, [onZoomDomainChange]);
   const [scoreResponse, scoreError, scoreLoading] = useCustomPrometheusPoll({
     query: HEALTH_SCORE_QUERY,
     endpoint: 'api/v1/query_range' as any,
@@ -161,7 +191,10 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
           />
         }
         containerComponent={
-          <ChartVoronoiContainer
+          <ZoomVoronoiContainer
+            zoomDimension="x"
+            zoomDomain={zoomDomain}
+            onZoomDomainChange={handleZoomDomainChange}
             voronoiDimension="x"
             constrainToVisibleArea
             labels={({ datum }) => {
@@ -237,6 +270,26 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
 
   return (
     <div ref={ref} className="pf-v6-u-mt-sm odf-infra-health-graph">
+      {zoomDomain && (
+        <div className="odf-infra-health-graph__header">
+          <Label
+            className="odf-infra-health-graph__zoom-indicator"
+            onClose={handleResetZoom}
+          >
+            {t('Viewing: {{start}} - {{end}}', {
+              start: zoomDomain.x[0].toLocaleTimeString(),
+              end: zoomDomain.x[1].toLocaleTimeString(),
+            })}
+          </Label>
+          <Button
+            variant="link"
+            onClick={handleResetZoom}
+            className="odf-infra-health-graph__reset-button"
+          >
+            {t('Reset zoom')}
+          </Button>
+        </div>
+      )}
       {content}
     </div>
   );
