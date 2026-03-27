@@ -762,6 +762,26 @@
     }
   },
   {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/:providerType/vector-buckets/:vectorBucketName/:indexName",
+      "exact": true,
+      "component": {
+        "$codeRef": "s3VectorIndexDetailsPage.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/:providerType/vector-buckets/:vectorBucketName",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3VectorBucketOverview.default"
+      }
+    }
+  },
+  {
     "type": "console.action/resource-provider",
     "properties": {
       "model": {
