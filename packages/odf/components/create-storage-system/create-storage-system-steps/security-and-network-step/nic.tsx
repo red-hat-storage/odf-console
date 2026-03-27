@@ -131,7 +131,7 @@ export const NICSelectComponent: React.FC<NICSelectComponentProps> = ({
         )}
       />
       {isIsolateCephNetwork && (
-        <div className="pf-v5-u-ml-lg pf-v5-u-mt-md">
+        <div className="pf-v6-u-ml-lg pf-v6-u-mt-md">
           <Checkbox
             isChecked={usePublicNetwork}
             onChange={(_, checked) => setUsePublicNetwork(!!checked)}
@@ -142,7 +142,7 @@ export const NICSelectComponent: React.FC<NICSelectComponentProps> = ({
             )}
           />
           {usePublicNetwork && (
-            <div className="pf-v5-u-ml-lg pf-v5-u-mt-sm">
+            <div className="pf-v6-u-ml-lg pf-v6-u-mt-sm">
               <FormGroup
                 label={t('Public network CIDR')}
                 fieldId="ceph-public-cidr"
@@ -193,10 +193,10 @@ export const NICSelectComponent: React.FC<NICSelectComponentProps> = ({
             onChange={(_, checked) => setUseClusterNetwork(!!checked)}
             label={t('Use cluster network')}
             id="use-cluster-network"
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
           />
           {useClusterNetwork && (
-            <div className="pf-v5-u-ml-lg pf-v5-u-mt-sm">
+            <div className="pf-v6-u-ml-lg pf-v6-u-mt-sm">
               <FormGroup
                 label={t('Cluster network CIDR')}
                 fieldId="ceph-cluster-cidr"
