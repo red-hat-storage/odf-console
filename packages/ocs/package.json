@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Ceph and MCG components",
   "dependencies": {
-    "@odf/core": "0.0.0",
-    "@odf/shared": "file:../shared"
+    "@odf-console/shared": "workspace:*",
+    "@odf/core": "0.0.0"
   }
 }
