@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { NOOBAA_PROVISIONER } from '@odf/core/constants';
 import {
   getDriver,
   getProvisioner,
@@ -34,7 +35,8 @@ export const useStorageClientAttacherAction = (
     const items = [];
     if (
       isStorageClass(resource) &&
-      isCephProvisioner(getProvisioner(resource))
+      (isCephProvisioner(getProvisioner(resource)) ||
+        getProvisioner(resource)?.endsWith(NOOBAA_PROVISIONER))
     ) {
       items.push(
         AttachResourceToStorageClientModal(

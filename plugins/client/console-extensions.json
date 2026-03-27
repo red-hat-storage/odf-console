@@ -13,6 +13,20 @@
     }
   },
   {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "objectbucketclaims",
+      "insertBefore": "storageclasses",
+      "section": "storage",
+      "name": "Object Bucket Claims",
+      "href": "/k8s/ns/default/objectbucket.io~v1alpha1~ObjectBucketClaim"
+    },
+    "flags": {
+      "required": ["NOOBAA_SC"],
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
     "type": "console.page/route",
     "properties": {
       "path": ["/odf/cluster"],
@@ -38,10 +52,36 @@
     }
   },
   {
+    "type": "console.resource/create",
+    "properties": {
+      "model": {
+        "group": "objectbucket.io",
+        "version": "v1alpha1",
+        "kind": "ObjectBucketClaim"
+      },
+      "component": { "$codeRef": "createOBC.CreateOBCPage" }
+    },
+    "flags": {
+      "required": ["NOOBAA_SC"],
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "odfConsoleRedux",
       "reducer": { "$codeRef": "features" }
+    },
+    "flags": {
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "console.flag/hookProvider",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.useNoobaaStorageClassFlag"
+      }
     },
     "flags": {
       "disallowed": ["ODF_MODEL"]
