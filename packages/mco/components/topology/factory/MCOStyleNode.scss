@@ -1,0 +1,8 @@
+.mco-topology-node {
+  &__badge {
+    font-size: 24px;
+    font-weight: var(--pf-v5-global--FontWeight--bold);
+    fill: var(--pf-v5-global--Color--100);
+    pointer-events: none;
+  }
+}
