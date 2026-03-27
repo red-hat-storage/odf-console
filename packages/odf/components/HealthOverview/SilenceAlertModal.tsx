@@ -274,6 +274,7 @@ export const SilenceAlertModal: React.FC<SilenceAlertModalProps> = ({
                 toggle={unitToggle}
                 shouldFocusFirstItemOnOpen
                 shouldFocusToggleOnSelect
+                popperProps={{ appendTo: () => document.body }}
               >
                 <SelectList>
                   {durationUnitOptions.map((option) => (
