@@ -17,31 +17,37 @@ import {
   useFlag,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Button,
   ButtonVariant,
-  Flex,
-  FlexItem,
-  Label,
   Card,
   CardHeader,
   CardTitle,
-  FormGroup,
   Content,
   ContentVariants,
+  Flex,
+  FlexItem,
+  FormGroup,
+  Tab,
+  Tabs,
+  TabTitleText,
 } from '@patternfly/react-core';
-import { SyncAltIcon, InfoCircleIcon } from '@patternfly/react-icons';
-import { ActionsColumn, IAction } from '@patternfly/react-table';
-import { getBucketCreatePageRoute } from '../../../constants';
+import { SyncAltIcon } from '@patternfly/react-icons';
+import { ActionsColumn } from '@patternfly/react-table';
+import {
+  BucketTypeTab,
+  BUCKET_TYPE_TAB_ROUTES,
+  getBucketCreatePageRoute,
+} from '../../../constants';
 import { BucketCrFormat } from '../../../types';
-import { LazyLoginModal } from '../../s3-common/components/LazyLogin';
 import {
   useSystemInfo,
   SystemInfoData,
 } from '../../s3-common/hooks/useSystemInfo';
-import { SetSecretRefWithStorage, ClientType } from '../../s3-common/types';
+import { getAcountBadge, getAccountActionsItems } from '../../s3-common/utils';
+import { S3VectorsProvider } from '../../s3-vectors/s3-vectors-context';
+import VectorBucketsListPage from '../../s3-vectors/vector-buckets-list-page/VectorBucketsListPage';
 import { S3Provider, S3Context } from '../s3-context';
 import { BucketsListTable } from './bucketListTable';
 import { BucketPagination } from './bucketPagination';
@@ -58,40 +64,6 @@ type StorageEndpointProps = {
   setS3Provider: React.Dispatch<React.SetStateAction<S3ProviderType>>;
   systemInfo: SystemInfoData;
 };
-
-export const getAccountActionsItems = (
-  t: TFunction,
-  launcher: LaunchModal,
-  providerType: S3ProviderType,
-  logout: () => void,
-  setSecretRef: SetSecretRefWithStorage,
-  clientType?: ClientType
-): IAction[] => [
-  {
-    title: t('Sign in to another account'),
-    description: t('You will be signed out of this account.'),
-    onClick: () =>
-      launcher(LazyLoginModal, {
-        isOpen: true,
-        extraProps: {
-          providerType,
-          logout,
-          onLogin: setSecretRef,
-          type: clientType,
-        },
-      }),
-  },
-  {
-    title: t('Sign out'),
-    onClick: () => logout(),
-  },
-];
-
-export const getAcountBadge = (t: TFunction) => (
-  <Label color="green" icon={<InfoCircleIcon />}>
-    {t('Signed in with credentials')}
-  </Label>
-);
 
 const BucketsListPageBody: React.FC<BucketsListPageBodyProps> = ({
   bucketInfo,
@@ -278,8 +250,26 @@ const StorageEndpoint: React.FC<StorageEndpointProps> = ({
 
 const BucketsListPage: React.FC = () => {
   const [s3Provider, setS3Provider] = React.useState(S3ProviderType.Noobaa);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const { data: systemInfo, isLoading } = useSystemInfo();
+  const { t } = useCustomTranslation();
+
+  const activeBucketTab =
+    s3Provider === S3ProviderType.Noobaa &&
+    pathname === BUCKET_TYPE_TAB_ROUTES[BucketTypeTab.S3Vector]
+      ? BucketTypeTab.S3Vector
+      : BucketTypeTab.General;
+
+  const handleTabSelect = (
+    _event: React.MouseEvent,
+    tabIndex: number | string
+  ) => {
+    const index = Number(tabIndex) as BucketTypeTab;
+    const route = BUCKET_TYPE_TAB_ROUTES[index];
+    if (route) navigate(route);
+  };
 
   return (
     <>
@@ -288,9 +278,34 @@ const BucketsListPage: React.FC = () => {
         setS3Provider={setS3Provider}
         systemInfo={systemInfo}
       />
-      <S3Provider loading={isLoading} s3Provider={s3Provider}>
-        <BucketsListPageContent />
-      </S3Provider>
+      {s3Provider === S3ProviderType.Noobaa ? (
+        <Tabs
+          activeKey={activeBucketTab}
+          onSelect={handleTabSelect}
+          unmountOnExit
+        >
+          <Tab
+            eventKey={BucketTypeTab.General}
+            title={<TabTitleText>{t('General')}</TabTitleText>}
+          >
+            <S3Provider loading={isLoading} s3Provider={s3Provider}>
+              <BucketsListPageContent />
+            </S3Provider>
+          </Tab>
+          <Tab
+            eventKey={BucketTypeTab.S3Vector}
+            title={<TabTitleText>{t('S3 Vector')}</TabTitleText>}
+          >
+            <S3VectorsProvider loading={isLoading}>
+              <VectorBucketsListPage />
+            </S3VectorsProvider>
+          </Tab>
+        </Tabs>
+      ) : (
+        <S3Provider loading={isLoading} s3Provider={s3Provider}>
+          <BucketsListPageContent />
+        </S3Provider>
+      )}
     </>
   );
 };
