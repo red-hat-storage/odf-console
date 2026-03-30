@@ -3,7 +3,6 @@ import { SAN_STORAGE_SYSTEM_NAME } from '@odf/core/constants';
 import { FileSystemKind } from '@odf/core/types/scale';
 import { DASH, getName, getNamespace } from '@odf/shared';
 import { Kebab } from '@odf/shared/kebab';
-import { ModalKeys } from '@odf/shared/modals';
 import { FileSystemModel } from '@odf/shared/models/scale';
 import { GreenCheckCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -22,6 +21,7 @@ import {
   VirtualizedTable,
   useListPageFilter,
   HealthState,
+  k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';
@@ -31,15 +31,14 @@ import {
   CardHeader,
   CardTitle,
   pluralize,
-  Content,
-  ContentVariants,
+  TextContent,
+  TextVariants,
+  Text,
   Tooltip,
 } from '@patternfly/react-core';
 import { InfoCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import { filterSANFileSystems } from '../ibm-common/utils';
-import { useScaleGuiLink } from './useScaleGUILink';
-import './LUNCard.scss';
 
 const resource = {
   kind: referenceForModel(FileSystemModel),
@@ -86,12 +85,9 @@ const getStorageClassName = (fileSystem: FileSystemKind): string => {
   return getName(fileSystem);
 };
 
-const getConsoleLink = (
-  fileSystem: FileSystemKind,
-  url: string
-): string | undefined => {
-  if (url === '-') return undefined;
-  return `${url}-/${getName(fileSystem)}`;
+// Todo(bipuladh) Fix this
+const getConsoleLink = (_fileSystem: FileSystemKind): string | undefined => {
+  return undefined;
 };
 
 const lunGroupStatusFilter = (t): RowFilter<FileSystemKind> => ({
@@ -132,7 +128,6 @@ type LUNGroupsListProps = {
 
 const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
   const { t } = useCustomTranslation();
-  const { url } = useScaleGuiLink();
   const lunGroupTableColumns = React.useMemo<TableColumn<FileSystemKind>[]>(
     () => [
       {
@@ -160,10 +155,10 @@ const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
         },
         id: tableColumnInfo[2].id,
         header: (
-          <span className="pf-v6-u-display-flex pf-v6-u-align-items-center">
+          <span className="pf-v5-u-display-flex pf-v5-u-align-items-center">
             {t('StorageClasses')}
             <Tooltip content={t('StorageClasses information')}>
-              <InfoCircleIcon className="pf-v6-u-ml-sm pf-v6-u-color-200" />
+              <InfoCircleIcon className="pf-v5-u-ml-sm pf-v5-u-color-200" />
             </Tooltip>
           </span>
         ),
@@ -176,10 +171,10 @@ const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
         },
         id: tableColumnInfo[3].id,
         header: (
-          <span className="pf-v6-u-display-flex pf-v6-u-align-items-center">
+          <span className="pf-v5-u-display-flex pf-v5-u-align-items-center">
             {t('Console link')}
             <Tooltip content={t('Console link information')}>
-              <InfoCircleIcon className="pf-v6-u-ml-sm pf-v6-u-color-200" />
+              <InfoCircleIcon className="pf-v5-u-ml-sm pf-v5-u-color-200" />
             </Tooltip>
           </span>
         ),
@@ -208,37 +203,38 @@ const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
       aria-label={t('LUN groups table')}
       columns={columns}
       Row={LUNGroupRow}
-      rowData={{ url }}
     />
   );
 };
 
-type CustomData = { url: string };
+type CustomData = {};
 
 const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
   obj,
   activeColumnIDs,
-  rowData: { url },
 }) => {
-  const { t } = useCustomTranslation();
   const status = getLUNGroupStatus(obj);
   const isHealthy = status === HealthState.OK;
   const storageClassName = getStorageClassName(obj);
-
-  const customKebabItems = React.useMemo(
-    () => [
-      {
-        key: ModalKeys.DELETE,
-        value: t('Delete LUN group'),
-        component: React.lazy(
-          () => import('../../modals/lun-group/DeleteLUNModal')
-        ),
-      },
-    ],
-    [t]
-  );
-
-  const consoleLink = getConsoleLink(obj, url);
+  const consoleLink = getConsoleLink(obj);
+  const cleanupBeforeDelete = async (fs: FileSystemKind) => {
+    await k8sPatch({
+      model: FileSystemModel,
+      resource: fs,
+      data: [
+        {
+          op: 'add',
+          path: '/metadata/labels',
+          value: {},
+        },
+        {
+          op: 'add',
+          path: '/metadata/labels/scale.spectrum.ibm.com~1allowDelete',
+          value: '',
+        },
+      ],
+    });
+  };
 
   return (
     <>
@@ -250,8 +246,8 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
         </Link>
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        <span className="pf-v6-u-display-flex pf-v6-u-align-items-center">
-          {isHealthy && <GreenCheckCircleIcon className="pf-v6-u-mr-sm" />}
+        <span className="pf-v5-u-display-flex pf-v5-u-align-items-center">
+          {isHealthy && <GreenCheckCircleIcon className="pf-v5-u-mr-sm" />}
           {status}
         </span>
       </TableData>
@@ -260,17 +256,13 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
         {consoleLink ? (
-          <div className="lun-card__console-link-wrap">
-            <ExternalLink
-              href={consoleLink}
-              additionalClassName="lun-card__console-link pf-v6-u-display-inline-flex pf-v6-u-align-items-center"
-            >
-              <span className="lun-card__console-link-text" title={consoleLink}>
-                {consoleLink}
-              </span>
-              <ExternalLinkAltIcon className="lun-card__console-link-icon pf-v6-u-ml-xs" />
-            </ExternalLink>
-          </div>
+          <ExternalLink
+            href={consoleLink}
+            additionalClassName="pf-v5-u-display-inline-flex pf-v5-u-align-items-center"
+          >
+            {consoleLink}
+            <ExternalLinkAltIcon className="pf-v5-u-ml-xs" />
+          </ExternalLink>
         ) : (
           DASH
         )}
@@ -280,8 +272,9 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
           extraProps={{
             resource: obj,
             resourceModel: FileSystemModel,
+            confirmWithName: true,
+            cleanupBeforeDelete,
           }}
-          customKebabItems={customKebabItems}
         />
       </TableData>
     </>
@@ -306,9 +299,9 @@ const LUNGroupsTable: React.FC = () => {
 
   return (
     <div>
-      <Content className="pf-v6-u-my-xl">
-        <Content component={ContentVariants.h2}>
-          <span className="pf-v6-u-mr-sm">
+      <TextContent className="pf-v5-u-my-xl">
+        <Text component={TextVariants.h2}>
+          <span className="pf-v5-u-mr-sm">
             <LUNGroupStatusIcon
               fileSystems={filteredFileSystems || []}
               loading={!fileSystemsLoaded}
@@ -321,8 +314,8 @@ const LUNGroupsTable: React.FC = () => {
               t('LUN group')
             ),
           })}
-        </Content>
-      </Content>
+        </Text>
+      </TextContent>
       <ListPageFilter
         data={data}
         loaded={fileSystemsLoaded}

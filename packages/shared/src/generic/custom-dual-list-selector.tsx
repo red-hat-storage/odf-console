@@ -3,8 +3,8 @@ import {
   DualListSelector,
   DualListSelectorControlsWrapper,
   DualListSelectorControl,
-} from '@patternfly/react-core/deprecated';
-import { SearchInput } from '@patternfly/react-core';
+  SearchInput,
+} from '@patternfly/react-core';
 import {
   AngleDoubleLeftIcon,
   AngleDoubleRightIcon,

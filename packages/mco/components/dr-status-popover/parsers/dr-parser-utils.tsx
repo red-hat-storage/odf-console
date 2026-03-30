@@ -1,5 +1,4 @@
-// import { VolumeReplicationHealth } from '@odf/mco/constants';
-// import { Phase } from '@odf/mco/types';
+// import { DRPCStatus, VolumeReplicationHealth } from '@odf/mco/constants';
 
 // export type DRStatusProps = {
 //   policyName: string;
@@ -10,7 +9,7 @@
 //   lastKubeObjectProtectionTime?: string;
 //   volumeReplicationHealth: VolumeReplicationHealth;
 //   kubeObjectReplicationHealth?: VolumeReplicationHealth;
-//   phase: Phase;
+//   phase: DRPCStatus;
 //   isCleanupRequired?: boolean;
 //   isLoadedWOError: boolean;
 // };

@@ -23,7 +23,9 @@ import * as Yup from 'yup';
 import {
   Alert,
   EmptyState,
+  EmptyStateIcon,
   EmptyStateBody,
+  EmptyStateHeader,
   Radio,
   FormGroup,
   TextInput,
@@ -65,7 +67,15 @@ export const StoragePoolStatus: React.FC<StoragePoolStatusProps> = ({
   );
 
   return (
-    <EmptyState icon={statusObj.icon}>
+    <EmptyState>
+      <EmptyStateHeader
+        icon={
+          <EmptyStateIcon
+            icon={statusObj.icon}
+            className={statusObj.className}
+          />
+        }
+      />
       <EmptyStateBody data-test="empty-state-body">
         {error ? getErrorMessage(error) : statusObj.desc}
       </EmptyStateBody>
@@ -168,7 +178,6 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
 
   React.useEffect(() => {
     // Update pool name: set empty on validation error.
-    if (isUpdate) return;
     const possiblyPrefixedPoolName =
       usePrefix && poolName ? `${prefixName}-${poolName}` : poolName;
     const payload = errors?.newPoolName ? '' : possiblyPrefixedPoolName;
@@ -176,14 +185,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       type: StoragePoolActionType.SET_POOL_NAME,
       payload: payload,
     });
-  }, [
-    poolName,
-    dispatch,
-    errors?.newPoolName,
-    prefixName,
-    usePrefix,
-    isUpdate,
-  ]);
+  }, [poolName, dispatch, errors?.newPoolName, prefixName, usePrefix]);
 
   // Failure Domain
   React.useEffect(() => {
@@ -277,15 +279,15 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
 
   return isClusterReady || !showPoolStatus ? (
     <>
-      <FormGroup label={t('Volume type')} className="pf-v6-u-pt-xl" isRequired>
-        <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-row ceph-pool__radio-flex">
+      <FormGroup label={t('Volume type')} className="pf-v5-u-pt-xl" isRequired>
+        <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row ceph-pool__radio-flex">
           <Radio
             label={t('Filesystem')}
             value="filesystem"
             id="type-filesystem"
             data-test="type-filesystem"
             name="volume-type"
-            className="pf-v6-u-mr-4xl"
+            className="pf-v5-u-mr-4xl"
             isChecked={poolType === PoolType.FILESYSTEM}
             isDisabled={disablePoolType && poolType !== PoolType.FILESYSTEM}
             onChange={() => {
@@ -334,7 +336,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
               <Icon status="info">
                 <InfoCircleIcon />
               </Icon>
-              <span className="pf-v6-u-disabled-color-100 pf-v6-u-font-size-sm pf-v6-u-ml-sm">
+              <span className="pf-v5-u-disabled-color-100 pf-v5-u-font-size-sm pf-v5-u-ml-sm">
                 {t(
                   'The pool name comprises a prefix followed by the user-provided name.'
                 )}
@@ -351,7 +353,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
                 value={prefixName}
                 isDisabled={true}
               />
-              <div className="pf-v6-u-ml-sm pf-v6-u-mr-sm">-</div>
+              <div className="pf-v5-u-ml-sm pf-v5-u-mr-sm">-</div>
             </>
           )
         }

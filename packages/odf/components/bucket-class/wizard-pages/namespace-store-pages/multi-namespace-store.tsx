@@ -87,12 +87,11 @@ export const MultiNamespaceStorePage: React.FC<MultiNamespaceStoreProps> =
             {!hideCreateNamespaceStore && (
               <FlexItem>
                 <Button
-                  icon={<PlusCircleIcon />}
                   variant={ButtonVariant.link}
                   onClick={launchModal}
                   className="nb-bc-step-page-form__modal-launcher"
                 >
-                  {t('Create NamespaceStore')}
+                  <PlusCircleIcon /> {t('Create NamespaceStore')}
                 </Button>
               </FlexItem>
             )}

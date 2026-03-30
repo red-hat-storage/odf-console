@@ -1,12 +1,13 @@
 import * as React from 'react';
+import classNames from 'classnames';
 import {
   ModalBoxBody,
-  ModalBoxFooter,
   ModalBoxBodyProps,
+  ModalBoxFooter,
   ModalBoxFooterProps,
-} from '@patternfly/react-core/deprecated';
-import classNames from 'classnames';
-import { Title, TitleSizes } from '@patternfly/react-core';
+  Title,
+  TitleSizes,
+} from '@patternfly/react-core';
 import './modal.scss';
 
 export type CommonModalProps<T = {}> = {

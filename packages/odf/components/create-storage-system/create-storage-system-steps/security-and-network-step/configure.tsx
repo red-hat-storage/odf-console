@@ -9,26 +9,17 @@ import { FDF_FLAG } from '../../../../redux';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardState } from '../../reducer';
 import { MultusNetworkConfigurationComponent } from './multus';
-import { NICSelectComponent } from './nic';
 import './configure.scss';
 
 export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   setNetworkType,
   networkType,
   setMultusNetwork,
-  setCIDRNetwork,
-  cephPublicCIDR,
-  cephClusterCIDR,
-  usePublicNetwork,
-  useClusterNetwork,
-  setUsePublicNetwork,
-  setUseClusterNetwork,
   clusterNetwork,
   publicNetwork,
   systemNamespace,
   isMultusAcknowledged,
   setIsMultusAcknowledged,
-  nodes = [],
 }) => {
   const { t } = useCustomTranslation();
   const isFDF = useFlag(FDF_FLAG);
@@ -65,14 +56,11 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
         )}
         {isFDF && (
           <Radio
-            isChecked={
-              networkType === NetworkType.HOST ||
-              networkType === NetworkType.NIC
-            }
+            isChecked={networkType === NetworkType.HOST}
             name="custom-network"
             label={t('Host')}
             description={t(
-              'Use the host network to allow external access, support custom networking, or connect additional clusters to the storage provider. If no networks are specified, the default network will be used.'
+              'Use the host network to allow external access, support custom networking, or connect additional clusters to the storage provider.'
             )}
             onChange={() => setNetworkType(NetworkType.HOST)}
             value={NetworkType.MULTUS}
@@ -92,8 +80,8 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
             isInline
           />
         )}
-      {networkType === NetworkType.MULTUS ||
-      networkType === NetworkType.DEFAULT ? (
+      {(networkType === NetworkType.MULTUS ||
+        networkType === NetworkType.DEFAULT) && (
         <MultusNetworkConfigurationComponent
           setNetwork={setMultusNetwork}
           clusterNetwork={clusterNetwork}
@@ -104,26 +92,6 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           isMultusAcknowledged={isMultusAcknowledged}
           setIsMultusAcknowledged={setIsMultusAcknowledged}
         />
-      ) : (
-        isFDF && (
-          <NICSelectComponent
-            cephClusterCIDR={cephClusterCIDR ?? ''}
-            cephPublicCIDR={cephPublicCIDR ?? ''}
-            setCephCIDR={(cephCIDR: string) =>
-              setCIDRNetwork(cephCIDR, cephPublicCIDR ?? '')
-            }
-            setPublicCIDR={(publicCIDR: string) =>
-              setCIDRNetwork(cephClusterCIDR ?? '', publicCIDR)
-            }
-            networkType={networkType}
-            setNetworkType={(type: NetworkType) => setNetworkType(type)}
-            usePublicNetwork={usePublicNetwork}
-            useClusterNetwork={useClusterNetwork}
-            setUsePublicNetwork={setUsePublicNetwork}
-            setUseClusterNetwork={setUseClusterNetwork}
-            nodes={nodes}
-          />
-        )
       )}
     </>
   );
@@ -132,10 +100,6 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
 type NetworkFormGroupProps = {
   setNetworkType: any;
   networkType: NetworkType;
-  usePublicNetwork: boolean;
-  useClusterNetwork: boolean;
-  setUsePublicNetwork: (val: boolean) => void;
-  setUseClusterNetwork: (val: boolean) => void;
   setMultusNetwork: (
     type: NADSelectorType,
     resource: K8sResourceCommon
@@ -148,5 +112,4 @@ type NetworkFormGroupProps = {
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   isMultusAcknowledged: boolean;
   setIsMultusAcknowledged: (val: boolean) => void;
-  nodes?: WizardState['nodes'];
 };

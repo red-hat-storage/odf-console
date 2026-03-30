@@ -14,16 +14,15 @@ jobs:
         node-version: [20.19.2, 22]
     steps:
       - uses: actions/checkout@v3
-      - run: corepack enable
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
-      - name: Install dependencies
-        run: yarn install --immutable
+      - run: yarn install --prod --frozen-lockfile
       - run: yarn build
       - run: yarn build-mco
       - run: yarn build-client
+      - run: yarn install # Install dev. deps.
       - run: yarn lint
       - run: yarn format-test
       - run: yarn i18n-test

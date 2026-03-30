@@ -5,8 +5,9 @@ import {
   Spinner,
   Flex,
   FlexItem,
-  Content,
-  ContentVariants,
+  Text,
+  TextContent,
+  TextVariants,
 } from '@patternfly/react-core';
 import './create-storage-system.scss';
 
@@ -28,9 +29,9 @@ export const ErrorHandler: React.FC<WizardStepProps> = ({
           </FlexItem>
           <FlexItem>
             {loadingMessage && (
-              <Content>
-                <Content>{loadingMessage}</Content>
-              </Content>
+              <TextContent>
+                <Text>{loadingMessage}</Text>
+              </TextContent>
             )}
           </FlexItem>
         </Flex>
@@ -41,15 +42,15 @@ export const ErrorHandler: React.FC<WizardStepProps> = ({
   if (error) {
     return (
       <Bullseye className="odf-create-storage-system-wizard-body">
-        <Content>
-          <Content
+        <TextContent>
+          <Text
             className="odf-create-storage-system-wizard-body__error"
-            component={ContentVariants.p}
+            component={TextVariants.p}
           >
             {errorMessage ||
               t('An error has occurred: {{error}}', { error: error?.message })}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
       </Bullseye>
     );
   }

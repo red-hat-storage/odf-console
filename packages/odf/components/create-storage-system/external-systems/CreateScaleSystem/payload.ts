@@ -75,7 +75,6 @@ export const createScaleRemoteClusterPayload = (
         secretName,
         insecureSkipVerify: !!caCert ? false : true,
         hosts: hostNames,
-        passwordRotation: {},
       },
     },
   };

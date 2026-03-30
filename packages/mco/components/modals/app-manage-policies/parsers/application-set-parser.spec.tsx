@@ -231,10 +231,7 @@ describe('ApplicationSet manage disaster recovery modal', () => {
       )
     ).toBeInTheDocument();
     // Check primary action is enabled
-    const enrollButton = screen
-      .getByText('Enroll application')
-      .closest('button');
-    expect(enrollButton).toBeEnabled();
+    expect(screen.getByText('Enroll application')).toBeEnabled();
   });
 
   test('manage policy view test', async () => {
@@ -283,10 +280,11 @@ describe('ApplicationSet manage disaster recovery modal', () => {
     await user.click(screen.getByText('Enroll application'));
 
     // select a policy
-    expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
+    expect(screen.getByText('Next')).toBeEnabled();
 
-    expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled();
+    expect(screen.getByText('Back')).toBeDisabled();
 
+    expect(screen.getByText('Select a policy')).toBeEnabled();
     await user.click(screen.getByText('Select a policy'));
 
     //  Fixed duplicate text issue here
@@ -296,15 +294,15 @@ describe('ApplicationSet manage disaster recovery modal', () => {
       return (
         content === 'mock-policy-1' &&
         element !== null &&
-        element.classList.contains('pf-v6-c-menu-toggle__text')
+        element.classList.contains('pf-v5-c-menu-toggle__text')
       );
     });
 
     await user.click(screen.getByText('Next'));
 
     // select a placement and labels
-    expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Back' })).toBeEnabled();
+    expect(screen.getByText('Next')).toBeEnabled();
+    expect(screen.getByText('Back')).toBeEnabled();
 
     screen.getByText(
       /Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information,/i
@@ -345,15 +343,11 @@ describe('ApplicationSet manage disaster recovery modal', () => {
     await user.click(nextButtons[nextButtons.length - 1]);
 
     // Step 3 - review and assign
-    expect(screen.getByRole('button', { name: 'Assign' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Back' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeEnabled();
+    expect(screen.getByText('Assign')).toBeEnabled();
+    expect(screen.getByText('Back')).toBeEnabled();
+    expect(screen.getByText('Cancel')).toBeEnabled();
 
-    expect(
-      await screen.findByText('Policy', {
-        selector: '.pf-v6-c-wizard__nav-link-main',
-      })
-    ).toBeInTheDocument();
+    screen.getByText(/Policy/i, { selector: 'span' });
     expect(screen.getByText('Policy name:')).toBeInTheDocument();
     expect(screen.getByText('Clusters:')).toBeInTheDocument();
     expect(screen.getByText('Replication type:')).toBeInTheDocument();

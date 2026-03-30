@@ -326,7 +326,6 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
           isDisabled={!canProceed || isLoading}
           variant="primary"
           onClick={handleNext}
-          className="pf-v6-u-mr-md"
         >
           {currentStepId === CreateStepsBC.REVIEW
             ? t('Create BucketClass')
@@ -336,7 +335,6 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
           variant="secondary"
           onClick={goToPrevStep}
           isDisabled={currentStepId === CreateStepsBC.GENERAL || isLoading}
-          className="pf-v6-u-mr-md"
         >
           {t('Back')}
         </Button>

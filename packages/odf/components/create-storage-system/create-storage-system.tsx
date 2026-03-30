@@ -30,8 +30,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
-import { EmptyStateBody, Wizard, WizardStep } from '@patternfly/react-core';
-import { EmptyState, Spinner } from '@patternfly/react-core';
+import { Wizard, WizardStep } from '@patternfly/react-core';
+import {
+  EmptyState,
+  EmptyStateHeader,
+  EmptyStateIcon,
+  Spinner,
+} from '@patternfly/react-core';
 import { CREATE_SS_PAGE_URL, Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
@@ -265,17 +270,15 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
     <>
       <CreateStorageSystemHeader state={{} as any} />
       <EmptyState
-        icon={Spinner}
         className="odf-create-storage-system-wizard__empty-state"
         data-test="create-wizard-empty-state"
       >
-        <EmptyStateBody>
-          <p>
-            {t(
-              'Data Foundation is gathering required resources, this may take up to a minute.'
-            )}
-          </p>
-        </EmptyStateBody>
+        <EmptyStateHeader icon={<EmptyStateIcon icon={Spinner} />} />
+        <p>
+          {t(
+            'Data Foundation is gathering required resources, this may take up to a minute.'
+          )}
+        </p>
       </EmptyState>
     </>
   ) : (

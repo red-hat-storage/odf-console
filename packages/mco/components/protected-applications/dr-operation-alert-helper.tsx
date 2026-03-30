@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
-import { DR_BASE_ROUTE } from '../../constants';
-import { DRPlacementControlKind, Phase } from '../../types';
+import { DRPCStatus, DR_BASE_ROUTE } from '../../constants';
+import { DRPlacementControlKind } from '../../types';
 
 /**
  * Query parameter constants for DR operation completion alerts
@@ -51,8 +51,8 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
 
       // Detect failover completion
       if (
-        prevPhase === Phase.FailingOver &&
-        currentPhase === Phase.FailedOver
+        prevPhase === DRPCStatus.FailingOver &&
+        currentPhase === DRPCStatus.FailedOver
       ) {
         const failoverCluster =
           currentApp.spec?.failoverCluster ||
@@ -65,7 +65,10 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
       }
 
       // Detect relocate completion
-      if (prevPhase === Phase.Relocating && currentPhase === Phase.Relocated) {
+      if (
+        prevPhase === DRPCStatus.Relocating &&
+        currentPhase === DRPCStatus.Relocated
+      ) {
         const preferredCluster =
           currentApp.spec?.preferredCluster ||
           currentApp.status?.preferredDecision?.clusterName ||

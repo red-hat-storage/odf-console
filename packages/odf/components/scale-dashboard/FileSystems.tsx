@@ -17,9 +17,11 @@ import {
   CardHeader,
   CardTitle,
   pluralize,
-  Content,
-  ContentVariants,
+  TextContent,
+  TextVariants,
+  Text,
   EmptyState,
+  EmptyStateIcon,
   EmptyStateVariant,
   Title,
 } from '@patternfly/react-core';
@@ -80,9 +82,9 @@ const FileSystemsTable: React.FC = () => {
   const externalSystemName = location.pathname.split('/')[3];
   return (
     <div>
-      <Content className="pf-v6-u-my-xl">
-        <Content component={ContentVariants.h2}>
-          <span className="pf-v6-u-mr-sm">
+      <TextContent className="pf-v5-u-my-xl">
+        <Text component={TextVariants.h2}>
+          <span className="pf-v5-u-mr-sm">
             <FileSystemStatusIcon
               fileSystems={filteredFileSystems}
               loading={!fileSystemsLoaded}
@@ -95,8 +97,8 @@ const FileSystemsTable: React.FC = () => {
               t('filesystem')
             ),
           })}
-        </Content>
-      </Content>
+        </Text>
+      </TextContent>
       {filteredFileSystems?.length > 0 ? (
         <Table aria-label={t('File systems table')} variant="compact">
           <Thead>
@@ -123,15 +125,12 @@ const FileSystemsTable: React.FC = () => {
           </Tbody>
         </Table>
       ) : (
-        <EmptyState
-          titleText={
-            <Title headingLevel="h5" size="lg">
-              {t('No file systems found')}
-            </Title>
-          }
-          icon={CubesIcon}
-          variant={EmptyStateVariant.sm}
-        />
+        <EmptyState variant={EmptyStateVariant.sm}>
+          <EmptyStateIcon icon={CubesIcon} />
+          <Title headingLevel="h5" size="lg">
+            {t('No file systems found')}
+          </Title>
+        </EmptyState>
       )}
     </div>
   );

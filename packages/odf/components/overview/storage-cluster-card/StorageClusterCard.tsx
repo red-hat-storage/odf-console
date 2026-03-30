@@ -7,8 +7,7 @@ import {
 } from '@odf/core/resources';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import { DANGER_THRESHOLD, WARNING_THRESHOLD } from '@odf/ocs/constants/charts';
-import { useGetOCSHealth } from '@odf/ocs/hooks/useOcsHealth';
-import { resiliencyProgressQuery, StatusCardQueries } from '@odf/ocs/queries';
+import { resiliencyProgressQuery } from '@odf/ocs/queries';
 import { getDataResiliencyState } from '@odf/ocs/utils';
 import {
   DASH,
@@ -16,6 +15,8 @@ import {
   healthStateMapping,
   healthStateMessage,
   ODF_OPERATOR,
+  resourceStatus,
+  Status,
   StorageClusterKind,
   SubscriptionKind,
   useFetchCsv,
@@ -36,14 +37,14 @@ import {
   HealthState,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  ChartDonut,
-  ChartLabel,
-  ChartLegend,
-} from '@patternfly/react-charts/victory';
+import { chart_color_blue_100 as general2 } from '@patternfly/react-tokens/dist/js/chart_color_blue_100';
+import { chart_color_blue_300 as general1 } from '@patternfly/react-tokens/dist/js/chart_color_blue_300';
+import { global_danger_color_100 as danger1 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
+import { global_warning_color_100 as warning1 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router-dom-v5-compat';
+import { ChartDonut, ChartLabel, ChartLegend } from '@patternfly/react-charts';
 import {
   DescriptionList,
   DescriptionListTerm,
@@ -63,12 +64,6 @@ import {
   GridItem,
 } from '@patternfly/react-core';
 import { ArrowRightIcon } from '@patternfly/react-icons';
-import {
-  chart_color_blue_100 as general2,
-  chart_color_blue_300 as general1,
-  t_global_color_status_warning_100 as warning1,
-  t_global_color_status_danger_100 as danger1,
-} from '@patternfly/react-tokens';
 import './StorageClusterCard.scss';
 
 const generalColorScale = [general1.value, general2.value];
@@ -91,52 +86,24 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
 
   const storageCluster = getStorageClusterInNs(storageClusters, odfNamespace);
   const clusterName = getName(storageCluster);
-
-  const { healthState, message: healthMessage } =
-    useGetOCSHealth(storageCluster);
-
   const [totalCapacity, usedCapacity, capacityLoading, capacityLoadError] =
     useRawCapacity(clusterName);
-  const [cephResiliencyProgress, cephResiliencyProgressError] =
-    useCustomPrometheusPoll({
+  const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(
+    {
       query: resiliencyProgressQuery(clusterName),
       endpoint: 'api/v1/query' as any,
       basePath: usePrometheusBasePath(),
-    });
-
-  const [objectResiliencyProgress, objectResiliencyProgressError] =
-    useCustomPrometheusPoll({
-      query: StatusCardQueries.MCG_REBUILD_PROGRESS_QUERY,
-      endpoint: 'api/v1/query' as any,
-      basePath: usePrometheusBasePath(),
-    });
-
-  const objectResiliencyState = getDataResiliencyState(
-    [
-      {
-        response: objectResiliencyProgress,
-        error: objectResiliencyProgressError,
-      },
-    ],
+    }
+  );
+  const dataResiliencyState = getDataResiliencyState(
+    [{ response: resiliencyProgress, error: resiliencyProgressError }],
     t
   );
-  const cephDataResiliencyState = getDataResiliencyState(
-    [{ response: cephResiliencyProgress, error: cephResiliencyProgressError }],
-    t
-  );
-  const healthIcon = healthStateMapping?.[healthState]?.icon;
-  const cephResiliencyMessage =
-    cephDataResiliencyState.state === HealthState.OK
+  const resiliencyMessage =
+    dataResiliencyState.state === HealthState.OK
       ? t('Healthy')
-      : healthStateMessage(cephDataResiliencyState.state, t);
-  const cephResiliencyIcon =
-    healthStateMapping?.[cephDataResiliencyState.state]?.icon;
-  const objectResiliencyMessage =
-    objectResiliencyState.state === HealthState.OK
-      ? t('Healthy')
-      : healthStateMessage(objectResiliencyState.state, t);
-  const objectResiliencyIcon =
-    healthStateMapping?.[objectResiliencyState.state]?.icon;
+      : healthStateMessage(dataResiliencyState.state, t);
+  const resiliencyIcon = healthStateMapping?.[dataResiliencyState.state]?.icon;
 
   const odfVersion =
     csvLoaded && _.isEmpty(csvError) ? getOprVersionFromCSV(csv) : DASH;
@@ -196,7 +163,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
   }, [capacityRatio]);
 
   return (
-    <Card className={classNames(className)}>
+    <Card className={classNames(className)} isFlat={true}>
       <CardHeader>
         <CardTitle>{t('Storage cluster')}</CardTitle>
       </CardHeader>
@@ -210,30 +177,14 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                     {t('Cluster Status')}
                   </DescriptionListTerm>
                   <DescriptionListDescription>
-                    {healthIcon}
-                    <span className="pf-v6-u-ml-xs">{healthMessage}</span>
+                    <Status status={resourceStatus(storageCluster)} />
                   </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
-                  <DescriptionListTerm>
-                    {t('Block and File Resiliency')}
-                  </DescriptionListTerm>
+                  <DescriptionListTerm>{t('Resiliency')}</DescriptionListTerm>
                   <DescriptionListDescription>
-                    {cephResiliencyIcon}
-                    <span className="pf-v6-u-ml-xs">
-                      {cephResiliencyMessage}
-                    </span>
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>
-                    {t('Object Resiliency')}
-                  </DescriptionListTerm>
-                  <DescriptionListDescription>
-                    {objectResiliencyIcon}
-                    <span className="pf-v6-u-ml-xs">
-                      {objectResiliencyMessage}
-                    </span>
+                    {resiliencyIcon}
+                    <span className="pf-v5-u-ml-xs">{resiliencyMessage}</span>
                   </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
@@ -277,7 +228,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                     <ChartLabel
                       className="odf-cluster-card__chart-title"
                       style={{
-                        fill: 'var(--pf-t--color--gray--95)',
+                        fill: 'var(--pf-v5-global--Color--100)',
                         fontSize: 20,
                       }}
                     />
@@ -285,7 +236,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                   subTitleComponent={
                     <ChartLabel
                       className="odf-cluster-card__chart-subtitle"
-                      style={{ fill: 'var(--pf-t--color--gray--50)' }}
+                      style={{ fill: 'var(--pf-v5-global--Color--200)' }}
                       dy={5}
                     />
                   }
@@ -294,7 +245,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                       orientation="vertical"
                       gutter={20}
                       style={{
-                        labels: { fill: 'var(--pf-t--color--gray--50)' },
+                        labels: { fill: 'var(--pf-v5-global--Color--200)' },
                       }}
                     />
                   }
@@ -318,7 +269,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                 variant={ButtonVariant.link}
                 icon={<ArrowRightIcon />}
                 iconPosition="end"
-                className="pf-v6-u-font-size-lg odf-cluster-card__storage-link"
+                className="pf-v5-u-font-size-lg odf-cluster-card__storage-link"
                 component="a"
                 onClick={() => navigate('/odf/storage-cluster')}
               >

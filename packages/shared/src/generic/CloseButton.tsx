@@ -20,13 +20,14 @@ const CloseButton: React.FC<CloseButtonProps> = ({
   const { t } = useCustomTranslation();
   return (
     <Button
-      icon={<CloseIcon />}
       aria-label={ariaLabel || t('Close')}
       className={classNames('co-close-button', additionalClassName)}
       data-test-id={dataTestID}
       onClick={onClick}
       variant="plain"
-    />
+    >
+      <CloseIcon />
+    </Button>
   );
 };
 

@@ -67,7 +67,6 @@ export const createSteps = (
           dispatch={dispatch}
           infraType={infraType}
           systemNamespace={systemNamespace}
-          nodes={nodes}
         />
       ),
     },

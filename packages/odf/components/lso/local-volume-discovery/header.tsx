@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared';
-import { Content, ContentVariants } from '@patternfly/react-core';
+import { TextContent, TextVariants, Text } from '@patternfly/react-core';
 
 export const LocalVolumeDiscoveryHeader: React.FC<
   LocalVolumeDiscoveryHeaderProps
@@ -8,18 +8,18 @@ export const LocalVolumeDiscoveryHeader: React.FC<
   const { t } = useCustomTranslation();
 
   return (
-    <Content>
-      <Content component={ContentVariants.h1} className={className}>
+    <TextContent>
+      <Text component={TextVariants.h1} className={className}>
         {t('Local Volume Discovery')}
-      </Content>
-      <Content>
-        <Content component={ContentVariants.p} className="help-block">
+      </Text>
+      <TextContent>
+        <Text component={TextVariants.p} className="help-block">
           {t(
             'Allows you to discover the available disks on all available nodes'
           )}
-        </Content>
-      </Content>
-    </Content>
+        </Text>
+      </TextContent>
+    </TextContent>
   );
 };
 

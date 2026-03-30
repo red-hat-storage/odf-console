@@ -17,8 +17,5 @@
 @forward './styles/actions';
 @forward './styles/icons';
 
-//Patternfly utilities (Sass mixins/variables)
-@forward '@patternfly/patternfly/sass-utilities';
-
-//Patternfly utility CSS classes (pf-v6-u-* classes like margin, padding, flex, display, etc.)
-@import '@patternfly/patternfly/utilities/_index.css';
+//Patternfly utilities
+@forward '@patternfly/patternfly/sass-utilities/all'

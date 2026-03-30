@@ -28,7 +28,12 @@ import {
 } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
-import { EmptyState, EmptyStateBody } from '@patternfly/react-core';
+import {
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateHeader,
+  EmptyStateIcon,
+} from '@patternfly/react-core';
 import { CubesIcon } from '@patternfly/react-icons';
 import InitialEmptyStatePage from './InitialEmptyStatePage';
 
@@ -163,12 +168,12 @@ const StorageClusterSection: React.FC = () => {
 const ExternalClusterPresentMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <EmptyState
-      headingLevel="h4"
-      icon={CubesIcon}
-      titleText={t('Internal mode cluster not available')}
-      isFullHeight
-    >
+    <EmptyState isFullHeight>
+      <EmptyStateHeader
+        titleText={t('Internal mode cluster not available')}
+        headingLevel="h4"
+        icon={<EmptyStateIcon icon={CubesIcon} />}
+      />
       <EmptyStateBody>
         {t(
           'Internal mode cluster setup path is unavailable because an External mode cluster has already been configured.'

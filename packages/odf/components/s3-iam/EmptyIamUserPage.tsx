@@ -9,9 +9,12 @@ import {
   EmptyStateVariant,
   EmptyStateBody,
   EmptyStateActions,
+  EmptyStateHeader,
   EmptyStateFooter,
-  Content,
-  ContentVariants,
+  EmptyStateIcon,
+  TextContent,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { PlusCircleIcon } from '@patternfly/react-icons';
 import { USERS_CREATE_PAGE_PATH } from '../../constants/s3-iam';
@@ -44,24 +47,24 @@ const EmptyIamUserPageContent = () => {
 
   return (
     <>
-      <div className="pf-v6-u-pt-xl pf-v6-u-pb-xl pf-v6-u-pl-lg">
-        <Content>
-          <Title className="pf-v6-u-font-weight-bold" headingLevel="h1">
+      <div className="pf-v5-u-pt-xl pf-v5-u-pb-xl pf-v5-u-pl-lg">
+        <TextContent>
+          <Title className="pf-v5-u-font-weight-bold" headingLevel="h1">
             {t('Users')}
           </Title>
-          <Content component={ContentVariants.small} className="pf-v6-u-pt-sm">
+          <Text component={TextVariants.small} className="pf-v5-u-pt-sm">
             {t(
               'User is an identity who has specific permissions and policies depending on the assigned role'
             )}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
       </div>
-      <EmptyState
-        headingLevel="h4"
-        icon={PlusCircleIcon}
-        titleText={t('Create user')}
-        variant={EmptyStateVariant.lg}
-      >
+      <EmptyState variant={EmptyStateVariant.lg}>
+        <EmptyStateHeader
+          titleText={t('Create user')}
+          headingLevel="h4"
+          icon={<EmptyStateIcon icon={PlusCircleIcon} />}
+        />
         <EmptyStateBody>
           {t('Create users to generate and manage access keys and policies')}
         </EmptyStateBody>

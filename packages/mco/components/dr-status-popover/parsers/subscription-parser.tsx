@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { VolumeReplicationHealth } from '@odf/mco/constants';
+import { DRPCStatus, VolumeReplicationHealth } from '@odf/mco/constants';
 import {
   SubscriptionGroupType,
   useSubscriptionResourceWatch,
 } from '@odf/mco/hooks';
 import { useDisasterRecoveryResourceWatch } from '@odf/mco/hooks';
-import { Phase } from '@odf/mco/types';
 import {
   findCluster,
   getDRPolicyName,
@@ -13,7 +12,6 @@ import {
   getReplicationHealth,
   getReplicationType,
   getProtectedCondition,
-  getAvailableCondition,
 } from '@odf/mco/utils';
 import { getNamespace, ApplicationKind } from '@odf/shared';
 import { getSubscriptionResources } from '../../modals/app-manage-policies/parsers/subscription-parser';
@@ -64,7 +62,6 @@ const parseDRStatusForGroup = (
   );
 
   const protectedCondition = getProtectedCondition(drpc);
-  const availableCondition = getAvailableCondition(drpc);
 
   return {
     drPolicyName,
@@ -76,7 +73,6 @@ const parseDRStatusForGroup = (
     phase: drpc?.status?.phase,
     ...getProgressionFields(drpc),
     protectedCondition,
-    availableCondition,
   };
 };
 
@@ -116,7 +112,9 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
     const mostSevereHealthStatus = getMostSevereHealthStatus(drStatusList);
 
     const drpcInAction = drStatusList.find((status) =>
-      [Phase.FailingOver, Phase.Relocating].includes(status.phase as Phase)
+      [DRPCStatus.FailingOver, DRPCStatus.Relocating].includes(
+        status.phase as DRPCStatus
+      )
     );
 
     const selectedDRPC = drpcInAction || drStatusList[0];
@@ -129,7 +127,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
           targetCluster: selectedDRPC.targetCluster,
           volumeReplicationHealth: mostSevereHealthStatus,
           volumeLastGroupSyncTime: selectedDRPC.lastGroupSyncTime,
-          phase: selectedDRPC.phase as Phase,
+          phase: selectedDRPC.phase as DRPCStatus,
           isLoadedWOError: isLoadedWOError,
           action: selectedDRPC.action,
           progression: selectedDRPC.progression,
@@ -155,7 +153,7 @@ type DRStatusForGroup = {
   targetCluster?: string;
   lastGroupSyncTime: string;
   volumeReplicationHealth: VolumeReplicationHealth;
-  phase: Phase;
+  phase: string;
 } & Pick<
   DRStatusProps,
   | 'progression'
@@ -164,7 +162,6 @@ type DRStatusForGroup = {
   | 'progressionDetails'
   | 'applicationName'
   | 'protectedCondition'
-  | 'availableCondition'
 >;
 
 export default SubscriptionParser;
