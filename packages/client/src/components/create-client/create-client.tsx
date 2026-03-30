@@ -157,7 +157,7 @@ const CreateStorageClient: React.FC = () => {
             />
           </FormGroup>
           <ButtonBar inProgress={inProgress} errorMessage={error?.message}>
-            <ActionGroup className="pf-v5-c-form">
+            <ActionGroup className="pf-v6-c-form">
               <Button onClick={submit}>{t('Create')}</Button>
               <Button variant="secondary" onClick={() => navigate(-1)}>
                 {t('Cancel')}
