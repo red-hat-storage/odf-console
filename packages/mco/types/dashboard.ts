@@ -1,5 +1,5 @@
-import { DRApplication, ReplicationType } from '../constants';
-import { ACMManagedClusterKind, Phase } from '../types';
+import { DRApplication, DRPCStatus, ReplicationType } from '../constants';
+import { ACMManagedClusterKind } from '../types';
 
 export type PlacementControlInfo = Partial<{
   // Controller name
@@ -21,7 +21,7 @@ export type PlacementControlInfo = Partial<{
   // Volume group last sync time
   lastVolumeGroupSyncTime: string;
   // DR status
-  status: Phase;
+  status: DRPCStatus;
   // DR protected PVC count for the application
   protectedPVCs: string[];
   // Only applicable for Subscription type

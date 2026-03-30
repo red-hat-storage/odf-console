@@ -1,7 +1,6 @@
 import {
   CEPH_BUILTIN_MGR_POOL,
   CEPH_BUILTIN_NFS_POOL,
-  CEPH_REPLICATED_METADATA_POOL,
   CEPH_DEFAULT_FS_POOL_PREFIX,
   PoolType,
 } from '../constants/storage-pool-const';
@@ -25,7 +24,6 @@ describe('Storage pool creation when creating a new StorageClass', () => {
     showAvailablePoolsInSCForm(PoolType.BLOCK);
     cy.byTestID(CEPH_BUILTIN_MGR_POOL).should('not.exist');
     cy.byTestID(CEPH_BUILTIN_NFS_POOL).should('not.exist');
-    cy.byTestID(CEPH_REPLICATED_METADATA_POOL).should('not.exist');
   });
 
   it(`Creates a new ${PoolType.BLOCK} pool`, () => {

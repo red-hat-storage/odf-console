@@ -32,23 +32,23 @@ import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { ChartDonut } from '@patternfly/react-charts/victory';
+import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
+import { global_info_color_100 as globalInfo100 } from '@patternfly/react-tokens/dist/js/global_info_color_100';
+import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
+import { ChartDonut } from '@patternfly/react-charts';
 import {
   MenuToggle,
   MenuToggleElement,
   Flex,
   FlexItem,
-  Content,
-  ContentVariants,
+  Text,
+  TextVariants,
   Select,
   SelectOption,
   SelectList,
   SelectGroup,
   Divider,
 } from '@patternfly/react-core';
-import { t_global_color_status_danger_100 as globalDanger100 } from '@patternfly/react-tokens';
-import { t_global_color_status_info_100 as globalInfo100 } from '@patternfly/react-tokens';
-import { t_global_color_status_warning_100 as globalWarning100 } from '@patternfly/react-tokens';
 
 const NAMESPACE_NAME_SPLIT_CHAR = '%#%';
 
@@ -78,12 +78,9 @@ const getNSAndNameFromId = (itemId: string): string[] => {
 
 export const StatusText: React.FC<StatusTextProps> = ({ children }) => {
   return (
-    <Content
-      component="p"
-      className="mco-dashboard__statusText--size mco-dashboard__statusText--margin mco-dashboard__statusText--weight"
-    >
+    <Text className="mco-dashboard__statusText--size mco-dashboard__statusText--margin mco-dashboard__statusText--weight">
       {children}
-    </Content>
+    </Text>
   );
 };
 
@@ -124,9 +121,7 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Content component={ContentVariants.h3}>
-        {t('Volume replication health')}
-      </Content>
+      <Text component={TextVariants.h3}>{t('Volume replication health')}</Text>
       <div className="mco-cluster-app__donut-chart">
         <ChartDonut
           ariaDesc="Volume replication health"
@@ -429,11 +424,11 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Content component={ContentVariants.h1}>{protectedPVCsCount}</Content>
+      <Text component={TextVariants.h1}>{protectedPVCsCount}</Text>
       <StatusText>{t('Protected volumes')}</StatusText>
-      <Content component="p" className="text-muted">
+      <Text className="text-muted">
         {t('{{ pvcsWithIssueCount }} with issues', { pvcsWithIssueCount })}
-      </Content>
+      </Text>
     </div>
   );
 };

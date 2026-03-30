@@ -9,8 +9,9 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
-  Content,
-  ContentVariants,
+  Text,
+  TextContent,
+  TextVariants,
   Wizard,
   WizardStep,
   WizardStepProps,
@@ -134,13 +135,13 @@ const EnrollDiscoveredApplication: React.FC<{}> = () => {
   return (
     <>
       <PageHeading title={title} breadcrumbs={breadcrumbs(t)}>
-        <Content>
-          <Content component={ContentVariants.small}>
+        <TextContent>
+          <Text component={TextVariants.small}>
             {t(
               'Enroll your applications to improve resilience by implementing disaster recovery protection.'
             )}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
       </PageHeading>
       <Wizard
         className="mco-enroll-discovered-application__wizard--height"

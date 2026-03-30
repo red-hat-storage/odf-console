@@ -6,13 +6,13 @@ import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Flex,
   FlexItem,
-  ContentVariants,
+  TextVariants,
   Button,
   ButtonVariant,
   Form,
   FormGroup,
   TextInput,
-  Content,
+  Text,
   Checkbox,
   Split,
   SplitItem,
@@ -176,18 +176,15 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
           alignItems={{ default: 'alignItemsCenter' }}
         >
           <FlexItem>
-            <Content component={ContentVariants.h3}>
-              {t('Replication rules ')}
-            </Content>
+            <Text component={TextVariants.h3}>{t('Replication rules ')}</Text>
           </FlexItem>
           <FlexItem>
             <Button
-              icon={<PlusCircleIcon />}
               variant={ButtonVariant.link}
               className="nb-bc-step-page-form__modal-launcher"
               onClick={onClick}
             >
-              {t('Create new NamespaceStore')}
+              <PlusCircleIcon /> {t('Create new NamespaceStore')}
             </Button>
           </FlexItem>
         </Flex>

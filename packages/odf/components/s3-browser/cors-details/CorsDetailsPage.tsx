@@ -25,8 +25,9 @@ import {
 } from 'react-router-dom-v5-compat';
 import useSWR, { KeyedMutator } from 'swr';
 import {
-  Content,
-  ContentVariants,
+  TextContent,
+  Text,
+  TextVariants,
   TextInput,
   MenuToggle,
 } from '@patternfly/react-core';
@@ -97,7 +98,7 @@ const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
   const allHeadersAllowed = isAllowAllConfig(corsRule.AllowedHeaders);
 
   return (
-    <div className="pf-v6-u-m-md">
+    <div className="pf-v5-u-m-md">
       <DetailsItem field={t('Rule name')}>{corsRule.ID || DASH}</DetailsItem>
       <DetailsItem field={t('Allowed origins')}>
         {allOriginsAllowed
@@ -106,7 +107,7 @@ const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
               <TextInput
                 key={origin + index}
                 value={origin}
-                className="pf-v6-u-mb-xs pf-v6-u-w-50"
+                className="pf-v5-u-mb-xs pf-v5-u-w-50"
                 isDisabled
               />
             ))}
@@ -121,7 +122,7 @@ const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
               <TextInput
                 key={header + index}
                 value={header}
-                className="pf-v6-u-mb-xs pf-v6-u-w-50"
+                className="pf-v5-u-mb-xs pf-v5-u-w-50"
                 isDisabled
               />
             )) || DASH}
@@ -131,7 +132,7 @@ const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
           <TextInput
             key={exposedHeader + index}
             value={exposedHeader}
-            className="pf-v6-u-mb-xs pf-v6-u-w-50"
+            className="pf-v5-u-mb-xs pf-v5-u-w-50"
             isDisabled
           />
         )) || DASH}
@@ -217,9 +218,9 @@ const CorsDetails: React.FC = () => {
         ]}
         title={
           !!ruleName ? (
-            <Content>
-              <Content component={ContentVariants.h1}>{ruleName}</Content>
-            </Content>
+            <TextContent>
+              <Text component={TextVariants.h1}>{ruleName}</Text>
+            </TextContent>
           ) : null
         }
         actions={() =>
@@ -234,7 +235,7 @@ const CorsDetails: React.FC = () => {
             !!ruleHash ? Number(ruleHash) : null
           )
         }
-        className="pf-v6-u-mt-md"
+        className="pf-v5-u-mt-md"
       />
       <CorsDetailsContent corsRule={corsRule} />
     </>

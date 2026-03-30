@@ -14,8 +14,9 @@ import { murmur3 } from 'murmurhash-js';
 import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {
-  ContentVariants,
-  Content,
+  TextVariants,
+  Text,
+  TextContent,
   Divider,
   Button,
   ButtonVariant,
@@ -94,17 +95,17 @@ const Header: React.FC<IsEditProp> = ({ isEdit }) => {
 
   return (
     <>
-      <Content>
-        <Content component={ContentVariants.h1}>
+      <TextContent>
+        <Text component={TextVariants.h1}>
           {isEdit ? t('Edit CORS rule') : t('Create CORS rule')}
-        </Content>
-        <Content component={ContentVariants.small}>
+        </Text>
+        <Text component={TextVariants.small}>
           {t(
             'The CORS configuration, defines a way for client web applications that are loaded in one domain to interact with resources in a different domain.'
           )}
-        </Content>
-      </Content>
-      <Divider className="pf-v6-u-my-lg" />
+        </Text>
+      </TextContent>
+      <Divider className="pf-v5-u-my-lg" />
     </>
   );
 };
@@ -193,7 +194,7 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
   }
 
   return (
-    <div className="pf-v6-u-m-md">
+    <div className="pf-v5-u-m-md">
       <Header isEdit={isEdit} />
       <CorsFormContents
         state={state}
@@ -205,21 +206,21 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
       <ButtonBar
         inProgress={inProgress}
         errorMessage={putError?.message || JSON.stringify(putError)}
-        className="pf-v6-u-mt-lg pf-v6-u-mb-md"
+        className="pf-v5-u-mt-lg pf-v5-u-mb-md"
       >
         <span>
           <Button
             variant={ButtonVariant.primary}
             onClick={onSave}
             isDisabled={inProgress}
-            className="pf-v6-u-mr-xs"
+            className="pf-v5-u-mr-xs"
           >
             {isEdit ? t('Save') : t('Create')}
           </Button>
           <Button
             variant={ButtonVariant.secondary}
             onClick={() => navigate(-1)}
-            className="pf-v6-u-ml-xs"
+            className="pf-v5-u-ml-xs"
           >
             {t('Cancel')}
           </Button>

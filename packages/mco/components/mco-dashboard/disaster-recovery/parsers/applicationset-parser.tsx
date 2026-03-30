@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { DRApplication, GITOPS_OPERATOR_NAMESPACE } from '@odf/mco/constants';
+import {
+  DRApplication,
+  DRPCStatus,
+  GITOPS_OPERATOR_NAMESPACE,
+} from '@odf/mco/constants';
 import {
   DisasterRecoveryResourceKind,
   getApplicationSetResourceObj,
@@ -15,7 +19,6 @@ import {
   ACMManagedClusterKind,
   DRClusterAppsMap,
   DRClusterKind,
-  Phase,
 } from '@odf/mco/types';
 import {
   findDeploymentClusters,
@@ -142,7 +145,7 @@ export const useApplicationSetParser: UseApplicationSetParser = (
                       drPlacementControl?.spec?.preferredCluster,
                     lastVolumeGroupSyncTime:
                       drPlacementControl?.status?.lastGroupSyncTime,
-                    status: drPlacementControl?.status?.phase as Phase,
+                    status: drPlacementControl?.status?.phase as DRPCStatus,
                   },
                 ],
               });

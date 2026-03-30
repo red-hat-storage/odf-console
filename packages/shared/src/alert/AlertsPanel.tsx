@@ -58,24 +58,21 @@ const AlertBadge: React.FC<AlertBadgeProps> = ({
 
   return (
     <Button
-      icon={
-        <>
-          <Badge
-            key={key}
-            className={`odf-alerts-panel__badge odf-alerts-panel__badge-${alertSeverity}`}
-          >
-            <StatusIconAndText title={alerts.length.toString()} icon={icon} />
-          </Badge>
-          <span className="odf-alerts-panel__badge-text">
-            {_.startCase(alertSeverity)}
-          </span>
-        </>
-      }
       variant={ButtonVariant.plain}
       isInline
       onClick={onClick}
       className="odf-alerts-panel__button"
-    />
+    >
+      <Badge
+        key={key}
+        className={`odf-alerts-panel__badge odf-alerts-panel__badge-${alertSeverity}`}
+      >
+        <StatusIconAndText title={alerts.length.toString()} icon={icon} />
+      </Badge>
+      <span className="odf-alerts-panel__badge-text">
+        {_.startCase(alertSeverity)}
+      </span>
+    </Button>
   );
 };
 
@@ -102,14 +99,18 @@ const AlertAccordionItem: React.FC<AlertAccordionItemProps> = ({
   const alertToggleId = `alert-toggle-${alertSeverity}`;
   const alertExpandId = `alert-expand-${alertSeverity}`;
   return (
-    <AccordionItem isExpanded={expanded === alertToggleId}>
+    <AccordionItem>
       <AccordionToggle
         onClick={() => onToggle(alertToggleId)}
+        isExpanded={expanded === alertToggleId}
         id={alertToggleId}
       >
         {`${_.startCase(alertSeverity)} alerts`}
       </AccordionToggle>
-      <AccordionContent id={alertExpandId}>
+      <AccordionContent
+        id={alertExpandId}
+        isHidden={expanded !== alertToggleId}
+      >
         {alerts.length === 0 && !loadError ? (
           <div className="centerComponent">
             <div className="text-muted">

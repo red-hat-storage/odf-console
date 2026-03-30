@@ -7,8 +7,9 @@ import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { dehumanize } from '@odf/shared/utils';
 import {
-  ContentVariants,
-  Content,
+  TextVariants,
+  Text,
+  TextContent,
   Divider,
   FormGroup,
   TextInput,
@@ -162,7 +163,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
                   onChange={(e) =>
                     onNumberInputAction(MIN_OBJ_SIZE, FuncType.ON_CHANGE, e)
                   }
-                  className="pf-v6-u-mr-sm"
+                  className="pf-v5-u-mr-sm"
                   validated={
                     invalidMinSize
                       ? ValidatedOptions.error
@@ -175,7 +176,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
                   onSelect={(newUnit: SizeUnit) =>
                     onUnitDropdownChange(MIN_OBJ_SIZE, newUnit)
                   }
-                  className="pf-v6-u-mr-sm"
+                  className="pf-v5-u-mr-sm"
                 />
                 {t('{{sizeInB}} Bytes', { sizeInB: minObjectSize.sizeInB })}
               </span>
@@ -191,7 +192,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
             </>
           ) : null
         }
-        className="pf-v6-u-mb-sm"
+        className="pf-v5-u-mb-sm"
       />
       <Checkbox
         id="max-object-size"
@@ -219,7 +220,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
                   onChange={(e) =>
                     onNumberInputAction(MAX_OBJ_SIZE, FuncType.ON_CHANGE, e)
                   }
-                  className="pf-v6-u-mr-sm"
+                  className="pf-v5-u-mr-sm"
                   validated={
                     invalidMaxSize || invalidSize
                       ? ValidatedOptions.error
@@ -232,7 +233,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
                   onSelect={(newUnit: SizeUnit) =>
                     onUnitDropdownChange(MAX_OBJ_SIZE, newUnit)
                   }
-                  className="pf-v6-u-mr-sm"
+                  className="pf-v5-u-mr-sm"
                 />
                 {t('{{sizeInB}} Bytes', { sizeInB: maxObjectSize.sizeInB })}
               </span>
@@ -253,7 +254,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
             </>
           ) : null
         }
-        className="pf-v6-u-mt-sm"
+        className="pf-v5-u-mt-sm"
       />
     </>
   );
@@ -284,14 +285,14 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
           <>
             <span
               key={index}
-              className="pf-v6-u-display-flex pf-v6-u-flex-direction-row pf-v6-u-mb-xs"
+              className="pf-v5-u-display-flex pf-v5-u-flex-direction-row pf-v5-u-mb-xs"
             >
               <TextInput
                 id="object-tags-key"
                 value={tag.Key}
                 onChange={(_e, value) => onTagChange(index, 'Key', value)}
                 placeholder={t('Key')}
-                className="pf-v6-u-mr-sm pf-v6-u-w-25"
+                className="pf-v5-u-mr-sm pf-v5-u-w-25"
                 validated={
                   invalidTag ? ValidatedOptions.error : ValidatedOptions.default
                 }
@@ -301,10 +302,9 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
                 value={tag.Value}
                 onChange={(_e, value) => onTagChange(index, 'Value', value)}
                 placeholder={t('Value (Optional)')}
-                className="pf-v6-u-mr-sm pf-v6-u-w-25"
+                className="pf-v5-u-mr-sm pf-v5-u-w-25"
               />
               <Button
-                icon={<TrashIcon />}
                 variant={ButtonVariant.plain}
                 onClick={() =>
                   dispatch({
@@ -312,7 +312,9 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
                     payload: objectTags.filter((_, i) => i !== index),
                   })
                 }
-              />
+              >
+                <TrashIcon />
+              </Button>
             </span>
             {invalidTag && (
               <FormHelperText>
@@ -328,7 +330,6 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
         );
       })}
       <Button
-        icon={<PlusCircleIcon />}
         variant={ButtonVariant.link}
         className="s3-lifecycle--margin"
         onClick={() =>
@@ -338,7 +339,7 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
           })
         }
       >
-        {t('Add object tag')}
+        <PlusCircleIcon /> {t('Add object tag')}
       </Button>
     </>
   );
@@ -355,18 +356,16 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
 
   return (
     <>
-      <Content className="pf-v6-u-mb-lg">
-        <Content component={ContentVariants.h2}>
-          {t('Conditional filters')}
-        </Content>
-        <Content component={ContentVariants.small}>
+      <TextContent className="pf-v5-u-mb-lg">
+        <Text component={TextVariants.h2}>{t('Conditional filters')}</Text>
+        <Text component={TextVariants.small}>
           {t(
             'Define specific criteria for selecting objects that the rules will apply to. Object tags or object size filters do not apply to incomplete multipart uploads or expired object delete markers.'
           )}
-        </Content>
-      </Content>
+        </Text>
+      </TextContent>
 
-      <FormGroup label={t('Prefix')} fieldId="prefix" className="pf-v6-u-mb-lg">
+      <FormGroup label={t('Prefix')} fieldId="prefix" className="pf-v5-u-mb-lg">
         <TextInput
           id="prefix"
           value={state.conditionalFilters.prefix}
@@ -377,7 +376,7 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
             })
           }
           placeholder={t('Enter prefix')}
-          className="pf-v6-u-w-50"
+          className="pf-v5-u-w-50"
           validated={
             invalidFilters ? ValidatedOptions.error : ValidatedOptions.default
           }
@@ -391,24 +390,24 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
             </HelperText>
           </FormHelperText>
         ) : (
-          <Content>
-            <Content component={ContentVariants.small}>
+          <TextContent>
+            <Text component={TextVariants.small}>
               {t('A prefix filters bucket objects by their keys.')}
-            </Content>
-          </Content>
+            </Text>
+          </TextContent>
         )}
       </FormGroup>
 
       <FormGroup
         label={t('Object tags')}
         fieldId="object-tags"
-        className="pf-v6-u-mb-lg"
+        className="pf-v5-u-mb-lg"
       >
-        <Content className="pf-v6-u-mb-sm">
-          <Content component={ContentVariants.small}>
+        <TextContent className="pf-v5-u-mb-sm">
+          <Text component={TextVariants.small}>
             {t('An object tag is a label that is assigned to an S3 object.')}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
         <ObjectTagsFilter state={state} dispatch={dispatch} />
         {invalidFilters && (
           <Alert
@@ -422,11 +421,11 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
       </FormGroup>
 
       <FormGroup label={t('Object size')} fieldId="object-size">
-        <Content className="pf-v6-u-mb-sm">
-          <Content component={ContentVariants.small}>
+        <TextContent className="pf-v5-u-mb-sm">
+          <Text component={TextVariants.small}>
             {t('Set criteria for filtering objects based on their size.')}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
         <ObjectSizeFilter state={state} dispatch={dispatch} />
         {invalidFilters && (
           <Alert
@@ -438,7 +437,7 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
           />
         )}
       </FormGroup>
-      <Divider className="pf-v6-u-my-md" />
+      <Divider className="pf-v5-u-my-md" />
     </>
   );
 };
@@ -459,16 +458,14 @@ export const GeneralConfigAndFilters: React.FC<
 
   return (
     <>
-      <Content className="pf-v6-u-mb-lg">
-        <Content component={ContentVariants.h2}>
-          {t('General configuration')}
-        </Content>
-      </Content>
+      <TextContent className="pf-v5-u-mb-lg">
+        <Text component={TextVariants.h2}>{t('General configuration')}</Text>
+      </TextContent>
 
       <FormGroup
         label={t('Lifecycle rule name')}
         fieldId="name"
-        className="pf-v6-u-mb-lg"
+        className="pf-v5-u-mb-lg"
       >
         <TextInput
           id="name"
@@ -477,7 +474,7 @@ export const GeneralConfigAndFilters: React.FC<
             dispatch({ type: RuleActionType.RULE_NAME, payload: value })
           }
           placeholder={t('Enter a valid rule name')}
-          className="pf-v6-u-w-50"
+          className="pf-v5-u-w-50"
           validated={
             invalidName ? ValidatedOptions.error : ValidatedOptions.default
           }
@@ -499,7 +496,7 @@ export const GeneralConfigAndFilters: React.FC<
       </FormGroup>
 
       <FormGroup label={t('Rule scope')} fieldId="scope">
-        <span className="pf-v6-u-display-flex pf-v6-u-flex-direction-row">
+        <span className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
           <Radio
             label={t('Targeted')}
             description={t(
@@ -515,7 +512,7 @@ export const GeneralConfigAndFilters: React.FC<
               })
             }
             id={`scope-${RuleScope.TARGETED}`}
-            className="pf-v6-u-mr-md pf-v6-u-w-50"
+            className="pf-v5-u-mr-md pf-v5-u-w-50"
           />
           <Radio
             label={t('Global (Bucket-wide)')}
@@ -532,7 +529,7 @@ export const GeneralConfigAndFilters: React.FC<
               })
             }
             id={`scope-${RuleScope.GLOBAL}`}
-            className="pf-v6-u-ml-md pf-v6-u-w-50"
+            className="pf-v5-u-ml-md pf-v5-u-w-50"
           />
         </span>
       </FormGroup>
@@ -541,7 +538,7 @@ export const GeneralConfigAndFilters: React.FC<
         <Alert
           title={t('Global rule scope selected')}
           variant={AlertVariant.info}
-          className="pf-v6-u-mt-md"
+          className="pf-v5-u-mt-md"
           isInline
         >
           {t(
@@ -549,7 +546,7 @@ export const GeneralConfigAndFilters: React.FC<
           )}
         </Alert>
       )}
-      <Divider className="pf-v6-u-my-md" />
+      <Divider className="pf-v5-u-my-md" />
       {state.scope === RuleScope.TARGETED && (
         <ConditionalFilters state={state} dispatch={dispatch} />
       )}

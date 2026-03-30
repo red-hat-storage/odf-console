@@ -16,8 +16,9 @@ import {
   AlertVariant,
   Split,
   SplitItem,
-  ContentVariants,
-  Content,
+  TextVariants,
+  Text,
+  TextContent,
   DescriptionList,
   DescriptionListDescription,
   DescriptionListGroup,
@@ -47,14 +48,11 @@ const REVIEW_ICON_MAP = {
  */
 const ReviewListTitle: React.FC<{ text: string }> = ({ text }) => (
   <DescriptionListTerm>
-    <Content className="ocs-install-wizard__text-content">
-      <Content
-        component={ContentVariants.h3}
-        className="ocs-install-wizard__h3 "
-      >
+    <TextContent className="ocs-install-wizard__text-content">
+      <Text component={TextVariants.h3} className="ocs-install-wizard__h3 ">
         {text}
-      </Content>
-    </Content>
+      </Text>
+    </TextContent>
   </DescriptionListTerm>
 );
 

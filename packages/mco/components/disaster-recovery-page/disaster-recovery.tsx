@@ -3,7 +3,7 @@ import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HorizontalNav, useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
-import { Content, ContentVariants } from '@patternfly/react-core';
+import { Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { ADMIN_FLAG } from '../../constants';
 import { DRPolicyListPage } from '../drpolicy-list-page/drpolicy-list-page';
 import DRDashboard from '../mco-dashboard/disaster-recovery/dr-dashboard';
@@ -45,13 +45,13 @@ const DisasterRecovery: React.FC = () => {
         <title>{title}</title>
       </Helmet>
       <PageHeading title={title}>
-        <Content>
-          <Content component={ContentVariants.small}>
+        <TextContent>
+          <Text component={TextVariants.small}>
             {t(
               'Configure and recover your business critical applications in event of any disaster.'
             )}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
       </PageHeading>
       <HorizontalNav pages={pages} />
     </>

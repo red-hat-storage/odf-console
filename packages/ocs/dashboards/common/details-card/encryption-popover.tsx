@@ -15,8 +15,9 @@ import { TFunction } from 'react-i18next';
 import {
   Button,
   Popover,
-  Content,
-  ContentVariants,
+  Text,
+  TextContent,
+  TextVariants,
   Flex,
   FlexItem,
   Divider,
@@ -70,86 +71,73 @@ const renderEncryptionDetails = (
     cluster?.spec?.network?.connections?.encryption?.enabled;
 
   return (
-    <>
+    <TextContent>
       {isObjectDashboard ? (
         <>
           <Flex alignItems={{ default: 'alignItemsCenter' }}>
             <FlexItem>
-              <Content component={ContentVariants.h6}>
-                {t('Object storage')}
-              </Content>
+              <Text component={TextVariants.h6}>{t('Object storage')}</Text>
             </FlexItem>
             <FlexItem align={{ default: 'alignRight' }}>
               <StatusIcon enabled={true} />
             </FlexItem>
           </Flex>
-          <Content component="p">
+          <Text>
             {t('Data encryption for object storage.')}
             {kmsTypeDescription && (
-              <Content component={ContentVariants.small}>
-                {kmsTypeDescription}
-              </Content>
+              <Text component={TextVariants.small}>{kmsTypeDescription}</Text>
             )}
-          </Content>
+          </Text>
         </>
       ) : (
         <>
           <Flex alignItems={{ default: 'alignItemsCenter' }}>
             <FlexItem>
-              <Content component={ContentVariants.h6}>
+              <Text component={TextVariants.h6}>
                 {t('Cluster-wide encryption')}
-              </Content>
+              </Text>
             </FlexItem>
             <FlexItem align={{ default: 'alignRight' }}>
               <StatusIcon enabled={encryption?.clusterWide} />
             </FlexItem>
           </Flex>
-          <Content component="p">
+          <Text>
             {t('Encryption for the entire cluster (block and file)')}
             <br />
             {kmsTypeDescription && (
-              <Content component={ContentVariants.small}>
-                {kmsTypeDescription}
-              </Content>
+              <Text component={TextVariants.small}>{kmsTypeDescription}</Text>
             )}
-          </Content>
+          </Text>
 
           {isStorageClassEncrypted && (
             <>
               <Divider />
-              <Content component={ContentVariants.h6}>
+              <Text component={TextVariants.h6}>
                 {t('Storage class encryption')}
-              </Content>
-              <Content component="p">
+              </Text>
+              <Text>
                 {t('Encryption for PVs')}
                 {kmsTypeDescription && (
-                  <Content component={ContentVariants.small}>
+                  <Text component={TextVariants.small}>
                     {kmsTypeDescription}
-                  </Content>
+                  </Text>
                 )}
-              </Content>
+              </Text>
 
               <Flex alignItems={{ default: 'alignItemsCenter' }}>
                 <FlexItem>
-                  <Content component={ContentVariants.h6}>
-                    {t('Block storage')}
-                  </Content>
+                  <Text component={TextVariants.h6}>{t('Block storage')}</Text>
                 </FlexItem>
                 <FlexItem align={{ default: 'alignRight' }}>
                   <StatusIcon enabled={isStorageClassEncrypted} />
                 </FlexItem>
               </Flex>
-              <Content component="p">
-                {t('Data encryption for block storage.')}
-              </Content>
-              <Content
-                component={ContentVariants.small}
-                className="pf-v6-u-mt-md"
-              >
+              <Text>{t('Data encryption for block storage.')}</Text>
+              <Text component={TextVariants.small} className="pf-v5-u-mt-md">
                 {t(
                   'This status is shown exclusively for default storage classes.'
                 )}
-              </Content>
+              </Text>
             </>
           )}
         </>
@@ -159,18 +147,14 @@ const renderEncryptionDetails = (
 
       <Flex alignItems={{ default: 'alignItemsCenter' }}>
         <FlexItem>
-          <Content component={ContentVariants.h6}>
-            {t('In-transit encryption')}
-          </Content>
+          <Text component={TextVariants.h6}>{t('In-transit encryption')}</Text>
         </FlexItem>
         <FlexItem align={{ default: 'alignRight' }}>
           <StatusIcon enabled={inTransitEncryption} />
         </FlexItem>
       </Flex>
-      <Content component="p">
-        {t('Encryption for all data passing over the network')}
-      </Content>
-    </>
+      <Text>{t('Encryption for all data passing over the network')}</Text>
+    </TextContent>
   );
 };
 

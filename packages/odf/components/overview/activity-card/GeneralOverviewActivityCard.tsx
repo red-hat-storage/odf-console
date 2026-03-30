@@ -30,6 +30,7 @@ export const GeneralOverviewActivityCard: React.FC<CardProps> = ({
   return (
     <Card
       className={classNames(className, 'odf-general-overview__activity-card')}
+      isFlat={true}
     >
       <CardHeader>
         <CardTitle>{t('Activity')}</CardTitle>

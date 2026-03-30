@@ -10,6 +10,7 @@ import {
   BreakdownCardBody,
   getName,
   getSelectOptions,
+  getUID,
   StorageClassResourceKind,
   NamespaceModel,
 } from '@odf/shared';
@@ -138,7 +139,7 @@ export const CapacityCardInternal: React.FC<CapacityCardInternalProps> = ({
 
   const dropdownOptions = filteredStorageClasses.map((sc) => ({
     name: getName(sc),
-    id: getName(sc),
+    id: getUID(sc),
   }));
 
   const breakdownSelectItems = getSelectOptions(dropdownOptions);

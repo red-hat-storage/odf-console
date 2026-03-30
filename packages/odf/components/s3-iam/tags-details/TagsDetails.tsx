@@ -8,6 +8,7 @@ import {
   Alert,
   AlertVariant,
   EmptyState,
+  EmptyStateHeader,
   EmptyStateVariant,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
@@ -45,17 +46,15 @@ const TagsDetailsContent: React.FC<TagsDetailsContentProps> = ({
 
   if (tags.length === 0) {
     return (
-      <EmptyState
-        headingLevel="h4"
-        titleText={t('No tags found')}
-        variant={EmptyStateVariant.lg}
-      />
+      <EmptyState variant={EmptyStateVariant.lg}>
+        <EmptyStateHeader titleText={t('No tags found')} headingLevel="h4" />
+      </EmptyState>
     );
   }
 
   return (
     <div className="odf-m-pane__body">
-      <div className="pf-v6-u-mt-md">
+      <div className="pf-v5-u-mt-md">
         <SectionHeading text={t('Tags')} />
         <Alert
           title={t('You can add {{remaining}} more tags', {

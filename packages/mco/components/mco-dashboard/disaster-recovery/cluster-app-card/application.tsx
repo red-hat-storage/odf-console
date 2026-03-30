@@ -3,8 +3,9 @@
  */
 
 import * as React from 'react';
+import { DRPCStatus } from '@odf/mco/constants';
 import { ReplicationType } from '@odf/mco/constants';
-import { PlacementControlInfo, ProtectedAppsMap, Phase } from '@odf/mco/types';
+import { PlacementControlInfo, ProtectedAppsMap } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { fromNow } from '@odf/shared/details-page/datetime';
@@ -25,8 +26,8 @@ import { TFunction } from 'react-i18next';
 import {
   Pagination,
   PaginationVariant,
-  Content,
-  ContentVariants,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { InProgressIcon, PendingIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
@@ -60,10 +61,10 @@ export const getCurrentActivity = (
   isCleanupPending?: boolean,
   replicationType?: ReplicationType
 ): { description: string; status: string; icon: JSX.Element } => {
-  const status = currentStatus as Phase;
+  const status = currentStatus as DRPCStatus;
 
   switch (status) {
-    case Phase.Relocating:
+    case DRPCStatus.Relocating:
       return isCleanupPending
         ? {
             description: t(
@@ -81,7 +82,7 @@ export const getCurrentActivity = (
             icon: <InProgressIcon />,
           };
 
-    case Phase.Relocated:
+    case DRPCStatus.Relocated:
       return {
         description: t('Relocated to cluster {{ preferredCluster }}', {
           preferredCluster,
@@ -90,7 +91,7 @@ export const getCurrentActivity = (
         icon: <GreenCheckCircleIcon />,
       };
 
-    case Phase.FailingOver:
+    case DRPCStatus.FailingOver:
       return {
         description: t('FailingOver to cluster {{ failoverCluster }}', {
           failoverCluster,
@@ -99,7 +100,7 @@ export const getCurrentActivity = (
         icon: <InProgressIcon />,
       };
 
-    case Phase.FailedOver:
+    case DRPCStatus.FailedOver:
       if (isCleanupPending) {
         return replicationType === ReplicationType.ASYNC
           ? {
@@ -203,9 +204,7 @@ export const NamespaceSection: React.FC<CommonProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Content component={ContentVariants.h1}>
-        {workloadNamespace.length}
-      </Content>
+      <Text component={TextVariants.h1}>{workloadNamespace.length}</Text>
       <StatusText>{t('Namespaces')}</StatusText>
     </div>
   );
@@ -239,11 +238,11 @@ export const SnapshotSection: React.FC<SnapshotSectionProps> = ({
   return (
     <div className="mco-dashboard__contentColumn">
       <StatusText>{title}</StatusText>
-      <Content component="p" className="text-muted">
+      <Text className="text-muted">
         {t('Last on: {{ syncTime }}', {
           syncTime: syncTime,
         })}
-      </Content>
+      </Text>
     </div>
   );
 };
@@ -303,7 +302,7 @@ export const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
   );
   return (
     <div className="mco-dashboard__contentColumn">
-      <Content component={ContentVariants.h1}>{subsCount}</Content>
+      <Text component={TextVariants.h1}>{subsCount}</Text>
       <StatusText>{t('Subscription')}</StatusText>
     </div>
   );
@@ -371,9 +370,7 @@ export const SubscriptionDetailsTable: React.FC<
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Content component={ContentVariants.h3}>
-        {t('Subscription details')}
-      </Content>
+      <Text component={TextVariants.h3}>{t('Subscription details')}</Text>
       <div className="mco-cluster-app__subs-table--width">
         <VirtualizedTable
           data={subscriptionRows}

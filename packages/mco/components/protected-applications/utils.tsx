@@ -22,12 +22,13 @@ import {
 import { IAction } from '@patternfly/react-table';
 import {
   VolumeReplicationHealth,
+  DRPCStatus,
   DR_BASE_ROUTE,
   DRActionType,
   ReplicationType,
   ApplicationType,
 } from '../../constants';
-import { DRPlacementControlKind, Progression, Phase } from '../../types';
+import { DRPlacementControlKind, Progression } from '../../types';
 import { DRPlacementControlParser } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import { AppManagePoliciesModalWrapper } from '../modals/protected-applications/app-manage-policies-modal-wrapper';
 import { ApplicationActionModal } from '../modals/protected-applications/applications-action-modal';
@@ -122,13 +123,14 @@ export const getAlertMessages = (
 export const isFailingOrRelocating = (
   application: DRPlacementControlKind
 ): boolean =>
-  [Phase.FailingOver, Phase.Relocating].includes(
-    application?.status?.phase as Phase
+  [DRPCStatus.FailingOver, DRPCStatus.Relocating].includes(
+    application?.status?.phase as DRPCStatus
   );
 
 export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
-  [Phase.FailedOver, Phase.Relocating].includes(drpc?.status?.phase as Phase) &&
-  drpc?.status?.progression === Progression.WaitOnUserToCleanUp;
+  [DRPCStatus.FailedOver, DRPCStatus.Relocating].includes(
+    drpc?.status?.phase as DRPCStatus
+  ) && drpc?.status?.progression === Progression.WaitOnUserToCleanUp;
 
 export type ReplicationHealthMap = {
   title: string;
@@ -256,7 +258,7 @@ export const getRowActions = (
       title: (
         <>
           {t('Edit configuration')}
-          <p className="text-muted pf-v6-u-font-size-xs">
+          <p className="text-muted pf-v5-u-font-size-xs">
             {t('Update existing configuration in YAML view')}
           </p>
         </>
@@ -267,7 +269,7 @@ export const getRowActions = (
       title: (
         <>
           {t('Failover')}
-          <p className="text-muted pf-v6-u-font-size-xs">
+          <p className="text-muted pf-v5-u-font-size-xs">
             {t('Move workloads to target cluster')}
           </p>
         </>
@@ -278,7 +280,7 @@ export const getRowActions = (
       title: (
         <>
           {t('Relocate')}
-          <p className="text-muted pf-v6-u-font-size-xs">
+          <p className="text-muted pf-v5-u-font-size-xs">
             {t('Failback workloads to primary cluster')}
           </p>
         </>
@@ -305,7 +307,7 @@ export const getRowActions = (
           title: (
             <>
               {t('Manage disaster recovery')}
-              <p className="text-muted pf-v6-u-font-size-xs">
+              <p className="text-muted pf-v5-u-font-size-xs">
                 {t('Update DR policies and configuration')}
               </p>
             </>

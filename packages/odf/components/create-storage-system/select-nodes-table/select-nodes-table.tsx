@@ -40,23 +40,23 @@ import { SelectNodesTableFooter } from './select-nodes-table-footer';
 import './select-nodes-table.scss';
 
 const tableColumnClasses = {
-  name: classNames('pf-v6-u-w-33-on-md', 'pf-v6-u-w-50-on-sm'),
+  name: classNames('pf-v5-u-w-33-on-md', 'pf-v5-u-w-50-on-sm'),
   role: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
-    'pf-v6-u-w-inherit-on-xl'
+    'pf-v5-u-w-inherit-on-xl'
   ),
   cpu: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
-    'pf-v6-u-w-inherit-on-xl'
+    'pf-v5-u-w-inherit-on-xl'
   ),
   memory: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
-    'pf-v6-u-w-inherit-on-xl'
+    'pf-v5-u-w-inherit-on-xl'
   ),
-  zone: classNames('pf-v6-u-w-inherit'),
+  zone: classNames('pf-v5-u-w-inherit'),
 };
 
 const NodeRow: React.FC<RowComponentType<NodeData>> = ({ row: node }) => {
@@ -129,21 +129,19 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     [nodesData]
   );
 
-  // Initialize with labeled nodes selected (only once on first load, not when user deselects all)
+  // Initialize with labeled nodes selected
   const [selectedNodes, setSelectedNodes] = React.useState<NodeData[]>([]);
-  const hasInitializedSelection = React.useRef(false);
 
   React.useEffect(() => {
-    if (hasInitializedSelection.current || !filteredData.length) return;
-    if (selectedNodes.length > 0) return;
-    const preSelected = filteredData.filter((node) =>
-      hasLabel(node, storageLabel)
-    );
-    if (preSelected.length) {
-      setSelectedNodes(preSelected);
-      onRowSelected(preSelected);
+    if (filteredData.length && !selectedNodes.length) {
+      const preSelected = filteredData.filter((node) =>
+        hasLabel(node, storageLabel)
+      );
+      if (preSelected.length) {
+        setSelectedNodes(preSelected);
+        onRowSelected(preSelected);
+      }
     }
-    hasInitializedSelection.current = true;
   }, [filteredData, selectedNodes.length, storageLabel, onRowSelected]);
 
   const handleRowSelection = React.useCallback(
