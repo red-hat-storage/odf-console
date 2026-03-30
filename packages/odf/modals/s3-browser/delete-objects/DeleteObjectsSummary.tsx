@@ -11,10 +11,9 @@ import {
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import {
-  Modal,
-  ModalVariant,
   Button,
   ButtonVariant,
   PaginationVariant,
@@ -102,14 +101,14 @@ const ObjectsSummaryTableRow: React.FC<RowComponentType<_Error>> = ({
           {objectCrFormat.apiResponse?.lastModified || DASH}
         </Td>
         <Td dataLabel={columnNames[4]}>
-          <RedExclamationCircleIcon className="pf-v5-u-mr-sm" />
+          <RedExclamationCircleIcon className="pf-v6-u-mr-sm" />
           {t('Failed')}
         </Td>
       </Tr>
       {isExpanded && (
         <Tr>
           <Td colSpan={Object.keys(columnNames).length + 1}>
-            <RedExclamationTriangleIcon className="pf-v5-u-mr-sm" />
+            <RedExclamationTriangleIcon className="pf-v6-u-mr-sm" />
             {object?.Message || DASH}
           </Td>
         </Tr>

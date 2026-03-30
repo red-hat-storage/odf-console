@@ -237,14 +237,13 @@ const PairElement: React.FC<PairElementProps> = ({
       <GridItem lg={2} sm={2}>
         <FormGroup hasNoPaddingTop>
           <Button
+            icon={deleteIcon}
             type="button"
             data-test="delete-button"
             onClick={onRemove}
             isDisabled={(isEmpty && !alwaysAllowRemove) || isDisabled}
             variant="plain"
-          >
-            {deleteIcon}
-          </Button>
+          />
         </FormGroup>
       </GridItem>
     </Grid>

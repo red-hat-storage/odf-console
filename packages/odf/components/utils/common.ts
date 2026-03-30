@@ -13,6 +13,7 @@ import {
   isFlexibleScaling,
   getDeviceSetCount,
   createDeviceSet,
+  getNodeArchitectureFromState,
   isResourceProfileAllowed,
   getNodeTotalMemory,
   isValidCapacityAutoScalingConfig,
@@ -23,7 +24,13 @@ import {
   NOOBA_EXTERNAL_PG_SECRET_NAME,
   DEFAULT_DEVICECLASS,
 } from '@odf/shared/constants';
-import { getLabel, getName, getNamespace, getUID } from '@odf/shared/selectors';
+import {
+  getAnnotations,
+  getLabel,
+  getName,
+  getNamespace,
+  getUID,
+} from '@odf/shared/selectors';
 import {
   NetworkAttachmentDefinitionKind,
   NodeKind,
@@ -35,6 +42,7 @@ import {
   convertToBaseValue,
   getRack,
   humanizeBinaryBytes,
+  getNodeArchitecture,
 } from '@odf/shared/utils';
 import { Base64 } from 'js-base64';
 import * as _ from 'lodash-es';
@@ -111,6 +119,8 @@ export const createWizardNodeState = (
     const roles = getNodeRoles(node).sort();
     const labels = node?.metadata?.labels;
     const taints = node?.spec?.taints;
+    const architecture = getNodeArchitecture(node);
+    const annotations = getAnnotations(node);
     return {
       name,
       hostName,
@@ -122,6 +132,8 @@ export const createWizardNodeState = (
       roles,
       labels,
       taints,
+      architecture,
+      annotations,
     };
   });
 
@@ -158,6 +170,7 @@ export const capacityAndNodesValidate = (
   } = state;
   const totalCpu = getTotalCpu(nodes);
   const totalMemory = getTotalMemoryInGiB(nodes);
+  const architecture = getNodeArchitectureFromState(nodes);
 
   if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
@@ -170,7 +183,8 @@ export const capacityAndNodesValidate = (
         resourceProfile,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        architecture
       )
     ) {
       validations.push(ValidationType.RESOURCE_PROFILE);
@@ -180,7 +194,8 @@ export const capacityAndNodesValidate = (
         ResourceProfile.Balanced,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        architecture
       )
     ) {
       validations.push(ValidationType.MINIMAL);

@@ -16,25 +16,25 @@
 }
 
 .odf-topology__back-button {
-    background-color: var(--pf-v5-global--palette--black-300) !important;
-    color: var(--pf-v5-global--Color--dark-200);
-    left: var(--pf-v5-global--gutter);
+    background-color: var(pf-t--global--dark--background--color--450) !important;
+    color: var(pf-t--color--gray--50);
+    left: var(--pf-t--global--spacer--gutter--default);
     position: absolute;
-    top: var(--pf-v5-global--gutter);
-    font-size: var(--pf-v5-global--FontSize--xs);
-    font-weight: var(--pf-v5-global--FontWeight--normal);
+    top: var(--pf-t--global--spacer--gutter--default);
+    font-size: var(--pf-t--global--font--size--xs);
+    font-weight: var(--pf-t--global--font--weight--body--default);
     padding: 4px;
     border-radius: 4px;
     z-index: 2;
 }
 
 .odf-topology__message-button {
-    color: var(--pf-v5-global--Color--dark-200);
-    right: var(--pf-v5-global--gutter);
+    color: var(pf-t--color--gray--50);
+    right: var(--pf-t--global--spacer--gutter--default);
     position: absolute;
-    top: var(--pf-v5-global--gutter);
-    font-size: var(--pf-v5-global--FontSize--xs);
-    font-weight: var(--pf-v5-global--FontWeight--normal);
+    top: var(--pf-t--global--spacer--gutter--default);
+    font-size: var(--pf-t--global--font--size--xs);
+    font-weight: var(--pf-t--global--font--weight--body--default);
     z-index: 2;
 }
 

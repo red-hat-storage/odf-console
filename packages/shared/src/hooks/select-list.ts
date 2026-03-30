@@ -31,7 +31,9 @@ export const useSelectList = <R extends K8sResourceCommon>(
   visibleRows: Set<string>,
   preSelectAll: boolean = false,
   onRowSelected: (rows: R[]) => void,
-  selectionType: 'radio' | 'checkbox' = 'checkbox'
+  selectionType: 'radio' | 'checkbox' = 'checkbox',
+  /** When provided (controlled mode), use this as current selection for toggles instead of internal state */
+  selectedRowIds?: Set<string>
 ): {
   onSelect: OnSelect;
   selectedRows: Set<string>;
@@ -46,6 +48,9 @@ export const useSelectList = <R extends K8sResourceCommon>(
     return isSelected ? new Set([rowData?.props?.id]) : new Set();
   };
 
+  // In controlled mode use parent's selection as baseline for computing toggles
+  const currentSelectedIds = selectedRowIds ?? selectedRows;
+
   const onSelect = React.useCallback(
     (_event, isSelected, rowIndex, rowData) => {
       let updatedSelectedRows;
@@ -58,7 +63,7 @@ export const useSelectList = <R extends K8sResourceCommon>(
           rowIndex,
           rowData,
           visibleRows,
-          selectedRows
+          currentSelectedIds
         );
       }
 
@@ -67,7 +72,7 @@ export const useSelectList = <R extends K8sResourceCommon>(
         data.filter((row) => updatedSelectedRows.has(row.metadata.uid))
       );
     },
-    [data, onRowSelected, selectedRows, visibleRows, selectionType]
+    [data, onRowSelected, currentSelectedIds, visibleRows, selectionType]
   );
 
   const updateSelectedRows = React.useCallback(

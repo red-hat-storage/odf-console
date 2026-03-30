@@ -18,63 +18,109 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { WizardNodeState } from '../../reducer';
 
+/** External KMM registry config from the SAN external registry form. Secure boot when both caCertificateSecret and privateKeySecret are provided. */
+export type ExternalKMMRegistryConfig = {
+  imageRegistryUrl?: string;
+  imageRepositoryName?: string;
+  secretKey: string;
+  caCertificateSecret?: string;
+  privateKeySecret?: string;
+};
+
 export const labelNodes = (nodes: WizardNodeState[]) => {
   const labelPath = `/metadata/labels/scale.spectrum.ibm.com~1daemon-selector`;
-  const patch: Patch[] = [
-    {
-      op: 'add',
-      path: '/metadata/labels',
-      value: {},
-    },
-    {
+  const requests: Promise<K8sKind>[] = [];
+  nodes.forEach((node) => {
+    const patch: Patch[] = [];
+    if (!node.labels) {
+      patch.push({
+        op: 'add',
+        path: '/metadata/labels',
+        value: {},
+      });
+    }
+    patch.push({
       op: 'add',
       path: labelPath,
       value: '',
-    },
-  ];
-  const requests: Promise<K8sKind>[] = [];
-  nodes.forEach((node) => {
-    if (!node.labels?.['scale.spectrum.ibm.com/daemon-selector/'])
+    });
+    if (!node.labels?.['scale.spectrum.ibm.com/daemon-selector/']) {
       requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
+    }
   });
   return () => Promise.all(requests);
 };
 
-export const createScaleLocalClusterPayload = () => {
+export const createScaleLocalClusterPayload = (
+  externalKmmRegistry?: ExternalKMMRegistryConfig,
+  addClusterLabels?: boolean
+) => {
+  const spec: ClusterKind['spec'] = {
+    daemon: {
+      nodeSelector: {
+        'scale.spectrum.ibm.com/daemon-selector': '',
+      },
+      roles: [],
+      clusterProfile: {
+        controlSetxattrImmutableSELinux: 'yes',
+        enforceFilesetQuotaOnRoot: 'yes',
+        ignorePrefetchLUNCount: 'yes',
+        initPrefetchBuffers: '128',
+        maxblocksize: '16M',
+        prefetchPct: '25',
+        prefetchTimeout: '30',
+      },
+    },
+    grafanaBridge: {
+      enablePrometheusExporter: true,
+    },
+    license: {
+      accept: true,
+      license: 'data-management',
+    },
+  };
+
+  if (externalKmmRegistry) {
+    const hasImageRegistry =
+      !!externalKmmRegistry.imageRegistryUrl &&
+      !!externalKmmRegistry.imageRepositoryName;
+    const isSecureBoot =
+      !!externalKmmRegistry.caCertificateSecret &&
+      !!externalKmmRegistry.privateKeySecret;
+
+    // KMM is a pointer; pass an empty object when no image registry or secure boot config
+    spec.gpfsModuleManagement = {
+      kmm: {
+        ...(hasImageRegistry && {
+          imageRepository: {
+            registry: externalKmmRegistry.imageRegistryUrl!,
+            repo: externalKmmRegistry.imageRepositoryName!,
+            registrySecret: externalKmmRegistry.secretKey,
+          },
+        }),
+        ...(isSecureBoot && {
+          moduleSigning: {
+            keySecret: externalKmmRegistry.privateKeySecret,
+            certSecret: externalKmmRegistry.caCertificateSecret,
+          },
+        }),
+      },
+    };
+  }
+
   const payload: ClusterKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
     kind: 'Cluster',
     metadata: {
       name: IBM_SCALE_LOCAL_CLUSTER_NAME,
-    },
-    spec: {
-      daemon: {
-        nodeSelector: {
-          'scale.spectrum.ibm.com/daemon-selector': '',
+      ...(addClusterLabels && {
+        labels: {
+          'app.kubernetes.io/instance': 'ibm-spectrum-scale',
+          'app.kubernetes.io/name': 'cluster',
         },
-        roles: [],
-        clusterProfile: {
-          controlSetxattrImmutableSELinux: 'yes',
-          enforceFilesetQuotaOnRoot: 'yes',
-          ignorePrefetchLUNCount: 'yes',
-          initPrefetchBuffers: '128',
-          maxblocksize: '16M',
-          prefetchPct: '25',
-          prefetchTimeout: '30',
-        },
-      },
-      grafanaBridge: {
-        enablePrometheusExporter: true,
-      },
-      license: {
-        accept: true,
-        license: 'data-management',
-      },
-      site: {
-        name: '',
-        zone: '',
-      },
+      }),
     },
+    spec,
   };
   return () => k8sCreate({ model: ClusterModel, data: payload });
 };

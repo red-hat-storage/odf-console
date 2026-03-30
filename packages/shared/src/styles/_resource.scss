@@ -21,7 +21,7 @@
       cubic-bezier(0.45, 0.05, 0.55, 0.95) alternate infinite;
     flex: 0 0 auto;
     font-size: (vars.$font-size-base - 1);
-    font-weight: var(--pf-v5-global--FontWeight--bold);
+    font-weight: var(--pf-t--global--font--weight--body--bold);
     margin: 0 0 0 15px;
     overflow: hidden;
     padding: 0 0 2px;
@@ -48,7 +48,7 @@
 .odf-m-resource-icon {
   background-color: vars.$color-container-dark;
   border-radius: 20px;
-  color: var(--pf-v5-global--palette--white);
+  color: var(--pf-t--color--white);
   display: inline-block;
   flex-shrink: 0;
   font-size: vars.$font-size-base;

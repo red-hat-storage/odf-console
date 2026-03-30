@@ -293,3 +293,18 @@ export const VolumeGroupSnapshotClassModel: K8sModel = {
   labelPluralKey: 'VolumeGroupSnapshotClasses',
   crd: true,
 };
+
+export const ImageRegistryConfigModel: K8sModel = {
+  label: 'Image Registry Config',
+  labelKey: 'ImageRegistryConfig',
+  apiVersion: 'v1',
+  apiGroup: 'imageregistry.operator.openshift.io',
+  plural: 'configs',
+  abbr: 'IRC',
+  namespaced: false,
+  kind: 'Config',
+  id: 'imageregistryconfig',
+  labelPlural: 'Image Registry Configs',
+  labelPluralKey: 'ImageRegistryConfigs',
+  crd: true,
+};

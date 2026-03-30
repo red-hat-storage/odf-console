@@ -77,7 +77,7 @@ export const getCephBlockPoolResource = (
   return {
     kind: referenceForModel(CephBlockPoolModel),
     isList: true,
-    fieldSelector: `metadata.name!=builtin-mgr,metadata.name!=${clusterName}-cephnfs-builtin-pool`,
+    fieldSelector: `metadata.name!=builtin-mgr,metadata.name!=${clusterName}-cephnfs-builtin-pool,metadata.name!=replicated-metadata-pool`,
   };
 };
 

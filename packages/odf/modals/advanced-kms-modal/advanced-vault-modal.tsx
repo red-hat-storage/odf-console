@@ -3,12 +3,11 @@ import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
   FormGroup,
   TextInput,
   FileUpload,
-  Modal,
-  ModalVariant,
   Button,
   FormHelperText,
   HelperText,
@@ -182,7 +181,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
           fieldId="kms-service-backend-path"
           label={t('Backend Path')}
           className="ceph-advanced-kms__form-body"
-          labelIcon={<FieldLevelHelp>{vaultBackendPath}</FieldLevelHelp>}
+          labelHelp={<FieldLevelHelp>{vaultBackendPath}</FieldLevelHelp>}
         >
           <TextInput
             value={backendPath}
@@ -199,7 +198,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
             fieldId="kms-auth-path"
             label={t('Authentication Path')}
             className="ceph-advanced-kms__form-body"
-            labelIcon={<FieldLevelHelp>{vaultAuthPath}</FieldLevelHelp>}
+            labelHelp={<FieldLevelHelp>{vaultAuthPath}</FieldLevelHelp>}
           >
             <TextInput
               value={authPath}
@@ -219,7 +218,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
               fieldId="kms-auth-namespace"
               label={t('Authentication Namespace')}
               className="ceph-advanced-kms__form-body"
-              labelIcon={<FieldLevelHelp>{vaultAuthNamespace}</FieldLevelHelp>}
+              labelHelp={<FieldLevelHelp>{vaultAuthNamespace}</FieldLevelHelp>}
             >
               <TextInput
                 value={authNamespace}
@@ -236,7 +235,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
           fieldId="kms-service-tls"
           label={t('TLS Server Name')}
           className="ceph-advanced-kms__form-body"
-          labelIcon={<FieldLevelHelp>{vaultTLSTooltip}</FieldLevelHelp>}
+          labelHelp={<FieldLevelHelp>{vaultTLSTooltip}</FieldLevelHelp>}
         >
           <TextInput
             value={tlsName}
@@ -250,7 +249,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
           fieldId="kms-service-namespace"
           label={t('Vault Enterprise Namespace')}
           className="ceph-advanced-kms__form-body"
-          labelIcon={<FieldLevelHelp>{vaultNamespaceTooltip}</FieldLevelHelp>}
+          labelHelp={<FieldLevelHelp>{vaultNamespaceTooltip}</FieldLevelHelp>}
         >
           <TextInput
             value={providerNS}
@@ -274,7 +273,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
           fieldId="kms-service-ca-cert"
           label={t('CA Certificate')}
           className="ceph-advanced-kms__form-body"
-          labelIcon={<FieldLevelHelp>{vaultCACertTooltip}</FieldLevelHelp>}
+          labelHelp={<FieldLevelHelp>{vaultCACertTooltip}</FieldLevelHelp>}
         >
           <FileUpload
             id="kms-service-ca-cert"
@@ -295,7 +294,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
           fieldId="kms-service-cert"
           label={t('Client Certificate')}
           className="ceph-advanced-kms__form-body"
-          labelIcon={<FieldLevelHelp>{vaultClientCertTooltip}</FieldLevelHelp>}
+          labelHelp={<FieldLevelHelp>{vaultClientCertTooltip}</FieldLevelHelp>}
         >
           <FileUpload
             id="kms-service-cert"
@@ -316,7 +315,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
           fieldId="kms-service-key"
           label={t('Client Private Key')}
           className="ceph-advanced-kms__form-body"
-          labelIcon={<FieldLevelHelp>{vaultClientKeyTooltip}</FieldLevelHelp>}
+          labelHelp={<FieldLevelHelp>{vaultClientKeyTooltip}</FieldLevelHelp>}
         >
           <FileUpload
             id="kms-service-key"

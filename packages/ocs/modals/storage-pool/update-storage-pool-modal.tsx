@@ -20,8 +20,8 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { Modal, ModalVariant } from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
@@ -193,14 +193,25 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
 
   const isExternalSC = systemFlags[poolNamespace]?.isExternalMode;
 
+  const arePoolFieldsInitialized = React.useRef(false);
+
   React.useEffect(() => {
+    if (arePoolFieldsInitialized.current) return;
+
     // restrict pool management for default pool and external cluster
-    isExternalSC || isDefaultPool(resource)
-      ? dispatch({
-          type: StoragePoolActionType.SET_POOL_STATUS,
-          payload: PoolProgress.NOTALLOWED,
-        })
-      : populateStoragePoolData(resource);
+    if (isExternalSC || isDefaultPool(resource)) {
+      dispatch({
+        type: StoragePoolActionType.SET_POOL_STATUS,
+        payload: PoolProgress.NOTALLOWED,
+      });
+      arePoolFieldsInitialized.current = true;
+      return;
+    }
+
+    if (!_.isEmpty(resource)) {
+      populateStoragePoolData(resource);
+      arePoolFieldsInitialized.current = true;
+    }
   }, [resource, isExternalSC, populateStoragePoolData]);
 
   // Update block pool
@@ -249,7 +260,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
       header={
         <>
           <ModalTitle>{MODAL_TITLE}</ModalTitle>
-          <StoragePoolDefinitionText className="pf-v5-u-ml-xl" />
+          <StoragePoolDefinitionText className="pf-v6-u-ml-xl" />
         </>
       }
       variant={ModalVariant.medium}

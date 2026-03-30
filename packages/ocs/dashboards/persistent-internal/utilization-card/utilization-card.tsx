@@ -47,7 +47,7 @@ export const UtilizationContent: React.FC = () => {
   );
 
   return (
-    <Grid className="pf-v5-u-ml-sm pf-v5-u-mr-xs">
+    <Grid className="pf-v6-u-ml-sm pf-v6-u-mr-xs">
       {scQueryfilterLoaded && !scQueryfilterError && (
         <>
           <PrometheusUtilizationItem

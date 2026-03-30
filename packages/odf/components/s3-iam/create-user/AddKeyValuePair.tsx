@@ -3,7 +3,7 @@ import { useCustomTranslation } from '@odf/shared';
 import { BlueInfoCircleIcon } from '@odf/shared/status';
 import { LazyNameValueEditor } from '@odf/shared/utils/NameValueEditor';
 import * as _ from 'lodash-es';
-import { FormGroup, Divider, Text } from '@patternfly/react-core';
+import { FormGroup, Divider, Content } from '@patternfly/react-core';
 import { TagIcon } from '@patternfly/react-icons';
 import {
   MAX_TAGS,
@@ -57,15 +57,15 @@ export const AddKeyValuePairs: React.FC<AddKeyValuePairsProps> = ({
     <div>
       <FormGroup
         label={t('Tags')}
-        className={_.isEmpty(pairs) ? 'pf-v5-u-mt-md' : 'pf-v5-u-mt-md'}
+        className={_.isEmpty(pairs) ? 'pf-v6-u-mt-md' : 'pf-v6-u-mt-md'}
       >
-        <Text component="p" className="pf-v5-u-mb-sm">
-          <BlueInfoCircleIcon className="pf-v5-u-mr-sm" />
+        <Content component="p" className="pf-v6-u-mb-sm">
+          <BlueInfoCircleIcon className="pf-v6-u-mr-sm" />
           {t(`You can add ${remainingTags} more tags`)}
-        </Text>
+        </Content>
 
         {_.isEmpty(pairs) && (
-          <div className="text-muted pf-v5-u-mb-sm">
+          <div className="text-muted pf-v6-u-mb-sm">
             {t('No tags are attached to this user.')}
           </div>
         )}
@@ -90,7 +90,7 @@ export const AddKeyValuePairs: React.FC<AddKeyValuePairsProps> = ({
           alwaysAllowRemove={true}
         />
       </FormGroup>
-      <Divider className="pf-v5-u-mt-2xl" />
+      <Divider className="pf-v6-u-mt-2xl" />
     </div>
   );
 };

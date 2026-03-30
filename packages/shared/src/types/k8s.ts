@@ -61,6 +61,7 @@ export type NodeKind = {
     }[];
     phase?: string;
     nodeInfo?: {
+      architecture?: string;
       operatingSystem: string;
     };
   };
