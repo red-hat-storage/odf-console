@@ -142,7 +142,7 @@ export const createStorageClass = async (
     volumeBindingMode: 'Immediate',
     parameters: {
       volBackendFs: fileSystemName,
-      filesetType: 'Independent',
+      filesetType: 'independent',
     },
   };
 
@@ -159,8 +159,8 @@ export const createStorageClass = async (
     volumeBindingMode: 'Immediate',
     parameters: {
       volBackendFs: fileSystemName,
-      filesetType: 'Independent',
-      volumeType: 'vmDisk',
+      filesetType: 'independent',
+      volumeType: 'vmdisk',
     },
   };
 
