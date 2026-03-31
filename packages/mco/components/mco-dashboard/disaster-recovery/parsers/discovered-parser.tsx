@@ -1,9 +1,5 @@
 import * as React from 'react';
-import {
-  DRApplication,
-  DRPCStatus,
-  DISCOVERED_APP_NS,
-} from '@odf/mco/constants';
+import { DRApplication, DISCOVERED_APP_NS } from '@odf/mco/constants';
 import {
   getDRClusterResourceObj,
   getDRPlacementControlResourceObj,
@@ -15,6 +11,7 @@ import {
   DRClusterKind,
   DRPlacementControlKind,
   DRPolicyKind,
+  Phase,
 } from '@odf/mco/types';
 import {
   findDRPolicyUsingDRPC,
@@ -111,7 +108,7 @@ export const useDiscoveredParser: UseDiscoveredParser = (
                   preferredCluster: drPlacementControl.spec?.preferredCluster,
                   lastVolumeGroupSyncTime:
                     drPlacementControl.status?.lastGroupSyncTime,
-                  status: drPlacementControl.status?.phase as DRPCStatus,
+                  status: drPlacementControl.status?.phase as Phase,
                   kubeObjSyncInterval:
                     drPlacementControl.spec?.kubeObjectProtection
                       ?.captureInterval,

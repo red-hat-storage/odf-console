@@ -1,14 +1,9 @@
 import * as React from 'react';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import {
-  Button,
-  Modal,
-  ModalVariant,
-  Title,
-  TitleSizes,
-} from '@patternfly/react-core';
+import { Button, Title, TitleSizes } from '@patternfly/react-core';
 import FormAlertInline from '../generic/FormAlertInline';
 import { LoadingInline } from '../generic/Loading';
 import { getAnnotations } from '../selectors';

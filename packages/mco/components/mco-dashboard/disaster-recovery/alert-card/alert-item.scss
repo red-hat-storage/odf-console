@@ -1,22 +1,23 @@
 $mco-icon-and-text-icon-lg: 1.2rem;
 
 .mco-status-card__alerts-body {
-  border-top: var(--pf-v5-global--BorderWidth--sm) solid var(--pf-v5-global--BorderColor--100);
+  border-top: var(--pf-t--global--border--width--regular) solid
+    var(--pf-t--global--border--color--100);
   max-height: 19rem;
   min-height: 6rem;
   overflow-x: hidden;
   overflow-y: auto;
 
-  .pf-v5-c-empty-state {
-    --pf-v5-c-empty-state__icon--MarginBottom: 0 !important;
+  .pf-v6-c-empty-state {
+    --pf-v6-c-empty-state__icon--MarginBottom: 0 !important;
   }
 }
 
 .mco-status-card__alert-item {
   display: flex;
   padding-bottom: 0.5rem;
-  padding-left: var(--pf-v5-c-card--child--PaddingLeft);
-  padding-right: var(--pf-v5-c-card--child--PaddingRight);
+  padding-left: var(--pf-v6-c-card--child--PaddingLeft);
+  padding-right: var(--pf-v6-c-card--child--PaddingRight);
 }
 
 .mco-status-card__alert-item-icon {
@@ -36,8 +37,8 @@ $mco-icon-and-text-icon-lg: 1.2rem;
 }
 
 .mco-status-card__alert-item-header {
-  color: var(--pf-v5-global--Color--black);
-  font-weight: bold;
+  color: var(--pf-t--global--text--color--regular);
+  font-weight: var(--pf-t--global--font--weight--body--bold);
   margin-left: 1rem;
 }
 

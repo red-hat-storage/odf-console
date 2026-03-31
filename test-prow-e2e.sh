@@ -174,11 +174,21 @@ export OAUTH_BASE_ADDRESS
 # https://docs.cypress.io/guides/guides/continuous-integration.html#Colors
 export NO_COLOR=1
 
-# Install dependencies.
+# Enable Corepack for Yarn Berry (use sudo if available, otherwise install to user dir)
+if command -v sudo &> /dev/null; then
+  sudo corepack enable
+else
+  mkdir -p "$HOME/bin"
+  corepack enable --install-directory "$HOME/bin"
+  export PATH="$HOME/bin:$PATH"
+fi
+
+# Install dependencies with immutable installs disabled for CI
+export YARN_ENABLE_IMMUTABLE_INSTALLS=false
 yarn install
 
 # Run tests.
-yarn run test-cypress-headless
+yarn test-cypress-headless
 
 # Generate Cypress report.
-yarn run cypress-postreport
+yarn cypress-postreport

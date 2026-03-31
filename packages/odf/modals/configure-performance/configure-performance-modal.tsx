@@ -11,6 +11,7 @@ import { ValidationMessage } from '@odf/core/components/utils/common-odf-install
 import { resourceRequirementsTooltip } from '@odf/core/constants';
 import { NodeData, ResourceProfile, ValidationType } from '@odf/core/types';
 import {
+  getNodeArchitectureFromState,
   getOsdAmount,
   getResourceProfileRequirements,
   isResourceProfileAllowed,
@@ -29,15 +30,13 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
   Alert,
   AlertVariant,
   Button,
   ButtonVariant,
-  Modal,
-  ModalVariant,
-  Text,
-  TextContent,
+  Content,
 } from '@patternfly/react-core';
 import { SelectNodesTable } from '../../components/create-storage-system/select-nodes-table/select-nodes-table';
 import './configure-performance-modal.scss';
@@ -50,12 +49,14 @@ const getValidation = (
   if (!profile) {
     return null;
   }
+  const architecture = getNodeArchitectureFromState(nodes);
 
   return isResourceProfileAllowed(
     profile,
     getTotalCpu(nodes),
     getTotalMemoryInGiB(nodes),
-    osdAmount
+    osdAmount,
+    architecture
   )
     ? null
     : ValidationType.RESOURCE_PROFILE;
@@ -64,20 +65,26 @@ const getValidation = (
 type ProfileRequirementsModalTextProps = {
   selectedProfile: ResourceProfile;
   osdAmount: number;
+  architecture?: string;
 };
 
 const ProfileRequirementsModalText: React.FC<
   ProfileRequirementsModalTextProps
-> = ({ selectedProfile, osdAmount }) => {
+> = ({ selectedProfile, osdAmount, architecture }) => {
   const { t } = useCustomTranslation();
   const { minCpu, minMem } = getResourceProfileRequirements(
     selectedProfile,
-    osdAmount
+    osdAmount,
+    architecture
   );
   return (
-    <TextContent>
-      <Text id="resource-requirements" className="pf-v5-u-font-size-md">
-        <span className="pf-v5-u-mr-sm">
+    <Content>
+      <Content
+        component="p"
+        id="resource-requirements"
+        className="pf-v6-u-font-size-md"
+      >
+        <span className="pf-v6-u-mr-sm">
           {t(
             'The aggregate resource requirements for {{selectedProfile}} mode is',
             {
@@ -85,18 +92,18 @@ const ProfileRequirementsModalText: React.FC<
             }
           )}
         </span>
-        <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md">
+        <span className="pf-v6-u-font-weight-bold pf-v6-u-font-size-md">
           {minCpu} {t('CPUs')}
         </span>{' '}
         {t('and')}{' '}
-        <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md pf-v5-u-mr-xs">
+        <span className="pf-v6-u-font-weight-bold pf-v6-u-font-size-md pf-v6-u-mr-xs">
           {minMem} {t('GiB RAM')}
         </span>
         {selectedProfile === ResourceProfile.Performance && (
           <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
         )}
-      </Text>
-    </TextContent>
+      </Content>
+    </Content>
   );
 };
 
@@ -126,6 +133,7 @@ const ConfigurePerformanceModal: React.FC<StorageClusterActionModalProps> = ({
       getOsdAmount(deviceSet.count, deviceSet.replica)
     )
     .reduce((accumulator: number, current: number) => accumulator + current);
+  const architecture = getNodeArchitectureFromState(selectedNodes);
 
   const onProfileChange = React.useCallback(
     (newProfile: ResourceProfile): void => {
@@ -209,12 +217,13 @@ const ConfigurePerformanceModal: React.FC<StorageClusterActionModalProps> = ({
             osdAmount={osdAmount}
             key={validation}
             validation={validation}
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
+            architecture={architecture}
           />
         )}
         {errorMessage && (
           <Alert
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
             isInline
             variant={AlertVariant.danger}
             title={t('An error occurred')}

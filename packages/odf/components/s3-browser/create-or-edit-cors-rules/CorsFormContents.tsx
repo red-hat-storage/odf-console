@@ -61,15 +61,16 @@ const AddTextInput: React.FC<AddTextInputProps> = ({
       {actionState.map((element, index) => (
         <span
           key={actionType + index}
-          className="pf-v5-u-display-flex pf-v5-u-flex-direction-row pf-v5-u-mb-xs"
+          className="pf-v6-u-display-flex pf-v6-u-flex-direction-row pf-v6-u-mb-xs"
         >
           <TextInput
             value={element}
             onChange={(_e, value) => onChange(index, value)}
             placeholder={placeholder}
-            className="pf-v5-u-mr-sm pf-v5-u-w-50"
+            className="pf-v6-u-mr-sm pf-v6-u-w-50"
           />
           <Button
+            icon={<TrashIcon />}
             variant={ButtonVariant.plain}
             onClick={() =>
               dispatch({
@@ -77,12 +78,11 @@ const AddTextInput: React.FC<AddTextInputProps> = ({
                 payload: actionState.filter((_, i) => i !== index),
               })
             }
-          >
-            <TrashIcon />
-          </Button>
+          />
         </span>
       ))}
       <Button
+        icon={<PlusCircleIcon />}
         variant={ButtonVariant.link}
         onClick={() =>
           dispatch({
@@ -92,7 +92,7 @@ const AddTextInput: React.FC<AddTextInputProps> = ({
         }
         className="s3-cors-button--margin"
       >
-        <PlusCircleIcon /> {addButtonText}
+        {addButtonText}
       </Button>
     </>
   );
@@ -134,7 +134,7 @@ export const CorsFormContents: React.FC<
       <FormGroup
         label={t('Rule name')}
         fieldId="name"
-        className="pf-v5-u-mb-lg"
+        className="pf-v6-u-mb-lg"
       >
         <TextInput
           id="name"
@@ -143,7 +143,7 @@ export const CorsFormContents: React.FC<
             dispatch({ type: RuleActionType.RULE_NAME, payload: value })
           }
           placeholder={t('Enter a valid rule name')}
-          className="pf-v5-u-w-50"
+          className="pf-v6-u-w-50"
           validated={
             invalidName ? ValidatedOptions.error : ValidatedOptions.default
           }
@@ -177,7 +177,7 @@ export const CorsFormContents: React.FC<
         }
         fieldId="allowed-origins"
       >
-        <span className="pf-v5-u-display-flex pf-v5-u-flex-direction-column">
+        <span className="pf-v6-u-display-flex pf-v6-u-flex-direction-column">
           <Radio
             label={t('All origins')}
             description={
@@ -203,7 +203,7 @@ export const CorsFormContents: React.FC<
               });
             }}
             id="allowed-origins-all"
-            className="pf-v5-u-mb-sm"
+            className="pf-v6-u-mb-sm"
           />
           <Radio
             label={t('Custom origins')}
@@ -221,7 +221,7 @@ export const CorsFormContents: React.FC<
               });
             }}
             id="allowed-origins-custom"
-            className="pf-v5-u-mt-sm"
+            className="pf-v6-u-mt-sm"
           />
         </span>
         {invalidOrigin && (
@@ -264,7 +264,7 @@ export const CorsFormContents: React.FC<
           </>
         }
         fieldId="allowed-methods"
-        className="pf-v5-u-my-lg"
+        className="pf-v6-u-my-lg"
       >
         {invalidMethod && (
           <Alert
@@ -275,7 +275,7 @@ export const CorsFormContents: React.FC<
             className="s3-cors-validation--font-weight"
           />
         )}
-        <span className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
+        <span className="pf-v6-u-display-flex pf-v6-u-flex-direction-row">
           {Object.keys(AllowedMethods).map(
             (allowedMethod: AllowedMethods, index: number) => (
               <Checkbox
@@ -296,7 +296,7 @@ export const CorsFormContents: React.FC<
                       ),
                     });
                 }}
-                className="pf-v5-u-mr-md"
+                className="pf-v6-u-mr-md"
               />
             )
           )}
@@ -314,7 +314,7 @@ export const CorsFormContents: React.FC<
         }
         fieldId="allowed-headers"
       >
-        <span className="pf-v5-u-display-flex pf-v5-u-flex-direction-column">
+        <span className="pf-v6-u-display-flex pf-v6-u-flex-direction-column">
           <Radio
             label={t('All headers')}
             description={
@@ -340,7 +340,7 @@ export const CorsFormContents: React.FC<
               });
             }}
             id="allowed-headers-all"
-            className="pf-v5-u-mb-sm"
+            className="pf-v6-u-mb-sm"
           />
           <Radio
             label={t('Custom headers')}
@@ -358,7 +358,7 @@ export const CorsFormContents: React.FC<
               });
             }}
             id="allowed-headers-custom"
-            className="pf-v5-u-mt-sm"
+            className="pf-v6-u-mt-sm"
           />
         </span>
         {!allowAllHeaders && (
@@ -392,7 +392,7 @@ export const CorsFormContents: React.FC<
           </>
         }
         fieldId="exposed-headers"
-        className="pf-v5-u-my-lg"
+        className="pf-v6-u-my-lg"
       >
         <AddTextInput
           actionState={exposedHeaders}

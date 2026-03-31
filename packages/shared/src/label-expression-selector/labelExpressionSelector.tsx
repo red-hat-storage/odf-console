@@ -57,7 +57,7 @@ const matchExpressionSummaryError = (
       <RedExclamationCircleIcon />
     </SplitItem>
     <SplitItem>
-      <span className="pf-v5-c-form__helper-text pf-m-error">
+      <span className="pf-v6-c-form__helper-text pf-m-error">
         &nbsp; {expandString || t('Expand to fix validation errors')}
       </span>
     </SplitItem>
@@ -300,12 +300,11 @@ const ArrayInput: React.FC<ArrayInputProps> = ({
               }}
               actions={
                 <Button
+                  icon={<DeleteIcon />}
                   data-test={`delete-expression-${index}`}
                   variant={ButtonVariant.plain}
                   onClick={() => onSelect(index)}
-                >
-                  <DeleteIcon />
-                </Button>
+                />
               }
             />
           }
@@ -365,7 +364,7 @@ export const LabelExpressionSelector: React.FC<
   );
 
   return (
-    <div className="pf-v5-u-mt-sm">
+    <div className="pf-v6-u-mt-sm">
       {selectedExpressions.map((expression, index) => (
         <ArrayInput
           key={index}
@@ -379,16 +378,18 @@ export const LabelExpressionSelector: React.FC<
         />
       ))}
       <Button
+        icon={
+          <PlusCircleIcon
+            data-test="pairs-list__add-icon"
+            className="co-icon-space-r"
+          />
+        }
         data-test="add-button"
-        className="pf-v5-u-mt-md"
+        className="pf-v6-u-mt-md"
         type="button"
         variant={ButtonVariant.link}
         onClick={addExpression}
       >
-        <PlusCircleIcon
-          data-test="pairs-list__add-icon"
-          className="co-icon-space-r"
-        />
         {addExpressionString || t('Add label expression')}
       </Button>
     </div>

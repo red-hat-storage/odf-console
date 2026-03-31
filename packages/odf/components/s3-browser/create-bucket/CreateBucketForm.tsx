@@ -87,7 +87,7 @@ const CreateBucketForm: React.FC<{}> = () => {
   };
 
   return (
-    <Form onSubmit={handleSubmit(save)} className="pf-v5-u-w-50">
+    <Form onSubmit={handleSubmit(save)} className="pf-v6-u-w-50">
       <TextInputWithFieldRequirements
         control={control}
         fieldRequirements={fieldRequirements}
@@ -104,7 +104,7 @@ const CreateBucketForm: React.FC<{}> = () => {
         textInputProps={{
           id: 'bucket-name',
           name: 'bucketName',
-          className: 'pf-v5-c-form-control',
+          className: 'pf-v6-c-form-control',
           type: 'text',
           placeholder: t('my-bucket'),
           'aria-describedby': 'bucket-name-help',
@@ -120,12 +120,12 @@ const CreateBucketForm: React.FC<{}> = () => {
         })}
       >
         {_.isEmpty(tagsData) && (
-          <div className="pf-v5-u-disabled-color-100 pf-v5-u-mr-sm">
+          <div className="pf-v6-u-disabled-color-100 pf-v6-u-mr-sm">
             {t('No tags are attached to this bucket.')}
           </div>
         )}
         <LazyNameValueEditor
-          className="pf-v5-u-font-weight-bold pf-v5-u-font-size-sm"
+          className="pf-v6-u-font-weight-bold pf-v6-u-font-size-sm"
           addString={t('Add tag')}
           valueString={t('Value (optional)')}
           nameValuePairs={tagsData}
@@ -146,7 +146,7 @@ const CreateBucketForm: React.FC<{}> = () => {
         />
       )}
       <ButtonBar errorMessage={errorMessage} inProgress={inProgress}>
-        <ActionGroup className="pf-v5-c-form">
+        <ActionGroup className="pf-v6-c-form">
           <Button
             id="create-s3-bucket-btn"
             type={ButtonType.submit}

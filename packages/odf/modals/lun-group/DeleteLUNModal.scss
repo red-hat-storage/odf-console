@@ -1,0 +1,10 @@
+.delete-lun-modal {
+  &__list-container {
+    max-height: 5rem;
+    overflow-y: visible;
+
+    &--scrollable {
+      overflow-y: scroll;
+    }
+  }
+}

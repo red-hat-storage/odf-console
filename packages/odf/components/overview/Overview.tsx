@@ -3,8 +3,11 @@ import { GeneralOverviewActivityCard } from '@odf/core/components/overview/activ
 import { ExternalSystemsCard } from '@odf/core/components/overview/external-systems-card/ExternalSystemsCard';
 import { ObjectStorageCard } from '@odf/core/components/overview/object-storage-card/ObjectStorageCard';
 import { StorageClusterCard } from '@odf/core/components/overview/storage-cluster-card/StorageClusterCard';
+import { StorageClusterCreateModal } from '@odf/core/modals/ConfigureDF/StorageClusterCreateModal';
 import { PageHeading, useCustomTranslation } from '@odf/shared';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
+import { useLocation } from 'react-router-dom-v5-compat';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { HealthOverviewCard } from './health-overview-card/HealthOverviewCard';
 import './Overview.scss';
@@ -12,6 +15,17 @@ import './Overview.scss';
 const Overview: React.FC = () => {
   const { t } = useCustomTranslation();
   const title = t('Overview');
+
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const showWelcomeModal = searchParams.get('show-welcome-modal');
+  const launchModal = useModal();
+
+  React.useEffect(() => {
+    if (showWelcomeModal === 'true') {
+      launchModal(StorageClusterCreateModal, { isOpen: true });
+    }
+  }, [showWelcomeModal, launchModal]);
 
   return (
     <>
