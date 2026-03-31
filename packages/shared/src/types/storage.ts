@@ -303,3 +303,23 @@ export enum StorageSizeUnitName {
   GiB = 'GiB',
   TiB = 'TiB',
 }
+
+export type StorageClientPhase =
+  | 'Initializing'
+  | 'Onboarding'
+  | 'Progressing'
+  | 'Connected'
+  | 'Offboarding'
+  | 'Failed';
+
+export type StorageClient = K8sResourceCommon & {
+  spec?: {
+    storageProviderEndpoint: string;
+    onboardingTicket: string;
+  };
+  status?: {
+    phase?: StorageClientPhase;
+    id?: string;
+    externalEndpoints?: Record<string, string>;
+  };
+};

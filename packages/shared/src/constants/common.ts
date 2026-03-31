@@ -46,7 +46,9 @@ export const ODF_PLUGIN_BUILD_NAME = 'odf';
 export const CONSOLE_PROXY_ROOT_PATH = '/api/proxy/plugin';
 export const ODF_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-console`;
 export const MCO_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-multicluster-console`;
+export const CLIENT_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-client-console`;
 export const UX_BACKEND_PROXY_ROOT_PATH = `${ODF_PROXY_ROOT_PATH}/provider-proxy`;
+export const EXTERNAL_ENDPOINT_PROXY_ROOT_PATH = `${CLIENT_PROXY_ROOT_PATH}/externalEndpointProxy`;
 
 // Infrastructure.
 
