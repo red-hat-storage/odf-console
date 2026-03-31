@@ -81,8 +81,8 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
   const [error, setError] = React.useState<string>('');
   const [confirmName, setConfirmName] = React.useState('');
 
-  const [storageClass, scLoaded, scLoadError] =
-    useK8sGet<StorageClassResourceKind>(StorageClassModel, fsName);
+  const [storageClasses, scLoaded, scLoadError] =
+    useK8sGet<ListKind<StorageClassResourceKind>>(StorageClassModel);
   const [pvcResources, pvcLoaded, pvcLoadError] = useK8sGet<
     ListKind<PersistentVolumeClaimKind>
   >(PersistentVolumeClaimModel);
@@ -91,6 +91,10 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
   const navigate = useNavigate();
 
   const isConfirmNameValid = fsName === confirmName;
+
+  const fileredStorageClasses = storageClasses.items?.filter(
+    (sc) => sc.parameters?.volBackendFs === fsName
+  );
 
   const { deletionStatus, boundPVCNames } = React.useMemo(() => {
     if (!scLoaded || !pvcLoaded || scLoadError || pvcLoadError) {
@@ -101,7 +105,7 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
     }
 
     // If storage class doesn't exist, we can proceed with deletion
-    if (!storageClass) {
+    if (!fileredStorageClasses.length) {
       return {
         deletionStatus: DeletionStatus.ALLOWED,
         boundPVCNames: [],
@@ -132,8 +136,8 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
     pvcLoaded,
     scLoadError,
     pvcLoadError,
-    storageClass,
-    pvcResources,
+    fileredStorageClasses.length,
+    pvcResources.items,
     fsName,
   ]);
 
@@ -175,13 +179,15 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
       );
 
       // Delete StorageClass if it exists
-      if (storageClass) {
+      if (fileredStorageClasses?.length > 0) {
         try {
-          await k8sDelete({
-            model: StorageClassModel,
-            resource: storageClass,
-            requestInit: null,
-            json: null,
+          fileredStorageClasses.forEach(async (sc) => {
+            await k8sDelete({
+              model: StorageClassModel,
+              resource: sc,
+              requestInit: null,
+              json: null,
+            });
           });
         } catch (scError) {
           // eslint-disable-next-line no-console
@@ -285,7 +291,7 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
                     sure you want to delete?
                   </p>
                 </Trans>
-                {storageClass && (
+                {fileredStorageClasses?.length > 0 && (
                   <Alert
                     variant="warning"
                     isInline
@@ -298,8 +304,12 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
                         <strong>{fsName}</strong>
                       </li>
                       <li>
-                        {t('StorageClass: ')}
-                        <strong>{getName(storageClass)}</strong>
+                        {t('StorageClasses: ')}
+                        <strong>
+                          {fileredStorageClasses
+                            .map((sc) => getName(sc))
+                            .join(', ')}
+                        </strong>
                       </li>
                       <li>
                         {t('All associated LocalDisks for this FileSystem')}
