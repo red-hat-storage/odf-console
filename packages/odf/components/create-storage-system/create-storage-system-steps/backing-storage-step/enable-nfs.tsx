@@ -37,6 +37,7 @@ export const EnableNFS: React.FC<EnableNFSProps> = ({
   dispatch,
   nfsEnabled,
   backingStorageType,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const [showAlert, variant, title] = getValidationAlert(
@@ -56,7 +57,8 @@ export const EnableNFS: React.FC<EnableNFSProps> = ({
           dispatch({ type: 'advancedSettings/enableNFS', payload: !nfsEnabled })
         }
         isDisabled={
-          backingStorageType === BackingStorageType.EXTERNAL && !nfsEnabled
+          (backingStorageType === BackingStorageType.EXTERNAL && !nfsEnabled) ||
+          isTNFEnabled
         }
         className="odf-backing-store__radio--margin-bottom"
       />
@@ -75,4 +77,5 @@ type EnableNFSProps = {
   dispatch: WizardDispatch;
   nfsEnabled: WizardState['advancedSettings']['enableNFS'];
   backingStorageType: WizardState['backingStorage']['type'];
+  isTNFEnabled: boolean;
 };

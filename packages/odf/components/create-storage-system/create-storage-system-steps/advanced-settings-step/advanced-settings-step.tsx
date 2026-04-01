@@ -24,6 +24,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   hasMultipleClusters,
   deployment,
   backingStorageType,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -50,6 +51,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
               dispatch={dispatch}
               nfsEnabled={enableNFS}
               backingStorageType={backingStorageType}
+              isTNFEnabled={isTNFEnabled}
             />
             <SetCephRBDStorageClassDefault
               dispatch={dispatch}
@@ -88,7 +90,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
               })
             }
             className="odf-backing-store__radio--margin-bottom"
-            isDisabled={isDbBackup}
+            isDisabled={isDbBackup || isTNFEnabled}
           />
         )}
         {backingStorageType === BackingStorageType.LOCAL_DEVICES && (
@@ -163,6 +165,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             isMCG={isMCG}
             dbBackup={dbBackup}
             isExternalPostgresEnabled={useExternalPostgres}
+            isTNFEnabled={isTNFEnabled}
           />
         )}
       </FormGroup>
@@ -177,4 +180,5 @@ type AdvancedSettingsProps = {
   hasMultipleClusters: boolean;
   deployment: DeploymentType;
   backingStorageType: BackingStorageType;
+  isTNFEnabled: boolean;
 };

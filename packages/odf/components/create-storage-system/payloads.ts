@@ -131,7 +131,8 @@ export const setCephRBDAsDefault = (
 export const createStorageCluster = async (
   state: WizardState,
   storageClusterNamespace: string,
-  storageClusterName: string
+  storageClusterName: string,
+  isTNFEnabled = false
 ) => {
   const {
     storageClass,
@@ -159,7 +160,7 @@ export const createStorageCluster = async (
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 
   const storage = (
-    isNoProvisioner ? DefaultRequestSize.BAREMETAL : capacity
+    isTNFEnabled || isNoProvisioner ? DefaultRequestSize.BAREMETAL : capacity
   ) as string;
 
   const flexibleScaling = isFlexibleScaling(
@@ -213,6 +214,7 @@ export const createStorageCluster = async (
     isDbBackup,
     dbBackup,
     enableForcefulDeployment,
+    isTNFEnabled,
   });
 
   return k8sCreate({ model: StorageClusterModel, data: payload });

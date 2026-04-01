@@ -23,7 +23,8 @@ export const createSteps = (
   infraType: InfraProviders,
   hasOCS: boolean,
   supportedExternalStorage: ExternalStorage[],
-  hasMultipleClusters: boolean
+  hasMultipleClusters: boolean,
+  isTNFEnabled: boolean
 ): (Pick<WizardStepProps, 'id' | 'name'> & {
   component: React.ReactElement;
   canJumpTo: boolean;
@@ -56,6 +57,7 @@ export const createSteps = (
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
           systemNamespace={systemNamespace}
+          isTNFEnabled={isTNFEnabled}
         />
       ),
     },
@@ -68,6 +70,7 @@ export const createSteps = (
           infraType={infraType}
           systemNamespace={systemNamespace}
           nodes={nodes}
+          isTNFEnabled={isTNFEnabled}
         />
       ),
     },
@@ -115,6 +118,7 @@ export const createSteps = (
           externalStorage={externalStorage}
           supportedExternalStorage={supportedExternalStorage}
           systemNamespace={systemNamespace}
+          isTNFEnabled={isTNFEnabled}
         />
       ),
     },

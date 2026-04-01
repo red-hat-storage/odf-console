@@ -309,7 +309,8 @@ const handleReviewAndCreateNext = async (
   handleError: (err: string, showError: boolean) => void,
   navigate,
   odfNamespace: string,
-  existingNamespaces: K8sResourceCommon[]
+  existingNamespaces: K8sResourceCommon[],
+  isTNFEnabled: boolean
 ) => {
   const { nodes, capacityAndNodes } = state;
   const { systemNamespace, deployment, type } = state.backingStorage;
@@ -375,7 +376,8 @@ const handleReviewAndCreateNext = async (
       storageCluster = await createStorageCluster(
         state,
         systemNamespace,
-        OCS_INTERNAL_CR_NAME
+        OCS_INTERNAL_CR_NAME,
+        isTNFEnabled
       );
     } else if (
       type === BackingStorageType.EXISTING ||
@@ -386,7 +388,8 @@ const handleReviewAndCreateNext = async (
       storageCluster = await createStorageCluster(
         state,
         systemNamespace,
-        OCS_INTERNAL_CR_NAME
+        OCS_INTERNAL_CR_NAME,
+        isTNFEnabled
       );
     }
     if (storageCluster) {
@@ -440,6 +443,7 @@ export const CreateStorageSystemFooter: React.FC<
   disableNext,
   supportedExternalStorage,
   existingNamespaces,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
@@ -497,7 +501,8 @@ export const CreateStorageSystemFooter: React.FC<
           handleError,
           navigate,
           odfNamespace,
-          existingNamespaces
+          existingNamespaces,
+          isTNFEnabled
         );
         setRequestInProgress(false);
         break;
@@ -565,4 +570,5 @@ type CreateStorageSystemFooterProps = WizardCommonProps & {
   hasOCS: boolean;
   supportedExternalStorage: ExternalStorage[];
   existingNamespaces: K8sResourceCommon[];
+  isTNFEnabled: boolean;
 };
