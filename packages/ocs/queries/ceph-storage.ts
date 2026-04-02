@@ -357,3 +357,34 @@ export const CAPACITY_TREND_QUERIES = (
 
 export const resiliencyProgressQuery = (clusterName: string) =>
   DATA_RESILIENCY_QUERY(clusterName)[StorageDashboardQuery.RESILIENCY_PROGRESS];
+
+export enum CephFSSubvolumeMetric {
+  IOPS = 'IOPS',
+  LATENCY = 'LATENCY',
+  THROUGHPUT = 'THROUGHPUT',
+}
+
+const CEPHFS_SUBVOLUME_TOP_K = 10;
+const CEPHFS_SUBVOLUME_LOOKBACK_WINDOW = '5m';
+
+const CEPHFS_SUBVOLUME_RAW_METRICS = {
+  [CephFSSubvolumeMetric.IOPS]: {
+    read: 'odf_cephfs_subvolume_read_iops_with_pv',
+    write: 'odf_cephfs_subvolume_write_iops_with_pv',
+  },
+  [CephFSSubvolumeMetric.LATENCY]: {
+    read: 'odf_cephfs_subvolume_read_latency_msec_with_pv',
+    write: 'odf_cephfs_subvolume_write_latency_msec_with_pv',
+  },
+  [CephFSSubvolumeMetric.THROUGHPUT]: {
+    read: 'odf_cephfs_subvolume_read_throughput_bps_with_pv',
+    write: 'odf_cephfs_subvolume_write_throughput_bps_with_pv',
+  },
+};
+
+export const getCephFSSubvolumeTopKQuery = (metric: CephFSSubvolumeMetric) => {
+  const { read, write } = CEPHFS_SUBVOLUME_RAW_METRICS[metric];
+  const readSeries = `last_over_time(${read}[${CEPHFS_SUBVOLUME_LOOKBACK_WINDOW}])`;
+  const writeSeries = `last_over_time(${write}[${CEPHFS_SUBVOLUME_LOOKBACK_WINDOW}])`;
+  return `topk(${CEPHFS_SUBVOLUME_TOP_K}, sum by (subvolume, pv_name, fs_name) ((${readSeries} + on(subvolume, pv_name, fs_name) group_left ${writeSeries}) or ${readSeries}))`;
+};
