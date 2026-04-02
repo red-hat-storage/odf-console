@@ -5,6 +5,7 @@ import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { isClientPlugin } from '@odf/shared/utils';
 import validationRegEx from '@odf/shared/utils/validation';
 import * as Yup from 'yup';
 import { State } from './state';
@@ -29,6 +30,7 @@ const useObcFormSchema = (
   );
 
   return React.useMemo(() => {
+    const isClient = isClientPlugin();
     const existingNames =
       loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
 
@@ -64,7 +66,7 @@ const useObcFormSchema = (
     const obcFormSchema = Yup.object({
       'sc-dropdown': Yup.string().required(),
       bucketclass: Yup.string().when('sc-dropdown', {
-        is: (value: string) => !!value && isNoobaa,
+        is: (value: string) => !!value && isNoobaa && !isClient,
         then: (schema: Yup.StringSchema) => schema.required(),
       }),
     }).concat(obcNameSchema);
