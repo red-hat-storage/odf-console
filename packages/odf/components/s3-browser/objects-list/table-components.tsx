@@ -64,7 +64,8 @@ export const getInlineActionsItems = (
   refreshTokens: () => Promise<void>,
   closeObjectSidebar: () => void,
   showVersioning: boolean,
-  isVersioningEnabledOrSuspended: boolean
+  isVersioningEnabledOrSuspended: boolean,
+  blockDataPath = false
 ): IAction[] => {
   const isDeleteMarker = object?.isDeleteMarker;
   return [
@@ -87,7 +88,7 @@ export const getInlineActionsItems = (
                 setDownloadAndPreview,
                 showVersioning
               ),
-            isDisabled: downloadAndPreview.isDownloading,
+            isDisabled: blockDataPath || downloadAndPreview.isDownloading,
             shouldCloseOnClick: false,
           },
         ]
@@ -111,7 +112,7 @@ export const getInlineActionsItems = (
                 setDownloadAndPreview,
                 showVersioning
               ),
-            isDisabled: downloadAndPreview.isPreviewing,
+            isDisabled: blockDataPath || downloadAndPreview.isPreviewing,
             shouldCloseOnClick: false,
           },
         ]
@@ -125,7 +126,7 @@ export const getInlineActionsItems = (
                 isOpen: true,
                 extraProps: { bucketName, object, s3Client, showVersioning },
               }),
-            isDisabled: isDeleteMarker,
+            isDisabled: blockDataPath || isDeleteMarker,
           },
         ]
       : []),
@@ -214,6 +215,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     closeObjectSidebar,
     showVersioning,
     isVersioningEnabledOrSuspended,
+    blockDataPath,
   } = extraProps;
   const isFolder = object.isFolder;
   const name = replacePathFromName(object, foldersPath);
@@ -238,7 +240,8 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     refreshTokens,
     closeObjectSidebar,
     showVersioning,
-    isVersioningEnabledOrSuspended
+    isVersioningEnabledOrSuspended,
+    blockDataPath
   );
   actionItemsRef.current = actionItems;
 

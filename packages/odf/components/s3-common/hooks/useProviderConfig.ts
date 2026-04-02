@@ -8,8 +8,8 @@ import {
 } from '../registry/s3-providers';
 import { S3_VECTORS_PROVIDER_REGISTRY } from '../registry/s3-vectors-providers';
 import { ClientType } from '../types';
-import { useStorageClientInfo } from './useStorageClientInfo';
-import { useSystemInfo } from './useSystemInfo';
+import { useHubS3Endpoints, HubS3EndpointsData } from './useHubS3Endpoints';
+import { useSystemInfo, SystemInfoData } from './useSystemInfo';
 
 const getRegistryEntry = (
   type: ClientType,
@@ -42,13 +42,13 @@ export const useProviderConfig = (
     error: systemInfoError,
   } = useSystemInfo();
   const {
-    data: storageClientInfo,
-    isLoaded: clientsLoaded,
-    clientsError,
-  } = useStorageClientInfo();
+    data: hubS3Endpoints,
+    isLoaded: hubS3EndpointsLoaded,
+    hubS3EndpointsError,
+  } = useHubS3Endpoints();
 
-  const isLoading = systemLoading || !clientsLoaded;
-  const error = systemInfoError || clientsError;
+  const isLoading = systemLoading || !hubS3EndpointsLoaded;
+  const error = systemInfoError || hubS3EndpointsError;
 
   return React.useMemo(() => {
     const registryEntry = getRegistryEntry(type, providerType);
@@ -70,9 +70,9 @@ export const useProviderConfig = (
 
     const transformedConfig = registryEntry.dynamicConfig
       ? registryEntry.dynamicConfig.getConfig(
-          systemInfo,
+          systemInfo ?? ({} as SystemInfoData),
           odfNamespace,
-          storageClientInfo
+          hubS3Endpoints ?? ({} as HubS3EndpointsData)
         )
       : null;
 
@@ -90,7 +90,7 @@ export const useProviderConfig = (
     type,
     odfNamespace,
     systemInfo,
-    storageClientInfo,
+    hubS3Endpoints,
     isLoading,
     error,
   ]);

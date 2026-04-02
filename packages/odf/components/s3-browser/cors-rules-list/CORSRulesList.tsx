@@ -12,7 +12,7 @@ import { S3ProviderType } from '@odf/core/types';
 import { isAllowAllConfig } from '@odf/core/utils';
 import { DASH } from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
-import { StatusBox } from '@odf/shared/generic/status-box';
+import { LoadingBox, StatusBox } from '@odf/shared/generic/status-box';
 import { S3Commands } from '@odf/shared/s3';
 import { isNoCorsRuleError } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -193,13 +193,13 @@ const RuleRow: React.FC<RowProps<CORSRule, CustomData>> = ({
   const { navigate, launcher, mutate, s3Client, bucketName } = rowData;
 
   const ruleName = corsRuleObj?.ID;
-  // allowed-origins
+
   const allowedOrigins = corsRuleObj?.AllowedOrigins ?? [];
   const allowedOriginsLength = allowedOrigins.length;
   const allowedOriginsRowValue = isAllowAllConfig(allowedOrigins)
     ? t('All origins')
     : pluralize(allowedOriginsLength, t('origin'), t('origins'), true);
-  // allowed methods
+
   const allowedMethodsLength = corsRuleObj.AllowedMethods.length ?? 0;
   const allowedMethodsRowValue = pluralize(
     allowedMethodsLength,
@@ -207,13 +207,13 @@ const RuleRow: React.FC<RowProps<CORSRule, CustomData>> = ({
     t('methods'),
     true
   );
-  // allowed-headers
+
   const allowedHeaders = corsRuleObj?.AllowedHeaders ?? [];
   const allowedHeadersLength = allowedHeaders.length;
   const allowedHeadersRowValue = isAllowAllConfig(allowedHeaders)
     ? t('All headers')
     : pluralize(allowedHeadersLength, t('header'), t('headers'), true);
-  // exposed-headers
+
   const exposedHeadersLength = corsRuleObj?.ExposeHeaders?.length ?? 0;
   const exposedHeadersRowValue = pluralize(
     exposedHeadersLength,
@@ -275,9 +275,7 @@ const RuleRow: React.FC<RowProps<CORSRule, CustomData>> = ({
   );
 };
 
-export const CORSRulesList: React.FC<CORSRulesListProps> = ({
-  obj: { fresh },
-}) => {
+const CORSRulesListContent: React.FC = () => {
   const { t } = useCustomTranslation();
   const { bucketName } = useParams();
   const navigate = useNavigate();
@@ -295,16 +293,12 @@ export const CORSRulesList: React.FC<CORSRulesListProps> = ({
   const noRuleExistsError = isNoCorsRuleError(error);
   // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
   const corsRules: CORSRule[] = noRuleExistsError ? [] : data?.CORSRules || [];
-  const loaded = !isLoading && fresh;
+  const loaded = !isLoading;
   const providerType = s3Client.providerType as S3ProviderType;
   const createCorsRuleLink = `${getBucketOverviewBaseRoute(bucketName, providerType)}/permissions/cors/create/~new`;
 
   const [unfilteredCorsRules, filteredCorsRules, onFilterChange] =
     useListPageFilter(corsRules, nameFilterOverride);
-
-  React.useEffect(() => {
-    if (!fresh) mutate();
-  }, [fresh, mutate]);
 
   if (!loaded || (error && !noRuleExistsError)) {
     return (
@@ -362,3 +356,7 @@ export const CORSRulesList: React.FC<CORSRulesListProps> = ({
     </>
   );
 };
+
+export const CORSRulesList: React.FC<CORSRulesListProps> = ({
+  obj: { fresh },
+}) => (fresh ? <CORSRulesListContent /> : <LoadingBox />);
