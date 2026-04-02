@@ -424,6 +424,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   nodes,
   systemNamespace,
   infraType,
+  flexibleScaling: flexibleScalingProp,
 }) => {
   const {
     capacity,
@@ -437,11 +438,9 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   } = state;
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
-  const flexibleScaling = isFlexibleScaling(
-    nodes,
-    isNoProvisioner,
-    enableArbiter
-  );
+  const flexibleScaling =
+    flexibleScalingProp ??
+    isFlexibleScaling(nodes, isNoProvisioner, enableArbiter);
   const deviceSetReplica: number = getDeviceSetReplica(
     enableArbiter,
     flexibleScaling,
@@ -548,4 +547,5 @@ type CapacityAndNodesProps = {
   dispatch: WizardDispatch;
   infraType: InfraProviders;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  flexibleScaling?: WizardState['flexibleScaling'];
 };
