@@ -139,11 +139,11 @@ export const NamespaceSelectionTable: React.FC<
   }, [drPlacements, clusterName, policies]);
 
   const searchQuery = React.useMemo(
-    () => queryNamespacesUsingCluster(clusterName),
+    () => (clusterName ? queryNamespacesUsingCluster(clusterName) : null),
     [clusterName]
   );
 
-  // ACM search proxy API call
+  // ACM search proxy API call (skip if no cluster selected)
   const [searchResult, searchError, searchLoaded] =
     useACMSafeFetch(searchQuery);
 
@@ -208,13 +208,10 @@ export const NamespaceSelectionTable: React.FC<
           selectedRows={namespaces}
           setSelectedRows={setSelectedNamespaces}
           loaded={searchLoaded}
+          loadError={searchError}
           borders={false}
           emptyRowMessage={
-            searchError
-              ? searchError
-              : clusterName
-                ? EmptyRowMessage
-                : NoClusterEmptyRowMessage
+            clusterName ? EmptyRowMessage : NoClusterEmptyRowMessage
           }
         />
         <Content component="p">

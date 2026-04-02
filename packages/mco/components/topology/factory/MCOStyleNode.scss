@@ -1,0 +1,22 @@
+.mco-topology-node {
+  &__icon {
+    fill: var(--pf-v6-global--Color--200);
+  }
+}
+
+// Ensure the node shapes are visible
+.pf-topology__node__background {
+  fill: var(--pf-v6-global--BackgroundColor--100);
+  stroke: var(--pf-v6-global--BorderColor--300);
+  stroke-width: 2px;
+}
+
+.pf-topology__node--selected .pf-topology__node__background {
+  stroke: var(--pf-v6-global--primary-color--100);
+  stroke-width: 3px;
+}
+
+.pf-topology__node:hover .pf-topology__node__background {
+  stroke: var(--pf-v6-global--primary-color--100);
+  stroke-width: 2.5px;
+}

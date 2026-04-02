@@ -1,0 +1,54 @@
+.mco-topology-sidebar {
+  &__container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: var(--pf-t--global--spacer--md);
+    margin-top: var(--pf-t--global--spacer--md);
+    margin-left: var(--pf-t--global--spacer--md);
+
+    &-title {
+      margin-bottom: 0;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__policy-item {
+    margin-bottom: var(--pf-t--global--spacer--sm);
+  }
+
+  &__policy-phase {
+    margin-top: var(--pf-t--global--spacer--xs);
+  }
+
+  &__tab-content {
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  &__app-status {
+    display: flex;
+    align-items: center;
+    gap: var(--pf-t--global--spacer--sm);
+  }
+
+  &__empty-state-icon {
+    font-size: 80px;
+    color: var(--pf-v6-global--Color--200);
+    margin-bottom: var(--pf-v6-global--spacer--md);
+  }
+}

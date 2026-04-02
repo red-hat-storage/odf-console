@@ -12,9 +12,16 @@ export type ClusterClaim = {
 };
 
 export type ACMManagedClusterKind = K8sResourceCommon & {
+  spec?: {
+    clusterID?: string;
+  };
   status?: {
     clusterClaims?: ClusterClaim[];
     conditions?: K8sResourceCondition[];
+    clusterID?: string;
+    version?: {
+      kubernetes?: string;
+    };
   };
 };
 

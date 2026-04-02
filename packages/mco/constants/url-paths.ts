@@ -14,3 +14,6 @@ export const applicationDetails =
 export const ACM_SEARCH_PROXY_ENDPOINT = `${CONSOLE_PROXY_ROOT_PATH}/acm/console/multicloud/proxy/search`;
 // MCO DR navigation item base route
 export const DR_BASE_ROUTE = '/multicloud/data-services/disaster-recovery';
+
+export const CLUSTER_DETAILS_ROUTE =
+  '/multicloud/infrastructure/clusters/details';
