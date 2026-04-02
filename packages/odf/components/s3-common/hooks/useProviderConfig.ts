@@ -3,8 +3,8 @@ import { S3ProviderType } from '@odf/core/types';
 import { IAM_PROVIDER_REGISTRY } from '../registry/iam-providers';
 import { S3_PROVIDER_REGISTRY, ProviderConfig } from '../registry/s3-providers';
 import { ClientType } from '../types';
-import { useStorageClientInfo } from './useStorageClientInfo';
-import { useSystemInfo } from './useSystemInfo';
+import { useHubS3Endpoints, HubS3EndpointsData } from './useHubS3Endpoints';
+import { useSystemInfo, SystemInfoData } from './useSystemInfo';
 
 type UseProviderConfigResult = {
   config: ProviderConfig | null;
@@ -23,13 +23,13 @@ export const useProviderConfig = (
     error: systemInfoError,
   } = useSystemInfo();
   const {
-    data: storageClientInfo,
-    isLoaded: clientsLoaded,
-    clientsError,
-  } = useStorageClientInfo();
+    data: hubS3Endpoints,
+    isLoaded: hubS3EndpointsLoaded,
+    hubS3EndpointsError,
+  } = useHubS3Endpoints();
 
-  const isLoading = systemLoading || !clientsLoaded;
-  const error = systemInfoError || clientsError;
+  const isLoading = systemLoading || !hubS3EndpointsLoaded;
+  const error = systemInfoError || hubS3EndpointsError;
 
   return React.useMemo(() => {
     const registryEntry =
@@ -54,9 +54,9 @@ export const useProviderConfig = (
 
     const transformedConfig = registryEntry.dynamicConfig
       ? registryEntry.dynamicConfig.getConfig(
-          systemInfo,
+          systemInfo ?? ({} as SystemInfoData),
           odfNamespace,
-          storageClientInfo
+          hubS3Endpoints ?? ({} as HubS3EndpointsData)
         )
       : null;
 
@@ -74,7 +74,7 @@ export const useProviderConfig = (
     type,
     odfNamespace,
     systemInfo,
-    storageClientInfo,
+    hubS3Endpoints,
     isLoading,
     error,
   ]);

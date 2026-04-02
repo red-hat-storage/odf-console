@@ -1,6 +1,6 @@
 import {
   ODF_PROXY_ROOT_PATH,
-  EXTERNAL_ENDPOINT_PROXY_ROOT_PATH,
+  S3_ENDPOINT_PROXY_ROOT_PATH,
 } from '@odf/shared/constants/common';
 
 // Provider/Hub cluster
@@ -14,5 +14,5 @@ export const S3_LOCAL_ENDPOINT = 'http://localhost:6001';
 
 // Consumer/Client cluster
 export const CLIENT_NOOBAA_EXPOSED_AS = 'noobaaS3';
-export const getClientNoobaaS3ProxyPath = (clientUID: string) =>
-  `${EXTERNAL_ENDPOINT_PROXY_ROOT_PATH}/${clientUID}/${CLIENT_NOOBAA_EXPOSED_AS}`;
+export const getHubS3EndpointProxyPath = (uniqueIdentifier: string) =>
+  `${S3_ENDPOINT_PROXY_ROOT_PATH}/${uniqueIdentifier}/${CLIENT_NOOBAA_EXPOSED_AS}`;
