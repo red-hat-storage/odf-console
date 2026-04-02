@@ -1,0 +1,26 @@
+.mco-topology {
+  height: calc(100vh - 150px);
+  width: 100%;
+  background-color: var(--pf-v5-global--BackgroundColor--100);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  &__sidebar {
+    padding: var(--pf-v5-global--spacer--md);
+
+    &__section {
+      margin-bottom: var(--pf-v5-global--spacer--lg);
+
+      h3 {
+        margin-bottom: var(--pf-v5-global--spacer--sm);
+        font-weight: var(--pf-v5-global--FontWeight--bold);
+      }
+
+      p {
+        margin: 0;
+        color: var(--pf-v5-global--Color--100);
+      }
+    }
+  }
+}

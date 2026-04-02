@@ -1,0 +1,57 @@
+.edge-progression-overlay {
+  pointer-events: none;
+
+  &__foreign-object {
+    overflow: visible;
+  }
+
+  &__card {
+    pointer-events: all;
+    background: var(--pf-v6-global--BackgroundColor--100);
+    border: 2px solid var(--pf-v6-global--primary-color--100);
+    box-shadow: var(--pf-v6-global--BoxShadow--lg);
+    border-radius: var(--pf-v6-global--BorderRadius--sm);
+  }
+
+  &__title {
+    font-size: var(--pf-v6-global--FontSize--sm);
+    padding: var(--pf-v6-global--spacer--sm);
+    padding-bottom: 0;
+  }
+
+  &__app-name {
+    font-weight: var(--pf-v6-global--FontWeight--bold);
+    font-size: var(--pf-v6-global--FontSize--md);
+    margin-bottom: var(--pf-v6-global--spacer--xs);
+  }
+
+  &__action {
+    color: var(--pf-v6-global--Color--200);
+    font-size: var(--pf-v6-global--FontSize--sm);
+    margin-bottom: var(--pf-v6-global--spacer--xs);
+  }
+
+  &__progress {
+    font-size: var(--pf-v6-global--FontSize--sm);
+    color: var(--pf-v6-global--primary-color--100);
+    font-weight: var(--pf-v6-global--FontWeight--semi-bold);
+  }
+
+  &__body {
+    padding: var(--pf-v6-global--spacer--sm);
+    padding-top: var(--pf-v6-global--spacer--xs);
+  }
+
+  &__in-progress-icon {
+    animation: rotate-icon 2s linear infinite;
+  }
+}
+
+@keyframes rotate-icon {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

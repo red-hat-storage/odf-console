@@ -8,6 +8,7 @@ import { ADMIN_FLAG } from '../../constants';
 import { DRPolicyListPage } from '../drpolicy-list-page/drpolicy-list-page';
 import DRDashboard from '../mco-dashboard/disaster-recovery/dr-dashboard';
 import { ProtectedApplicationsListPage } from '../protected-applications/list-page';
+import TopologyView from '../topology/Topology';
 
 const DisasterRecovery: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -25,6 +26,11 @@ const DisasterRecovery: React.FC = () => {
             },
           ]
         : []),
+      {
+        href: 'topology',
+        name: t('Topology'),
+        component: TopologyView,
+      },
       {
         href: isAdmin ? 'policies' : '',
         name: t('Policies'),

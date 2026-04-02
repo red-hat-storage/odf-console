@@ -1,0 +1,14 @@
+.mco-topology-edge {
+  &--active-operation {
+    animation: pulse-edge 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-edge {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}

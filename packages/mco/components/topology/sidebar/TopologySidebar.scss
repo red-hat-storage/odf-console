@@ -1,0 +1,9 @@
+.mco-topology-sidebar__header {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: var(--pf-t--global--spacer--md);
+  margin-top: var(--pf-t--global--spacer--md);
+  margin-left: var(--pf-t--global--spacer--md);
+}

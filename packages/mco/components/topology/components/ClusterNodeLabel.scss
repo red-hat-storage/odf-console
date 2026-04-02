@@ -1,0 +1,33 @@
+.cluster-node-label {
+  pointer-events: none;
+  overflow: visible;
+
+  &__container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--pf-v5-global--spacer--xs);
+    pointer-events: none;
+    background-color: transparent;
+  }
+
+  &__text {
+    font-size: 13px;
+    color: var(--pf-v5-global--Color--100);
+    font-weight: var(--pf-v5-global--FontWeight--normal);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  &__actions {
+    pointer-events: all !important;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+    position: relative;
+
+    button {
+      pointer-events: all !important;
+    }
+  }
+}
