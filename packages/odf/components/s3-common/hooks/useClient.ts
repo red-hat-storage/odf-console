@@ -1,15 +1,64 @@
 import * as React from 'react';
 import { S3ProviderType } from '@odf/core/types';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { IamCommands, IAM_INTERNAL_ENDPOINT_PORT } from '@odf/shared/iam';
+import { IamCommands } from '@odf/shared/iam';
 import { S3Commands, S3_INTERNAL_ENDPOINT_PORT } from '@odf/shared/s3';
+import { S3VectorsCommands } from '@odf/shared/s3-vectors';
 import { SecretKind } from '@odf/shared/types';
 import type { HttpRequest } from '@smithy/types';
 import * as _ from 'lodash-es';
 import { ProviderConfig } from '../registry/s3-providers';
 import { ClientType } from '../types';
 
-type ClientCommandType = S3Commands | IamCommands;
+export type ClientCommandType = S3Commands | IamCommands | S3VectorsCommands;
+
+type S3ClientMapProps = {
+  s3Url: URL;
+  s3ConsolePath: string | undefined;
+  skipSignatureCalculation: boolean;
+  accessKeyId: string;
+  secretAccessKey: string;
+  region: string;
+  providerType: S3ProviderType;
+};
+
+const S3_CLIENT_MAP: Record<
+  ClientType,
+  (props: S3ClientMapProps) => ClientCommandType
+> = {
+  [ClientType.IAM]: (props) => {
+    const { s3Url, accessKeyId, secretAccessKey } = props;
+    return new IamCommands(s3Url.toString(), accessKeyId, secretAccessKey);
+  },
+  [ClientType.S3_VECTORS]: (props) => {
+    const { s3Url, accessKeyId, secretAccessKey, region } = props;
+    return new S3VectorsCommands(
+      s3Url.toString(),
+      accessKeyId,
+      secretAccessKey,
+      region
+    );
+  },
+  [ClientType.S3]: (props) => {
+    const {
+      s3Url,
+      accessKeyId,
+      secretAccessKey,
+      region,
+      s3ConsolePath,
+      skipSignatureCalculation,
+      providerType,
+    } = props;
+    return new S3Commands(
+      s3Url.toString(),
+      accessKeyId,
+      secretAccessKey,
+      region,
+      skipSignatureCalculation ? null : s3ConsolePath,
+      providerType
+    );
+  },
+};
 
 type CreateClientParams = {
   s3Url: URL | undefined;
@@ -48,11 +97,6 @@ const createClientFromEndpointConfig = (
     };
   }
 
-  const internalEndpointPort =
-    type === ClientType.IAM
-      ? IAM_INTERNAL_ENDPOINT_PORT
-      : S3_INTERNAL_ENDPOINT_PORT;
-
   // Middleware for proxy handling:
   // We must include the port in the host header as/if the proxy does (it's omitted
   // if the port is the protocol default port e.g. 443 for 'https').
@@ -64,7 +108,7 @@ const createClientFromEndpointConfig = (
     if (s3Url.protocol === 'https:') {
       request.headers['host'] = excludePortInSignature
         ? s3Url.hostname
-        : `${s3Url.hostname}:${internalEndpointPort}`;
+        : `${s3Url.hostname}:${S3_INTERNAL_ENDPOINT_PORT}`;
     }
     return next(args);
   };
@@ -80,34 +124,25 @@ const createClientFromEndpointConfig = (
   };
 
   try {
-    if (type === ClientType.IAM) {
-      const client = new IamCommands(
-        s3Url.toString(),
-        accessKeyId,
-        secretAccessKey
-      );
-      if (!skipSignatureCalculation) {
-        client.middlewareStack.add(buildMiddleware, { step: 'build' });
-        client.middlewareStack.add(finalizeMiddleware, {
-          step: 'finalizeRequest',
-        });
-      }
-      return { client, error: null };
-    }
-
-    const client = new S3Commands(
-      s3Url.toString(),
+    const mapProps: S3ClientMapProps = {
+      s3Url,
+      s3ConsolePath,
+      skipSignatureCalculation,
       accessKeyId,
       secretAccessKey,
       region,
-      skipSignatureCalculation ? null : s3ConsolePath,
-      providerType
-    );
+      providerType,
+    };
+    const client = S3_CLIENT_MAP[type](mapProps);
     if (!skipSignatureCalculation) {
-      client.middlewareStack.add(buildMiddleware, { step: 'build' });
-      client.middlewareStack.add(finalizeMiddleware, {
-        step: 'finalizeRequest',
-      });
+      (client.middlewareStack as S3Commands['middlewareStack']).add(
+        buildMiddleware,
+        { step: 'build' }
+      );
+      (client.middlewareStack as S3Commands['middlewareStack']).add(
+        finalizeMiddleware,
+        { step: 'finalizeRequest' }
+      );
     }
     return { client, error: null };
   } catch (err) {
