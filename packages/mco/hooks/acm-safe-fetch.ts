@@ -14,6 +14,11 @@ export const useACMSafeFetch: ACMSafeFetchProps = (
   const [loaded, setLoaded] = React.useState(false);
   const [response, setResponse] = React.useState<SearchResult>();
   React.useEffect(() => {
+    // Skip fetch if searchQuery is null/undefined
+    if (!searchQuery) {
+      setLoaded(true);
+      return;
+    }
     setLoaded(false);
     safeFetch({
       url: ACM_SEARCH_PROXY_ENDPOINT,
@@ -40,5 +45,5 @@ export const useACMSafeFetch: ACMSafeFetchProps = (
 };
 
 type ACMSafeFetchProps = (
-  searchQuery: SearchQuery
+  searchQuery: SearchQuery | null
 ) => [SearchResult, any, boolean];

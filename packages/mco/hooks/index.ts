@@ -4,3 +4,6 @@ export * from './mco-resources';
 export * from './protected-applications';
 export * from './acm-safe-fetch';
 export * from './subscription';
+export * from './useProtectedAppsByCluster';
+export * from './useDRPoliciesByClusterPair';
+export * from './useActiveDROperations';
