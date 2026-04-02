@@ -29,19 +29,15 @@ const convertCorsRuleToRuleState = (rule: CORSRule): RuleState => {
 
   if (_.isEmpty(rule)) return ruleState;
 
-  //name
   ruleState.name = rule.ID || '';
 
-  // origins
   if (isAllowAllConfig(rule.AllowedOrigins)) {
     ruleState.allowAllOrigins = true;
   }
   ruleState.allowedOrigins = rule.AllowedOrigins;
 
-  // methods
   ruleState.allowedMethods = rule.AllowedMethods as AllowedMethods[];
 
-  // headers
   if (!!rule.AllowedHeaders) {
     if (isAllowAllConfig(rule.AllowedHeaders)) {
       ruleState.allowAllHeaders = true;
@@ -49,12 +45,10 @@ const convertCorsRuleToRuleState = (rule: CORSRule): RuleState => {
     ruleState.allowedHeaders = rule.AllowedHeaders;
   }
 
-  // exposed headers
   if (!!rule.ExposeHeaders) {
     ruleState.exposedHeaders = rule.ExposeHeaders;
   }
 
-  // max preflight age
   if (!!rule.MaxAgeSeconds) {
     ruleState.maxAge = rule.MaxAgeSeconds;
   }

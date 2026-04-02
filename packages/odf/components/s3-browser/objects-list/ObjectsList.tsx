@@ -382,6 +382,7 @@ type ObjectsListProps = {
   listAllVersions: boolean;
   setListAllVersions: React.Dispatch<React.SetStateAction<boolean>>;
   allowVersioning: boolean;
+  blockDataPath?: boolean;
 };
 
 export const ObjectsList: React.FC<ObjectsListProps> = ({
@@ -390,6 +391,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
   listAllVersions,
   setListAllVersions,
   allowVersioning,
+  blockDataPath = false,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -519,6 +521,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
           closeObjectSidebar,
           showVersioning: listAllVersions,
           isVersioningEnabledOrSuspended: allowVersioning,
+          blockDataPath,
         }}
         emptyRowMessage={EmptyPage}
       />

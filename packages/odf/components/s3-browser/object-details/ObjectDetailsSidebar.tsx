@@ -68,6 +68,7 @@ type ObjectDetailsSidebarContentProps = {
   objectActions: React.MutableRefObject<IAction[]>;
   extraProps?: ExtraProps;
   showVersioning: boolean;
+  blockDataPath?: boolean;
 };
 
 type ObjectOverviewProps = {
@@ -84,6 +85,7 @@ type ObjectVersionsProps = {
   bucketName: string;
   extraProps: ExtraProps;
   foldersPath: string;
+  blockDataPath?: boolean;
 };
 
 const ItemHeading: React.FC<{ text: string }> = ({ text }) => (
@@ -165,6 +167,7 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
   bucketName,
   foldersPath,
   extraProps,
+  blockDataPath = false,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -231,6 +234,7 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
             bucketName,
             s3Client,
             foldersPath,
+            blockDataPath,
             // if object has only single version, display deletion status on the main list page instead of the sidebar
             // sidebar will close in this case as no objects/versions are left to display
             setDeleteResponse: hasOnlySingleVersion
@@ -373,7 +377,14 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
 
 const ObjectDetailsSidebarContent: React.FC<
   ObjectDetailsSidebarContentProps
-> = ({ closeSidebar, object, objectActions, extraProps, showVersioning }) => {
+> = ({
+  closeSidebar,
+  object,
+  objectActions,
+  extraProps,
+  showVersioning,
+  blockDataPath = false,
+}) => {
   const { t } = useCustomTranslation();
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -492,6 +503,7 @@ const ObjectDetailsSidebarContent: React.FC<
                 bucketName={bucketName}
                 foldersPath={foldersPath}
                 extraProps={extraProps}
+                blockDataPath={blockDataPath}
               />
             </Tab>
           </Tabs>
@@ -509,6 +521,7 @@ type ObjectDetailsSidebarProps = {
   extraProps?: ExtraProps;
   wrappedContent: React.ReactNode;
   showVersioning: boolean;
+  blockDataPath?: boolean;
 };
 
 export const ObjectDetailsSidebar: React.FC<ObjectDetailsSidebarProps> = ({
@@ -519,6 +532,7 @@ export const ObjectDetailsSidebar: React.FC<ObjectDetailsSidebarProps> = ({
   extraProps,
   wrappedContent,
   showVersioning,
+  blockDataPath = false,
 }) => {
   return (
     <Drawer isExpanded={isExpanded} position="right">
@@ -532,6 +546,7 @@ export const ObjectDetailsSidebar: React.FC<ObjectDetailsSidebarProps> = ({
                 objectActions={objectActions}
                 extraProps={extraProps}
                 showVersioning={showVersioning}
+                blockDataPath={blockDataPath}
               />
             )}
           </DrawerPanelContent>
