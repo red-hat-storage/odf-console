@@ -762,6 +762,16 @@
     }
   },
   {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/object-storage/:s3Provider/vector-buckets/:vectorBucketName/create-index"
+      ],
+      "exact": true,
+      "component": { "$codeRef": "createVectorIndex.default" }
+    }
+  },
+  {
     "type": "console.action/resource-provider",
     "properties": {
       "model": {
