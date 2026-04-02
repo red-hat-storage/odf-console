@@ -7,9 +7,35 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useK8sWatchResource: jest.fn(),
 }));
 
+jest.mock('./mco-resources', () => ({
+  getDRPlacementControlResourceObj: jest.fn(() => ({
+    kind: 'DRPlacementControl',
+    isList: true,
+  })),
+  getProtectedApplicationViewResourceObj: jest.fn(() => ({
+    kind: 'ProtectedApplicationView',
+    isList: true,
+  })),
+}));
+
+jest.mock('@odf/shared/selectors', () => ({
+  getName: jest.fn((obj) => obj?.metadata?.name),
+  getNamespace: jest.fn((obj) => obj?.metadata?.namespace),
+}));
+
+jest.mock('./useDRPoliciesByClusterPair', () => ({
+  createClusterPairKey: jest.fn((c1, c2) => [c1, c2].sort().join('::')),
+}));
+
 const mockUseK8sWatchResource = useK8sWatchResource as jest.MockedFunction<
   typeof useK8sWatchResource
 >;
+
+const createMockPAV = (drpcName: string, primaryCluster?: string) => ({
+  metadata: { name: `app-${drpcName}` },
+  spec: { drpcRef: { name: drpcName } },
+  status: { drInfo: { primaryCluster: primaryCluster || 'cluster1' } },
+});
 
 const createMockDRPC = (
   name: string,
@@ -30,11 +56,11 @@ const createMockDRPC = (
       placementRef: { name: 'placement-1', kind: 'Placement' },
       pvcSelector: {},
       preferredCluster: 'cluster1',
+      action: 'Relocate' as any,
     },
     status: {
       phase: Phase.Relocating,
       progression: Progression.WaitOnUserToCleanUp,
-      preferredDecision: { clusterName: 'cluster2' },
       actionStartTime: new Date().toISOString(),
     },
   };
@@ -48,7 +74,9 @@ describe('useActiveDROperations', () => {
 
   describe('Loading States', () => {
     it('should return loading state initially', () => {
-      mockUseK8sWatchResource.mockReturnValue([[], [], false, null, null]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[], false, null]) // PAVs
+        .mockReturnValueOnce([[], false, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -57,7 +85,9 @@ describe('useActiveDROperations', () => {
     });
 
     it('should return loaded when both resources are loaded', () => {
-      mockUseK8sWatchResource.mockReturnValue([[], [], true, null, null]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[], true, null]) // PAVs
+        .mockReturnValueOnce([[], true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -68,23 +98,27 @@ describe('useActiveDROperations', () => {
 
   describe('Active Operation Detection', () => {
     it('should detect active operation with progression', () => {
+      const mockPAV = createMockPAV('drpc-1', 'cluster1');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Failover' as any,
+            failoverCluster: 'cluster2',
+          },
           status: {
             phase: Phase.FailingOver,
             progression: Progression.WaitOnUserToCleanUp,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -93,22 +127,25 @@ describe('useActiveDROperations', () => {
     });
 
     it('should detect active operation in Initiating phase', () => {
+      const mockPAV = createMockPAV('drpc-1', 'cluster2');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Relocate' as any,
+          },
           status: {
             phase: Phase.Initiating,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -117,23 +154,19 @@ describe('useActiveDROperations', () => {
     });
 
     it('should ignore completed operations', () => {
+      const mockPAV = createMockPAV('drpc-1');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
           status: {
             phase: Phase.Relocated,
             progression: Progression.Completed,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -144,23 +177,26 @@ describe('useActiveDROperations', () => {
 
   describe('Cluster Pair Grouping', () => {
     it('should group operations by cluster pair', () => {
+      const mockPAV = createMockPAV('drpc-1', 'cluster1');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
-          spec: { preferredCluster: 'cluster1' },
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Failover' as any,
+            failoverCluster: 'cluster2',
+          },
           status: {
             phase: Phase.FailingOver,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -172,38 +208,53 @@ describe('useActiveDROperations', () => {
     });
 
     it('should group multiple operations for same cluster pair', () => {
+      const mockPAVs = [
+        createMockPAV('drpc-app1', 'cluster1'),
+        createMockPAV('drpc-app2', 'cluster1'),
+      ];
+
       const mockDRPCs = [
         createMockDRPC('drpc-app1', {
           metadata: {
             name: 'drpc-app1',
+            namespace: 'default',
             labels: { 'app.kubernetes.io/name': 'app1' },
           },
-          spec: { preferredCluster: 'cluster1' },
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Failover' as any,
+            failoverCluster: 'cluster2',
+          },
           status: {
             phase: Phase.FailingOver,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
         createMockDRPC('drpc-app2', {
           metadata: {
             name: 'drpc-app2',
+            namespace: 'default',
             labels: { 'app.kubernetes.io/name': 'app2' },
           },
-          spec: { preferredCluster: 'cluster1' },
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Failover' as any,
+            failoverCluster: 'cluster2',
+          },
           status: {
             phase: Phase.Relocating,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([mockPAVs, true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -214,24 +265,27 @@ describe('useActiveDROperations', () => {
   });
 
   describe('Source and Target Cluster Detection', () => {
-    it('should identify source cluster from spec.preferredCluster', () => {
+    it('should identify source cluster from PAV primaryCluster for failover', () => {
+      const mockPAV = createMockPAV('drpc-1', 'cluster1');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
-          spec: { preferredCluster: 'cluster1' },
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Failover' as any,
+            failoverCluster: 'cluster2',
+          },
           status: {
             phase: Phase.FailingOver,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -240,24 +294,27 @@ describe('useActiveDROperations', () => {
       expect(operation.sourceCluster).toBe('cluster1');
     });
 
-    it('should identify target cluster from status.preferredDecision', () => {
+    it('should identify target cluster from failoverCluster for failover', () => {
+      const mockPAV = createMockPAV('drpc-1', 'cluster1');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
-          spec: { preferredCluster: 'cluster1' },
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Failover' as any,
+            failoverCluster: 'cluster2',
+          },
           status: {
             phase: Phase.Relocating,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -268,53 +325,57 @@ describe('useActiveDROperations', () => {
   });
 
   describe('Operation Details', () => {
-    it('should extract application name from labels', () => {
+    it('should extract application name from PAV', () => {
+      const mockPAV = createMockPAV('drpc-1');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
-          metadata: {
-            name: 'drpc-1',
-            labels: { 'app.kubernetes.io/name': 'my-application' },
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Failover' as any,
+            failoverCluster: 'cluster2',
           },
           status: {
             phase: Phase.FailingOver,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
       const operation = Object.values(operationsMap)[0][0];
-      expect(operation.applicationName).toBe('my-application');
+      expect(operation.applicationName).toBe('app-drpc-1');
     });
 
     it('should include action, phase, and progression', () => {
+      const mockPAV = createMockPAV('drpc-1', 'cluster1');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Failover' as any,
+            failoverCluster: 'cluster2',
+          },
           status: {
             phase: Phase.FailingOver,
             progression: Progression.WaitOnUserToCleanUp,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -328,23 +389,26 @@ describe('useActiveDROperations', () => {
 
     it('should include actionStartTime when available', () => {
       const startTime = new Date().toISOString();
+      const mockPAV = createMockPAV('drpc-1', 'cluster2');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            action: 'Relocate' as any,
+          },
           status: {
             phase: Phase.Relocating,
             actionStartTime: startTime,
-            preferredDecision: { clusterName: 'cluster2' },
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -356,7 +420,9 @@ describe('useActiveDROperations', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty DRPC list', () => {
-      mockUseK8sWatchResource.mockReturnValue([[], [], true, null, null]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[], true, null]) // PAVs
+        .mockReturnValueOnce([[], true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
@@ -364,33 +430,39 @@ describe('useActiveDROperations', () => {
       expect(operationsMap).toEqual({});
     });
 
-    it('should handle DRPCs without preferredDecision', () => {
+    it('should handle DRPCs without action', () => {
+      const mockPAV = createMockPAV('drpc-1');
       const mockDRPCs = [
         createMockDRPC('drpc-1', {
+          spec: {
+            drPolicyRef: { name: 'dr-policy-1' },
+            placementRef: { name: 'placement-1', kind: 'Placement' },
+            pvcSelector: {},
+            preferredCluster: 'cluster1',
+            // No action specified
+          },
           status: {
             phase: Phase.Initiating,
-            // No preferredDecision
           },
         }),
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([
-        mockDRPCs,
-        [],
-        true,
-        null,
-        null,
-      ]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[mockPAV], true, null]) // PAVs
+        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
 
       const { result } = renderHook(() => useActiveDROperations());
 
-      // Should handle gracefully
+      // Should handle gracefully - no operations without action
       expect(result.current).toBeDefined();
+      expect(Object.keys(result.current[0])).toHaveLength(0);
     });
 
     it('should handle error state', () => {
       const mockError = new Error('Failed to watch DRPCs');
-      mockUseK8sWatchResource.mockReturnValue([[], [], false, mockError, null]);
+      mockUseK8sWatchResource
+        .mockReturnValueOnce([[], false, null]) // PAVs
+        .mockReturnValueOnce([[], false, mockError]); // DRPCs with error
 
       const { result } = renderHook(() => useActiveDROperations());
 
