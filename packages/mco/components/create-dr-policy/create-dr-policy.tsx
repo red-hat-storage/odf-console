@@ -2,13 +2,17 @@ import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
 import {
   ACM_DEFAULT_DOC_VERSION,
+  DOC_VERSION,
+  DRClusterModel,
   DRPolicyModel,
   MirrorPeerModel,
+  tpsDoc,
   useDocVersion,
 } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ExternalLink, referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -40,12 +44,18 @@ import {
   ReplicationType,
 } from '../../constants';
 import '../../style.scss';
-import { MirrorPeerKind } from '../../types';
-import { S3Details } from './add-s3-bucket-details/s3-bucket-details-form';
+import { DRClusterKind, MirrorPeerKind, S3StoreProfile } from '../../types';
+import { fetchRamenS3Profiles } from '../../utils/tps-payload-creator';
+import {
+  ClusterS3BucketDetailsForm,
+  S3Details,
+} from './add-s3-bucket-details/s3-bucket-details-form';
 import './create-dr-policy.scss';
 import { SelectClusterList } from './select-cluster-list';
+import { SelectReplicationBackend } from './select-replication-backend/select-replication-backend';
 import { SelectReplicationType } from './select-replication-type';
 import { SelectedClusterValidation } from './selected-cluster-validator';
+import ThirdPartyStorageWarning from './third-party-storage-alert';
 import { createPolicyPromises } from './utils/k8s-utils';
 import {
   DRPolicyAction,
@@ -138,7 +148,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   );
 };
 
-/* const convertS3ProfileToDetails = (
+const convertS3ProfileToDetails = (
   profile: S3StoreProfile,
   clusterName: string
 ): S3Details => {
@@ -151,7 +161,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     region: profile.s3Region || '',
     s3ProfileName: profile.s3ProfileName || '',
   };
-}; */
+};
 
 const CreateDRPolicy: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
@@ -171,19 +181,19 @@ const CreateDRPolicy: React.FC<{}> = () => {
       namespaced: false,
     });
 
-  /*  const [drClusters, drClustersLoaded, drClustersLoadError] =
+  const [drClusters, drClustersLoaded, drClustersLoadError] =
     useK8sWatchResource<DRClusterKind[]>({
       kind: referenceForModel(DRClusterModel),
       isList: true,
       namespaced: false,
-}); */
+    });
 
   const [csv] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
-  /*   const selectedDRClusters = React.useMemo(() => {
+  const selectedDRClusters = React.useMemo(() => {
     if (
       state.selectedClusters.length === MAX_ALLOWED_CLUSTERS &&
       drClustersLoaded &&
@@ -264,7 +274,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
     };
 
     loadS3ProfileDetails();
-  }, [selectedDRClusters, dispatch, state.replicationBackend, t]); */
+  }, [selectedDRClusters, dispatch, state.replicationBackend, t]);
 
   const onCreate = async () => {
     try {
@@ -286,10 +296,11 @@ const CreateDRPolicy: React.FC<{}> = () => {
   const loaded = mirrorPeerLoaded;
   const loadedError = mirrorPeerLoadError;
 
-  /* const clusterNames = React.useMemo(
+  const clusterNames = React.useMemo(
     () => state.selectedClusters.map(getName),
     [state.selectedClusters]
-  ); */
+  );
+
   const acmDocVersion = useDocVersion({
     defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
     specName: ACM_OPERATOR_SPEC_NAME,
@@ -369,7 +380,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
               </FormGroup>
               {state.isClusterSelectionValid && (
                 <>
-                  {/* {!state.selectedClustersHaveODF && (
+                  {!state.selectedClustersHaveODF && (
                     <FormGroup
                       fieldId="select-backend"
                       label={t('Select replication')}
@@ -390,8 +401,8 @@ const CreateDRPolicy: React.FC<{}> = () => {
                         selectedKey={state.replicationBackend}
                       />
                     </FormGroup>
-                  )} */}
-                  {/* {!state.selectedClustersHaveODF &&
+                  )}
+                  {!state.selectedClustersHaveODF &&
                     state.replicationBackend === BackendType.ThirdParty && (
                       <>
                         <ThirdPartyStorageWarning
@@ -419,7 +430,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
                           />
                         </FormGroup>
                       </>
-                    )} */}
+                    )}
 
                   <SelectReplicationType
                     selectedClusters={state.selectedClusters}
