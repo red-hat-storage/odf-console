@@ -1,6 +1,5 @@
 import { getOCSRequestData, OCSRequestData } from '@odf/core/components/utils';
 import { DeploymentType, BackingStorageType } from '@odf/core/types';
-import { isFlexibleScaling } from '@odf/core/utils';
 import { Payload } from '@odf/odf-plugin-sdk/extensions';
 import {
   DEFAULT_DEVICECLASS,
@@ -140,6 +139,8 @@ export const createStorageCluster = async (
     nodes,
     backingStorage,
     advancedSettings,
+    optionalSettings,
+    flexibleScaling,
   } = state;
   const { capacity, enableArbiter, arbiterLocation, pvCount } =
     capacityAndNodes;
@@ -153,20 +154,15 @@ export const createStorageCluster = async (
     externalPostgres,
     isDbBackup,
     dbBackup,
-    enableForcefulDeployment,
-  } = advancedSettings;
+  } = optionalSettings;
+  const { useErasureCoding, erasureCodingSchema, enableForcefulDeployment } =
+    advancedSettings;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 
   const storage = (
     isNoProvisioner ? DefaultRequestSize.BAREMETAL : capacity
   ) as string;
-
-  const flexibleScaling = isFlexibleScaling(
-    nodes,
-    isNoProvisioner,
-    enableArbiter
-  );
 
   const isMCG = deployment === DeploymentType.MCG;
   const isNFSEnabled =
@@ -213,6 +209,9 @@ export const createStorageCluster = async (
     isDbBackup,
     dbBackup,
     enableForcefulDeployment,
+    useErasureCoding: flexibleScaling && useErasureCoding,
+    erasureCodingSchema:
+      flexibleScaling && useErasureCoding ? erasureCodingSchema : undefined,
   });
 
   return k8sCreate({ model: StorageClusterModel, data: payload });

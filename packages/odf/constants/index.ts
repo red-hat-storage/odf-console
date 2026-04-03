@@ -1,4 +1,5 @@
 export * from './common';
+export * from './erasure-coding';
 export * from './kms';
 export * from './lso';
 export * from './network';

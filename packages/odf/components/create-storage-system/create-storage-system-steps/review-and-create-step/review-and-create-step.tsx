@@ -36,9 +36,7 @@ export const ReviewItem = ({ children, title }) => (
 
 export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   state,
-  // any internal or external exists
   hasOCS,
-  // both internal and external exists
   hasMultipleClusters,
   supportedExternalStorage,
 }) => {
@@ -51,7 +49,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     createLocalVolumeSet,
     backingStorage,
     advancedSettings,
+    optionalSettings,
     connectionDetails,
+    flexibleScaling,
     createStorageClass,
     nodes,
   } = state;
@@ -59,18 +59,17 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
   const { deployment, externalStorage, type } = backingStorage;
+  const { useErasureCoding, erasureCodingSchema, enableForcefulDeployment } =
+    advancedSettings;
   const {
     isDbBackup,
     enableNFS,
     isRBDStorageClassDefault,
-    enableForcefulDeployment,
-  } = advancedSettings;
+    useExternalPostgres,
+  } = optionalSettings;
 
-  // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
-  // External Red Hat Ceph Storage deployment
   const isRhcs = !_.isEmpty(connectionDetails);
-  // External IBM deployment without ODF
   const isStandaloneExternal = hasOCS && !_.isEmpty(createStorageClass);
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
@@ -98,9 +97,12 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     : t('Disabled');
   const isDbBackupEnabled = isDbBackup ? t('Enabled') : t('Disabled');
   const isVirtualizeStorageClassDefault =
-    advancedSettings.isVirtualizeStorageClassDefault
+    optionalSettings.isVirtualizeStorageClassDefault
       ? t('Enabled')
       : t('Disabled');
+  const useExternalPostgresStatus = useExternalPostgres
+    ? t('Enabled')
+    : t('Disabled');
   const forcefulDeploymentStatus = enableForcefulDeployment
     ? t('Enabled')
     : t('Disabled');
@@ -138,7 +140,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
           </ListItem>
         )}
       </ReviewItem>
-      <ReviewItem title={t('Advanced settings')}>
+      <ReviewItem title={t('Optional settings')}>
         {deployment === DeploymentType.FULL &&
           type !== BackingStorageType.EXTERNAL && (
             <ListItem>
@@ -167,6 +169,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             </ListItem>
           </>
         )}
+        {!hasOCS && (
+          <ListItem>
+            {t('Use external PostgreSQL: {{useExternalPostgresStatus}}', {
+              useExternalPostgresStatus,
+            })}
+          </ListItem>
+        )}
         {isDbBackup && (
           <ListItem>
             {t('Automatic backup: {{isDbBackupEnabled}}', {
@@ -174,14 +183,30 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             })}
           </ListItem>
         )}
-        {enableForcefulDeployment && (
-          <ListItem>
-            {t('Forceful deployment: {{forcefulDeploymentStatus}}', {
-              forcefulDeploymentStatus,
-            })}
-          </ListItem>
-        )}
       </ReviewItem>
+      {(enableForcefulDeployment ||
+        (useErasureCoding && erasureCodingSchema && flexibleScaling)) && (
+        <ReviewItem title={t('Advanced settings')}>
+          {enableForcefulDeployment && (
+            <ListItem>
+              {t('Forceful deployment: {{forcefulDeploymentStatus}}', {
+                forcefulDeploymentStatus,
+              })}
+            </ListItem>
+          )}
+          {useErasureCoding && erasureCodingSchema && flexibleScaling && (
+            <ListItem>
+              {t(
+                'Erasure coding: {{k}} + {{m}} ( k = {{k}} , m = {{m}} ) for Block (RBD), File (Ceph FS), and Object (RGW)',
+                {
+                  k: erasureCodingSchema.k,
+                  m: erasureCodingSchema.m,
+                }
+              )}
+            </ListItem>
+          )}
+        </ReviewItem>
+      )}
       {!isMCG && !isRhcs && !isStandaloneExternal && (
         <ReviewItem title={t('Capacity and nodes')}>
           <ListItem>

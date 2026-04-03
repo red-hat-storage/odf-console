@@ -7,6 +7,7 @@ import { WizardStepProps } from '@patternfly/react-core';
 import { Steps, StepsName } from '../../constants';
 import { BackingStorageType, DeploymentType } from '../../types';
 import {
+  AdvancedSettings,
   CapacityAndNodes,
   CreateStorageClass,
   ReviewAndCreate,
@@ -38,11 +39,17 @@ export const createSteps = (
     nodes,
     createLocalVolumeSet,
     connectionDetails,
+    flexibleScaling,
   } = state;
   const { systemNamespace, externalStorage, deployment } = backingStorage;
   const { encryption, kms } = securityAndNetwork;
 
   const isMCG = deployment === DeploymentType.MCG;
+  const nodeCount = nodes?.length ?? 0;
+
+  const includeAdvancedSettingsStep =
+    backingStorage.type === BackingStorageType.LOCAL_DEVICES ||
+    (!isMCG && flexibleScaling);
 
   const commonSteps = {
     capacityAndNodes: {
@@ -56,6 +63,21 @@ export const createSteps = (
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
           systemNamespace={systemNamespace}
+          flexibleScaling={flexibleScaling}
+        />
+      ),
+    },
+    advancedSettings: {
+      name: StepsName(t)[Steps.AdvancedSettings],
+      component: (
+        <AdvancedSettings
+          state={state.advancedSettings}
+          dispatch={dispatch}
+          deployment={deployment}
+          backingStorageType={backingStorage.type}
+          nodeCount={nodeCount}
+          capacity={capacityAndNodes.capacity}
+          flexibleScaling={flexibleScaling}
         />
       ),
     },
@@ -96,35 +118,6 @@ export const createSteps = (
       ),
     },
   };
-
-  const rhcsExternalProviderSteps: (Pick<WizardStepProps, 'id' | 'name'> & {
-    component: React.ReactElement;
-    canJumpTo: boolean;
-  })[] = [
-    {
-      name: StepsName(t)[Steps.SecurityAndNetwork],
-      canJumpTo: stepIdReached >= 3,
-      id: 3,
-      component: (
-        <SecurityAndNetwork
-          securityAndNetworkState={securityAndNetwork}
-          dispatch={dispatch}
-          infraType={infraType}
-          isExternal={backingStorage.type === BackingStorageType.EXTERNAL}
-          connectionDetailState={connectionDetails}
-          externalStorage={externalStorage}
-          supportedExternalStorage={supportedExternalStorage}
-          systemNamespace={systemNamespace}
-        />
-      ),
-    },
-    {
-      name: StepsName(t)[Steps.ReviewAndCreate],
-      canJumpTo: stepIdReached >= 4,
-      id: 4,
-      ...commonSteps.reviewAndCreate,
-    },
-  ];
 
   const nonRhcsExternalProviderStep: Pick<WizardStepProps, 'id' | 'name'> & {
     component: React.ReactElement;
@@ -167,6 +160,25 @@ export const createSteps = (
   switch (backingStorage.type) {
     case BackingStorageType.EXISTING:
       if (isMCG) {
+        if (includeAdvancedSettingsStep) {
+          return [
+            {
+              id: 3,
+              canJumpTo: stepIdReached >= 3,
+              ...commonSteps.advancedSettings,
+            },
+            {
+              id: 4,
+              canJumpTo: stepIdReached >= 4,
+              ...commonSteps.security,
+            },
+            {
+              id: 5,
+              canJumpTo: stepIdReached >= 5,
+              ...commonSteps.reviewAndCreate,
+            },
+          ];
+        }
         return [
           {
             id: 3,
@@ -179,7 +191,8 @@ export const createSteps = (
             ...commonSteps.reviewAndCreate,
           },
         ];
-      } else
+      }
+      if (includeAdvancedSettingsStep) {
         return [
           {
             id: 3,
@@ -189,26 +202,104 @@ export const createSteps = (
           {
             id: 4,
             canJumpTo: stepIdReached >= 4,
-            ...commonSteps.securityAndNetwork,
+            ...commonSteps.advancedSettings,
           },
           {
             id: 5,
             canJumpTo: stepIdReached >= 5,
+            ...commonSteps.securityAndNetwork,
+          },
+          {
+            id: 6,
+            canJumpTo: stepIdReached >= 6,
             ...commonSteps.reviewAndCreate,
           },
         ];
+      }
+      return [
+        {
+          id: 3,
+          canJumpTo: stepIdReached >= 3,
+          ...commonSteps.capacityAndNodes,
+        },
+        {
+          id: 4,
+          canJumpTo: stepIdReached >= 4,
+          ...commonSteps.securityAndNetwork,
+        },
+        {
+          id: 5,
+          canJumpTo: stepIdReached >= 5,
+          ...commonSteps.reviewAndCreate,
+        },
+      ];
     case BackingStorageType.LOCAL_DEVICES:
       if (isMCG) {
+        if (includeAdvancedSettingsStep) {
+          return [
+            createLocalVolumeSetStep,
+            {
+              id: 4,
+              canJumpTo: stepIdReached >= 4,
+              ...commonSteps.capacityAndNodes,
+            },
+            {
+              id: 5,
+              canJumpTo: stepIdReached >= 5,
+              ...commonSteps.advancedSettings,
+            },
+            {
+              id: 6,
+              canJumpTo: stepIdReached >= 6,
+              ...commonSteps.security,
+            },
+            {
+              id: 7,
+              canJumpTo: stepIdReached >= 7,
+              ...commonSteps.reviewAndCreate,
+            },
+          ];
+        }
         return [
           createLocalVolumeSetStep,
           {
             id: 4,
             canJumpTo: stepIdReached >= 4,
-            ...commonSteps.security,
+            ...commonSteps.capacityAndNodes,
           },
           {
             id: 5,
             canJumpTo: stepIdReached >= 5,
+            ...commonSteps.security,
+          },
+          {
+            id: 6,
+            canJumpTo: stepIdReached >= 6,
+            ...commonSteps.reviewAndCreate,
+          },
+        ];
+      }
+      if (includeAdvancedSettingsStep) {
+        return [
+          createLocalVolumeSetStep,
+          {
+            id: 4,
+            canJumpTo: stepIdReached >= 4,
+            ...commonSteps.capacityAndNodes,
+          },
+          {
+            id: 5,
+            canJumpTo: stepIdReached >= 5,
+            ...commonSteps.advancedSettings,
+          },
+          {
+            id: 6,
+            canJumpTo: stepIdReached >= 6,
+            ...commonSteps.securityAndNetwork,
+          },
+          {
+            id: 7,
+            canJumpTo: stepIdReached >= 7,
             ...commonSteps.reviewAndCreate,
           },
         ];
@@ -216,60 +307,177 @@ export const createSteps = (
       return [
         createLocalVolumeSetStep,
         {
+          id: 4,
           canJumpTo: stepIdReached >= 4,
           ...commonSteps.capacityAndNodes,
-          id: 4,
         },
         {
-          canJumpTo: stepIdReached >= 5,
-          name: StepsName(t)[Steps.SecurityAndNetwork],
-          ...commonSteps.securityAndNetwork,
           id: 5,
+          canJumpTo: stepIdReached >= 5,
+          ...commonSteps.securityAndNetwork,
         },
         {
-          canJumpTo: stepIdReached >= 6,
-          name: StepsName(t)[Steps.ReviewAndCreate],
-          ...commonSteps.reviewAndCreate,
           id: 6,
+          canJumpTo: stepIdReached >= 6,
+          ...commonSteps.reviewAndCreate,
         },
       ];
     case BackingStorageType.EXTERNAL:
       if (externalStorage === StorageClusterModel.kind) {
-        return rhcsExternalProviderSteps;
+        if (includeAdvancedSettingsStep) {
+          return [
+            {
+              id: 3,
+              canJumpTo: stepIdReached >= 3,
+              ...commonSteps.advancedSettings,
+            },
+            {
+              name: StepsName(t)[Steps.SecurityAndNetwork],
+              canJumpTo: stepIdReached >= 4,
+              id: 4,
+              component: (
+                <SecurityAndNetwork
+                  securityAndNetworkState={securityAndNetwork}
+                  dispatch={dispatch}
+                  infraType={infraType}
+                  isExternal={
+                    backingStorage.type === BackingStorageType.EXTERNAL
+                  }
+                  connectionDetailState={connectionDetails}
+                  externalStorage={externalStorage}
+                  supportedExternalStorage={supportedExternalStorage}
+                  systemNamespace={systemNamespace}
+                />
+              ),
+            },
+            {
+              name: StepsName(t)[Steps.ReviewAndCreate],
+              canJumpTo: stepIdReached >= 5,
+              id: 5,
+              ...commonSteps.reviewAndCreate,
+            },
+          ];
+        }
+        return [
+          {
+            name: StepsName(t)[Steps.SecurityAndNetwork],
+            canJumpTo: stepIdReached >= 3,
+            id: 3,
+            component: (
+              <SecurityAndNetwork
+                securityAndNetworkState={securityAndNetwork}
+                dispatch={dispatch}
+                infraType={infraType}
+                isExternal={backingStorage.type === BackingStorageType.EXTERNAL}
+                connectionDetailState={connectionDetails}
+                externalStorage={externalStorage}
+                supportedExternalStorage={supportedExternalStorage}
+                systemNamespace={systemNamespace}
+              />
+            ),
+          },
+          {
+            name: StepsName(t)[Steps.ReviewAndCreate],
+            canJumpTo: stepIdReached >= 4,
+            id: 4,
+            ...commonSteps.reviewAndCreate,
+          },
+        ];
       }
       if (!hasOCS) {
-        return isMCG
-          ? [
+        if (isMCG) {
+          if (includeAdvancedSettingsStep) {
+            return [
               nonRhcsExternalProviderStep,
               {
                 id: 4,
                 canJumpTo: stepIdReached >= 4,
+                ...commonSteps.advancedSettings,
+              },
+              {
+                id: 5,
+                canJumpTo: stepIdReached >= 5,
                 ...commonSteps.security,
               },
               {
-                id: 5,
-                canJumpTo: stepIdReached >= 5,
-                ...commonSteps.reviewAndCreate,
-              },
-            ]
-          : [
-              nonRhcsExternalProviderStep,
-              {
-                canJumpTo: stepIdReached >= 4,
-                id: 4,
-                ...commonSteps.capacityAndNodes,
-              },
-              {
-                canJumpTo: stepIdReached >= 5,
-                id: 5,
-                ...commonSteps.securityAndNetwork,
-              },
-              {
-                canJumpTo: stepIdReached >= 6,
                 id: 6,
+                canJumpTo: stepIdReached >= 6,
                 ...commonSteps.reviewAndCreate,
               },
             ];
+          }
+          return [
+            nonRhcsExternalProviderStep,
+            {
+              id: 4,
+              canJumpTo: stepIdReached >= 4,
+              ...commonSteps.security,
+            },
+            {
+              id: 5,
+              canJumpTo: stepIdReached >= 5,
+              ...commonSteps.reviewAndCreate,
+            },
+          ];
+        }
+        if (includeAdvancedSettingsStep) {
+          return [
+            nonRhcsExternalProviderStep,
+            {
+              id: 4,
+              canJumpTo: stepIdReached >= 4,
+              ...commonSteps.capacityAndNodes,
+            },
+            {
+              id: 5,
+              canJumpTo: stepIdReached >= 5,
+              ...commonSteps.advancedSettings,
+            },
+            {
+              id: 6,
+              canJumpTo: stepIdReached >= 6,
+              ...commonSteps.securityAndNetwork,
+            },
+            {
+              id: 7,
+              canJumpTo: stepIdReached >= 7,
+              ...commonSteps.reviewAndCreate,
+            },
+          ];
+        }
+        return [
+          nonRhcsExternalProviderStep,
+          {
+            id: 4,
+            canJumpTo: stepIdReached >= 4,
+            ...commonSteps.capacityAndNodes,
+          },
+          {
+            id: 5,
+            canJumpTo: stepIdReached >= 5,
+            ...commonSteps.securityAndNetwork,
+          },
+          {
+            id: 6,
+            canJumpTo: stepIdReached >= 6,
+            ...commonSteps.reviewAndCreate,
+          },
+        ];
+      }
+      if (includeAdvancedSettingsStep) {
+        return [
+          nonRhcsExternalProviderStep,
+          {
+            id: 4,
+            canJumpTo: stepIdReached >= 4,
+            ...commonSteps.advancedSettings,
+          },
+          {
+            canJumpTo: stepIdReached >= 5,
+            id: 5,
+            ...commonSteps.reviewAndCreate,
+          },
+        ];
       }
       return [
         nonRhcsExternalProviderStep,
