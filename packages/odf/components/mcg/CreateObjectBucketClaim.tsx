@@ -367,11 +367,13 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
 type CreateOBCProps = {
   className?: string;
   showNamespaceSelector?: boolean;
+  formFooter?: React.ReactNode;
 };
 
 export const CreateOBC: React.FC<CreateOBCProps> = ({
   className,
   showNamespaceSelector = false,
+  formFooter,
 }) => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
@@ -545,6 +547,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
             title={t('Address form errors to proceed')}
           />
         )}
+        {formFooter}
         <ButtonBar errorMessage={state.error} inProgress={state.progress}>
           <ActionGroup className="pf-v6-c-form">
             <Button
