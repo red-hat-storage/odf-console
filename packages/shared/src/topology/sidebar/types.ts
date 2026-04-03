@@ -5,3 +5,11 @@ export type AlertsResponse = {
   loaded: boolean;
   loadError: object;
 };
+
+export type OsdInformation = {
+  osdID: string;
+  deviceClass: string;
+  osdIP: string;
+  nodeIP: string;
+  podName: string;
+};

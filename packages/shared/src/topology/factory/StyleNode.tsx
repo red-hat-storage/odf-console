@@ -1,4 +1,8 @@
 import * as React from 'react';
+import {
+  STEP_INTO_EVENT,
+  STEP_TO_OSD_INFORMATION,
+} from '@odf/core/components/topology/constants';
 import { DeploymentModel, NodeModel } from '@odf/shared/models';
 import { getUID } from '@odf/shared/selectors';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk';
@@ -118,7 +122,8 @@ const renderDecorator = (
     y: number;
   },
   tooltip?: string,
-  onClick?: any
+  onClick?: any,
+  children?: React.ReactNode
 ): React.ReactNode => {
   const { x, y } = getShapeDecoratorCenter
     ? getShapeDecoratorCenter(quadrant, element)
@@ -141,7 +146,9 @@ const renderDecorator = (
         showBackground
         icon={icon}
         onClick={onClick}
-      />
+      >
+        {children}
+      </Decorator>
     </>
   );
 };
@@ -149,7 +156,8 @@ const renderDecorator = (
 const renderDecorators = (
   element: Node,
   data: any,
-  decoratorRef: React.RefObject<SVGGElement>,
+  stepIntoDecoratorRef: React.RefObject<SVGGElement>,
+  countDecoratorRef: React.RefObject<SVGGElement>,
   t: TFunction<string>,
   getShapeDecoratorCenter?: (
     quadrant: TopologyQuadrant,
@@ -157,15 +165,23 @@ const renderDecorators = (
   ) => {
     x: number;
     y: number;
-  }
+  },
+  osdCount?: number
 ): React.ReactNode => {
   if (!data.showDecorators) {
     return null;
   }
   const onStepOntoClick = () => {
-    element.getController().fireEvent('STEP_INTO_EVENT', {
+    element.getController().fireEvent(STEP_INTO_EVENT, {
       ...data,
       id: element.getId(),
+    });
+  };
+  const onStepToOSDInformationClick = () => {
+    element.getController().fireEvent(STEP_TO_OSD_INFORMATION, {
+      ...data,
+      id: element.getId(),
+      element,
     });
   };
 
@@ -176,11 +192,33 @@ const renderDecorators = (
           element,
           TopologyQuadrant.lowerRight,
           <LevelDownAltIcon />,
-          decoratorRef,
+          stepIntoDecoratorRef,
           getShapeDecoratorCenter,
           t('Enter node'),
           onStepOntoClick
         )}
+      {renderDecorator(
+        element,
+        TopologyQuadrant.upperRight,
+        null,
+        countDecoratorRef,
+        getShapeDecoratorCenter,
+        osdCount?.toString(),
+        onStepToOSDInformationClick,
+        <text
+          x="0"
+          y="0"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{
+            fill: 'var(--pf-v5-global--Color--100)',
+            fontSize: '10px',
+            fontWeight: 'bold',
+          }}
+        >
+          {osdCount?.toString()}
+        </text>
+      )}
     </>
   );
 };
@@ -195,7 +233,8 @@ const StyleNode: React.FunctionComponent<StyleNodeProps> = ({
   onHideCreateConnector,
   ...rest
 }) => {
-  const decoratorRef = React.useRef<SVGGElement>();
+  const stepIntoDecoratorRef = React.useRef<SVGGElement>();
+  const countDecoratorRef = React.useRef<SVGGElement>();
 
   const data = element.getData();
   const controller = useVisualizationController();
@@ -294,9 +333,11 @@ const StyleNode: React.FunctionComponent<StyleNodeProps> = ({
             renderDecorators(
               element,
               passedData,
-              decoratorRef,
+              stepIntoDecoratorRef,
+              countDecoratorRef,
               t,
-              rest.getShapeDecoratorCenter
+              rest.getShapeDecoratorCenter,
+              passedData.osdCount
             )
           }
           {...(highlightNode ? { selected: true } : {})}
