@@ -1,6 +1,15 @@
 import { ResourceProfile } from '@odf/core/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
+export type ErasureCodedPoolSpec = {
+  failureDomain?: string;
+  deviceClass?: string;
+  erasureCoded: {
+    dataChunks: number;
+    codingChunks: number;
+  };
+};
+
 export type DataPool = {
   compressionMode?: string;
   mirroring?: {
@@ -10,7 +19,7 @@ export type DataPool = {
   replicated?: {
     size: number;
   };
-};
+} & Partial<ErasureCodedPoolSpec>;
 
 export enum StorageClusterPhase {
   Ready = 'Ready',
@@ -48,12 +57,23 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephBlockPools?: {
         defaultStorageClass?: boolean;
         defaultVirtualizationStorageClass?: boolean;
+        erasureCodedMetadataPool?: string;
+        poolSpec?: {
+          failureDomain?: string;
+          deviceClass?: string;
+          erasureCoded: {
+            dataChunks: number;
+            codingChunks: number;
+          };
+        };
       };
       cephFilesystems?: {
         additionalDataPools?: DataPool[];
+        defaultStorageClassDataPoolName?: string;
       };
       cephObjectStores?: {
-        hostNetwork: boolean;
+        hostNetwork?: boolean;
+        dataPoolSpec?: ErasureCodedPoolSpec;
       };
     };
     storageDeviceSets?: DeviceSet[];
