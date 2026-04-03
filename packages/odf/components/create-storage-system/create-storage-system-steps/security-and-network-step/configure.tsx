@@ -29,6 +29,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   isMultusAcknowledged,
   setIsMultusAcknowledged,
   nodes = [],
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const isFDF = useFlag(FDF_FLAG);
@@ -75,6 +76,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
               'Use the host network to allow external access, support custom networking, or connect additional clusters to the storage provider. If no networks are specified, the default network will be used.'
             )}
             onChange={() => setNetworkType(NetworkType.HOST)}
+            isDisabled={isTNFEnabled}
             value={NetworkType.MULTUS}
             id={NetworkType.MULTUS}
           />
@@ -103,6 +105,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           networkType={networkType}
           isMultusAcknowledged={isMultusAcknowledged}
           setIsMultusAcknowledged={setIsMultusAcknowledged}
+          isTNFEnabled={isTNFEnabled}
         />
       ) : (
         isFDF && (
@@ -149,4 +152,5 @@ type NetworkFormGroupProps = {
   isMultusAcknowledged: boolean;
   setIsMultusAcknowledged: (val: boolean) => void;
   nodes?: WizardState['nodes'];
+  isTNFEnabled: boolean;
 };

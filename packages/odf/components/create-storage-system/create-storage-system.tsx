@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { pvResource } from '@odf/core/resources';
 import {
   BackingStorageType,
   DeploymentType,
@@ -9,13 +10,21 @@ import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
 } from '@odf/odf-plugin-sdk/extensions';
-import { useK8sList } from '@odf/shared';
-import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
+import {
+  ConfigMapKind,
+  K8sResourceKind,
+  StorageClassResourceKind,
+  useK8sList,
+} from '@odf/shared';
+import { DEFAULT_INFRASTRUCTURE, tnfHomePage } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
+  ConfigMapModel,
   CustomResourceDefinitionModel,
+  DaemonSetModel,
   InfrastructureModel,
   NamespaceModel,
+  StorageClassModel,
   StorageClusterModel,
 } from '@odf/shared/models';
 import {
@@ -25,15 +34,29 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import {
+  K8sResourceCommon,
   useK8sWatchResource,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
+import ExclamationCircleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon';
 import * as _ from 'lodash-es';
 import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
-import { EmptyStateBody, Wizard, WizardStep } from '@patternfly/react-core';
+import {
+  Button,
+  ButtonVariant,
+  EmptyStateActions,
+  EmptyStateBody,
+  EmptyStateFooter,
+  Wizard,
+  WizardStep,
+} from '@patternfly/react-core';
 import { EmptyState, Spinner } from '@patternfly/react-core';
 import { CREATE_SS_PAGE_URL, Steps, StepsName } from '../../constants';
-import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
+import {
+  hasAnyExternalOCS,
+  hasAnyInternalOCS,
+  hasAtLeastTwoAvailablePVsOnDistinctNodes,
+} from '../../utils';
 import { createSteps } from './create-steps';
 import {
   BackingStorage,
@@ -65,6 +88,154 @@ const useIsStorageClusterCRDPresent = (): boolean => {
     crdsLoaded && _.isEmpty(crdsError) && storageClusterCRD.length > 0;
 
   return isStorageClusterCRDPresent;
+};
+
+/**
+ * Custom hook to check if two nodes fencing is enabled and perform validations
+ */
+const useTNFValidation = (): {
+  isTNFEnabled: boolean;
+  isTNFValidationLoading: boolean;
+  isTNFValidated: boolean;
+} => {
+  const LOCAL_STORAGE_SC = 'local-storage';
+
+  const [infra, infraLoaded, infraLoadError] = useK8sGet<InfrastructureKind>(
+    InfrastructureModel,
+    DEFAULT_INFRASTRUCTURE
+  );
+
+  const [drbdAutostartDaemonSet, drbdAutostartLoaded, drbdAutostartError] =
+    useK8sGet<K8sResourceCommon>(
+      DaemonSetModel,
+      'drbd-autostart',
+      'openshift-kmm'
+    );
+
+  const [drbdConfigureConfigMap, drbdConfigureLoaded, drbdConfigureError] =
+    useK8sGet<ConfigMapKind>(
+      ConfigMapModel,
+      'drbd-configure',
+      'openshift-storage'
+    );
+
+  const [localStorageSC, localStorageSCLoaded, localStorageSCError] =
+    useK8sGet<StorageClassResourceKind>(StorageClassModel, LOCAL_STORAGE_SC);
+
+  const [pvs, pvsLoaded, pvsError] =
+    useK8sWatchResource<K8sResourceKind[]>(pvResource);
+
+  const isTNFEnabled = React.useMemo(() => {
+    if (!infraLoaded || infraLoadError) {
+      return false;
+    }
+    return !!(infra?.status?.controlPlaneTopology === 'DualReplica');
+  }, [infra, infraLoaded, infraLoadError]);
+
+  const isTNFValidationLoading = React.useMemo(() => {
+    if (!infraLoaded) {
+      return true;
+    }
+
+    if (isTNFEnabled) {
+      if (
+        !drbdAutostartLoaded ||
+        !drbdConfigureLoaded ||
+        !localStorageSCLoaded ||
+        !pvsLoaded
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [
+    infraLoaded,
+    isTNFEnabled,
+    drbdAutostartLoaded,
+    drbdConfigureLoaded,
+    localStorageSCLoaded,
+    pvsLoaded,
+  ]);
+
+  const isDrbdAutostartValidated = React.useMemo(() => {
+    if (!isTNFEnabled || drbdAutostartError || !drbdAutostartLoaded) {
+      return false;
+    }
+
+    if (drbdAutostartDaemonSet) {
+      return true;
+    }
+
+    return false;
+  }, [
+    isTNFEnabled,
+    drbdAutostartLoaded,
+    drbdAutostartDaemonSet,
+    drbdAutostartError,
+  ]);
+
+  const isDrbdConfigMapPresent = React.useMemo(() => {
+    if (!isTNFEnabled || drbdConfigureError || !drbdConfigureLoaded) {
+      return false;
+    }
+
+    if (drbdConfigureConfigMap) {
+      return true;
+    }
+
+    return false;
+  }, [
+    isTNFEnabled,
+    drbdConfigureLoaded,
+    drbdConfigureConfigMap,
+    drbdConfigureError,
+  ]);
+
+  const isLocalStorageSCPresent = React.useMemo(() => {
+    if (!isTNFEnabled || localStorageSCError || !localStorageSCLoaded) {
+      return false;
+    }
+
+    if (localStorageSC) {
+      return true;
+    }
+
+    return false;
+  }, [isTNFEnabled, localStorageSCLoaded, localStorageSC, localStorageSCError]);
+
+  const isLocalPvsOnDistinctNodesValidated = React.useMemo(() => {
+    if (!isTNFEnabled || pvsError || !pvsLoaded) {
+      return false;
+    }
+    return hasAtLeastTwoAvailablePVsOnDistinctNodes(
+      pvs ?? [],
+      LOCAL_STORAGE_SC
+    );
+  }, [isTNFEnabled, pvsLoaded, pvs, pvsError]);
+
+  const isTNFValidated = React.useMemo(() => {
+    if (!isTNFEnabled) return false;
+
+    return (
+      isDrbdAutostartValidated &&
+      isDrbdConfigMapPresent &&
+      isLocalStorageSCPresent &&
+      isLocalPvsOnDistinctNodesValidated
+    );
+  }, [
+    isDrbdAutostartValidated,
+    isDrbdConfigMapPresent,
+    isTNFEnabled,
+    isLocalStorageSCPresent,
+    isLocalPvsOnDistinctNodesValidated,
+  ]);
+
+  return {
+    isTNFEnabled,
+    isTNFValidationLoading,
+    isTNFValidated,
+  };
 };
 
 const convertModeToDeploymentType = (mode: string): DeploymentType => {
@@ -128,12 +299,15 @@ const CreateStorageSystem: React.FC<{}> = () => {
   const [extensions, extensionsResolved] = useResolvedExtensions(
     isStorageClassWizardStep
   );
+
+  const { isTNFEnabled } = useTNFValidation();
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
 
   const infraType = getInfrastructurePlatform(infra);
 
   let wizardSteps = [];
+  const TNFDisabledSteps = ['Capacity and nodes'];
   let hasOCS: boolean = false;
   let hasExternal: boolean = false;
   let hasInternal: boolean = false;
@@ -167,7 +341,8 @@ const CreateStorageSystem: React.FC<{}> = () => {
       infraType,
       hasOCS,
       supportedExternalStorage,
-      hasMultipleClusters
+      hasMultipleClusters,
+      isTNFEnabled
     );
   }
 
@@ -185,6 +360,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
           hasInternal={hasInternal}
           stepIdReached={state.stepIdReached}
           infraType={infraType}
+          isTNFEnabled={isTNFEnabled}
           error={anyError}
           loaded={allLoaded}
           supportedExternalStorage={supportedExternalStorage}
@@ -203,6 +379,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
           hasMultipleClusters={hasMultipleClusters}
           deployment={state.backingStorage.deployment}
           backingStorageType={state.backingStorage.type}
+          isTNFEnabled={isTNFEnabled}
         />
       ),
       canJumpTo: true,
@@ -224,11 +401,17 @@ const CreateStorageSystem: React.FC<{}> = () => {
             disableNext={!allLoaded || !!anyError}
             supportedExternalStorage={supportedExternalStorage}
             existingNamespaces={namespaces}
+            isTNFEnabled={isTNFEnabled}
           />
         }
       >
         {steps.map((step) => (
-          <WizardStep key={step.id} id={step.id} name={step.name}>
+          <WizardStep
+            key={step.id}
+            id={step.id}
+            name={step.name}
+            isDisabled={isTNFEnabled && TNFDisabledSteps.includes(step.name)}
+          >
             {step.component}
           </WizardStep>
         ))}
@@ -244,6 +427,8 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
   const isStorageClusterCRDPresent = useIsStorageClusterCRDPresent();
   // It takes a while for the CRD to be present
   const [delayedShow, setDelayedShow] = React.useState(false);
+  const { isTNFEnabled, isTNFValidationLoading, isTNFValidated } =
+    useTNFValidation();
 
   React.useEffect(() => {
     if (isStorageClusterCRDPresent && !isCrdPresent) {
@@ -261,7 +446,7 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
     return () => clearTimeout(timer);
   }, [isCrdPresent]);
 
-  return !isCrdPresent || !delayedShow ? (
+  return isTNFValidationLoading || !isCrdPresent || !delayedShow ? (
     <>
       <CreateStorageSystemHeader state={{} as any} />
       <EmptyState
@@ -276,6 +461,36 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
             )}
           </p>
         </EmptyStateBody>
+      </EmptyState>
+    </>
+  ) : isTNFEnabled && !isTNFValidated ? (
+    <>
+      <CreateStorageSystemHeader state={{} as any} />
+      <EmptyState
+        headingLevel="h4"
+        icon={ExclamationCircleIcon}
+        titleText={t('Error')}
+      >
+        <EmptyStateBody>
+          <p>
+            {t(
+              'There was an issue while validating the two node configuration on this cluster.'
+            )}
+          </p>
+        </EmptyStateBody>
+        <EmptyStateFooter>
+          <EmptyStateActions>
+            <Button
+              variant={ButtonVariant.link}
+              component={'a'}
+              href={tnfHomePage()}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t('Setting up TNF Homepage')}
+            </Button>
+          </EmptyStateActions>
+        </EmptyStateFooter>
       </EmptyState>
     </>
   ) : (

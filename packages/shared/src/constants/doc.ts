@@ -1,4 +1,5 @@
 export const ODF_DEFAULT_DOC_VERSION = '4.18';
+export const OCP_DEFAULT_DOC_VERSION = '4.21';
 export const ACM_DEFAULT_DOC_VERSION = '2.12';
 
 export const odfDocHome = (odfDocVersion) =>
@@ -9,6 +10,9 @@ export const odfDRDocHome = (odfDocVersion) =>
   `${odfDocBasePath(
     odfDocVersion
   )}/configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/index`;
+
+export const ocpDocHome = (ocpDocVersion) =>
+  `https://access.redhat.com/documentation/en-us/openshift_container_platform/${ocpDocVersion}/html/`;
 
 export const odfDRDocApplyPolicy = (odfDocVersion) =>
   `${odfDRDocHome(
@@ -39,3 +43,6 @@ export const externalSystemsDoc = (odfDocVersion: string): string =>
   `${odfDocBasePath(
     odfDocVersion
   )}/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhods`;
+
+export const tnfHomePage = (): string =>
+  `${ocpDocHome(OCP_DEFAULT_DOC_VERSION)}/installing_a_two_node_openshift_cluster/two-node-with-fencing`;

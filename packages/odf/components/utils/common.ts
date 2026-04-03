@@ -160,7 +160,8 @@ export const capacityAndNodesValidate = (
   nodes: WizardNodeState[],
   state: WizardState['capacityAndNodes'],
   isNoProvSC: boolean,
-  osdAmount: number
+  osdAmount: number,
+  isFencingEnabled: boolean
 ): ValidationType[] => {
   const validations = [];
   const {
@@ -176,7 +177,11 @@ export const capacityAndNodesValidate = (
   if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
-  if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
+  if (
+    !enableStretchCluster &&
+    nodes.length &&
+    nodes.length < (isFencingEnabled ? 2 : MINIMUM_NODES)
+  ) {
     validations.push(ValidationType.MINIMUMNODES);
   } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
     if (
@@ -441,6 +446,7 @@ export type OCSRequestData = {
   isDbBackup?: boolean;
   dbBackup?: WizardState['advancedSettings']['dbBackup'];
   enableForcefulDeployment?: boolean;
+  isTNFEnabled?: boolean;
 };
 
 export const getOCSRequestData = ({
@@ -468,6 +474,7 @@ export const getOCSRequestData = ({
   isDbBackup,
   dbBackup,
   enableForcefulDeployment,
+  isTNFEnabled,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -505,6 +512,45 @@ export const getOCSRequestData = ({
         reconcileStrategy: 'standalone',
       },
     };
+  } else if (isTNFEnabled) {
+    requestData.spec = {
+      flexibleScaling: true,
+      managedResources: {
+        cephObjectStoreUsers: {
+          reconcileStrategy: 'ignore',
+        },
+        cephObjectStores: {
+          reconcileStrategy: 'ignore',
+        },
+      },
+      monDataDirHostPath: '/var/lib/rook',
+      multiCloudGateway: {
+        reconcileStrategy: 'ignore',
+      },
+      storageDeviceSets: [
+        {
+          name: 'ocs-deviceset',
+          config: {},
+          count: 1,
+          replica: 2,
+          encrypted: false,
+          portable: false,
+          resources: {},
+          dataPVCTemplate: {
+            spec: {
+              accessModes: ['ReadWriteOnce'],
+              resources: {
+                requests: {
+                  storage,
+                },
+              },
+              storageClassName: scName,
+              volumeMode: 'Block',
+            },
+          },
+        },
+      ],
+    };
   } else {
     // for full deployment - ceph + mcg
     requestData.spec = {
@@ -540,8 +586,9 @@ export const getOCSRequestData = ({
   }
 
   if (
-    networkConfiguration.networkType === NetworkType.HOST ||
-    networkConfiguration.networkType === NetworkType.NIC
+    !isTNFEnabled &&
+    (networkConfiguration.networkType === NetworkType.HOST ||
+      networkConfiguration.networkType === NetworkType.NIC)
   ) {
     requestData.spec.hostNetwork = true;
     requestData.spec.managedResources = {

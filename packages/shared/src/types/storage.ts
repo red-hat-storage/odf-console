@@ -44,7 +44,7 @@ export type StorageClusterKind = K8sResourceCommon & {
       enable?: boolean;
     };
     managedResources?: {
-      cephCluster: ManagedResourcesCephClusterKind;
+      cephCluster?: ManagedResourcesCephClusterKind;
       cephBlockPools?: {
         defaultStorageClass?: boolean;
         defaultVirtualizationStorageClass?: boolean;
@@ -52,8 +52,12 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephFilesystems?: {
         additionalDataPools?: DataPool[];
       };
+      cephObjectStoreUsers?: {
+        reconcileStrategy?: string;
+      };
       cephObjectStores?: {
-        hostNetwork: boolean;
+        hostNetwork?: boolean;
+        reconcileStrategy?: string;
       };
     };
     storageDeviceSets?: DeviceSet[];
@@ -113,6 +117,8 @@ export type DeviceSet = {
   count: number;
   replica: number;
   resources: ResourceConstraints;
+  config?: Record<string, unknown>;
+  encrypted?: boolean;
   placement?: any;
   portable: boolean;
   dataPVCTemplate: {

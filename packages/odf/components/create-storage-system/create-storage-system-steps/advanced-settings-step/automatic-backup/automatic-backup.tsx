@@ -55,6 +55,7 @@ type AutomaticBackupProps = {
   isMCG: boolean;
   isExternalPostgresEnabled: boolean;
   dbBackup: WizardState['advancedSettings']['dbBackup'];
+  isTNFEnabled?: boolean;
 };
 
 export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
@@ -63,6 +64,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
   isMCG,
   dbBackup,
   isExternalPostgresEnabled,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const { schedule, volumeSnapshot } = dbBackup;
@@ -135,7 +137,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
           'Opt in for automatic backup for MultiCloud Object Gateway metadata database'
         )}
         isChecked={isDbBackup}
-        isDisabled={!vscLoaded || isExternalPostgresEnabled}
+        isDisabled={!vscLoaded || isExternalPostgresEnabled || isTNFEnabled}
         onChange={() =>
           dispatch({
             type: 'advancedSettings/setDbBackup',

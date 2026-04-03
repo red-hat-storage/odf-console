@@ -240,6 +240,21 @@ export const getSCAvailablePVs = (pvsData, sc: string) =>
     (pv) => getPVStorageClass(pv) === sc && pv.status.phase === 'Available'
   ) || [];
 
+export const hasAtLeastTwoAvailablePVsOnDistinctNodes = (
+  pvs: K8sResourceKind[],
+  storageClassName: string
+): boolean => {
+  const available = getSCAvailablePVs(pvs, storageClassName);
+  if (available.length < 2) {
+    return false;
+  }
+  const distinctNodes = available.reduce((acc, pv) => {
+    getAssociatedNodes([pv]).forEach((node) => acc.add(node));
+    return acc;
+  }, new Set<string>());
+  return distinctNodes.size >= 2;
+};
+
 export const getCurrentDeviceSetIndex = (
   deviceSets: DeviceSet[],
   selectedSCName: string,

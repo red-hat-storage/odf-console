@@ -108,6 +108,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   error,
   loaded,
   supportedExternalStorage,
+  isTNFEnabled,
 }) => {
   const { type, externalStorage, deployment } = state;
 
@@ -274,7 +275,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           value={BackingStorageType.LOCAL_DEVICES}
           isChecked={type === BackingStorageType.LOCAL_DEVICES}
           onChange={(event, _unused) => onRadioSelect(_unused, event)}
-          isDisabled={hasOCS}
+          isDisabled={hasOCS || isTNFEnabled}
           id={`bs-${BackingStorageType.LOCAL_DEVICES}`}
           className="odf-backing-store__radio--margin-bottom"
         />
@@ -295,4 +296,5 @@ type BackingStorageProps = {
   error: any;
   loaded: boolean;
   supportedExternalStorage: ExternalStorage[];
+  isTNFEnabled: boolean;
 };
