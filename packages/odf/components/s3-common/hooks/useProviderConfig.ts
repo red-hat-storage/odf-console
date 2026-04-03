@@ -1,11 +1,29 @@
 import * as React from 'react';
 import { S3ProviderType } from '@odf/core/types';
 import { IAM_PROVIDER_REGISTRY } from '../registry/iam-providers';
-import { S3_PROVIDER_REGISTRY, ProviderConfig } from '../registry/s3-providers';
+import {
+  S3_PROVIDER_REGISTRY,
+  ProviderConfig,
+  ProviderRegistryEntry,
+} from '../registry/s3-providers';
+import { S3_VECTORS_PROVIDER_REGISTRY } from '../registry/s3-vectors-providers';
 import { ClientType } from '../types';
 import { useStorageClientInfo } from './useStorageClientInfo';
 import { useSystemInfo } from './useSystemInfo';
 
+const getRegistryEntry = (
+  type: ClientType,
+  providerType: S3ProviderType
+): ProviderRegistryEntry => {
+  switch (type) {
+    case ClientType.IAM:
+      return IAM_PROVIDER_REGISTRY;
+    case ClientType.S3_VECTORS:
+      return S3_VECTORS_PROVIDER_REGISTRY;
+    default:
+      return S3_PROVIDER_REGISTRY[providerType];
+  }
+};
 type UseProviderConfigResult = {
   config: ProviderConfig | null;
   isLoading: boolean;
@@ -32,10 +50,7 @@ export const useProviderConfig = (
   const error = systemInfoError || clientsError;
 
   return React.useMemo(() => {
-    const registryEntry =
-      type === ClientType.IAM
-        ? IAM_PROVIDER_REGISTRY
-        : S3_PROVIDER_REGISTRY[providerType];
+    const registryEntry = getRegistryEntry(type, providerType);
 
     if (registryEntry.staticConfig) {
       const staticConfig = registryEntry.staticConfig;
