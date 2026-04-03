@@ -12,6 +12,7 @@ import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams, useLocation } from 'react-router-dom-v5-compat';
 import { BlockPoolDashboard } from '../dashboards/block-pool/block-pool-dashboard';
 import { StoragePoolKind } from '../types';
+import { isErasureCodedStoragePool } from '../utils';
 
 export const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
@@ -71,6 +72,7 @@ export const BlockPoolDetailsPage: React.FC<{}> = () => {
           {
             key: ModalKeys.EDIT_RES,
             value: t('Edit BlockPool'),
+            isDisabled: isErasureCodedStoragePool(resource),
             component: React.lazy(
               () => import('../modals/storage-pool/update-storage-pool-modal')
             ),

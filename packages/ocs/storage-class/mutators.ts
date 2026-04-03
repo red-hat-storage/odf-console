@@ -4,13 +4,36 @@ import {
   NODE_SECRET_NS,
   CONTROLLER_SECRET_NS,
   CEPH_NS_SESSION_STORAGE,
+  CEPH_SC_BLOCK_POOL_IS_EC,
+  CEPH_SC_RBD_EC_METADATA_POOL_NAME,
 } from '@odf/ocs/constants';
 import { getAnnotations } from '@odf/shared/selectors';
 import { StorageClass } from '@odf/shared/types';
 
+const applyRbdErasureCodedPoolParameters = (sc: StorageClass): StorageClass => {
+  if (sessionStorage.getItem(CEPH_SC_BLOCK_POOL_IS_EC) !== 'true') {
+    return sc;
+  }
+  const ecDataPool = String(sc.parameters?.['pool'] ?? '').trim();
+  if (!ecDataPool) {
+    return sc;
+  }
+  const metadataPoolName = sessionStorage
+    .getItem(CEPH_SC_RBD_EC_METADATA_POOL_NAME)
+    ?.trim();
+  sc.parameters = {
+    ...sc.parameters,
+    pool: metadataPoolName,
+    dataPool: ecDataPool,
+  };
+  return sc;
+};
+
 export const addClusterParams = (sc: StorageClass): StorageClass => {
   const cephClusterNamespace = sessionStorage.getItem(CEPH_NS_SESSION_STORAGE);
   sessionStorage.removeItem(CEPH_NS_SESSION_STORAGE);
+  sessionStorage.removeItem(CEPH_SC_BLOCK_POOL_IS_EC);
+  sessionStorage.removeItem(CEPH_SC_RBD_EC_METADATA_POOL_NAME);
   sc.parameters = {
     ...sc.parameters,
     [CLUSTER_ID]: cephClusterNamespace,
@@ -59,6 +82,7 @@ export const addReclaimSpaceAnnotation = (sc: StorageClass): StorageClass => {
 };
 
 export const addRBDAnnotations = (sc: StorageClass): StorageClass => {
+  sc = applyRbdErasureCodedPoolParameters(sc);
   sc = addKubevirtAnnotations(sc);
   sc = addReclaimSpaceAnnotation(sc);
   sc = addKeyRotationAnnotation(sc);

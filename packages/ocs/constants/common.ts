@@ -75,4 +75,9 @@ export const OCS_STORAGECLASS_PARAMS = [
 ];
 
 export const CEPH_NS_SESSION_STORAGE = 'odfConsole_scForm_cephNs';
+export const CEPH_SC_BLOCK_POOL_IS_EC = 'odfConsole_scForm_blockPoolIsEc';
+export const CEPH_SC_RBD_EC_METADATA_POOL_NAME =
+  'odfConsole_scForm_rbdEcMetadataPool';
+
+export const ODF_SC_BLOCK_POOL_EC_EVENT = 'odf-sc-block-pool-ec';
 export const BLOCK_POOL_NAME_LABEL = 'ocs.openshift.io/cephblockpool-name';

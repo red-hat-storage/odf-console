@@ -28,6 +28,7 @@ import {
   PoolProgress,
   PoolType,
 } from '../../constants';
+import { useCephBlockPools } from '../../hooks';
 import { StoragePoolBody, StoragePoolStatus } from '../../storage-pool/body';
 import {
   StoragePoolActionType,
@@ -155,6 +156,10 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
     isOpen,
   } = props;
   const poolNamespace = getNamespace(resource);
+  const clusterName = systemFlags[poolNamespace]?.ocsClusterName;
+  const needsBlockPoolsWatch = resource.type === PoolType.BLOCK;
+  const { defaultDeviceClass, blockPoolsLoaded, blockPoolsLoadError } =
+    useCephBlockPools(clusterName, poolNamespace);
 
   const [state, dispatch] = React.useReducer(
     storagePoolReducer,
@@ -169,6 +174,14 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
     cephClusters,
     poolNamespace
   ) as CephClusterKind;
+
+  const cephWatchReady = cephClustersLoaded && !cephClustersLoadError;
+  const blockPoolsWatchReady =
+    !needsBlockPoolsWatch || (blockPoolsLoaded && !blockPoolsLoadError);
+  const formDataLoaded = cephWatchReady && blockPoolsWatchReady;
+  const formLoadError =
+    cephClustersLoadError ||
+    (needsBlockPoolsWatch ? blockPoolsLoadError : undefined);
 
   const MODAL_TITLE = t('Edit Storage Pool');
 
@@ -266,7 +279,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
       variant={ModalVariant.medium}
       onClose={closeModal}
     >
-      {cephClustersLoaded && !cephClustersLoadError ? (
+      {formDataLoaded ? (
         <>
           <ModalBody>
             {state.poolStatus ? (
@@ -286,7 +299,14 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
                 poolType={resource.type}
                 disablePoolType
                 isUpdate
-                prefixName={PoolType.FILESYSTEM && resource.fsName}
+                prefixName={
+                  resource.type === PoolType.FILESYSTEM
+                    ? resource.fsName
+                    : undefined
+                }
+                erasureCodingDeviceClass={
+                  needsBlockPoolsWatch ? defaultDeviceClass : undefined
+                }
               />
             )}
           </ModalBody>
@@ -303,8 +323,10 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
         </>
       ) : (
         <StatusBox
-          loadError={cephClustersLoadError}
-          loaded={cephClustersLoaded}
+          loadError={formLoadError}
+          loaded={
+            cephClustersLoaded && (!needsBlockPoolsWatch || blockPoolsLoaded)
+          }
           label={t('Storage pool update form')}
         />
       )}
