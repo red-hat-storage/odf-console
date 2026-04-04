@@ -1,9 +1,11 @@
 import * as React from 'react';
+import { ListUsersCommandOutput } from '@aws-sdk/client-iam';
 import {
   ListObjectsV2CommandOutput,
   ListBucketsCommandOutput,
   ListObjectVersionsCommandOutput,
 } from '@aws-sdk/client-s3';
+import { ListVectorBucketsCommandOutput } from '@aws-sdk/client-s3vectors';
 import { ListCommandOutput } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
@@ -47,15 +49,26 @@ const getNextMarkers = (
       }
     : null;
 
-const getNextContinuationToken = (
-  response: ListCommandOutput,
-  containsNextContinuation = true
-): string =>
-  containsNextContinuation
-    ? (response as ListObjectsV2CommandOutput).NextContinuationToken
-    : (response as ListBucketsCommandOutput).ContinuationToken;
+type NextPageToken = 'Marker' | 'nextToken';
 
-const continuationTokensSetter = <T extends ListCommandOutput>(
+const getNextContinuationToken = (
+  response: ListCommandOutput | object,
+  containsNextContinuation = true,
+  nextPageToken?: NextPageToken
+): string => {
+  switch (nextPageToken) {
+    case 'Marker':
+      return (response as ListUsersCommandOutput).Marker;
+    case 'nextToken':
+      return (response as ListVectorBucketsCommandOutput).nextToken;
+    default:
+      return containsNextContinuation
+        ? (response as ListObjectsV2CommandOutput).NextContinuationToken
+        : (response as ListBucketsCommandOutput).ContinuationToken;
+  }
+};
+
+const continuationTokensSetter = <T extends object>(
   setContinuationTokens: React.Dispatch<
     React.SetStateAction<ContinuationTokens | ContinuationVersionsTokens>
   >,
@@ -63,7 +76,8 @@ const continuationTokensSetter = <T extends ListCommandOutput>(
   isNext: boolean,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
   containsNextContinuation?: boolean,
-  containsMarkers?: boolean
+  containsMarkers?: boolean,
+  nextPageToken?: NextPageToken
 ) => {
   setContinuationTokens((oldTokens) => {
     const newTokens = _.cloneDeep(oldTokens);
@@ -75,15 +89,19 @@ const continuationTokensSetter = <T extends ListCommandOutput>(
     }
 
     newTokens.next = containsMarkers
-      ? getNextMarkers(response)
-      : getNextContinuationToken(response, containsNextContinuation);
+      ? getNextMarkers(response as ListObjectVersionsCommandOutput)
+      : getNextContinuationToken(
+          response as ListCommandOutput,
+          containsNextContinuation,
+          nextPageToken
+        );
 
     return newTokens;
   });
   !!setSelectedRows && setSelectedRows([]);
 };
 
-export const fetchS3Resources = async <T extends ListCommandOutput>(
+export const fetchS3Resources = async <T extends object>(
   setContinuationTokens: React.Dispatch<
     React.SetStateAction<ContinuationTokens | ContinuationVersionsTokens>
   >,
@@ -92,7 +110,8 @@ export const fetchS3Resources = async <T extends ListCommandOutput>(
   paginationToken: string | VersionToken,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
   containsNextContinuation?: boolean,
-  containsMarkers = false
+  containsMarkers = false,
+  nextPageToken?: NextPageToken
 ) => {
   try {
     const response: T = await trigger(paginationToken);
@@ -102,7 +121,8 @@ export const fetchS3Resources = async <T extends ListCommandOutput>(
       isNext,
       setSelectedRows,
       containsNextContinuation,
-      containsMarkers
+      containsMarkers,
+      nextPageToken
     );
   } catch (err) {
     // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
@@ -111,15 +131,16 @@ export const fetchS3Resources = async <T extends ListCommandOutput>(
   }
 };
 
-// for refreshing (re-feching) s3 resources from start, once state has changed by adding/deleted
-export const continuationTokensRefresher = async <T extends ListCommandOutput>(
+// for refreshing (re-fetching) s3 resources from start, once state has changed by adding/deleted
+export const continuationTokensRefresher = async <T extends object>(
   setContinuationTokens: React.Dispatch<
     React.SetStateAction<ContinuationTokens | ContinuationVersionsTokens>
   >,
   trigger: Trigger<T>,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
   containsNextContinuation?: boolean,
-  containsMarkers = false
+  containsMarkers = false,
+  nextPageToken?: NextPageToken
 ) => {
   try {
     const response: T = await trigger();
@@ -127,12 +148,16 @@ export const continuationTokensRefresher = async <T extends ListCommandOutput>(
       ? setContinuationTokens({
           previous: [null],
           current: null,
-          next: getNextMarkers(response),
+          next: getNextMarkers(response as ListObjectVersionsCommandOutput),
         } as ContinuationVersionsTokens)
       : setContinuationTokens({
           previous: [''],
           current: '',
-          next: getNextContinuationToken(response, containsNextContinuation),
+          next: getNextContinuationToken(
+            response as ListCommandOutput,
+            containsNextContinuation,
+            nextPageToken
+          ),
         } as ContinuationTokens);
     !!setSelectedRows && setSelectedRows([]);
   } catch (err) {
