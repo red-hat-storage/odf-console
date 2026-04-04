@@ -56,7 +56,9 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
       setContinuationTokens,
       trigger,
       undefined, // setSelectedRows
-      false // containsNextContinuation - IAM uses Marker instead of NextContinuationToken
+      false, // containsNextContinuation - IAM uses Marker instead of NextContinuationToken
+      false,
+      'Marker'
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -69,7 +71,9 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
         true,
         continuationTokens.next,
         undefined, // setSelectedRows
-        false // containsNextContinuation - IAM uses Marker instead of NextContinuationToken
+        false, // containsNextContinuation - IAM uses Marker instead of NextContinuationToken
+        false,
+        'Marker'
       );
     }
   };
@@ -84,7 +88,9 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
         false,
         marker,
         undefined, // setSelectedRows
-        false // containsNextContinuation - IAM uses Marker instead of NextContinuationToken
+        false, // containsNextContinuation - IAM uses Marker instead of NextContinuationToken
+        false,
+        'Marker'
       );
     }
   };
