@@ -28,11 +28,13 @@ import {
 } from '@patternfly/react-core';
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
+import type { ExternalKMMRegistryConfig } from '../common/payload';
 import {
   configureMetricsNamespaceLabels,
   createScaleLocalClusterPayload,
   labelNodes,
 } from '../common/payload';
+import { ExternalRegistryFormSection } from './ExternalRegistryFormSection';
 import { LUNsTable } from './LUNsTable';
 import {
   createCSIDriver,
@@ -43,6 +45,7 @@ import {
 import { SANSystemComponentState, initialComponentState } from './types';
 import { useDeviceFinder } from './useDeviceFinder';
 import useSANSystemFormValidation from './useFormValidation';
+import { usePersistentRegistryCheck } from './usePersistentRegistryCheck';
 
 type CreateSANSystemFormProps = {
   componentState: SANSystemComponentState;
@@ -74,12 +77,24 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
 
   const existingFileSystemNames = useExistingFileSystemNames();
 
+  const [
+    hasPersistentRegistry,
+    hasPersistentRegistryLoaded,
+    hasPersistentRegistryError,
+  ] = usePersistentRegistryCheck();
+
+  const showRegistrySection =
+    !hasPersistentRegistry &&
+    hasPersistentRegistryLoaded &&
+    !hasPersistentRegistryError;
+
   const {
     fieldRequirements,
     control,
     formState: { isSubmitted },
     watch,
-  } = useSANSystemFormValidation(existingFileSystemNames);
+    getValues,
+  } = useSANSystemFormValidation(existingFileSystemNames, showRegistrySection);
 
   const selectedNodes = componentState.selectedNodes;
 
@@ -87,9 +102,19 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
 
   // Watch form fields
   const lunGroupName = watch('lunGroupName');
+  const imageRegistryUrl = watch('imageRegistryUrl');
+  const imageRepositoryName = watch('imageRepositoryName');
+  const secretKey = watch('secretKey');
+
+  const registryFieldsValid = !showRegistrySection
+    ? true
+    : hasPersistentRegistry
+      ? !!(imageRegistryUrl && imageRepositoryName)
+      : !!secretKey;
 
   const isFormValid = !!(
     lunGroupName &&
+    registryFieldsValid &&
     componentState.selectedNodes.length > 0 &&
     componentState.selectedLUNs.size > 0
   );
@@ -109,7 +134,29 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     try {
       if (!isLocalClusterConfigured) {
         await labelNodes(componentState.selectedNodes)();
-        await createScaleLocalClusterPayload()();
+        const values = getValues();
+        const hasImageRegistry =
+          !!values.imageRegistryUrl && !!values.imageRepositoryName;
+        const buildExternalKmmRegistry = ():
+          | ExternalKMMRegistryConfig
+          | undefined => {
+          const config: ExternalKMMRegistryConfig = {
+            secretKey: values.secretKey || '',
+          };
+          if (hasImageRegistry) {
+            config.imageRegistryUrl = values.imageRegistryUrl;
+            config.imageRepositoryName = values.imageRepositoryName;
+          }
+          if (values.caCertificateSecret) {
+            config.caCertificateSecret = values.caCertificateSecret;
+          }
+          if (values.privateKeySecret) {
+            config.privateKeySecret = values.privateKeySecret;
+          }
+          return config;
+        };
+        const externalKmmRegistry = buildExternalKmmRegistry();
+        await createScaleLocalClusterPayload(externalKmmRegistry, false)();
         await createCSIDriver();
         await configureMetricsNamespaceLabels();
       }
@@ -135,6 +182,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     componentState.selectedLUNs,
     componentState.selectedNodes,
     isLocalClusterConfigured,
+    getValues,
     lunGroupName,
     navigate,
     t,
@@ -146,6 +194,11 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         <FormGroup label={t('Connection name')} fieldId="connectionName">
           <div data-test="san-connection-name">{t('SAN-based storage')}</div>
         </FormGroup>
+        <ExternalRegistryFormSection
+          control={control}
+          fieldRequirements={fieldRequirements}
+          showImageRegistryFields={showRegistrySection}
+        />
         <FormGroup label={t('Select local cluster nodes')} isRequired>
           <NodesSection
             isDisabled={isLocalClusterConfigured}
@@ -210,9 +263,8 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         />
       )}
       <ButtonBar errorMessage={error}>
-        <ActionGroup className="pf-v5-c-form">
+        <ActionGroup className="pf-v6-c-form">
           <Button
-            type={ButtonType.submit}
             variant={ButtonVariant.primary}
             isDisabled={loading || !isFormValid}
             isLoading={loading}

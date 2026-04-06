@@ -156,7 +156,7 @@ const createBucketActions = (
   return (
     <>
       <Button
-        className="pf-v5-u-mr-md pf-v5-u-mb-xs"
+        className="pf-v6-u-mr-md pf-v6-u-mb-xs"
         variant={ButtonVariant.link}
         icon={<BlueSyncIcon />}
         onClick={triggerRefresh}
@@ -353,7 +353,7 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
           />
         }
         actions={actions(s3Client)}
-        className="pf-v5-u-mt-md"
+        className="pf-v6-u-mt-md"
       />
       <EmptyBucketAlerts
         emptyBucketResponse={emptyBucketResponse}

@@ -147,7 +147,7 @@ export const PropertyPath: React.FC<{
 }> = ({ kind, path }) => {
   const pathArray: string[] = _.toPath(path);
   return (
-    <Breadcrumb className="pf-v5-c-breadcrumb--no-padding-top">
+    <Breadcrumb className="pf-v6-c-breadcrumb--no-padding-top">
       <BreadcrumbItem>{kind}</BreadcrumbItem>
       {pathArray.map((property, i) => {
         const isLast = i === pathArray.length - 1;
@@ -169,6 +169,9 @@ type EditButtonProps = {
 const EditButton: React.FC<EditButtonProps> = (props) => {
   return (
     <Button
+      icon={
+        <PencilAltIcon className="co-icon-space-l pf-v6-c-button-icon--plain" />
+      }
       type="button"
       variant="link"
       isInline
@@ -180,7 +183,6 @@ const EditButton: React.FC<EditButtonProps> = (props) => {
       }
     >
       {props.children}
-      <PencilAltIcon className="co-icon-space-l pf-v5-c-button-icon--plain" />
     </Button>
   );
 };
@@ -258,7 +260,7 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
           {editable && editAsGroup && (
             <>
               <SplitItem isFilled />
-              <SplitItem className="pf-v5-u-ml-sm">
+              <SplitItem className="pf-v6-u-ml-sm">
                 <EditButton testId={label} onClick={onEdit}>
                   {t('Edit')}
                 </EditButton>
@@ -354,6 +356,9 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
         >
           {canUpdate && !!launchModal ? (
             <Button
+              icon={
+                <PencilAltIcon className="co-icon-space-l pf-v6-c-button-icon--plain" />
+              }
               data-test="edit-annotations"
               type="button"
               isInline
@@ -371,7 +376,6 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
               {t('{{count}} annotation', {
                 count: _.size(metadata.annotations),
               })}
-              <PencilAltIcon className="co-icon-space-l pf-v5-c-button-icon--plain" />
             </Button>
           ) : (
             t('{{count}} annotation', {

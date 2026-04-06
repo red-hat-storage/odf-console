@@ -7,8 +7,8 @@
     "dev": "PLUGIN=client I8N_NS=plugin__odf-client-console yarn --cwd ../.. server:plugin"
   },
   "dependencies": {
+    "@odf-console/shared": "workspace:*",
     "@odf/core": "0.0.0",
-    "@odf/ocs": "0.0.0",
-    "@odf/shared": "file:../shared"
+    "@odf/ocs": "0.0.0"
   }
 }

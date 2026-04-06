@@ -1,9 +1,9 @@
 {
   "name": "@odf/ocs",
-  "description": "Ceph and MCG components",
   "version": "0.0.0",
+  "description": "Ceph and MCG components",
   "dependencies": {
-    "@odf/shared": "file:../shared",
+    "@odf-console/shared": "workspace:*",
     "@odf/core": "0.0.0"
   }
 }

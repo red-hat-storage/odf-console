@@ -4,7 +4,6 @@ import {
   K8sVerb,
   SelfSubjectAccessReviewKind,
   AccessReviewResourceAttributes,
-  useSafetyFirst,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { ProjectModel, SelfSubjectAccessReviewModel } from '../models';
@@ -71,8 +70,8 @@ export const useAccessReview = (
   resourceAttributes: AccessReviewResourceAttributes,
   cluster?: string
 ): [boolean, boolean] => {
-  const [loading, setLoading] = useSafetyFirst(true);
-  const [isAllowed, setAllowed] = useSafetyFirst(false);
+  const [loading, setLoading] = React.useState(true);
+  const [isAllowed, setAllowed] = React.useState(false);
   // Destructure the attributes to pass them as dependencies to `useEffect`,
   // which doesn't do deep comparison of object dependencies.
   const {
@@ -84,6 +83,7 @@ export const useAccessReview = (
     namespace = '',
   } = resourceAttributes;
   React.useEffect(() => {
+    let isMounted = true;
     checkAccessInternal(
       group,
       resource,
@@ -94,29 +94,26 @@ export const useAccessReview = (
       cluster
     )
       .then((result: SelfSubjectAccessReviewKind) => {
-        setAllowed(result.status.allowed);
-        setLoading(false);
+        if (isMounted) {
+          setAllowed(result.status.allowed);
+          setLoading(false);
+        }
       })
       .catch((e) => {
-        // eslint-disable-next-line no-console
-        console.warn('SelfSubjectAccessReview failed', e);
-        // Default to enabling the action if the access review fails so that we
-        // don't incorrectly block users from actions they can perform. The server
-        // still enforces access control.
-        setAllowed(true);
-        setLoading(false);
+        if (isMounted) {
+          // eslint-disable-next-line no-console
+          console.warn('SelfSubjectAccessReview failed', e);
+          // Default to enabling the action if the access review fails so that we
+          // don't incorrectly block users from actions they can perform. The server
+          // still enforces access control.
+          setAllowed(true);
+          setLoading(false);
+        }
       });
-  }, [
-    setLoading,
-    setAllowed,
-    group,
-    resource,
-    subresource,
-    verb,
-    name,
-    namespace,
-    cluster,
-  ]);
+    return () => {
+      isMounted = false;
+    };
+  }, [group, resource, subresource, verb, name, namespace, cluster]);
 
   return [isAllowed, loading];
 };

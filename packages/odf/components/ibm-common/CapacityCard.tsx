@@ -10,7 +10,6 @@ import {
   BreakdownCardBody,
   getName,
   getSelectOptions,
-  getUID,
   StorageClassResourceKind,
   NamespaceModel,
 } from '@odf/shared';
@@ -73,8 +72,10 @@ const filterSANStorageClasses = (
     (fs) => fs.spec.local && _.isEmpty(fs.spec.remote)
   );
   const localFileSystemsNames = localFileSystems.map((fs) => getName(fs));
-  const scaleStorageClasses = storageClasses.filter((sc) =>
-    localFileSystemsNames.includes(getName(sc))
+  const scaleStorageClasses = storageClasses.filter(
+    (sc) =>
+      sc.parameters?.volBackendFs &&
+      localFileSystemsNames.includes(sc.parameters?.volBackendFs)
   );
   return scaleStorageClasses;
 };
@@ -139,7 +140,7 @@ export const CapacityCardInternal: React.FC<CapacityCardInternalProps> = ({
 
   const dropdownOptions = filteredStorageClasses.map((sc) => ({
     name: getName(sc),
-    id: getUID(sc),
+    id: getName(sc),
   }));
 
   const breakdownSelectItems = getSelectOptions(dropdownOptions);

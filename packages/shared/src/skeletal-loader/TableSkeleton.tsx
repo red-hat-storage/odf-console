@@ -15,12 +15,12 @@ export const TableSkeletonLoader: React.FC<SkeletalLoaderProps> = ({
     <>
       {Array.from({ length: rows }).map((_item1, index1) => (
         <div>
-          <div className="pf-v5-u-display-flex pf-v5-u-justify-content-space-between">
+          <div className="pf-v6-u-display-flex pf-v6-u-justify-content-space-between">
             {Array.from({ length: columns }).map((_item2, index2) => (
               <Skeleton
                 key={index1 + index2}
                 width="80%"
-                className="pf-v5-u-mx-xl"
+                className="pf-v6-u-mx-xl"
               />
             ))}
           </div>
