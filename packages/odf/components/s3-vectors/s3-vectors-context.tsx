@@ -47,7 +47,7 @@ export const S3VectorsProvider: React.FC<S3VectorsProviderProps> = ({
     config: providerConfig,
     isLoading: providerConfigLoading,
     error: providerConfigError,
-  } = useProviderConfig(providerType, ClientType.S3_VECTORS);
+  } = useProviderConfig(providerType, ClientType.S3_VECTOR);
 
   const {
     secretRef: storedSecretRef,
@@ -67,7 +67,7 @@ export const S3VectorsProvider: React.FC<S3VectorsProviderProps> = ({
     secretFieldKeys,
     providerConfig,
     providerType,
-    ClientType.S3_VECTORS
+    ClientType.S3_VECTOR
   );
 
   const allLoaded =
@@ -97,7 +97,7 @@ export const S3VectorsProvider: React.FC<S3VectorsProviderProps> = ({
       <LazyLoginForm
         onLogin={setSecretRef}
         logout={logout}
-        type={ClientType.S3_VECTORS}
+        type={ClientType.S3_VECTOR}
       />
     );
   }

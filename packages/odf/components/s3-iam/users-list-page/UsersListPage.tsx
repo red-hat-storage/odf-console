@@ -17,11 +17,8 @@ import {
 import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 import { SyncAltIcon } from '@patternfly/react-icons';
 import { ActionsColumn } from '@patternfly/react-table';
-import {
-  getAcountBadge,
-  getAccountActionsItems,
-} from '../../s3-browser/buckets-list-page/bucketsListPage';
 import { ClientType } from '../../s3-common/types';
+import { getAcountBadge, getAccountActionsItems } from '../../s3-common/utils';
 import { IamContext, IamProvider } from '../iam-context';
 import { UsersListTable } from './UsersListTable';
 import { UsersPagination } from './UsersPagination';

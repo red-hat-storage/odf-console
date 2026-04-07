@@ -4,6 +4,7 @@ import {
   ListBucketsCommandOutput,
   ListObjectVersionsCommandOutput,
 } from '@aws-sdk/client-s3';
+import { ListVectorBucketsCommandOutput } from '@aws-sdk/client-s3vectors';
 import { ListCommandOutput } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
@@ -49,12 +50,16 @@ const getNextMarkers = (
 
 const getNextContinuationToken = (
   response: ListCommandOutput,
-  containsNextContinuation = true
+  containsNextContinuation = true,
+  containsNextPageToken?: boolean
 ): string =>
-  containsNextContinuation
-    ? (response as ListObjectsV2CommandOutput).NextContinuationToken
-    : (response as ListBucketsCommandOutput).ContinuationToken;
+  containsNextPageToken
+    ? (response as ListVectorBucketsCommandOutput).nextToken
+    : containsNextContinuation
+      ? (response as ListObjectsV2CommandOutput).NextContinuationToken
+      : (response as ListBucketsCommandOutput).ContinuationToken;
 
+//TODO: To remove the boolean checks and add enums for the various API pagination token and map the helper functions
 const continuationTokensSetter = <T extends ListCommandOutput>(
   setContinuationTokens: React.Dispatch<
     React.SetStateAction<ContinuationTokens | ContinuationVersionsTokens>
@@ -63,7 +68,8 @@ const continuationTokensSetter = <T extends ListCommandOutput>(
   isNext: boolean,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
   containsNextContinuation?: boolean,
-  containsMarkers?: boolean
+  containsMarkers?: boolean,
+  containsNextPageToken?: boolean
 ) => {
   setContinuationTokens((oldTokens) => {
     const newTokens = _.cloneDeep(oldTokens);
@@ -76,7 +82,11 @@ const continuationTokensSetter = <T extends ListCommandOutput>(
 
     newTokens.next = containsMarkers
       ? getNextMarkers(response)
-      : getNextContinuationToken(response, containsNextContinuation);
+      : getNextContinuationToken(
+          response,
+          containsNextContinuation,
+          containsNextPageToken
+        );
 
     return newTokens;
   });
@@ -92,7 +102,8 @@ export const fetchS3Resources = async <T extends ListCommandOutput>(
   paginationToken: string | VersionToken,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
   containsNextContinuation?: boolean,
-  containsMarkers = false
+  containsMarkers = false,
+  containsNextPageToken?: boolean
 ) => {
   try {
     const response: T = await trigger(paginationToken);
@@ -102,7 +113,8 @@ export const fetchS3Resources = async <T extends ListCommandOutput>(
       isNext,
       setSelectedRows,
       containsNextContinuation,
-      containsMarkers
+      containsMarkers,
+      containsNextPageToken
     );
   } catch (err) {
     // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
@@ -119,21 +131,32 @@ export const continuationTokensRefresher = async <T extends ListCommandOutput>(
   trigger: Trigger<T>,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
   containsNextContinuation?: boolean,
-  containsMarkers = false
+  containsMarkers = false,
+  containsNextPageToken?: boolean
 ) => {
   try {
     const response: T = await trigger();
-    containsMarkers
+    containsNextPageToken
       ? setContinuationTokens({
-          previous: [null],
-          current: null,
-          next: getNextMarkers(response),
-        } as ContinuationVersionsTokens)
-      : setContinuationTokens({
           previous: [''],
           current: '',
-          next: getNextContinuationToken(response, containsNextContinuation),
-        } as ContinuationTokens);
+          next: getNextContinuationToken(
+            response,
+            containsNextContinuation,
+            containsNextPageToken
+          ),
+        } as ContinuationTokens)
+      : containsMarkers
+        ? setContinuationTokens({
+            previous: [null],
+            current: null,
+            next: getNextMarkers(response),
+          } as ContinuationVersionsTokens)
+        : setContinuationTokens({
+            previous: [''],
+            current: '',
+            next: getNextContinuationToken(response, containsNextContinuation),
+          } as ContinuationTokens);
     !!setSelectedRows && setSelectedRows([]);
   } catch (err) {
     // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
