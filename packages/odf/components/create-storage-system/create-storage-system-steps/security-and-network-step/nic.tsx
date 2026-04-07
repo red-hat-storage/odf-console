@@ -56,7 +56,10 @@ export const NICSelectComponent: React.FC<NICSelectComponentProps> = ({
 
   const publicCidrValidFormat = isValidCIDRFormat(cephPublicCIDR);
   const clusterCidrValidFormat = isValidCIDRFormat(cephClusterCIDR);
-  const allNodesHaveMonIp = nodes.every((n) => (getMonIp(n)?.length ?? 0) > 0);
+  /** mon-ip is used for public (mon) placement; cluster network CIDR does not use mon-ip validation. */
+  const allNodesHaveMonIpForPublic = nodes.every(
+    (n) => (getMonIp(n)?.length ?? 0) > 0
+  );
 
   const publicMonIpsInCidr =
     !usePublicNetwork ||
@@ -65,59 +68,36 @@ export const NICSelectComponent: React.FC<NICSelectComponentProps> = ({
       const ip = getMonIp(n);
       return !ip || isIpInCidr(ip, cephPublicCIDR);
     });
-  const clusterMonIpsInCidr =
-    !useClusterNetwork ||
-    nodes.length === 0 ||
-    nodes.every((n) => {
-      const ip = getMonIp(n);
-      return !ip || isIpInCidr(ip, cephClusterCIDR);
-    });
 
   const publicCidrValid =
     usePublicNetwork &&
     publicCidrValidFormat &&
-    (nodes.length === 0 || (allNodesHaveMonIp && publicMonIpsInCidr));
+    (nodes.length === 0 || (allNodesHaveMonIpForPublic && publicMonIpsInCidr));
   const publicCidrError =
     (usePublicNetwork &&
       cephPublicCIDR.trim() &&
       (!publicCidrValidFormat
         ? t('Must use CIDR notation. Eg: 192.168.200.0/24')
         : nodes.length > 0 &&
-          !allNodesHaveMonIp &&
+          !allNodesHaveMonIpForPublic &&
           t(
             'All selected nodes must have the network.rook.io/mon-ip annotation when using a dedicated storage network.'
           ))) ||
     (usePublicNetwork &&
       cephPublicCIDR.trim() &&
       publicCidrValidFormat &&
-      allNodesHaveMonIp &&
+      allNodesHaveMonIpForPublic &&
       !publicMonIpsInCidr &&
       t(
         'The network.rook.io/mon-ip annotation on one or more nodes is outside the Public network CIDR. Verify the CIDR matches your node IPs or use the CLI to correct the annotations.'
       ));
 
-  const clusterCidrValid =
-    useClusterNetwork &&
-    clusterCidrValidFormat &&
-    (nodes.length === 0 || (allNodesHaveMonIp && clusterMonIpsInCidr));
+  const clusterCidrValid = useClusterNetwork && clusterCidrValidFormat;
   const clusterCidrError =
-    (useClusterNetwork &&
-      cephClusterCIDR.trim() &&
-      (!clusterCidrValidFormat
-        ? t('Must use CIDR notation. Eg: 192.168.200.0/24')
-        : nodes.length > 0 &&
-          !allNodesHaveMonIp &&
-          t(
-            'All selected nodes must have the network.rook.io/mon-ip annotation when using a dedicated storage network.'
-          ))) ||
-    (useClusterNetwork &&
-      cephClusterCIDR.trim() &&
-      clusterCidrValidFormat &&
-      allNodesHaveMonIp &&
-      !clusterMonIpsInCidr &&
-      t(
-        'The network.rook.io/mon-ip annotation on one or more nodes is outside the Cluster network CIDR. Verify the CIDR matches your node IPs or use the CLI to correct the annotations.'
-      ));
+    useClusterNetwork &&
+    cephClusterCIDR.trim() &&
+    !clusterCidrValidFormat &&
+    t('Must use CIDR notation. Eg: 192.168.200.0/24');
 
   return (
     <>

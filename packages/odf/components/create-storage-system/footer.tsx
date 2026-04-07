@@ -202,19 +202,20 @@ const canJumpToNextStep = (
   const hasDedicatedStorageWithCidr =
     networkType === NetworkType.NIC &&
     ((usePublicNetwork && publicCidr) || (useClusterNetwork && clusterCidr));
+  /** mon-ip applies to public network (mons); cluster network CIDR does not use mon-ip checks. */
+  const needsMonIpAnnotation =
+    networkType === NetworkType.NIC && usePublicNetwork && !!publicCidr;
   const allNodesHaveMonIpAnnotation =
     !hasDedicatedStorageWithCidr ||
+    !needsMonIpAnnotation ||
     nodes.every((node) => (getMonIp(node)?.length ?? 0) > 0);
   const allMonIpsInCidr =
     !hasDedicatedStorageWithCidr ||
     nodes.every((node) => {
+      if (!usePublicNetwork || !publicCidr) return true;
       const ip = getMonIp(node);
-      if (!ip) return true;
-      const inPublic =
-        !usePublicNetwork || !publicCidr || isIpInCidr(ip, publicCidr);
-      const inCluster =
-        !useClusterNetwork || !clusterCidr || isIpInCidr(ip, clusterCidr);
-      return inPublic && inCluster;
+      if (!ip) return false;
+      return isIpInCidr(ip, publicCidr);
     });
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
