@@ -18,7 +18,7 @@ const getRegistryEntry = (
   switch (type) {
     case ClientType.IAM:
       return IAM_PROVIDER_REGISTRY;
-    case ClientType.S3_VECTORS:
+    case ClientType.S3_VECTOR:
       return S3_VECTORS_PROVIDER_REGISTRY;
     default:
       return S3_PROVIDER_REGISTRY[providerType];

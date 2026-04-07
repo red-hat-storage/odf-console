@@ -17,11 +17,14 @@ import {
 } from './types';
 
 export class S3VectorsCommands extends S3VectorsClient {
+  providerType: string;
+
   constructor(
     endpoint: string,
     accessKeyId: string,
     secretAccessKey: string,
-    region: string
+    region: string,
+    providerType: string
   ) {
     super({
       region,
@@ -31,6 +34,7 @@ export class S3VectorsCommands extends S3VectorsClient {
         secretAccessKey,
       },
     });
+    this.providerType = providerType;
   }
 
   // Vector bucket command members

@@ -30,13 +30,14 @@ const S3_CLIENT_MAP: Record<
     const { s3Url, accessKeyId, secretAccessKey } = props;
     return new IamCommands(s3Url.toString(), accessKeyId, secretAccessKey);
   },
-  [ClientType.S3_VECTORS]: (props) => {
-    const { s3Url, accessKeyId, secretAccessKey, region } = props;
+  [ClientType.S3_VECTOR]: (props) => {
+    const { s3Url, accessKeyId, secretAccessKey, region, providerType } = props;
     return new S3VectorsCommands(
       s3Url.toString(),
       accessKeyId,
       secretAccessKey,
-      region
+      region,
+      providerType
     );
   },
   [ClientType.S3]: (props) => {
