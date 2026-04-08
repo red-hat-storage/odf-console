@@ -1010,7 +1010,7 @@
   "equals": "equals",
   "equals any of": "equals any of",
   "Erase the contents of your bucket": "Erase the contents of your bucket",
-  "Erases all associated data and Ceph/Rook resources. Recommended only if the storage used by this StorageConsumer is no longer needed.": "Erases all associated data and Ceph/Rook resources. Recommended only if the storage used by this StorageConsumer is no longer needed.",
+  "Erases all associated data and Ceph/Rook resources, including NooBaa OBC buckets and credentials. Recommended only if the storage used by this StorageConsumer is no longer needed.": "Erases all associated data and Ceph/Rook resources, including NooBaa OBC buckets and credentials. Recommended only if the storage used by this StorageConsumer is no longer needed.",
   "Error": "Error",
   "Error creating silence": "Error creating silence",
   "Error details": "Error details",
