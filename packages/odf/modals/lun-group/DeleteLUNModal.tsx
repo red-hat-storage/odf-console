@@ -6,10 +6,10 @@ import {
   PersistentVolumeClaimModel,
   StorageClassModel,
   StorageClassResourceKind,
+  useK8sList,
 } from '@odf/shared';
 import { ModalFooter } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
   CommonModalProps,
   ModalBody,
@@ -37,6 +37,7 @@ import {
   Spinner,
   TextInput,
 } from '@patternfly/react-core';
+import { retryWithBackoff } from '../../utils/retry';
 import './DeleteLUNModal.scss';
 
 export const toList = (text: string[]): React.ReactNode => {
@@ -82,18 +83,17 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
   const [confirmName, setConfirmName] = React.useState('');
 
   const [storageClasses, scLoaded, scLoadError] =
-    useK8sGet<ListKind<StorageClassResourceKind>>(StorageClassModel);
-  const [pvcResources, pvcLoaded, pvcLoadError] = useK8sGet<
-    ListKind<PersistentVolumeClaimKind>
-  >(PersistentVolumeClaimModel);
+    useK8sList<StorageClassResourceKind>(StorageClassModel);
+  const [pvcResources, pvcLoaded, pvcLoadError] =
+    useK8sList<PersistentVolumeClaimKind>(PersistentVolumeClaimModel);
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const isConfirmNameValid = fsName === confirmName;
 
-  const fileredStorageClasses = storageClasses.items?.filter(
-    (sc) => sc.parameters?.volBackendFs === fsName
+  const filteredStorageClasses = storageClasses?.filter(
+    (sc) => sc?.parameters?.volBackendFs === fsName
   );
 
   const { deletionStatus, boundPVCNames } = React.useMemo(() => {
@@ -105,7 +105,7 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
     }
 
     // If storage class doesn't exist, we can proceed with deletion
-    if (!fileredStorageClasses.length) {
+    if (filteredStorageClasses?.length === 0) {
       return {
         deletionStatus: DeletionStatus.ALLOWED,
         boundPVCNames: [],
@@ -113,12 +113,12 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
     }
 
     // Check if any PVCs are using this storage class
-    const pvcScNames: string[] = pvcResources.items?.map(getStorageClassName);
+    const pvcScNames: string[] = pvcResources?.map(getStorageClassName);
     const usedByPVCs = pvcScNames.includes(fsName);
 
     if (usedByPVCs) {
       // Get the names of PVCs using this storage class
-      const pvcNames = pvcResources.items
+      const pvcNames = pvcResources
         ?.filter((pvc) => getStorageClassName(pvc) === fsName)
         .map((pvc) => getName(pvc));
       return {
@@ -136,8 +136,8 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
     pvcLoaded,
     scLoadError,
     pvcLoadError,
-    fileredStorageClasses.length,
-    pvcResources.items,
+    filteredStorageClasses?.length,
+    pvcResources,
     fsName,
   ]);
 
@@ -179,16 +179,18 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
       );
 
       // Delete StorageClass if it exists
-      if (fileredStorageClasses?.length > 0) {
+      if (filteredStorageClasses?.length > 0) {
         try {
-          fileredStorageClasses.forEach(async (sc) => {
-            await k8sDelete({
-              model: StorageClassModel,
-              resource: sc,
-              requestInit: null,
-              json: null,
-            });
-          });
+          await Promise.all(
+            filteredStorageClasses?.map((sc) =>
+              k8sDelete({
+                model: StorageClassModel,
+                resource: sc,
+                requestInit: null,
+                json: null,
+              })
+            )
+          );
         } catch (scError) {
           // eslint-disable-next-line no-console
           console.warn('Failed to delete StorageClass:', scError);
@@ -204,15 +206,18 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
         json: null,
       });
 
-      // Delete associated LocalDisks (allSettled never rejects — inspect results for failures)
       const localDiskResults = await Promise.allSettled(
         associatedDisks.map((disk) =>
-          k8sDelete({
-            model: LocalDiskModel,
-            resource: disk,
-            requestInit: null,
-            json: null,
-          })
+          retryWithBackoff(
+            () =>
+              k8sDelete({
+                model: LocalDiskModel,
+                resource: disk,
+                requestInit: null,
+                json: null,
+              }),
+            { timeoutMs: 60_000 }
+          )
         )
       );
 
@@ -291,7 +296,7 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
                     sure you want to delete?
                   </p>
                 </Trans>
-                {fileredStorageClasses?.length > 0 && (
+                {filteredStorageClasses?.length > 0 && (
                   <Alert
                     variant="warning"
                     isInline
@@ -304,10 +309,10 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
                         <strong>{fsName}</strong>
                       </li>
                       <li>
-                        {t('StorageClasses: ')}
+                        {t('StorageClass: ')}
                         <strong>
-                          {fileredStorageClasses
-                            .map((sc) => getName(sc))
+                          {filteredStorageClasses
+                            ?.map((sc) => getName(sc))
                             .join(', ')}
                         </strong>
                       </li>
@@ -359,7 +364,7 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
                   key="delete"
                   variant="danger"
                   onClick={deleteFileSystem}
-                  isDisabled={inProgress || !isConfirmNameValid}
+                  isDisabled={inProgress || !isConfirmNameValid || !scLoaded}
                   data-test="delete-action"
                 >
                   {t('Delete')}
