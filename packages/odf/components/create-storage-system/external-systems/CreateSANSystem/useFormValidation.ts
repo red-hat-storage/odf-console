@@ -77,7 +77,7 @@ const useSANSystemFormValidation = (
 
     const imageRegistryUrlRequirements = {
       required: t('Image registry URL is required'),
-      validUrl: t('Must be a valid URL (e.g. https://quay.io)'),
+      validUrl: t('Must be a valid URL (e.g. quay.io)'),
     };
     const imageRepositoryNameRequirements = {
       required: t('Image repository name is required'),
@@ -104,7 +104,10 @@ const useSANSystemFormValidation = (
           then: (schema) =>
             schema
               .required(imageRegistryUrlRequirements.required)
-              .url(imageRegistryUrlRequirements.validUrl),
+              .matches(
+                /^[a-zA-Z0-9][a-zA-Z0-9._-]+(:[0-9]{1,5})?(\/\S*)?$/,
+                imageRegistryUrlRequirements.validUrl
+              ),
           otherwise: (schema) => schema,
         })
         .transform((value: string) => (!!value ? value : '')),
