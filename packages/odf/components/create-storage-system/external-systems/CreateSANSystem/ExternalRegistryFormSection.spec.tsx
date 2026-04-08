@@ -210,7 +210,7 @@ describe('ExternalRegistryFormSection', () => {
         <FormWrapperWithPayloadTest
           showImageRegistryFields={true}
           defaultValues={{
-            imageRegistryUrl: 'https://quay.io',
+            imageRegistryUrl: 'quay.io',
             imageRepositoryName: 'my-repo',
             secretKey: 'my-secret',
             caCertificateSecret: 'ca-cert',
@@ -221,7 +221,7 @@ describe('ExternalRegistryFormSection', () => {
 
       const values = getValuesRef();
       expect(values).toEqual({
-        imageRegistryUrl: 'https://quay.io',
+        imageRegistryUrl: 'quay.io',
         imageRepositoryName: 'my-repo',
         secretKey: 'my-secret',
         caCertificateSecret: 'ca-cert',
@@ -247,7 +247,7 @@ describe('ExternalRegistryFormSection', () => {
         <FormWrapperWithPayloadTest
           showImageRegistryFields={true}
           defaultValues={{
-            imageRegistryUrl: 'https://quay.io',
+            imageRegistryUrl: 'quay.io',
             imageRepositoryName: '',
             secretKey: '',
             caCertificateSecret: 'ca-cert',
@@ -258,7 +258,7 @@ describe('ExternalRegistryFormSection', () => {
 
       const values = getValuesRef();
       expect(values).toEqual({
-        imageRegistryUrl: 'https://quay.io',
+        imageRegistryUrl: 'quay.io',
         imageRepositoryName: '',
         secretKey: '',
         caCertificateSecret: 'ca-cert',
@@ -271,7 +271,7 @@ describe('ExternalRegistryFormSection', () => {
         <FormWrapperWithPayloadTest
           showImageRegistryFields={false}
           defaultValues={{
-            imageRegistryUrl: 'https://prefilled.io',
+            imageRegistryUrl: 'prefilled.io',
             imageRepositoryName: 'prefilled-repo',
             secretKey: 'prefilled-secret',
             caCertificateSecret: 'ca-cert',
@@ -282,7 +282,7 @@ describe('ExternalRegistryFormSection', () => {
 
       const values = getValuesRef();
       expect(values).toEqual({
-        imageRegistryUrl: 'https://prefilled.io',
+        imageRegistryUrl: 'prefilled.io',
         imageRepositoryName: 'prefilled-repo',
         secretKey: 'prefilled-secret',
         caCertificateSecret: 'ca-cert',
