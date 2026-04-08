@@ -28,7 +28,7 @@ jest.mock(
 describe('useSANSystemFormValidation', () => {
   const baseValidValues = {
     lunGroupName: 'valid-lun-group',
-    imageRegistryUrl: 'https://quay.io',
+    imageRegistryUrl: 'quay.io',
     imageRepositoryName: 'my-repo',
     secretKey: 'secret',
     caCertificateSecret: '',
@@ -130,6 +130,44 @@ describe('useSANSystemFormValidation', () => {
         privateKeySecret: '',
       });
       expect(validWithoutSecret).toBe(true);
+    });
+  });
+
+  describe('imageRegistryUrl validation', () => {
+    const makeValues = (imageRegistryUrl: string) => ({
+      ...baseValidValues,
+      imageRegistryUrl,
+    });
+
+    it.each([
+      'quay.io',
+      'registry.example.com',
+      'registry.example.com:5000',
+      'registry.example.com:5000/my/repo',
+      '192.168.1.1',
+      '192.168.1.1:5000',
+      'myregistry:8080/path',
+    ])('should accept valid URL without protocol: %s', async (url) => {
+      const { result } = renderHook(() =>
+        useSANSystemFormValidation(new Set(), true)
+      );
+      expect(await result.current.formSchema.isValid(makeValues(url))).toBe(
+        true
+      );
+    });
+
+    it.each([
+      'https://quay.io',
+      'http://registry.example.com',
+      '-invalid.com',
+      '.invalid.com',
+    ])('should reject invalid URL: %s', async (url) => {
+      const { result } = renderHook(() =>
+        useSANSystemFormValidation(new Set(), true)
+      );
+      expect(await result.current.formSchema.isValid(makeValues(url))).toBe(
+        false
+      );
     });
   });
 

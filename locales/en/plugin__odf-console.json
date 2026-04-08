@@ -1369,7 +1369,7 @@
   "Must be a positive number 0 Byte or higher.": "Must be a positive number 0 Byte or higher.",
   "Must be a positive number 1 Byte or higher.": "Must be a positive number 1 Byte or higher.",
   "Must be a valid hostname or IP address": "Must be a valid hostname or IP address",
-  "Must be a valid URL (e.g. https://quay.io)": "Must be a valid URL (e.g. https://quay.io)",
+  "Must be a valid URL (e.g. quay.io)": "Must be a valid URL (e.g. quay.io)",
   "Must be an integer greater than 0.": "Must be an integer greater than 0.",
   "Must be connected to RHCS.": "Must be connected to RHCS.",
   "Must consist of lower case alphanumeric characters or '-'": "Must consist of lower case alphanumeric characters or '-'",
