@@ -1,7 +1,13 @@
 import * as React from 'react';
 import { SAN_STORAGE_SYSTEM_NAME } from '@odf/core/constants';
 import { FileSystemKind } from '@odf/core/types/scale';
-import { DASH, getName, getNamespace } from '@odf/shared';
+import {
+  DASH,
+  getName,
+  getNamespace,
+  StorageClassModel,
+  StorageClassResourceKind,
+} from '@odf/shared';
 import { Kebab } from '@odf/shared/kebab';
 import { ModalKeys } from '@odf/shared/modals';
 import { FileSystemModel } from '@odf/shared/models/scale';
@@ -47,6 +53,11 @@ const resource = {
   isList: true,
 };
 
+const storageClassResource = {
+  kind: StorageClassModel.kind,
+  isList: true,
+};
+
 const isConnected = (fileSystem: FileSystemKind) => {
   return fileSystem.status?.conditions?.some(
     (condition) => condition.type === 'Success' && condition.status === 'True'
@@ -83,8 +94,14 @@ const LUNGroupStatusIcon: React.FC<{
   return <RedExclamationCircleIcon />;
 };
 
-const getStorageClassName = (fileSystem: FileSystemKind): string => {
-  return getName(fileSystem);
+const getStorageClassName = (
+  fileSystem: FileSystemKind,
+  storageClasses: StorageClassResourceKind[]
+): string => {
+  return storageClasses
+    .filter((sc) => sc.parameters?.volBackendFs === getName(fileSystem))
+    ?.map((sc) => getName(sc))
+    .join(', ');
 };
 
 const getConsoleLink = (
@@ -129,6 +146,7 @@ type LUNGroupsListProps = {
   unfilteredData: FileSystemKind[];
   loaded: boolean;
   loadError: any;
+  storageClasses: StorageClassResourceKind[];
 };
 
 const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
@@ -209,22 +227,22 @@ const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
       aria-label={t('LUN groups table')}
       columns={columns}
       Row={LUNGroupRow}
-      rowData={{ url }}
+      rowData={{ url, storageClasses: props.storageClasses }}
     />
   );
 };
 
-type CustomData = { url: string };
+type CustomData = { url: string; storageClasses: StorageClassResourceKind[] };
 
 const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
   obj,
   activeColumnIDs,
-  rowData: { url },
+  rowData: { url, storageClasses },
 }) => {
   const { t } = useCustomTranslation();
   const status = getLUNGroupStatus(obj);
   const isHealthy = status === HealthState.OK;
-  const storageClassName = getStorageClassName(obj);
+  const storageClassName = getStorageClassName(obj, storageClasses);
 
   const customKebabItems = React.useMemo(
     () => [
@@ -293,6 +311,8 @@ const LUNGroupsTable: React.FC = () => {
   const { t } = useCustomTranslation();
   const [fileSystems, fileSystemsLoaded, fileSystemsLoadError] =
     useK8sWatchResource<FileSystemKind[]>(resource);
+  const [storageClasses, storageClassesLoaded, storageClassesLoadError] =
+    useK8sWatchResource<StorageClassResourceKind[]>(storageClassResource);
   const filteredFileSystems = filterSANFileSystems(fileSystems);
   const connectedLUNGroups = filteredFileSystems?.filter((fileSystem) =>
     isConnected(fileSystem)
@@ -312,8 +332,8 @@ const LUNGroupsTable: React.FC = () => {
           <span className="pf-v5-u-mr-sm">
             <LUNGroupStatusIcon
               fileSystems={filteredFileSystems || []}
-              loading={!fileSystemsLoaded}
-              loadError={!!fileSystemsLoadError}
+              loading={!fileSystemsLoaded || !storageClassesLoaded}
+              loadError={!!fileSystemsLoadError || !!storageClassesLoadError}
             />
           </span>
           {t('{{ lunGroups }} connected', {
@@ -326,7 +346,7 @@ const LUNGroupsTable: React.FC = () => {
       </TextContent>
       <ListPageFilter
         data={data}
-        loaded={fileSystemsLoaded}
+        loaded={fileSystemsLoaded && storageClassesLoaded}
         onFilterChange={onFilterChange}
         rowFilters={rowFilters}
         hideColumnManagement={true}
@@ -334,8 +354,9 @@ const LUNGroupsTable: React.FC = () => {
       <LUNGroupsList
         data={filteredData}
         unfilteredData={filteredFileSystems || []}
-        loaded={fileSystemsLoaded}
-        loadError={fileSystemsLoadError}
+        loaded={fileSystemsLoaded && storageClassesLoaded}
+        loadError={fileSystemsLoadError || storageClassesLoadError}
+        storageClasses={storageClasses}
       />
     </div>
   );
