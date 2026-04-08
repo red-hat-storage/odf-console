@@ -7,13 +7,22 @@ import {
   DeleteIndexCommandOutput,
   DeleteVectorBucketCommandInput,
   DeleteVectorBucketCommandOutput,
+  DeleteVectorBucketPolicyCommandInput,
+  GetIndexCommandInput,
+  GetIndexCommandOutput,
+  GetVectorBucketPolicyCommandInput,
+  GetVectorBucketPolicyCommandOutput,
   ListIndexesCommandInput,
   ListIndexesCommandOutput,
   ListVectorBucketsCommandInput,
   ListVectorBucketsCommandOutput,
+  ListVectorsCommandInput,
+  ListVectorsCommandOutput,
+  PutVectorBucketPolicyCommandInput,
+  PutVectorBucketPolicyCommandOutput,
 } from '@aws-sdk/client-s3vectors';
 
-//Vector bucket command types
+// Vector buckets command types
 export type CreateVectorBucket = (
   input: CreateVectorBucketCommandInput
 ) => Promise<CreateVectorBucketCommandOutput>;
@@ -38,3 +47,23 @@ export type ListIndexes = (
 export type DeleteIndex = (
   input: DeleteIndexCommandInput
 ) => Promise<DeleteIndexCommandOutput>;
+
+export type GetIndex = (
+  input: GetIndexCommandInput
+) => Promise<GetIndexCommandOutput>;
+
+export type ListVectors = (
+  input: ListVectorsCommandInput
+) => Promise<ListVectorsCommandOutput>;
+
+export type GetVectorBucketPolicy = (
+  input: GetVectorBucketPolicyCommandInput
+) => Promise<GetVectorBucketPolicyCommandOutput>;
+
+export type SetVectorBucketPolicy = (
+  input: PutVectorBucketPolicyCommandInput
+) => Promise<PutVectorBucketPolicyCommandOutput>;
+
+export type DeleteVectorBucketPolicy = (
+  input: DeleteVectorBucketPolicyCommandInput
+) => Promise<DeleteVectorBucketCommandOutput>;
