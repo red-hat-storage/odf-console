@@ -3,7 +3,6 @@ import {
   getVectorBucketOverviewBaseRoute,
   VECTOR_BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
 } from '@odf/core/constants/s3-vectors';
-import type { SetVectorBucketsDeleteResponse } from '@odf/core/modals/s3-vectors/delete-vector-bucket/DeleteVectorBucketModal';
 import { LazyDeleteVectorBucketModal } from '@odf/core/modals/s3-vectors/delete-vector-bucket/lazy-delete-vector-bucket';
 import { S3ProviderType } from '@odf/core/types/s3-browser';
 import {
@@ -38,8 +37,7 @@ const getRowActions = (
   launcher: LaunchModal,
   vectorBucketName: string,
   s3VectorsClient: S3VectorsCommands,
-  refreshTokens: () => void,
-  setDeleteResponse: SetVectorBucketsDeleteResponse
+  refreshTokens: () => void
 ): IAction[] => [
   {
     title: t('Delete bucket'),
@@ -51,7 +49,6 @@ const getRowActions = (
           s3VectorsClient,
           launcher,
           refreshTokens,
-          setDeleteResponse,
         },
       }),
   },
@@ -125,7 +122,6 @@ const VectorBucketsTableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
     setFavorites,
     triggerRefresh,
     launcher,
-    setDeleteResponse,
   }: RowExtraPropsType = extraProps;
 
   const { s3VectorsClient } = React.useContext(S3VectorsContext);
@@ -164,8 +160,7 @@ const VectorBucketsTableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
             launcher,
             name,
             s3VectorsClient,
-            triggerRefresh,
-            setDeleteResponse
+            triggerRefresh
           )}
         />
       </Td>
@@ -178,7 +173,6 @@ export const VectorBucketsListTable: React.FC<VectorBucketsListTableProps> = ({
   filteredVectorBuckets,
   loaded,
   error,
-  setDeleteResponse,
   triggerRefresh,
 }) => {
   const { t } = useCustomTranslation();
@@ -205,7 +199,6 @@ export const VectorBucketsListTable: React.FC<VectorBucketsListTableProps> = ({
         setFavorites,
         triggerRefresh,
         launcher,
-        setDeleteResponse,
       }}
     />
   );
@@ -216,7 +209,6 @@ type VectorBucketsListTableProps = {
   filteredVectorBuckets: K8sResourceCommon[];
   loaded: boolean;
   error: Error | null;
-  setDeleteResponse: SetVectorBucketsDeleteResponse;
   triggerRefresh: () => void;
 };
 
@@ -225,5 +217,4 @@ type RowExtraPropsType = {
   setFavorites: React.Dispatch<React.SetStateAction<string[]>>;
   triggerRefresh: () => void;
   launcher: LaunchModal;
-  setDeleteResponse: SetVectorBucketsDeleteResponse;
 };

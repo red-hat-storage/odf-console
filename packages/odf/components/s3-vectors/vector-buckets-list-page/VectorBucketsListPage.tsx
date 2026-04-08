@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { getVectorBucketCreatePageRoute } from '@odf/core/constants/s3-vectors';
 import { ODF_ADMIN } from '@odf/core/features';
-import {
-  SetVectorBucketsDeleteResponse,
-  VectorBucketsDeleteResponse,
-} from '@odf/core/modals/s3-vectors/delete-vector-bucket/DeleteVectorBucketModal';
 import { S3ProviderType } from '@odf/core/types';
 import { useCustomTranslation, useRefresh } from '@odf/shared';
 import { getValidFilteredData } from '@odf/shared/utils';
@@ -18,15 +14,7 @@ import {
   useListPageFilter,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  Alert,
-  AlertActionCloseButton,
-  AlertVariant,
-  Button,
-  ButtonVariant,
-  Flex,
-  FlexItem,
-} from '@patternfly/react-core';
+import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 import { SyncAltIcon } from '@patternfly/react-icons';
 import { ActionsColumn } from '@patternfly/react-table';
 import { ClientType } from '../../s3-common/types';
@@ -42,39 +30,6 @@ type VectorBucketsListPageBodyProps = {
   setVectorBucketInfo: React.Dispatch<React.SetStateAction<VectorBucketInfo>>;
 };
 
-type DeletionAlertsProps = {
-  deleteResponse: VectorBucketsDeleteResponse;
-  setDeleteResponse: SetVectorBucketsDeleteResponse;
-};
-
-const DeletionAlerts: React.FC<DeletionAlertsProps> = ({
-  deleteResponse,
-  setDeleteResponse,
-}) => {
-  const { t } = useCustomTranslation();
-  const { deletedVectorBucketName } = deleteResponse;
-
-  if (!deletedVectorBucketName) {
-    return null;
-  }
-
-  return (
-    <Alert
-      variant={AlertVariant.success}
-      title={t('Successfully deleted vector bucket "{{ bucketName }}".', {
-        bucketName: deletedVectorBucketName,
-      })}
-      isInline
-      className="pf-v6-u-mb-lg pf-v6-u-mt-sm"
-      actionClose={
-        <AlertActionCloseButton
-          onClose={() => setDeleteResponse({ deletedVectorBucketName: '' })}
-        />
-      }
-    />
-  );
-};
-
 const VectorBucketsListPageBody: React.FC<VectorBucketsListPageBodyProps> = ({
   vectorBucketInfo,
   setVectorBucketInfo,
@@ -84,17 +39,9 @@ const VectorBucketsListPageBody: React.FC<VectorBucketsListPageBodyProps> = ({
   const [vectorBuckets, loaded, loadError] = vectorBucketInfo;
   const [allVectorBuckets, filteredVectorBuckets, onFilterChange] =
     useListPageFilter(vectorBuckets);
-  const [deleteResponse, setDeleteResponse] =
-    React.useState<VectorBucketsDeleteResponse>({
-      deletedVectorBucketName: '',
-    });
 
   return (
     <ListPageBody>
-      <DeletionAlerts
-        deleteResponse={deleteResponse}
-        setDeleteResponse={setDeleteResponse}
-      />
       <Flex className="pf-v6-u-mt-md">
         <Flex flex={{ default: 'flex_1' }}>
           <FlexItem className="pf-v6-u-mr-md">
@@ -132,7 +79,6 @@ const VectorBucketsListPageBody: React.FC<VectorBucketsListPageBodyProps> = ({
           filteredVectorBuckets={filteredVectorBuckets}
           loaded={loaded}
           error={loadError as Error}
-          setDeleteResponse={setDeleteResponse}
           triggerRefresh={triggerRefresh}
         />
       )}

@@ -41,7 +41,6 @@ type DeleteVectorBucketModalProps = {
   s3VectorsClient: S3VectorsCommands;
   launcher: LaunchModal;
   refreshTokens?: () => void;
-  setDeleteResponse: SetVectorBucketsDeleteResponse;
 };
 
 const DeleteVectorBucketModal: React.FC<
@@ -49,12 +48,7 @@ const DeleteVectorBucketModal: React.FC<
 > = ({
   closeModal,
   isOpen,
-  extraProps: {
-    vectorBucketName,
-    s3VectorsClient,
-    refreshTokens,
-    setDeleteResponse,
-  },
+  extraProps: { vectorBucketName, s3VectorsClient, refreshTokens },
 }) => {
   const { t } = useCustomTranslation();
   const [inputValue, setInputValue] = React.useState('');
@@ -92,13 +86,12 @@ const DeleteVectorBucketModal: React.FC<
       });
 
       setInProgress(false);
-      closeModal();
       setFavorites((oldFavorites) =>
         oldFavorites.filter((bucket) => bucket !== vectorBucketName)
       );
       refreshTokens?.();
-      setDeleteResponse({ deletedVectorBucketName: vectorBucketName });
       navigate(VECTOR_BUCKETS_BASE_ROUTE);
+      closeModal();
     } catch (err) {
       setDeleteError(err);
       setInProgress(false);

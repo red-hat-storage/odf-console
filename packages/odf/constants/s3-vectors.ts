@@ -14,7 +14,17 @@ export const getVectorBucketOverviewBaseRoute = (
   s3Provider: S3ProviderType
 ) => `/odf/object-storage/${s3Provider}/vector-buckets/${vectorBucketName}`;
 
+export const getVectorIndexDetailsRoute = (
+  vectorBucketName: string,
+  indexName: string,
+  s3Provider: S3ProviderType
+): string =>
+  `${getVectorBucketOverviewBaseRoute(vectorBucketName, s3Provider)}/vector-index/${encodeURIComponent(indexName)}`;
+
 export const MAX_VECTOR_BUCKETS = 100;
+export const MAX_VECTOR_INDEXES = 100;
 
 export const LIST_VECTOR_BUCKET = 'LIST_VECTOR_BUCKET_CACHE_KEY';
 export const LIST_VECTOR_INDEX = 'LIST_VECTOR_INDEX_CACHE_KEY';
+
+export const VECTOR_INDEX_CACHE_KEY_SUFFIX = 'VECTOR_INDEX_CACHE_KEY';

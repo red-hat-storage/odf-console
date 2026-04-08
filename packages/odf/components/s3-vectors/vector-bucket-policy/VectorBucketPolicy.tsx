@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import {
   PolicyBody,
   PolicyFooter,
@@ -8,18 +7,19 @@ import {
 import { BUCKET_POLICY_CACHE_KEY_SUFFIX } from '@odf/core/constants';
 import DeleteBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/DeleteBucketPolicy';
 import SaveBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/SaveBucketPolicy';
+import { S3ProviderType } from '@odf/core/types';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWRMutation from 'swr/mutation';
-import { PreConfiguredPolicies } from './PreConfiguredPolicies';
+import { S3VectorsContext } from '../s3-vectors-context';
 
-type BucketPolicyProps = {
+type VectorBucketPolicyProps = {
   obj: { fresh: boolean; triggerRefresh: () => void };
 };
 
-type BucketPolicyContentProps = {
+type VectorBucketPolicyContentProps = {
   triggerRefresh: () => void;
   success: boolean;
   setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
@@ -37,9 +37,10 @@ type SaveBucketPolicyModalProps = {
   savePolicy: () => Promise<void>;
 };
 
-const BUCKET_POLICY_SCHEMA_URI = 'https://s3.com/s3-bucket-policy-schema.json';
+const VECTOR_BUCKET_POLICY_SCHEMA_URI =
+  'https://s3.com/s3-vector-bucket-policy-schema.json';
 
-const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
+const VectorBucketPolicyContent: React.FC<VectorBucketPolicyContentProps> = ({
   success,
   setSuccess,
   triggerRefresh,
@@ -47,17 +48,20 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
   const { t } = useCustomTranslation();
   const [code, setCode] = React.useState('');
   const [edit, setEdit] = React.useState(false);
-  const { s3Client } = React.useContext(S3Context);
-  const { bucketName } = useParams();
+  const { s3VectorsClient } = React.useContext(S3VectorsContext);
+  const { vectorBucketName } = useParams();
+  const providerType = s3VectorsClient.providerType as S3ProviderType;
   const launcher = useModal();
 
   const launchDeleteModal = () =>
     launcher(DeleteBucketPolicyModal, {
       extraProps: {
         triggerRefresh,
-        title: t('Confirm delete bucket policy?'),
+        title: t('Confirm delete vector bucket policy?'),
         deletePolicy: async () => {
-          await s3Client.deleteBucketPolicy({ Bucket: bucketName });
+          await s3VectorsClient.deleteVectorBucketPolicy({
+            vectorBucketName: vectorBucketName,
+          });
         },
       } as DeleteBucketPolicyModalProps,
       isOpen: true,
@@ -69,7 +73,10 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
         triggerRefresh,
         setSuccess,
         savePolicy: async () => {
-          await s3Client.setBucketPolicy({ Bucket: bucketName, Policy: code });
+          await s3VectorsClient.setVectorBucketPolicy({
+            vectorBucketName: vectorBucketName,
+            policy: code,
+          });
         },
       } as SaveBucketPolicyModalProps,
       isOpen: true,
@@ -81,14 +88,16 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
     isMutating: isLoading,
     trigger,
   } = useSWRMutation(
-    `${s3Client.providerType}-${bucketName}-${BUCKET_POLICY_CACHE_KEY_SUFFIX}`,
-    () => s3Client.getBucketPolicy({ Bucket: bucketName })
+    `${providerType}-${vectorBucketName}-${BUCKET_POLICY_CACHE_KEY_SUFFIX}`,
+    () =>
+      s3VectorsClient.getVectorBucketPolicy({
+        vectorBucketName: vectorBucketName,
+      })
   );
 
   const noPolicyExists =
-    error?.name === 'NoSuchBucketPolicy' && !policyData?.Policy;
+    error?.name === 'NoSuchBucketPolicy' && !policyData?.policy;
 
-  // initial fetch on first mount or remounts only
   React.useEffect(() => {
     trigger().catch((err) => {
       // eslint-disable-next-line no-console
@@ -98,8 +107,8 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
   }, []);
 
   React.useEffect(() => {
-    if (!isLoading && !error && !!policyData?.Policy) {
-      const unformattedPolicy = policyData?.Policy;
+    if (!isLoading && !error && !!policyData?.policy) {
+      const unformattedPolicy = policyData?.policy;
       try {
         const formattedPolicy = JSON.stringify(
           JSON.parse(unformattedPolicy),
@@ -124,11 +133,11 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
         setSuccess={setSuccess}
         title={t('Bucket policy')}
         description={t(
-          'Use bucket policy to grant public or restricted access to the objects stored in the bucket.'
+          'Use vector bucket policy to grant public or restricted access to the vector indexes stored in the bucket.'
         )}
-        successAlertTitle={t('Bucket policy applied.')}
+        successAlertTitle={t('Vector bucket policy applied.')}
         successAlertBody={t(
-          'The bucket policy has been successfully created and applied to your S3 bucket.'
+          'The vector bucket policy has been successfully created and applied to your S3 Vector bucket.'
         )}
       />
       <PolicyBody
@@ -138,14 +147,12 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
         setEdit={setEdit}
         noPolicyExists={noPolicyExists}
         editTooltip={t(
-          'Edit or delete the current bucket policy to customize access permissions or remove the existing configuration.'
+          'Edit or delete the current vector bucket policy to customize access permissions or remove the existing configuration.'
         )}
-        editButtonLabel={t('Edit bucket policy')}
-        emptyStateTitle={t('You do not have an active bucket policy.')}
-        schemaUri={BUCKET_POLICY_SCHEMA_URI}
-      >
-        {edit && <PreConfiguredPolicies setCode={setCode} />}
-      </PolicyBody>
+        editButtonLabel={t('Edit vector bucket policy')}
+        emptyStateTitle={t('You do not have an active vector bucket policy.')}
+        schemaUri={VECTOR_BUCKET_POLICY_SCHEMA_URI}
+      />
       {edit && (
         <PolicyFooter
           noPolicyExists={noPolicyExists}
@@ -159,13 +166,13 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
   );
 };
 
-export const BucketPolicy: React.FC<BucketPolicyProps> = ({
+export const VectorBucketPolicy: React.FC<VectorBucketPolicyProps> = ({
   obj: { fresh, triggerRefresh },
 }) => {
   const [success, setSuccess] = React.useState(false);
 
   return fresh ? (
-    <BucketPolicyContent
+    <VectorBucketPolicyContent
       triggerRefresh={triggerRefresh}
       success={success}
       setSuccess={setSuccess}

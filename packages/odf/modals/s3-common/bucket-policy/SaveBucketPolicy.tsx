@@ -1,25 +1,22 @@
 import * as React from 'react';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
-import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 
-type SaveBucketPolicyModalModalProps = {
-  bucketName: string;
-  s3Client: S3Commands;
+export type SaveBucketPolicyModalProps = {
   triggerRefresh: () => void;
-  policy: string;
   setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
+  savePolicy: () => Promise<void>;
 };
 
 const SaveBucketPolicyModal: React.FC<
-  CommonModalProps<SaveBucketPolicyModalModalProps>
+  CommonModalProps<SaveBucketPolicyModalProps>
 > = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName, s3Client, triggerRefresh, policy, setSuccess },
+  extraProps: { triggerRefresh, setSuccess, savePolicy },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -31,7 +28,7 @@ const SaveBucketPolicyModal: React.FC<
     setInProgress(true);
 
     try {
-      await s3Client.setBucketPolicy({ Bucket: bucketName, Policy: policy });
+      await savePolicy();
 
       setInProgress(false);
       closeModal();
