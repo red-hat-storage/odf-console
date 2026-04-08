@@ -107,7 +107,7 @@ const VectorIndexesListPage: React.FC<VectorIndexListType> = ({ obj }) => {
         <Alert
           isInline
           variant={AlertVariant.success}
-          title={t('Vector index {{indexName}} was deleted.', {
+          title={t('Successfully deleted vector index {{indexName}}.', {
             indexName: deleteResponse.deletedIndexName,
           })}
           actionClose={

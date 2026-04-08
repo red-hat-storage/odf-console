@@ -8,7 +8,6 @@ import {
   ListVectorBucketsCommand,
   DeleteVectorBucketPolicyCommand,
   GetVectorBucketPolicyCommand,
-  ListVectorsCommand,
   PutVectorBucketPolicyCommand,
   S3VectorsClient,
 } from '@aws-sdk/client-s3vectors';
@@ -22,7 +21,6 @@ import {
   ListVectorBuckets,
   DeleteVectorBucketPolicy,
   GetVectorBucketPolicy,
-  ListVectors,
   SetVectorBucketPolicy,
 } from './types';
 
@@ -57,6 +55,15 @@ export class S3VectorsCommands extends S3VectorsClient {
   deleteVectorBucket: DeleteVectorBucket = (input) =>
     this.send(new DeleteVectorBucketCommand(input));
 
+  getVectorBucketPolicy: GetVectorBucketPolicy = (input) =>
+    this.send(new GetVectorBucketPolicyCommand(input));
+
+  setVectorBucketPolicy: SetVectorBucketPolicy = (input) =>
+    this.send(new PutVectorBucketPolicyCommand(input));
+
+  deleteVectorBucketPolicy: DeleteVectorBucketPolicy = (input) =>
+    this.send(new DeleteVectorBucketPolicyCommand(input));
+
   // Vector index command members
   createIndex: CreateIndex = (input) =>
     this.send(new CreateIndexCommand(input));
@@ -68,16 +75,4 @@ export class S3VectorsCommands extends S3VectorsClient {
 
   deleteIndex: DeleteIndex = (input) =>
     this.send(new DeleteIndexCommand(input));
-
-  listVectors: ListVectors = (input) =>
-    this.send(new ListVectorsCommand(input));
-
-  getVectorBucketPolicy: GetVectorBucketPolicy = (input) =>
-    this.send(new GetVectorBucketPolicyCommand(input));
-
-  setVectorBucketPolicy: SetVectorBucketPolicy = (input) =>
-    this.send(new PutVectorBucketPolicyCommand(input));
-
-  deleteVectorBucketPolicy: DeleteVectorBucketPolicy = (input) =>
-    this.send(new DeleteVectorBucketPolicyCommand(input));
 }

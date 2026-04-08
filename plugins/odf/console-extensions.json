@@ -764,8 +764,8 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/:providerType/vector-buckets/:vectorBucketName/:indexName",
-      "exact": true,
+      "path": "/odf/object-storage/:providerType/vector-buckets/:vectorBucketName/vector-index/:indexName",
+      "exact": false,
       "component": {
         "$codeRef": "s3VectorIndexDetailsPage.default"
       }
@@ -779,6 +779,14 @@
       "component": {
         "$codeRef": "s3VectorBucketOverview.default"
       }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/:s3Provider/vector-buckets/:vectorBucketName/create-index",
+      "exact": false,
+      "component": { "$codeRef": "createVectorIndex.default" }
     }
   },
   {

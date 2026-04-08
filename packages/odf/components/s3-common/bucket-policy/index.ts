@@ -6,4 +6,4 @@ export {
   type PolicyHeaderProps,
   type PolicyBodyProps,
   type PolicyFooterProps,
-} from './BucketPolicySections';
+} from './bucket-policy-sections';

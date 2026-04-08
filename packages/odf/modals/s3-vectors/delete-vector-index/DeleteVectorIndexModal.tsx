@@ -85,7 +85,7 @@ const DeleteVectorIndexModal: React.FC<
             <Button
               variant={ButtonVariant.danger}
               onClick={onDelete}
-              isDisabled={inProgress}
+              isDisabled={inputValue !== indexName || inProgress}
               className="pf-v6-u-mr-xs"
             >
               {t('Delete index')}
