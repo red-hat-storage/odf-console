@@ -66,6 +66,7 @@
     "iam": "@odf/core/components/s3-iam/EmptyIamUserPage",
     "createIAMUser": "@odf/core/components/s3-iam/create-user/CreateUserForm",
     "s3VectorBucketOverview": "@odf/core/components/s3-vectors/vector-bucket-overview/VectorBucketOverview",
-    "s3VectorIndexDetailsPage": "@odf/core/components/s3-vectors/vector-index-details/VectorIndexDetailsPage"
+    "s3VectorIndexDetailsPage": "@odf/core/components/s3-vectors/vector-index-details/VectorIndexDetailsPage",
+    "createVectorIndex": "@odf/core/components/s3-vectors/create-vector-index/CreateVectorIndex"
   }
 }

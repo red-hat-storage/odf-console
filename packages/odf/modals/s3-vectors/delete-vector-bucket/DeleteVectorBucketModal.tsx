@@ -58,7 +58,7 @@ const DeleteVectorBucketModal: React.FC<
   const navigate = useNavigate();
 
   const { data, error, isLoading } = useSWR(
-    `${s3VectorsClient.providerType}-${vectorBucketName}-${LIST_VECTOR_INDEX}`,
+    `${s3VectorsClient.providerType}-${vectorBucketName}-${LIST_VECTOR_INDEX}-delete`,
     () =>
       s3VectorsClient.listIndexes({
         vectorBucketName,

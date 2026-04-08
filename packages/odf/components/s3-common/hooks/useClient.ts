@@ -3,12 +3,21 @@ import { S3ProviderType } from '@odf/core/types';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { IamCommands } from '@odf/shared/iam';
 import { S3Commands, S3_INTERNAL_ENDPOINT_PORT } from '@odf/shared/s3';
-import { S3VectorsCommands } from '@odf/shared/s3-vectors';
+import {
+  S3VectorsCommands,
+  S3_VECTORS_INTERNAL_ENDPOINT_PORT,
+} from '@odf/shared/s3-vectors';
 import { SecretKind } from '@odf/shared/types';
 import type { HttpRequest } from '@smithy/types';
 import * as _ from 'lodash-es';
 import { ProviderConfig } from '../registry/s3-providers';
 import { ClientType } from '../types';
+
+const INTERNAL_ENDPOINT_PORT: Record<ClientType, number> = {
+  [ClientType.S3]: S3_INTERNAL_ENDPOINT_PORT,
+  [ClientType.S3_VECTOR]: S3_VECTORS_INTERNAL_ENDPOINT_PORT,
+  [ClientType.IAM]: S3_INTERNAL_ENDPOINT_PORT,
+};
 
 export type ClientCommandType = S3Commands | IamCommands | S3VectorsCommands;
 
@@ -104,12 +113,14 @@ const createClientFromEndpointConfig = (
   // Ex: For Provider cluster (console proxy), include the port as the proxy forwards it.
   // For Client cluster (nginx proxy), omit the port as the proxy forwards host without port.
   // It must be done BEFORE signature calculation.
+  const internalEndpointPort = INTERNAL_ENDPOINT_PORT[type];
+
   const buildMiddleware = (next) => (args) => {
     const request: Partial<HttpRequest> = args.request;
     if (s3Url.protocol === 'https:') {
       request.headers['host'] = excludePortInSignature
         ? s3Url.hostname
-        : `${s3Url.hostname}:${S3_INTERNAL_ENDPOINT_PORT}`;
+        : `${s3Url.hostname}:${internalEndpointPort}`;
     }
     return next(args);
   };
