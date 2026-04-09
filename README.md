@@ -134,7 +134,7 @@ Serve the plugin choosing how to run OCP Console:
 Locally:
 
 ```
-./bin/bridge -plugins odf-client-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-client-console/externalEndpointProxy/","endpoint":"https://localhost:6001/"}]}'
+./bin/bridge -plugins odf-client-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-client-console/s3EndpointProxy/","endpoint":"https://localhost:6001/"}]}'
 ```
 
 ### Debugging with VSCode

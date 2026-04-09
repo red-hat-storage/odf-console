@@ -6,7 +6,7 @@ import {
   NOOBAA_S3_PROXY_PATH,
   RGW_INTERNAL_S3_PROXY_PATH,
   RGW_S3_INTERNAL_ENDPOINT_SUFFIX,
-  getClientNoobaaS3ProxyPath,
+  getHubS3EndpointProxyPath,
 } from '@odf/shared/s3';
 import {
   NOOBAA_ADMIN_SECRET,
@@ -16,7 +16,7 @@ import {
   RGW_ACCESS_KEY_ID,
   RGW_SECRET_ACCESS_KEY,
 } from '../../../constants';
-import { StorageClientInfoData } from '../hooks/useStorageClientInfo';
+import { HubS3EndpointsData } from '../hooks/useHubS3Endpoints';
 import { SystemInfoData } from '../hooks/useSystemInfo';
 
 const getRGWEndpointURL = (endpoint: string | undefined): URL | undefined => {
@@ -73,7 +73,7 @@ export type ProviderRegistryEntry = {
     getConfig: (
       systemInfo: SystemInfoData,
       odfNamespace: string,
-      storageClientInfo?: StorageClientInfoData
+      hubS3Endpoints?: HubS3EndpointsData
     ) => ProviderConfig;
   };
 };
@@ -105,7 +105,7 @@ export const S3_PROVIDER_REGISTRY: Record<
       getConfig: (
         _systemInfo,
         odfNamespace,
-        storageClientInfo
+        hubS3Endpoints
       ): ProviderConfig => {
         const config: ProviderConfig = { ...NOOBAA_STATIC_CONFIG };
         delete config.s3EndpointBuilder;
@@ -115,23 +115,22 @@ export const S3_PROVIDER_REGISTRY: Record<
             : `${NOOBAA_S3_INTERNAL_ENDPOINT_PREFIX}${odfNamespace}${NOOBAA_S3_INTERNAL_ENDPOINT_SUFFIX}`
         );
 
-        // when skipSignatureCalculation is true, "s3Endpoint" should be direct S3 endpoint URL (eg: Route)
-        // when false it can be either service host or direct S3 endpoint URL (only for signing),
+        // When skipSignatureCalculation is true, "s3Endpoint" should be direct S3 endpoint URL (eg: Route).
+        // When false it can be either service host or direct S3 endpoint URL (only for signing),
         // but request is still redirected to "s3ConsolePath" (proxy) via middleware
         if (
-          storageClientInfo?.isClientCluster &&
-          !!storageClientInfo?.noobaaS3Endpoint
+          hubS3Endpoints?.isClientCluster &&
+          !!hubS3Endpoints?.noobaaS3Endpoint &&
+          !!hubS3Endpoints?.uniqueIdentifier
         ) {
-          config.s3Endpoint = new URL(storageClientInfo.noobaaS3Endpoint);
-          config.s3ConsolePath = getClientNoobaaS3ProxyPath(
-            storageClientInfo.clientUID
+          config.s3Endpoint = new URL(hubS3Endpoints.noobaaS3Endpoint);
+          config.s3ConsolePath = getHubS3EndpointProxyPath(
+            hubS3Endpoints.uniqueIdentifier
           );
           config.skipSignatureCalculation = false;
           config.excludePortInSignature = true;
 
-          const dataPathEndpointUrl = new URL(
-            storageClientInfo.noobaaS3Endpoint
-          );
+          const dataPathEndpointUrl = new URL(hubS3Endpoints.noobaaS3Endpoint);
           dataPathEndpointUrl.protocol = window.location.hostname.includes(
             'localhost'
           )

@@ -39,6 +39,7 @@ export const ObjectVersionsTableRow: React.FC<
     setDeleteResponse,
     refreshTokens,
     closeObjectSidebar,
+    blockDataPath = false,
   } = extraProps;
 
   const [downloadAndPreview, setDownloadAndPreview] =
@@ -63,7 +64,8 @@ export const ObjectVersionsTableRow: React.FC<
     refreshTokens,
     closeObjectSidebar,
     true,
-    undefined
+    undefined,
+    blockDataPath
   );
 
   return (
