@@ -17,7 +17,7 @@ export type S3BucketFormValidation = {
   fieldRequirements: string[];
 };
 
-const useS3BucketFormValidation = (): S3BucketFormValidation => {
+export const useS3BucketFormValidation = (): S3BucketFormValidation => {
   const { t } = useCustomTranslation();
 
   return React.useMemo(() => {
@@ -49,5 +49,3 @@ const useS3BucketFormValidation = (): S3BucketFormValidation => {
     };
   }, [t]);
 };
-
-export default useS3BucketFormValidation;

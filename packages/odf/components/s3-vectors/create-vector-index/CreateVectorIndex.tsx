@@ -3,8 +3,6 @@ import {
   getVectorBucketIndexesListRoute,
   getVectorBucketOverviewBaseRoute,
   getVectorBucketsListRoute,
-  VECTOR_INDEX_NAME_MAX_LENGTH,
-  VECTOR_INDEX_NAME_MIN_LENGTH,
 } from '@odf/core/constants/s3-vectors';
 import { S3ProviderType } from '@odf/core/types';
 import {
@@ -34,7 +32,7 @@ import {
   NumberInput,
   Radio,
 } from '@patternfly/react-core';
-import useS3VectorIndexValidation from '../hooks/useS3VectorIndexFormValidation';
+import { useS3BucketFormValidation as useS3VectorIndexFormValidation } from '../../s3-common/hooks/useS3BucketFormValidation';
 import { S3VectorsContext, S3VectorsProvider } from '../s3-vectors-context';
 
 enum DistanceMetric {
@@ -85,7 +83,8 @@ const CreateVectorIndexForm: React.FC = () => {
     },
   ];
 
-  const { vectorIndexSchema, fieldRequirements } = useS3VectorIndexValidation();
+  const { bucketFormSchema: vectorIndexSchema, fieldRequirements } =
+    useS3VectorIndexFormValidation();
   const resolver = useYupValidationResolver(vectorIndexSchema);
 
   const {
@@ -95,7 +94,7 @@ const CreateVectorIndexForm: React.FC = () => {
   } = useForm<FormData>({
     ...(formSettings as any),
     resolver,
-    defaultValues: { vectorIndexName: '' },
+    defaultValues: { bucketName: '' },
   });
 
   const onDimensionChange = (
@@ -126,7 +125,6 @@ const CreateVectorIndexForm: React.FC = () => {
 
   const save = async (formData: FormData) => {
     setInProgress(true);
-    setErrorMessage('');
     const { vectorIndexName: indexName } = formData;
     try {
       await s3VectorsClient.createIndex({
@@ -136,11 +134,12 @@ const CreateVectorIndexForm: React.FC = () => {
         dimension,
         distanceMetric,
       });
-    } catch ({ name, message }) {
-      setErrorMessage(`Error while creating vector index: ${name}: ${message}`);
+    } catch (err) {
+      setErrorMessage(err);
       setInProgress(false);
       return;
     }
+    setInProgress(false);
     navigate(
       getVectorBucketOverviewBaseRoute(
         vectorBucketName,
@@ -182,9 +181,7 @@ const CreateVectorIndexForm: React.FC = () => {
               'aria-describedby': 'vector-index-name-help',
               'data-test': 'vector-index-name',
             }}
-            helperText={t(
-              `Vector index names must be ${VECTOR_INDEX_NAME_MIN_LENGTH} to ${VECTOR_INDEX_NAME_MAX_LENGTH} characters and unique within this vector bucket. Valid characters are a-z, 0-9, hyphens (-), and dots (.).`
-            )}
+            helperText={t(`A unique name within this vector bucket.`)}
           />
           <FormGroup
             fieldId="dimension"
