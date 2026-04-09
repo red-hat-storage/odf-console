@@ -15,6 +15,7 @@ import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -25,10 +26,15 @@ import {
 
 const DetailsCard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-
+  const { systemName } = useParams();
   const [clusters, clustersLoaded, clustersError] =
     useK8sList<ClusterKind>(ClusterModel);
-  const [remoteClusters] = useK8sList<RemoteClusterKind>(RemoteClusterModel);
+  const [remoteCluster] = useK8sWatchResource<RemoteClusterKind>({
+    kind: referenceForModel(RemoteClusterModel),
+    isList: false,
+    namespace: IBM_SCALE_NAMESPACE,
+    name: systemName,
+  });
 
   const [csvs] = useK8sWatchResource<ClusterServiceVersionKind[]>({
     kind: referenceForModel(ClusterServiceVersionModel),
@@ -42,7 +48,6 @@ const DetailsCard: React.FC<{}> = () => {
   );
   const operatorVersion = ibmCSV?.spec?.version;
   const cluster = clusters?.[0];
-  const remoteCluster = remoteClusters?.[0];
 
   const clusterName = getName(cluster);
   const endpointUrl = remoteCluster?.spec?.gui?.hosts?.[0];
