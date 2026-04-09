@@ -16,7 +16,7 @@ import {
 } from './utils/reducer';
 import './create-dr-policy.scss';
 
-export const MIN_VALUE = 1;
+export const MIN_VALUE = 0;
 
 export const normalizeSyncTimeValue = (value: number) => {
   const syncTimeValue = isNaN(Number(value)) ? MIN_VALUE : Number(value);
@@ -61,15 +61,23 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
   const { t } = useCustomTranslation();
 
   React.useEffect(() => {
-    // Set replication type when two cluster are selected
+    // Set replication type when two clusters are selected.
     const cephFSID1 =
       selectedClusters[0]?.odfInfo?.storageClusterInfo?.cephFSID;
     const cephFSID2 =
       selectedClusters[1]?.odfInfo?.storageClusterInfo?.cephFSID;
+
+    // When neither cluster has a cephFSID this is the third-party storage path.
+    // Third-party providers (e.g. IBM Fusion Access) use async replication.
+    const isThirdPartyPath = !cephFSID1 && !cephFSID2;
+
     dispatch({
       type: DRPolicyActionType.SET_REPLICATION_TYPE,
-      payload:
-        cephFSID1 === cephFSID2 ? ReplicationType.SYNC : ReplicationType.ASYNC,
+      payload: isThirdPartyPath
+        ? ReplicationType.ASYNC
+        : cephFSID1 === cephFSID2
+          ? ReplicationType.SYNC
+          : ReplicationType.ASYNC,
     });
   }, [selectedClusters, dispatch]);
 

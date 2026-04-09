@@ -8,7 +8,10 @@ export const OCS_PROVISIONERS = [
 
 export const NOOBAA_PROVISIONER = 'noobaa.io/obc';
 
-export const IBM_PROVISIONERS = ['spectrumscale.csi.ibm.com'];
+export const IBM_PROVISIONERS = [
+  'spectrumscale.csi.ibm.com',
+  'fusionaccess.storage.ibm.com/csi',
+];
 
 // Block and file storage provisioners
 export const CEPH_PROVISIONERS = [

@@ -85,23 +85,33 @@ const validateClusterSelection = (
   mirrorPeers: MirrorPeerKind[],
   isStorageClassesValid: boolean
 ): ValidationType => {
+  // Third-party storage path: all clusters lack ODF.
+  // ODF-specific checks (version, cephFSID, storage class provisioners)
+  // do not apply — replication is managed by the external storage provider.
+  const isThirdPartyPath = clusters.every(
+    (cluster) =>
+      !cluster?.odfInfo || cluster?.odfInfo?.storageClusterCount === 0
+  );
+
   const validation: ValidationType = clusters.reduce(
     (acc, cluster) => {
-      const name = getName(cluster);
-      const { odfInfo } = cluster;
-      const { isValidODFVersion, storageClusterInfo, storageClusterCount } =
-        cluster?.odfInfo || {};
-      if (!odfInfo || storageClusterCount === 0) {
-        acc.clusterValidation.clustersWithoutODF.push(name);
-      }
-      if (!isValidODFVersion) {
-        acc.clusterValidation.clustersWithUnsupportedODF.push(name);
-      }
-      if (!storageClusterInfo?.cephFSID) {
-        acc.clusterValidation.clustersWithUnsuccessfullODF.push(name);
-      }
-      if (storageClusterCount > 1) {
-        acc.clusterValidation.clustersWithMultipleStorageInstances.push(name);
+      if (!isThirdPartyPath) {
+        const name = getName(cluster);
+        const { odfInfo } = cluster;
+        const { isValidODFVersion, storageClusterInfo, storageClusterCount } =
+          cluster?.odfInfo || {};
+        if (!odfInfo || storageClusterCount === 0) {
+          acc.clusterValidation.clustersWithoutODF.push(name);
+        }
+        if (!isValidODFVersion) {
+          acc.clusterValidation.clustersWithUnsupportedODF.push(name);
+        }
+        if (!storageClusterInfo?.cephFSID) {
+          acc.clusterValidation.clustersWithUnsuccessfullODF.push(name);
+        }
+        if (storageClusterCount > 1) {
+          acc.clusterValidation.clustersWithMultipleStorageInstances.push(name);
+        }
       }
       return acc;
     },
@@ -116,11 +126,18 @@ const validateClusterSelection = (
   );
 
   validation.peeringValidation = {
-    unSupportedPeering: checkClientToODFPeering(clusters),
+    // Client-to-ODF peering check is ODF-specific.
+    unSupportedPeering: isThirdPartyPath
+      ? false
+      : checkClientToODFPeering(clusters),
     invalidPolicyCreation:
       checkSyncPolicyExists(clusters.map(getName), drPolicies) ||
       verifyMirrorPeerExistence(clusters, mirrorPeers),
-    unSupportedStorageClasses: !isStorageClassesValid,
+    // Storage class validation uses ODF/Ceph provisioner allowlists.
+    // For third-party storage, replication is externally managed.
+    unSupportedStorageClasses: isThirdPartyPath
+      ? false
+      : !isStorageClassesValid,
   };
 
   return validation;
