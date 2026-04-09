@@ -4,11 +4,13 @@ import {
   createUniquenessValidator,
 } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
 import { createFileSystem } from '@odf/core/components/create-storage-system/external-systems/CreateScaleSystem/payload';
+import { RemoteClusterKind } from '@odf/core/types/scale';
 import {
   ButtonBar,
   formSettings,
   useYupValidationResolver,
   TextInputWithFieldRequirements,
+  getName,
 } from '@odf/shared';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { CommonModalProps } from '@odf/shared/modals';
@@ -30,11 +32,13 @@ const FILESYSTEM_NAME_MAX_LENGTH = 63;
 const FILESYSTEM_NAME_MIN_LENGTH = 3;
 
 const AddRemoteFileSystemModal: React.FC<
-  CommonModalProps<{ remoteClusterName: string }>
-> = ({ closeModal, isOpen, extraProps: { remoteClusterName } }) => {
+  CommonModalProps<{ resource: RemoteClusterKind }>
+> = ({ closeModal, isOpen, extraProps: { resource } }) => {
   const { t } = useCustomTranslation();
   const [inProgress, setInProgress] = React.useState(false);
   const [error, setError] = React.useState(null);
+
+  const remoteClusterName = getName(resource);
 
   const existingFileSystemNames = useExistingFileSystemNames();
 
