@@ -7,6 +7,7 @@ import {
   getRBDVolumeSnapshotClassName,
 } from '@odf/core/components/utils';
 import {
+  ERASURE_CODING_MIN_NODES,
   MINIMUM_NODES,
   NO_PROVISIONER,
   Steps,
@@ -16,10 +17,10 @@ import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   labelOCSNamespace,
   isResourceProfileAllowed,
-  isFlexibleScaling,
   getDeviceSetCount,
   getNodeArchitectureFromState,
   getOsdAmount,
+  isFlexibleScaling,
   isValidCapacityAutoScalingConfig,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
@@ -80,8 +81,8 @@ const validateBackingStorageStep = (
   }
 };
 
-const validateAdvancedSettingsStep = (
-  advancedSettings: WizardState['advancedSettings'],
+const validateOptionalSettingsStep = (
+  optionalSettings: WizardState['optionalSettings'],
   sc: WizardState['storageClass'],
   deployment: DeploymentType,
   type: BackingStorageType
@@ -92,9 +93,7 @@ const validateAdvancedSettingsStep = (
     externalPostgres,
     isDbBackup,
     dbBackup,
-    enableForcefulDeployment,
-    forcefulDeploymentConfirmation,
-  } = advancedSettings;
+  } = optionalSettings;
 
   const {
     username,
@@ -118,11 +117,6 @@ const validateAdvancedSettingsStep = (
   const hasDbBackupEnabledButNoFields =
     isDbBackup && !dbBackup.volumeSnapshot?.volumeSnapshotClass && isMCG;
 
-  // The Next button is disabled when forceful deployment is enabled but confirmation text not equals confirm
-  const hasForcefulDeploymentButNoConfirmation =
-    enableForcefulDeployment &&
-    !(forcefulDeploymentConfirmation?.trim() === 'CONFIRM');
-
   switch (type) {
     case BackingStorageType.EXISTING:
       return (
@@ -144,12 +138,38 @@ const validateAdvancedSettingsStep = (
         !!deployment &&
         !hasPGEnabledButNoFields &&
         !hasClientCertsEnabledButNoKeys &&
-        !hasDbBackupEnabledButNoFields &&
-        !hasForcefulDeploymentButNoConfirmation
+        !hasDbBackupEnabledButNoFields
       );
     default:
       return false;
   }
+};
+
+const validateAdvancedSettingsStep = (
+  advancedSettings: WizardState['advancedSettings'],
+  type: BackingStorageType,
+  nodeCount: number,
+  flexibleScaling: boolean
+) => {
+  const {
+    useErasureCoding,
+    erasureCodingSchema,
+    enableForcefulDeployment,
+    forcefulDeploymentConfirmation,
+  } = advancedSettings;
+
+  const erasureCodingStepValid =
+    !useErasureCoding ||
+    !flexibleScaling ||
+    (nodeCount >= ERASURE_CODING_MIN_NODES && !!erasureCodingSchema);
+
+  // The Next button is disabled only when no VolumeSnapshotClass is selected for MCG Standalone when automatic backup option enabled.
+  const hasForcefulDeploymentButNoConfirmation =
+    type === BackingStorageType.LOCAL_DEVICES &&
+    enableForcefulDeployment &&
+    !(forcefulDeploymentConfirmation?.trim() === 'CONFIRM');
+
+  return erasureCodingStepValid && !hasForcefulDeploymentButNoConfirmation;
 };
 const canJumpToNextStep = (
   name: string,
@@ -167,6 +187,7 @@ const canJumpToNextStep = (
     connectionDetails,
     nodes,
     advancedSettings,
+    optionalSettings,
   } = state;
   const { type, externalStorage } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
@@ -178,6 +199,12 @@ const canJumpToNextStep = (
     resourceProfile,
     volumeValidationType,
   } = capacityAndNodes;
+  const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
+  const flexibleScaling = isFlexibleScaling(
+    nodes,
+    isNoProvisioner,
+    enableArbiter
+  );
   const { chartNodes, volumeSetName, isValidDiskSize, isValidDeviceType } =
     createLocalVolumeSet;
   const {
@@ -225,12 +252,6 @@ const canJumpToNextStep = (
       return inPublic && inCluster;
     });
 
-  const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
-  const flexibleScaling = isFlexibleScaling(
-    nodes,
-    isNoProvisioner,
-    enableArbiter
-  );
   const deviceSetReplica: number = getDeviceSetReplica(
     enableArbiter,
     flexibleScaling,
@@ -242,12 +263,19 @@ const canJumpToNextStep = (
   switch (name) {
     case StepsName(t)[Steps.BackingStorage]:
       return validateBackingStorageStep(backingStorage, storageClass);
-    case StepsName(t)[Steps.AdvancedSettings]:
-      return validateAdvancedSettingsStep(
-        advancedSettings,
+    case StepsName(t)[Steps.OptionalSettings]:
+      return validateOptionalSettingsStep(
+        optionalSettings,
         storageClass,
         backingStorage.deployment,
         backingStorage.type
+      );
+    case StepsName(t)[Steps.AdvancedSettings]:
+      return validateAdvancedSettingsStep(
+        advancedSettings,
+        backingStorage.type,
+        nodes.length,
+        flexibleScaling
       );
     case StepsName(t)[Steps.CreateStorageClass]:
       return (
@@ -313,7 +341,7 @@ const handleReviewAndCreateNext = async (
 ) => {
   const { nodes, capacityAndNodes } = state;
   const { systemNamespace, deployment, type } = state.backingStorage;
-  const { useExternalPostgres, externalPostgres } = state.advancedSettings;
+  const { useExternalPostgres, externalPostgres } = state.optionalSettings;
   const { encryption, kms } = state.securityAndNetwork;
   const isMCG: boolean = deployment === DeploymentType.MCG;
   const nsAlreadyExists = !!existingNamespaces.find(
@@ -453,7 +481,7 @@ export const CreateStorageSystemFooter: React.FC<
 
   const stepName = activeStep.name as string;
   const { deployment } = state.backingStorage;
-  const { isDbBackup } = state.advancedSettings;
+  const { isDbBackup } = state.optionalSettings;
   const isMCG: boolean = deployment === DeploymentType.MCG;
 
   const jumpToNextStep = canJumpToNextStep(
@@ -480,11 +508,11 @@ export const CreateStorageSystemFooter: React.FC<
           payload: { field: 'showConfirmModal', value: true },
         });
         break;
-      case StepsName(t)[Steps.AdvancedSettings]:
+      case StepsName(t)[Steps.OptionalSettings]:
         // Auto-select the RBD VolumeSnapshotClass for internal mode when automatic backup is enabled.
         if (isDbBackup && !isMCG) {
           dispatch({
-            type: 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
+            type: 'optionalSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
             payload: NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS,
           });
         }

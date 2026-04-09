@@ -54,7 +54,7 @@ type AutomaticBackupProps = {
   isDbBackup: boolean;
   isMCG: boolean;
   isExternalPostgresEnabled: boolean;
-  dbBackup: WizardState['advancedSettings']['dbBackup'];
+  dbBackup: WizardState['optionalSettings']['dbBackup'];
 };
 
 export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
@@ -85,14 +85,14 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
   const selectedFrequency = getCronTimeFromSchedule(schedule);
   const handleSelect = (type: CronTime) => {
     dispatch({
-      type: 'advancedSettings/dbBackup/schedule',
+      type: 'optionalSettings/dbBackup/schedule',
       payload: CRON_MAP[type],
     });
   };
 
   const onVolumeSnapshotChange = (vscName: string) => {
     dispatch({
-      type: 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
+      type: 'optionalSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
       payload: vscName,
     });
   };
@@ -121,7 +121,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
       }
     }
     dispatch({
-      type: 'advancedSettings/dbBackup/volumeSnapshot/maxSnapshots',
+      type: 'optionalSettings/dbBackup/volumeSnapshot/maxSnapshots',
       payload: newValue,
     });
   };
@@ -138,11 +138,11 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
         isDisabled={!vscLoaded || isExternalPostgresEnabled}
         onChange={() =>
           dispatch({
-            type: 'advancedSettings/setDbBackup',
+            type: 'optionalSettings/setDbBackup',
             payload: !isDbBackup,
           })
         }
-        className="odf-advanced-settings__checkbox"
+        className="odf-optional-settings__checkbox"
       />
       {!vscLoaded && (
         <Alert
