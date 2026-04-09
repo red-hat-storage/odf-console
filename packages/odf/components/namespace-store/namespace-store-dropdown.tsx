@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -12,9 +11,10 @@ import {
   MenuToggleElement,
   Alert,
 } from '@patternfly/react-core';
-import { NamespacePolicyType } from '../../constants';
+import { NamespacePolicyType, StoreProviders } from '../../constants';
 import { namespaceStoreResource } from '../../resources';
 import { NamespaceStoreKind } from '../../types';
+import { getNamespaceStoreType } from '../../utils';
 import '../../style.scss';
 
 export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
@@ -26,6 +26,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   namespacePolicy,
   creatorDisabled,
   launchModal,
+  filterFilesystem,
 }) => {
   const { t } = useCustomTranslation();
   const [isOpen, setOpen] = React.useState(false);
@@ -39,10 +40,16 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
     namespaceStoreResource,
     true
   );
-  const noobaaNamespaceStores: NamespaceStoreKind[] = useDeepCompareMemoize(
-    nnsData,
-    true
+
+  const nnsfsData = React.useMemo(
+    () =>
+      nnsData.filter(
+        (nns) => getNamespaceStoreType(nns) === StoreProviders.FILESYSTEM
+      ),
+    [nnsData]
   );
+
+  const noobaaNamespaceStores = filterFilesystem ? nnsfsData : nnsData;
 
   React.useEffect(() => {
     const nnsDropdownItems = noobaaNamespaceStores.reduce(
@@ -111,7 +118,8 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
       isDisabled={
         !!nnsLoadErr ||
         (namespacePolicy === NamespacePolicyType.MULTI &&
-          enabledItems?.length === 0)
+          enabledItems?.length === 0) ||
+        (filterFilesystem && nnsfsData.length === 0)
       }
       isFullWidth
     >
@@ -153,4 +161,5 @@ type NamespaceStoreDropdownProps = {
   namespacePolicy?: NamespacePolicyType;
   creatorDisabled?: boolean;
   launchModal?: () => void;
+  filterFilesystem?: boolean;
 };

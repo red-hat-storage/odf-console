@@ -20,9 +20,17 @@ import {
   PutVectorBucketPolicyCommandOutput,
 } from '@aws-sdk/client-s3vectors';
 
-// Vector bucket command types
+// Vector bucket command types (NooBaa: extra fields are applied as HTTP headers, not sent in the body)
+export type CreateVectorBucketInputWithHeaders =
+  CreateVectorBucketCommandInput & {
+    /** Sent as `x-noobaa-custom-nsr`. */
+    namespaceStoreFilesystem: string;
+    /** Sent as `x-noobaa-custom-bucket-path`. */
+    subpath?: string;
+  };
+
 export type CreateVectorBucket = (
-  input: CreateVectorBucketCommandInput
+  input: CreateVectorBucketInputWithHeaders
 ) => Promise<CreateVectorBucketCommandOutput>;
 
 export type ListVectorBuckets = (

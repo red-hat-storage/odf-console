@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { PutBucketTaggingCommandInput } from '@aws-sdk/client-s3';
-import useS3BucketFormValidation from '@odf/core/components/s3-browser/create-bucket/useS3BucketFormValidation';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
+import { useS3BucketFormValidation } from '@odf/core/components/s3-common/hooks/useS3BucketFormValidation';
 import { getBucketOverviewBaseRoute } from '@odf/core/constants';
 import { S3ProviderType } from '@odf/core/types';
 import {

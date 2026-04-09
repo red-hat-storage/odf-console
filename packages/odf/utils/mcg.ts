@@ -323,7 +323,9 @@ export const createNewObjectBucketClaim = (
   name: string,
   namespace: string,
   bucketClassName: string,
-  storageClassName: string
+  storageClassName: string,
+  path: string,
+  bucketType: string
 ): K8sResourceKind => {
   return {
     apiVersion: getAPIVersionForModel(NooBaaObjectBucketClaimModel),
@@ -337,6 +339,8 @@ export const createNewObjectBucketClaim = (
       generateBucketName: name,
       additionalConfig: {
         bucketClass: bucketClassName,
+        path: path,
+        bucketType: bucketType,
       },
     },
   };

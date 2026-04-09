@@ -24,3 +24,8 @@ export enum S3ProviderType {
   RgwInt = 'rgwInternal',
   RgwExt = 'rgwExternal',
 }
+
+export enum CreationMethod {
+  OBC = 'obc',
+  S3 = 's3',
+}
