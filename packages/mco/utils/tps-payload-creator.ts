@@ -19,6 +19,7 @@ import { Base64 } from 'js-base64';
 import yaml from 'js-yaml';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
+import { retryWithBackoff } from '../../odf/utils/retry';
 import { S3Details } from '../components/create-dr-policy/add-s3-bucket-details/s3-bucket-details-form';
 import {
   AWS_ACCESS_KEY_ID,
@@ -105,34 +106,30 @@ const updateS3ProfileFields = (src: S3StoreProfile, dest: S3StoreProfile) => {
 type UpdateRamenHubConfigArgs = {
   namespace?: string;
   profile: S3StoreProfile;
+  remove?: boolean;
 };
 
-export async function updateRamenHubOperatorConfig({
+export function updateRamenHubOperatorConfig({
   namespace = ODFMCO_OPERATOR_NAMESPACE,
   profile,
   remove = false,
-}: UpdateRamenHubConfigArgs & {
-  remove?: boolean;
-}): Promise<K8sResourceCommon> {
-  let cm;
-  try {
-    cm = (await k8sGet({
-      model: ConfigMapModel as K8sModel,
-      name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
-      ns: namespace,
-    })) as K8sResourceCommon & { data?: Record<string, string> };
-  } catch (err: any) {
-    throw new Error(
-      t(
-        'Failed to fetch ConfigMap {{name}} in namespace {{namespace}}: {{error}}',
-        {
-          name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
-          namespace,
-          error: err?.message || err,
-        }
-      )
-    );
-  }
+}: UpdateRamenHubConfigArgs): Promise<K8sResourceCommon> {
+  return retryWithBackoff(
+    () => attemptConfigMapUpdate(namespace, profile, remove),
+    { maxRetries: 3, initialDelayMs: 500 }
+  );
+}
+
+async function attemptConfigMapUpdate(
+  namespace: string,
+  profile: S3StoreProfile,
+  remove: boolean
+): Promise<K8sResourceCommon> {
+  const cm = (await k8sGet({
+    model: ConfigMapModel as K8sModel,
+    name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
+    ns: namespace,
+  })) as K8sResourceCommon & { data?: Record<string, string> };
 
   const raw = cm.data?.[RAMEN_CONFIG_KEY];
   if (!raw) {
@@ -145,17 +142,7 @@ export async function updateRamenHubOperatorConfig({
     );
   }
 
-  let ramenConfig: RamenConfig;
-  try {
-    ramenConfig = (yaml.load(raw) || {}) as RamenConfig;
-  } catch (err: any) {
-    throw new Error(
-      t('Failed to parse YAML from ConfigMap {{name}}: {{error}}', {
-        name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
-        error: err?.message || err,
-      })
-    );
-  }
+  const ramenConfig = (yaml.load(raw) || {}) as RamenConfig;
   ramenConfig.s3StoreProfiles = ramenConfig.s3StoreProfiles || [];
 
   const idx = ramenConfig.s3StoreProfiles.findIndex(
@@ -178,36 +165,18 @@ export async function updateRamenHubOperatorConfig({
     return cm;
   }
 
-  const updatedYaml = yaml.dump(ramenConfig);
   const updatedCm = {
     ...cm,
-    metadata: {
-      ...cm.metadata,
-      resourceVersion: cm.metadata.resourceVersion,
-    },
     data: {
       ...(cm.data || {}),
-      [RAMEN_CONFIG_KEY]: updatedYaml,
+      [RAMEN_CONFIG_KEY]: yaml.dump(ramenConfig),
     },
   };
 
-  try {
-    return (await k8sUpdate({
-      model: ConfigMapModel as K8sModel,
-      data: updatedCm,
-    })) as K8sResourceCommon;
-  } catch (err: any) {
-    throw new Error(
-      t(
-        'Failed to update ConfigMap {{name}} in namespace {{namespace}}: {{error}}',
-        {
-          name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
-          namespace,
-          error: err?.message || err,
-        }
-      )
-    );
-  }
+  return (await k8sUpdate({
+    model: ConfigMapModel as K8sModel,
+    data: updatedCm,
+  })) as K8sResourceCommon;
 }
 
 export function deleteDRCluster(name: string): Promise<K8sResourceKind> {
