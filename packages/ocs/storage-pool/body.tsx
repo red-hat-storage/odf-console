@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { AttachStorageAction } from '@odf/core/components/attach-storage-storagesystem/state';
-import { checkArbiterCluster } from '@odf/core/utils';
+import { ErasureCodingTable } from '@odf/core/components/create-storage-system/create-storage-system-steps/advanced-settings-step/erasure-coding/erasure-coding-table';
+import { ERASURE_CODING_MIN_NODES } from '@odf/core/constants';
+import { checkArbiterCluster, checkFlexibleScaling } from '@odf/core/utils';
+import { useOsdNodeCountForDeviceClass } from '@odf/ocs/hooks';
 import {
   fieldRequirementsTranslations,
   formSettings,
@@ -22,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import {
   Alert,
+  AlertVariant,
   EmptyState,
   EmptyStateBody,
   Radio,
@@ -33,6 +37,7 @@ import {
   DropdownList,
   MenuToggle,
   MenuToggleElement,
+  Spinner,
 } from '@patternfly/react-core';
 import { CaretDownIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import {
@@ -47,6 +52,7 @@ import {
   PROGRESS_STATUS,
 } from '../utils';
 import {
+  DataProtectionPolicy,
   StoragePoolAction,
   StoragePoolActionType,
   StoragePoolState,
@@ -92,6 +98,8 @@ export type StoragePoolBodyProps = {
   prefixName?: string;
   usePrefix?: boolean;
   placeholder?: string;
+  erasureCodingDeviceClass?: string;
+  showErasureCodingOptions?: boolean;
 };
 
 export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
@@ -107,6 +115,8 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   prefixName,
   usePrefix,
   placeholder,
+  erasureCodingDeviceClass,
+  showErasureCodingOptions = true,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -198,6 +208,32 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   const isClusterReady: boolean =
     cephCluster?.status?.phase === PoolState.READY;
 
+  const currentStorageCluster = storageCluster?.items?.[0];
+  const flexibleScaling = checkFlexibleScaling(currentStorageCluster);
+
+  const {
+    nodeCount: nodeCountForEC,
+    loaded: osdPodWatchLoaded,
+    loadError: osdPodWatchError,
+  } = useOsdNodeCountForDeviceClass(
+    poolNs,
+    erasureCodingDeviceClass,
+    currentStorageCluster,
+    storageClusterLoaded && !storageClusterLoadError
+  );
+
+  const erasureCodingNodeInfoReady =
+    flexibleScaling && osdPodWatchLoaded && !osdPodWatchError;
+
+  const canShowErasureCoding =
+    erasureCodingNodeInfoReady && nodeCountForEC >= ERASURE_CODING_MIN_NODES;
+
+  const showOsdWatchLoading =
+    flexibleScaling &&
+    !!erasureCodingDeviceClass?.trim() &&
+    !osdPodWatchLoaded &&
+    !osdPodWatchError;
+
   // Check storage cluster is arbiter
   React.useEffect(() => {
     const isArbiterCluster: boolean = checkArbiterCluster(
@@ -227,6 +263,22 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       (!state.isArbiterCluster && replica !== '4')
   );
 
+  const onReplicaDropdownChange = React.useCallback(
+    (
+      _event?: React.MouseEvent<Element, MouseEvent>,
+      value?: string | number
+    ) => {
+      if (value !== undefined && value !== '') {
+        dispatch({
+          type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
+          payload: String(value),
+        });
+      }
+      setReplicaOpen(false);
+    },
+    [dispatch]
+  );
+
   const replicaDropdownItems = replicaList.map((replica) => {
     let warning = '';
     if (replica === '2') {
@@ -239,15 +291,10 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
         key={`replica-${OCS_DEVICE_REPLICA[replica]}`}
         component="button"
         id={replica}
+        value={replica}
         data-test-id="replica-dropdown-item"
         className="ceph-block-pool__dropdown-description"
         description={warning}
-        onClick={(e) =>
-          dispatch({
-            type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
-            payload: e.currentTarget.id,
-          })
-        }
       >
         {t('{{replica}} Replication', {
           replica: OCS_DEVICE_REPLICA[replica],
@@ -363,16 +410,109 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
         >
           {t('Data protection policy')}
         </label>
-        <Dropdown
-          className="dropdown--full-width"
-          isOpen={isReplicaOpen}
-          onSelect={() => setReplicaOpen(false)}
-          onOpenChange={(open: boolean) => setReplicaOpen(open)}
-          toggle={replicaDropdownToggle}
-          popperProps={{ width: 'trigger' }}
-        >
-          <DropdownList>{replicaDropdownItems}</DropdownList>
-        </Dropdown>
+        {isUpdate || !showErasureCodingOptions ? (
+          <Dropdown
+            className="dropdown--full-width"
+            isOpen={isReplicaOpen}
+            onSelect={onReplicaDropdownChange}
+            onOpenChange={(open: boolean) => setReplicaOpen(open)}
+            toggle={replicaDropdownToggle}
+            popperProps={{ width: 'trigger' }}
+          >
+            <DropdownList>{replicaDropdownItems}</DropdownList>
+          </Dropdown>
+        ) : (
+          <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-gap-md">
+            <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-gap-sm">
+              <Radio
+                label={t('Replication')}
+                id="policy-replication"
+                data-test="policy-replication"
+                name="data-protection-policy"
+                isChecked={
+                  state.dataProtectionPolicy ===
+                  DataProtectionPolicy.Replication
+                }
+                onChange={() =>
+                  dispatch({
+                    type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY,
+                    payload: DataProtectionPolicy.Replication,
+                  })
+                }
+              />
+              {state.dataProtectionPolicy ===
+                DataProtectionPolicy.Replication && (
+                <Dropdown
+                  className="dropdown--full-width"
+                  isOpen={isReplicaOpen}
+                  onSelect={onReplicaDropdownChange}
+                  onOpenChange={(open: boolean) => setReplicaOpen(open)}
+                  toggle={replicaDropdownToggle}
+                  popperProps={{ width: 'trigger' }}
+                >
+                  <DropdownList>{replicaDropdownItems}</DropdownList>
+                </Dropdown>
+              )}
+              {osdPodWatchError && flexibleScaling && (
+                <Alert
+                  variant={AlertVariant.danger}
+                  isInline
+                  className="pf-v6-u-mt-md"
+                  title={t('Could not load OSD placement')}
+                >
+                  {t(
+                    'Erasure coding options need the number of nodes that run OSDs for this device class.'
+                  )}
+                </Alert>
+              )}
+              {showOsdWatchLoading && (
+                <div className="pf-v6-u-display-flex pf-v6-u-align-items-center pf-v6-u-mt-md">
+                  <Spinner size="sm" />
+                  <span className="pf-v6-u-ml-sm">
+                    {t('Checking nodes for erasure coding...')}
+                  </span>
+                </div>
+              )}
+              {canShowErasureCoding && (
+                <div className="pf-v6-u-mt-md">
+                  <Radio
+                    label={t('Erasure coding')}
+                    id="policy-erasure-coding"
+                    data-test="policy-erasure-coding"
+                    name="data-protection-policy"
+                    isChecked={
+                      state.dataProtectionPolicy ===
+                      DataProtectionPolicy.ErasureCoding
+                    }
+                    onChange={() =>
+                      dispatch({
+                        type: StoragePoolActionType.SET_DATA_PROTECTION_POLICY,
+                        payload: DataProtectionPolicy.ErasureCoding,
+                      })
+                    }
+                  />
+                </div>
+              )}
+            </div>
+            {state.dataProtectionPolicy ===
+              DataProtectionPolicy.ErasureCoding &&
+              canShowErasureCoding && (
+                <div className="pf-v6-u-mt-md">
+                  <ErasureCodingTable
+                    nodeCount={nodeCountForEC}
+                    selectedSchema={state.erasureCodingSchema}
+                    onSelectSchema={(selectedSchema) =>
+                      dispatch({
+                        type: StoragePoolActionType.SET_ERASURE_CODING_SCHEMA,
+                        payload: selectedSchema,
+                      })
+                    }
+                    showOnlySchemeAndOverhead
+                  />
+                </div>
+              )}
+          </div>
+        )}
       </div>
       <div className="form-group ceph-block-pool-body__input">
         <label className="control-label" htmlFor="compression-check">

@@ -2,13 +2,16 @@ import * as React from 'react';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ActionGroup, Button } from '@patternfly/react-core';
-import { StoragePoolState } from './reducer';
+import { DataProtectionPolicy, StoragePoolState } from './reducer';
 import './create-storage-pool.scss';
 
-export const checkRequiredValues = (
-  poolName: string,
-  replicaSize: string
-): boolean => !poolName || !replicaSize;
+export const checkRequiredValues = (state: StoragePoolState): boolean => {
+  if (!state.poolName) return true;
+  if (state.dataProtectionPolicy === DataProtectionPolicy.ErasureCoding) {
+    return !state.erasureCodingSchema;
+  }
+  return !state.replicaSize;
+};
 
 export const StoragePoolFooter = (props: StoragePoolFooterProps) => {
   const { state, cancel, onConfirm } = props;
@@ -22,7 +25,7 @@ export const StoragePoolFooter = (props: StoragePoolFooterProps) => {
           variant="primary"
           data-test-id="confirm-action"
           onClick={onConfirm}
-          isDisabled={checkRequiredValues(state.poolName, state.replicaSize)}
+          isDisabled={checkRequiredValues(state)}
         >
           {t('Create')}
         </Button>
