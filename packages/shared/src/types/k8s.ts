@@ -345,6 +345,15 @@ export type PersistentVolumeClaimKind = K8sResourceCommon & {
   };
 };
 
+export type PersistentVolumeKind = K8sResourceCommon & {
+  spec: {
+    claimRef?: {
+      name?: string;
+      namespace?: string;
+    };
+  };
+};
+
 export type DeploymentCondition = {
   lastUpdateTime?: string;
 } & K8sResourceCondition;
