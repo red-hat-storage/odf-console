@@ -131,7 +131,8 @@ export const setCephRBDAsDefault = (
 export const createStorageCluster = async (
   state: WizardState,
   storageClusterNamespace: string,
-  storageClusterName: string
+  storageClusterName: string,
+  isTNFEnabled = false
 ) => {
   const {
     storageClass,
@@ -217,6 +218,7 @@ export const createStorageCluster = async (
     useErasureCoding: flexibleScaling && useErasureCoding,
     erasureCodingSchema:
       flexibleScaling && useErasureCoding ? erasureCodingSchema : undefined,
+    isTNFEnabled,
   });
 
   return k8sCreate({ model: StorageClusterModel, data: payload });

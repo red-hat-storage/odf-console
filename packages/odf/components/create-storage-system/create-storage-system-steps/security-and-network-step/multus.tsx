@@ -63,6 +63,7 @@ type MultusNetworkConfigurationComponentProps = {
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   isMultusAcknowledged: boolean;
   setIsMultusAcknowledged: (val: boolean) => void;
+  isTNFEnabled: boolean;
 };
 
 const reduceResourceLoadAndErrorStatus = <
@@ -93,6 +94,7 @@ export const MultusNetworkConfigurationComponent: React.FC<
   systemNamespace,
   isMultusAcknowledged,
   setIsMultusAcknowledged,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -117,6 +119,7 @@ export const MultusNetworkConfigurationComponent: React.FC<
         label={t('Isolate network using Multus')}
         id="multus-checkbox"
         className="pf-v6-u-mb-md"
+        isDisabled={isTNFEnabled}
       />
 
       {networkType === NetworkType.MULTUS && (

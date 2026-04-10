@@ -17,6 +17,7 @@ export const OptionalSettings: React.FC<OptionalSettingsProps> = ({
   hasMultipleClusters,
   deployment,
   backingStorageType,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -41,6 +42,7 @@ export const OptionalSettings: React.FC<OptionalSettingsProps> = ({
               dispatch={dispatch}
               nfsEnabled={enableNFS}
               backingStorageType={backingStorageType}
+              isTNFEnabled={isTNFEnabled}
             />
             <SetCephRBDStorageClassDefault
               dispatch={dispatch}
@@ -101,6 +103,7 @@ export const OptionalSettings: React.FC<OptionalSettingsProps> = ({
             isMCG={isMCG}
             dbBackup={dbBackup}
             isExternalPostgresEnabled={useExternalPostgres}
+            isTNFEnabled={isTNFEnabled}
           />
         )}
       </FormGroup>
@@ -115,4 +118,5 @@ type OptionalSettingsProps = {
   hasMultipleClusters: boolean;
   deployment: DeploymentType;
   backingStorageType: BackingStorageType;
+  isTNFEnabled: boolean;
 };

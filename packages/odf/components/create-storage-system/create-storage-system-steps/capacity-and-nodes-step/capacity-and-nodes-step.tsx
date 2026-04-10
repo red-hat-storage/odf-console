@@ -111,6 +111,7 @@ type SelectNodesTextProps = {
 const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
   dispatch,
   enableTaint,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -124,6 +125,7 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
       id="taint-nodes"
       data-checked-state={enableTaint}
       isChecked={enableTaint}
+      isDisabled={isTNFEnabled}
       onChange={() =>
         dispatch({
           type: 'capacityAndNodes/enableTaint',
@@ -137,6 +139,7 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
 type EnableTaintNodesProps = {
   dispatch: WizardDispatch;
   enableTaint: WizardState['capacityAndNodes']['enableTaint'];
+  isTNFEnabled: boolean;
 };
 
 type SelectCapacityAndNodesProps = {
@@ -239,6 +242,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   nodes,
   systemNamespace,
   isLSOPreConfigured,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -251,7 +255,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   const [zones, setZones] = React.useState([]);
 
   const pvsBySc = React.useMemo(
-    () => getSCAvailablePVs(pvs, storageClassName),
+    () => getSCAvailablePVs(pvs ?? [], storageClassName),
     [pvs, storageClassName]
   );
 
@@ -286,6 +290,9 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
 
   React.useEffect(() => {
     // Validates stretch cluster topology
+    if (isTNFEnabled) {
+      return;
+    }
     if (allNodes.length && nodes.length) {
       const allZones = getZonesFromNodesKind(allNodes);
       const nodesPerZoneMap: NodesPerZoneMap =
@@ -298,7 +305,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
       setHasStrechClusterEnabled(isValidStretchCluster);
       setZones(allZones);
     }
-  }, [allNodes, nodes]);
+  }, [allNodes, nodes, isTNFEnabled]);
 
   // Skipping validation if LSO was configured as part of the SS deployment (in the previous LVS creation wizard step), as that step already have all the required validations
   // These validations are needed if LSO was already configured before even starting with the SS deployment
@@ -307,7 +314,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
     pvsBySc,
     volumeValidationType,
     dispatch,
-    isLSOPreConfigured
+    isTNFEnabled ? false : isLSOPreConfigured
   );
 
   const onArbiterChecked = React.useCallback(
@@ -325,17 +332,28 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
     [dispatch]
   );
 
+  const loadError = pvsLoadError || (isTNFEnabled ? allNodeLoadError : false);
+  const dataLoaded = isTNFEnabled
+    ? pvsLoaded &&
+      allNodeLoaded &&
+      !loadError &&
+      capacity != null &&
+      capacity !== ''
+    : pvsLoaded &&
+      !!capacity &&
+      volumeValidationType !== VolumeTypeValidation.UNKNOWN;
+
   return (
     <ErrorHandler
-      error={pvsLoadError}
-      loaded={
-        pvsLoaded &&
-        !!capacity &&
-        volumeValidationType !== VolumeTypeValidation.UNKNOWN
+      error={loadError}
+      loaded={dataLoaded}
+      loadingMessage={
+        isTNFEnabled
+          ? t(
+              'Loading existing storage capacity and node information from the cluster.'
+            )
+          : t('PersistentVolumes are being provisioned on the selected nodes.')
       }
-      loadingMessage={t(
-        'PersistentVolumes are being provisioned on the selected nodes.'
-      )}
       errorMessage={t('Error while loading PersistentVolumes.')}
     >
       <>
@@ -370,7 +388,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
             <GridItem span={7} />
           </Grid>
         </FormGroup>
-        {hasStrechClusterEnabled && (
+        {!isTNFEnabled && hasStrechClusterEnabled && (
           <StretchCluster
             enableArbiter={enableArbiter}
             arbiterLocation={arbiterLocation}
@@ -414,6 +432,7 @@ type SelectedCapacityAndNodesProps = {
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   volumeValidationType: VolumeTypeValidation;
   isLSOPreConfigured: boolean;
+  isTNFEnabled: boolean;
 };
 
 export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
@@ -424,6 +443,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   nodes,
   systemNamespace,
   infraType,
+  isTNFEnabled,
 }) => {
   const {
     capacity,
@@ -451,12 +471,9 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
   const architecture = getNodeArchitectureFromState(nodes);
 
-  const validations = capacityAndNodesValidate(
-    nodes,
-    state,
-    isNoProvisioner,
-    osdAmount
-  );
+  const validations = isTNFEnabled
+    ? []
+    : capacityAndNodesValidate(nodes, state, isNoProvisioner, osdAmount);
   const onProfileChange = React.useCallback(
     (profile) => onResourceProfileChange(dispatch)(profile),
     [dispatch]
@@ -491,6 +508,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           capacity={capacity}
           systemNamespace={systemNamespace}
           isLSOPreConfigured={isLSOPreConfigured}
+          isTNFEnabled={isTNFEnabled}
         />
       ) : (
         <SelectCapacityAndNodes
@@ -509,8 +527,13 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
             profileRequirementsText={ProfileRequirementsText}
             selectedNodes={nodes}
             osdAmount={osdAmount}
+            isTNFEnabled={isTNFEnabled}
           />
-          <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
+          <EnableTaintNodes
+            dispatch={dispatch}
+            enableTaint={enableTaint}
+            isTNFEnabled={isTNFEnabled}
+          />
         </>
       )}
       {isCapacityAutoScalingAllowed(infraType, resourceProfile) && (
@@ -522,6 +545,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           onLimitSelect={onCapacityAutoscalingSelect}
           osdAmount={osdAmount}
           osdSize={String(capacity)}
+          isTNFEnabled={isTNFEnabled}
         />
       )}
       {!!validations.length &&
@@ -548,4 +572,5 @@ type CapacityAndNodesProps = {
   dispatch: WizardDispatch;
   infraType: InfraProviders;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isTNFEnabled: boolean;
 };
