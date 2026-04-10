@@ -54,6 +54,8 @@ export type ObjectBucketClaimKind = K8sResourceCommon & {
     additionalConfig: {
       bucketclass: string;
       'replication-policy': string;
+      path: string;
+      bucketType: string;
     };
   };
 };
@@ -91,6 +93,10 @@ export type BucketClassKind = K8sResourceCommon & {
         };
         hubResource: string;
       };
+    };
+    vectorPolicy: {
+      resource: string;
+      vectorDBType: 'lance';
     };
   };
   status: {

@@ -121,32 +121,20 @@ or,
 
 To see the NooBaa or RGW (internal) S3 logs respectively: `oc logs -f deploy/noobaa-endpoint` or `oc logs -f deploy/rook-ceph-rgw-ocs-storagecluster-cephobjectstore`
 
-#### Client plugin (outdated, placeholder purpose only)
+#### Client plugin
 
-Deploy a forward proxy:
-
-```
-oc apply -f ./plugins/client/dev/s3-forward-proxy.yaml
-```
-
-Port-forward the forward proxy to local port 6001:
+Port-forward the client console reverse-proxy endpoint to local port 6001:
 
 ```
-oc port-forward $(oc get pods -n openshift-storage | grep s3-forward-proxy | awk '{print $1}') 6001:8080 -n openshift-storage
+oc port-forward $(oc get pods -n <CLIENT_NS> | grep ocs-client-operator-console | awk '{print $1}') 6001:9001 -n <CLIENT_NS>
 ```
 
 Serve the plugin choosing how to run OCP Console:
 
-As a container:
-
-```
-CONSOLE_VERSION=4.19 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-client-console/s3/","endpoint":"http://localhost:6001"}]}' BRIDGE_PLUGINS='odf-client-console=http://localhost:9001' PLUGIN=client I8N_NS=plugin__odf-client-console yarn dev:c
-```
-
 Locally:
 
 ```
-./bin/bridge -plugins odf-client-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-client-console/s3/","endpoint":"http://localhost:6001/"}]}'
+./bin/bridge -plugins odf-client-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-client-console/s3EndpointProxy/","endpoint":"https://localhost:6001/"}]}'
 ```
 
 ### Debugging with VSCode

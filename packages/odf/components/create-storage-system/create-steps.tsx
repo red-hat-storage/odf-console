@@ -1,12 +1,14 @@
 import * as React from 'react';
+import { isFlexibleScaling } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { StorageClusterModel } from '@odf/shared/models';
 import { InfraProviders } from '@odf/shared/types';
 import { TFunction } from 'react-i18next';
 import { WizardStepProps } from '@patternfly/react-core';
-import { Steps, StepsName } from '../../constants';
+import { NO_PROVISIONER, Steps, StepsName } from '../../constants';
 import { BackingStorageType, DeploymentType } from '../../types';
 import {
+  AdvancedSettings,
   CapacityAndNodes,
   CreateStorageClass,
   ReviewAndCreate,
@@ -42,7 +44,20 @@ export const createSteps = (
   const { systemNamespace, externalStorage, deployment } = backingStorage;
   const { encryption, kms } = securityAndNetwork;
 
+  const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
+  const flexibleScaling = isFlexibleScaling(
+    nodes,
+    isNoProvisioner,
+    capacityAndNodes.enableArbiter
+  );
+
   const isMCG = deployment === DeploymentType.MCG;
+  const nodeCount = nodes?.length ?? 0;
+
+  const includeAdvancedSettingsStep =
+    !isMCG &&
+    (backingStorage.type === BackingStorageType.LOCAL_DEVICES ||
+      isNoProvisioner);
 
   const commonSteps = {
     capacityAndNodes: {
@@ -56,6 +71,19 @@ export const createSteps = (
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
           systemNamespace={systemNamespace}
+        />
+      ),
+    },
+    advancedSettings: {
+      name: StepsName(t)[Steps.AdvancedSettings],
+      component: (
+        <AdvancedSettings
+          state={state.advancedSettings}
+          dispatch={dispatch}
+          deployment={deployment}
+          nodeCount={nodeCount}
+          capacity={capacityAndNodes.capacity}
+          flexibleScaling={flexibleScaling}
         />
       ),
     },
@@ -97,35 +125,6 @@ export const createSteps = (
     },
   };
 
-  const rhcsExternalProviderSteps: (Pick<WizardStepProps, 'id' | 'name'> & {
-    component: React.ReactElement;
-    canJumpTo: boolean;
-  })[] = [
-    {
-      name: StepsName(t)[Steps.SecurityAndNetwork],
-      canJumpTo: stepIdReached >= 3,
-      id: 3,
-      component: (
-        <SecurityAndNetwork
-          securityAndNetworkState={securityAndNetwork}
-          dispatch={dispatch}
-          infraType={infraType}
-          isExternal={backingStorage.type === BackingStorageType.EXTERNAL}
-          connectionDetailState={connectionDetails}
-          externalStorage={externalStorage}
-          supportedExternalStorage={supportedExternalStorage}
-          systemNamespace={systemNamespace}
-        />
-      ),
-    },
-    {
-      name: StepsName(t)[Steps.ReviewAndCreate],
-      canJumpTo: stepIdReached >= 4,
-      id: 4,
-      ...commonSteps.reviewAndCreate,
-    },
-  ];
-
   const nonRhcsExternalProviderStep: Pick<WizardStepProps, 'id' | 'name'> & {
     component: React.ReactElement;
     canJumpTo: boolean;
@@ -164,6 +163,36 @@ export const createSteps = (
     ),
   };
 
+  const rhcsExternalProviderSteps: (Pick<WizardStepProps, 'id' | 'name'> & {
+    component: React.ReactElement;
+    canJumpTo: boolean;
+  })[] = [
+    {
+      name: StepsName(t)[Steps.SecurityAndNetwork],
+      canJumpTo: stepIdReached >= 3,
+      id: 3,
+      component: (
+        <SecurityAndNetwork
+          securityAndNetworkState={securityAndNetwork}
+          dispatch={dispatch}
+          infraType={infraType}
+          isExternal={backingStorage.type === BackingStorageType.EXTERNAL}
+          connectionDetailState={connectionDetails}
+          externalStorage={externalStorage}
+          supportedExternalStorage={supportedExternalStorage}
+          systemNamespace={systemNamespace}
+          nodes={nodes}
+        />
+      ),
+    },
+    {
+      name: StepsName(t)[Steps.ReviewAndCreate],
+      canJumpTo: stepIdReached >= 4,
+      id: 4,
+      ...commonSteps.reviewAndCreate,
+    },
+  ];
+
   switch (backingStorage.type) {
     case BackingStorageType.EXISTING:
       if (isMCG) {
@@ -179,7 +208,8 @@ export const createSteps = (
             ...commonSteps.reviewAndCreate,
           },
         ];
-      } else
+      }
+      if (includeAdvancedSettingsStep) {
         return [
           {
             id: 3,
@@ -189,14 +219,37 @@ export const createSteps = (
           {
             id: 4,
             canJumpTo: stepIdReached >= 4,
-            ...commonSteps.securityAndNetwork,
+            ...commonSteps.advancedSettings,
           },
           {
             id: 5,
             canJumpTo: stepIdReached >= 5,
+            ...commonSteps.securityAndNetwork,
+          },
+          {
+            id: 6,
+            canJumpTo: stepIdReached >= 6,
             ...commonSteps.reviewAndCreate,
           },
         ];
+      }
+      return [
+        {
+          id: 3,
+          canJumpTo: stepIdReached >= 3,
+          ...commonSteps.capacityAndNodes,
+        },
+        {
+          id: 4,
+          canJumpTo: stepIdReached >= 4,
+          ...commonSteps.securityAndNetwork,
+        },
+        {
+          id: 5,
+          canJumpTo: stepIdReached >= 5,
+          ...commonSteps.reviewAndCreate,
+        },
+      ];
     case BackingStorageType.LOCAL_DEVICES:
       if (isMCG) {
         return [
@@ -213,24 +266,47 @@ export const createSteps = (
           },
         ];
       }
+      if (includeAdvancedSettingsStep) {
+        return [
+          createLocalVolumeSetStep,
+          {
+            id: 4,
+            canJumpTo: stepIdReached >= 4,
+            ...commonSteps.capacityAndNodes,
+          },
+          {
+            id: 5,
+            canJumpTo: stepIdReached >= 5,
+            ...commonSteps.advancedSettings,
+          },
+          {
+            id: 6,
+            canJumpTo: stepIdReached >= 6,
+            ...commonSteps.securityAndNetwork,
+          },
+          {
+            id: 7,
+            canJumpTo: stepIdReached >= 7,
+            ...commonSteps.reviewAndCreate,
+          },
+        ];
+      }
       return [
         createLocalVolumeSetStep,
         {
+          id: 4,
           canJumpTo: stepIdReached >= 4,
           ...commonSteps.capacityAndNodes,
-          id: 4,
         },
         {
-          canJumpTo: stepIdReached >= 5,
-          name: StepsName(t)[Steps.SecurityAndNetwork],
-          ...commonSteps.securityAndNetwork,
           id: 5,
+          canJumpTo: stepIdReached >= 5,
+          ...commonSteps.securityAndNetwork,
         },
         {
-          canJumpTo: stepIdReached >= 6,
-          name: StepsName(t)[Steps.ReviewAndCreate],
-          ...commonSteps.reviewAndCreate,
           id: 6,
+          canJumpTo: stepIdReached >= 6,
+          ...commonSteps.reviewAndCreate,
         },
       ];
     case BackingStorageType.EXTERNAL:

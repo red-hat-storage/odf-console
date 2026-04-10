@@ -16,7 +16,10 @@ import {
 } from '@patternfly/react-core';
 import { CopyIcon, StarIcon } from '@patternfly/react-icons';
 import { t_global_color_status_warning_100 as warningColor } from '@patternfly/react-tokens';
-import { BUCKET_BOOKMARKS_USER_SETTINGS_KEY } from '../../../constants';
+import {
+  BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
+  BucketType,
+} from '../../../constants';
 import { getPath, getProviderLabel } from '../../../utils';
 import './bucket-overview.scss';
 
@@ -27,6 +30,7 @@ type TitleProps = {
   currentFolder: string;
   isCreatedByOBC: boolean;
   noobaaObjectBucket: K8sResourceKind;
+  bucketType?: BucketType;
 };
 
 type BucketResourceStatusProps = { resourceStatus: string };
@@ -74,6 +78,7 @@ export const PageTitle: React.FC<TitleProps> = ({
   currentFolder,
   isCreatedByOBC,
   noobaaObjectBucket,
+  bucketType = BucketType.General,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -97,6 +102,14 @@ export const PageTitle: React.FC<TitleProps> = ({
             >
               {getProviderLabel(providerType)}
             </Label>
+            {bucketType === BucketType.S3Vector && (
+              <Label
+                className="pf-v6-u-ml-sm pf-v6-u-mt-sm bucket-label--height"
+                isCompact
+              >
+                {t('S3 Vector')}
+              </Label>
+            )}
             <Label
               className="pf-v6-u-ml-sm pf-v6-u-mt-sm bucket-label--height"
               isCompact

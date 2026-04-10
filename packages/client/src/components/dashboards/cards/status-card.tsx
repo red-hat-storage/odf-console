@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { StorageClientModel } from '@odf/shared/models';
+import { StorageClient } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -19,8 +21,6 @@ import {
   CardBody,
   CardTitle,
 } from '@patternfly/react-core';
-import { StorageClientModel } from '../../../models';
-import { StorageClient } from '../../../types';
 import '../../../../style.scss';
 
 const clientResource: WatchK8sResource = {

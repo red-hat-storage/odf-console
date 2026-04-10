@@ -57,11 +57,22 @@ export const ClusterS3BucketDetailsForm: React.FC<
   const name1 = getName(selectedClusters[0]) || 'cluster-1';
   const name2 = getName(selectedClusters[1]) || 'cluster-2';
 
+  // Track cluster2's s3ProfileName via ref so the sync effect can read it
+  // without adding it as a dependency (avoids unnecessary re-runs on typing).
+  const cluster2ProfileRef = React.useRef(cluster2Details.s3ProfileName);
+  cluster2ProfileRef.current = cluster2Details.s3ProfileName;
+
   React.useEffect(() => {
     if (useSameConnection) {
+      // Copy connection details but preserve cluster2's own s3ProfileName —
+      // each DRCluster must reference a unique profile.
       dispatch({
         type: DRPolicyActionType.SET_CLUSTER2_S3_DETAILS,
-        payload: { ...cluster1Details, clusterName: name2 },
+        payload: {
+          ...cluster1Details,
+          clusterName: name2,
+          s3ProfileName: cluster2ProfileRef.current,
+        },
       });
       setErrors2({});
     }
@@ -277,7 +288,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
                 })}
                 onChange={(_, v) => update(2, key, v)}
                 validated={errors2[key] ? 'error' : 'default'}
-                isDisabled={useSameConnection}
+                isDisabled={useSameConnection && key !== 's3ProfileName'}
                 onBlur={() => handleBlur(2)}
               />
             )}

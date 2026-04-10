@@ -8,6 +8,7 @@ export enum StorageType {
 export enum ClientType {
   S3 = 's3',
   IAM = 'iam',
+  S3_VECTOR = 's3Vector',
 }
 
 export type SecretRef = {

@@ -63,13 +63,15 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
 
   const setCIDRNetwork = React.useCallback(
     (clusterCIDR: string, publicCIDR: string) => {
+      const normalizedClusterCIDR = clusterCIDR.trim();
+      const normalizedPublicCIDR = publicCIDR.trim();
       dispatch({
         type: 'securityAndNetwork/setCephCIDR',
-        payload: [clusterCIDR],
+        payload: normalizedClusterCIDR ? [normalizedClusterCIDR] : [],
       });
       dispatch({
         type: 'securityAndNetwork/setPublicCIDR',
-        payload: [publicCIDR],
+        payload: normalizedPublicCIDR ? [normalizedPublicCIDR] : [],
       });
     },
     [dispatch]

@@ -53,10 +53,9 @@ export const IamProvider: React.FC<IamProviderProps> = ({
     secretRef: storedSecretRef,
     setSecretRef,
     logout,
-  } = useStorage(providerType, isAdmin);
+  } = useStorage(providerType);
 
   const { secretRef, secretFieldKeys } = useSecretRef(
-    isAdmin,
     storedSecretRef,
     providerConfig
   );

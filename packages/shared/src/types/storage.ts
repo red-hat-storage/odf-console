@@ -1,6 +1,11 @@
 import { ResourceProfile } from '@odf/core/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
+export type ErasureCodedPoolSpec = {
+  dataChunks: number;
+  codingChunks: number;
+};
+
 export type DataPool = {
   compressionMode?: string;
   mirroring?: {
@@ -10,12 +15,18 @@ export type DataPool = {
   replicated?: {
     size: number;
   };
+  erasureCoded?: ErasureCodedPoolSpec;
 };
 
 export enum StorageClusterPhase {
   Ready = 'Ready',
   Error = 'Error',
 }
+
+export type ManagedResourcesCephClusterKind = {
+  cleanupPolicy: CleanupPolicy;
+  monCount: 3 | 5;
+};
 
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
@@ -39,18 +50,24 @@ export type StorageClusterKind = K8sResourceCommon & {
       enable?: boolean;
     };
     managedResources?: {
-      cephCluster: {
-        monCount: 3 | 5;
-      };
+      cephCluster: ManagedResourcesCephClusterKind;
       cephBlockPools?: {
         defaultStorageClass?: boolean;
         defaultVirtualizationStorageClass?: boolean;
+        erasureCodedMetadataPool?: string;
+        poolSpec?: {
+          erasureCoded?: ErasureCodedPoolSpec;
+        };
       };
       cephFilesystems?: {
         additionalDataPools?: DataPool[];
+        defaultStorageClassDataPoolName?: string;
       };
       cephObjectStores?: {
-        hostNetwork: boolean;
+        hostNetwork?: boolean;
+        dataPoolSpec?: {
+          erasureCoded?: ErasureCodedPoolSpec;
+        };
       };
     };
     storageDeviceSets?: DeviceSet[];
@@ -245,6 +262,10 @@ export type StorageConsumerKind = K8sResourceCommon & {
   status?: StorageConsumerStatus;
 };
 
+export type CleanupPolicy = {
+  wipeDevicesFromOtherClusters: boolean;
+};
+
 export type NoobaaSystemKind = K8sResourceCommon;
 
 export enum CapacityAutoscalingStatus {
@@ -296,3 +317,23 @@ export enum StorageSizeUnitName {
   GiB = 'GiB',
   TiB = 'TiB',
 }
+
+export type StorageClientPhase =
+  | 'Initializing'
+  | 'Onboarding'
+  | 'Progressing'
+  | 'Connected'
+  | 'Offboarding'
+  | 'Failed';
+
+export type StorageClient = K8sResourceCommon & {
+  spec?: {
+    storageProviderEndpoint: string;
+    onboardingTicket: string;
+  };
+  status?: {
+    phase?: StorageClientPhase;
+    id?: string;
+    externalEndpoints?: Record<string, string>;
+  };
+};

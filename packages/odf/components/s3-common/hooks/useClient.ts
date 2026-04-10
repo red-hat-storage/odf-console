@@ -1,14 +1,172 @@
 import * as React from 'react';
 import { S3ProviderType } from '@odf/core/types';
-import { IamCommands, IAM_INTERNAL_ENDPOINT_PORT } from '@odf/shared/iam';
+import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
+import { IamCommands } from '@odf/shared/iam';
 import { S3Commands, S3_INTERNAL_ENDPOINT_PORT } from '@odf/shared/s3';
+import {
+  S3VectorsCommands,
+  S3_VECTORS_INTERNAL_ENDPOINT_PORT,
+} from '@odf/shared/s3-vectors';
 import { SecretKind } from '@odf/shared/types';
 import type { HttpRequest } from '@smithy/types';
 import * as _ from 'lodash-es';
 import { ProviderConfig } from '../registry/s3-providers';
 import { ClientType } from '../types';
 
-type ClientCommandType = S3Commands | IamCommands;
+const INTERNAL_ENDPOINT_PORT: Record<ClientType, number> = {
+  [ClientType.S3]: S3_INTERNAL_ENDPOINT_PORT,
+  [ClientType.S3_VECTOR]: S3_VECTORS_INTERNAL_ENDPOINT_PORT,
+  [ClientType.IAM]: S3_INTERNAL_ENDPOINT_PORT,
+};
+
+export type ClientCommandType = S3Commands | IamCommands | S3VectorsCommands;
+
+type S3ClientMapProps = {
+  s3Url: URL;
+  s3ConsolePath: string | undefined;
+  skipSignatureCalculation: boolean;
+  accessKeyId: string;
+  secretAccessKey: string;
+  region: string;
+  providerType: S3ProviderType;
+};
+
+const S3_CLIENT_MAP: Record<
+  ClientType,
+  (props: S3ClientMapProps) => ClientCommandType
+> = {
+  [ClientType.IAM]: (props) => {
+    const { s3Url, accessKeyId, secretAccessKey } = props;
+    return new IamCommands(s3Url.toString(), accessKeyId, secretAccessKey);
+  },
+  [ClientType.S3_VECTOR]: (props) => {
+    const { s3Url, accessKeyId, secretAccessKey, region, providerType } = props;
+    return new S3VectorsCommands(
+      s3Url.toString(),
+      accessKeyId,
+      secretAccessKey,
+      region,
+      providerType
+    );
+  },
+  [ClientType.S3]: (props) => {
+    const {
+      s3Url,
+      accessKeyId,
+      secretAccessKey,
+      region,
+      s3ConsolePath,
+      skipSignatureCalculation,
+      providerType,
+    } = props;
+    return new S3Commands(
+      s3Url.toString(),
+      accessKeyId,
+      secretAccessKey,
+      region,
+      skipSignatureCalculation ? null : s3ConsolePath,
+      providerType
+    );
+  },
+};
+
+type CreateClientParams = {
+  s3Url: URL | undefined;
+  s3ConsolePath: string | undefined;
+  skipSignatureCalculation: boolean;
+  excludePortInSignature?: boolean;
+  accessKeyId: string;
+  secretAccessKey: string;
+  region: string;
+  type: ClientType;
+  providerType: S3ProviderType;
+};
+
+const createClientFromEndpointConfig = (
+  params: CreateClientParams
+): { client: ClientCommandType | null; error: unknown } => {
+  const {
+    s3Url,
+    s3ConsolePath,
+    skipSignatureCalculation,
+    excludePortInSignature,
+    accessKeyId,
+    secretAccessKey,
+    region,
+    type,
+    providerType,
+  } = params;
+
+  if (!s3Url) {
+    return { client: null, error: new Error('No endpoint for the provider') };
+  }
+  if (!accessKeyId || !secretAccessKey) {
+    return {
+      client: null,
+      error: new Error('No access key or secret access key in the Secret data'),
+    };
+  }
+
+  // Middleware for proxy handling:
+  // We must include the port in the host header as/if the proxy does (it's omitted
+  // if the port is the protocol default port e.g. 443 for 'https').
+  // Ex: For Provider cluster (console proxy), include the port as the proxy forwards it.
+  // For Client cluster (nginx proxy), omit the port as the proxy forwards host without port.
+  // It must be done BEFORE signature calculation.
+  const internalEndpointPort = INTERNAL_ENDPOINT_PORT[type];
+
+  const buildMiddleware = (next) => (args) => {
+    const request: Partial<HttpRequest> = args.request;
+    if (s3Url.protocol === 'https:') {
+      request.headers['host'] = excludePortInSignature
+        ? s3Url.hostname
+        : `${s3Url.hostname}:${internalEndpointPort}`;
+    }
+    return next(args);
+  };
+
+  // We must redirect the request to the proxy AFTER the signature calculation.
+  const finalizeMiddleware = (next) => (args) => {
+    const request: Partial<HttpRequest> = args.request;
+    request.protocol = window.location.protocol;
+    request.hostname = window.location.hostname;
+    request.port = Number(window.location.port);
+    request.path = `${s3ConsolePath}${request.path}`;
+    return next(args);
+  };
+
+  try {
+    const mapProps: S3ClientMapProps = {
+      s3Url,
+      s3ConsolePath,
+      skipSignatureCalculation,
+      accessKeyId,
+      secretAccessKey,
+      region,
+      providerType,
+    };
+    const client = S3_CLIENT_MAP[type](mapProps);
+    if (!skipSignatureCalculation) {
+      (client.middlewareStack as S3Commands['middlewareStack']).add(
+        buildMiddleware,
+        { step: 'build' }
+      );
+      (client.middlewareStack as S3Commands['middlewareStack']).add(
+        finalizeMiddleware,
+        { step: 'finalizeRequest' }
+      );
+    }
+    return { client, error: null };
+  } catch (err) {
+    return { client: null, error: err };
+  }
+};
+
+export type UseClientResult = {
+  client: ClientCommandType | null;
+  error: unknown;
+  dataPathClient?: ClientCommandType | null;
+};
 
 export const useClient = (
   secretData: SecretKind | null,
@@ -16,111 +174,78 @@ export const useClient = (
   providerConfig: ProviderConfig | null,
   providerType: S3ProviderType,
   type: ClientType = ClientType.S3
-): { client: ClientCommandType | null; error: unknown } => {
-  return React.useMemo(() => {
+): UseClientResult => {
+  const memoizedSecretData = useDeepCompareMemoize(secretData?.data);
+  const memoizedSecretFieldKeys = useDeepCompareMemoize(secretFieldKeys);
+  const memoizedProviderConfig = useDeepCompareMemoize(providerConfig);
+
+  return React.useMemo((): UseClientResult => {
     if (
-      _.isEmpty(secretData) ||
-      _.isEmpty(providerConfig) ||
-      !secretFieldKeys
+      _.isEmpty(memoizedSecretData) ||
+      _.isEmpty(memoizedProviderConfig) ||
+      !memoizedSecretFieldKeys
     ) {
       return { client: null, error: null };
     }
 
     try {
       const accessKeyId = atob(
-        secretData.data?.[secretFieldKeys.accessKey] ||
-          secretData.data?.[secretFieldKeys.fallBackAccessKey]
+        memoizedSecretData[memoizedSecretFieldKeys.accessKey] ||
+          memoizedSecretData[memoizedSecretFieldKeys.fallBackAccessKey]
       );
       const secretAccessKey = atob(
-        secretData.data?.[secretFieldKeys.secretKey] ||
-          secretData.data?.[secretFieldKeys.fallBackSecretKey]
+        memoizedSecretData[memoizedSecretFieldKeys.secretKey] ||
+          memoizedSecretData[memoizedSecretFieldKeys.fallBackSecretKey]
       );
+      const region = memoizedProviderConfig.region;
 
-      const skipSignatureCalculation = providerConfig.skipSignatureCalculation;
+      const main = createClientFromEndpointConfig({
+        s3Url: memoizedProviderConfig.s3Endpoint,
+        s3ConsolePath: memoizedProviderConfig.s3ConsolePath,
+        skipSignatureCalculation:
+          memoizedProviderConfig.skipSignatureCalculation,
+        excludePortInSignature: memoizedProviderConfig.excludePortInSignature,
+        accessKeyId,
+        secretAccessKey,
+        region,
+        type,
+        providerType,
+      });
 
-      const region = providerConfig.region;
-      const s3ConsolePath = providerConfig.s3ConsolePath;
-      const s3Url = skipSignatureCalculation
-        ? s3ConsolePath
-        : providerConfig.s3Endpoint;
-
-      if (!s3Url) {
-        return {
-          client: null,
-          error: new Error('No endpoint for the provider'),
-        };
+      if (main.error) {
+        return { client: null, error: main.error };
       }
 
-      if (!accessKeyId || !secretAccessKey) {
-        return {
-          client: null,
-          error: new Error(
-            'No access key or secret access key in the Secret data'
-          ),
-        };
+      const dataPathSeparation = memoizedProviderConfig.dataPathSeparation;
+      if (!dataPathSeparation) {
+        return { client: main.client, error: null };
       }
 
-      let client: ClientCommandType;
-      const internalEndpointPort =
-        type === ClientType.IAM
-          ? IAM_INTERNAL_ENDPOINT_PORT
-          : S3_INTERNAL_ENDPOINT_PORT;
+      const dataPath = createClientFromEndpointConfig({
+        s3Url: dataPathSeparation.s3Endpoint,
+        s3ConsolePath: dataPathSeparation.s3ConsolePath,
+        skipSignatureCalculation: dataPathSeparation.skipSignatureCalculation,
+        excludePortInSignature: dataPathSeparation.excludePortInSignature,
+        accessKeyId,
+        secretAccessKey,
+        region,
+        type,
+        providerType,
+      });
 
-      // Middleware for proxy handling:
-      // We must include the port in the host header as the proxy does (it's omitted
-      // if the port is the protocol default port e.g. 443 for 'https').
-      // It must be done BEFORE signature calculation.
-      const buildMiddleware = (next) => (args) => {
-        const request: Partial<HttpRequest> = args.request;
-        if ((s3Url as URL).protocol === 'https:') {
-          request.headers['host'] =
-            `${(s3Url as URL).hostname}:${internalEndpointPort}`;
-        }
-        return next(args);
+      return {
+        client: main.client,
+        error: null,
+        dataPathClient: dataPath.client,
       };
-
-      // We must redirect the request to the proxy AFTER the signature calculation.
-      const finalizeMiddleware = (next) => (args) => {
-        const request: Partial<HttpRequest> = args.request;
-        request.protocol = window.location.protocol;
-        request.hostname = window.location.hostname;
-        request.port = Number(window.location.port);
-        request.path = `${s3ConsolePath}${request.path}`;
-        return next(args);
-      };
-
-      if (type === ClientType.IAM) {
-        client = new IamCommands(
-          s3Url.toString(),
-          accessKeyId,
-          secretAccessKey
-        );
-        if (!skipSignatureCalculation) {
-          client.middlewareStack.add(buildMiddleware, { step: 'build' });
-          client.middlewareStack.add(finalizeMiddleware, {
-            step: 'finalizeRequest',
-          });
-        }
-      } else {
-        client = new S3Commands(
-          s3Url.toString(),
-          accessKeyId,
-          secretAccessKey,
-          region,
-          skipSignatureCalculation ? null : s3ConsolePath,
-          providerType
-        );
-        if (!skipSignatureCalculation) {
-          client.middlewareStack.add(buildMiddleware, { step: 'build' });
-          client.middlewareStack.add(finalizeMiddleware, {
-            step: 'finalizeRequest',
-          });
-        }
-      }
-
-      return { client, error: null };
     } catch (err) {
       return { client: null, error: err };
     }
-  }, [secretData, secretFieldKeys, providerConfig, providerType, type]);
+  }, [
+    memoizedSecretData,
+    memoizedSecretFieldKeys,
+    memoizedProviderConfig,
+    providerType,
+    type,
+  ]);
 };

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
-import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction, Trans } from 'react-i18next';
@@ -15,10 +14,10 @@ import {
 
 const DELETE = 'delete';
 
-type DeleteBucketPolicyModalProps = {
-  bucketName: string;
-  s3Client: S3Commands;
+export type DeleteBucketPolicyModalProps = {
   triggerRefresh: () => void;
+  deletePolicy: () => Promise<void>;
+  title: string;
 };
 
 const getTextInputLabel = (t: TFunction) => (
@@ -35,7 +34,7 @@ const DeleteBucketPolicyModal: React.FC<
 > = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName, s3Client, triggerRefresh },
+  extraProps: { triggerRefresh, deletePolicy, title },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -48,7 +47,7 @@ const DeleteBucketPolicyModal: React.FC<
     setInProgress(true);
 
     try {
-      await s3Client.deleteBucketPolicy({ Bucket: bucketName });
+      await deletePolicy();
 
       setInProgress(false);
       closeModal();
@@ -61,7 +60,7 @@ const DeleteBucketPolicyModal: React.FC<
 
   return (
     <Modal
-      title={t('Confirm delete bucket policy?')}
+      title={title}
       titleIconVariant="warning"
       isOpen={isOpen}
       onClose={closeModal}
@@ -100,12 +99,12 @@ const DeleteBucketPolicyModal: React.FC<
     >
       <FormGroup
         label={getTextInputLabel(t)}
-        fieldId="delete-objects"
+        fieldId="delete-bucket-policy-confirm"
         className="pf-v6-u-mt-lg pf-v6-u-mb-sm"
       >
         <TextInput
           value={deleteText}
-          id="delete-policy"
+          id="delete-bucket-policy-confirm-input"
           onChange={(_event, value) => setDeleteText(value)}
           type={TextInputTypes.text}
           placeholder={DELETE}

@@ -2,7 +2,8 @@ import * as React from 'react';
 import { ODF_ADMIN } from '@odf/core/features';
 import { S3ProviderType } from '@odf/core/types';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { S3Commands } from '@odf/shared/s3';
+import { dataPathSeparationProxy, S3Commands } from '@odf/shared/s3';
+import { isClientPlugin } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { LazyLoginForm } from '../s3-common/components/LazyLogin';
@@ -43,6 +44,7 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
   s3Provider,
 }) => {
   const isAdmin = useFlag(ODF_ADMIN);
+  const isClientCluster = isClientPlugin();
 
   const providerType = useProviderType(s3Provider);
 
@@ -56,22 +58,28 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
     secretRef: storedSecretRef,
     setSecretRef,
     logout,
-  } = useStorage(providerType, isAdmin);
+  } = useStorage(providerType);
 
   const { secretRef, secretFieldKeys } = useSecretRef(
-    isAdmin,
     storedSecretRef,
     providerConfig
   );
 
   const { secretData, secretLoaded, secretError } = useSecretData(secretRef);
 
-  const { client: s3Client, error: s3ClientError } = useClient(
-    secretData,
-    secretFieldKeys,
-    providerConfig,
-    providerType
-  );
+  const {
+    client,
+    dataPathClient,
+    error: s3ClientError,
+  } = useClient(secretData, secretFieldKeys, providerConfig, providerType);
+
+  let s3Client = client;
+  if (isClientCluster && dataPathClient) {
+    s3Client = dataPathSeparationProxy(
+      client as S3Commands,
+      dataPathClient as S3Commands
+    );
+  }
 
   const allLoaded =
     secretLoaded &&
@@ -90,6 +98,8 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
     [s3Client, isAdmin, logout, setSecretRef]
   );
 
+  // Admin (Provider) flow: no login form (auto login using a pre-created admin secret)
+  // Non-admin (Provider) & Client cluster flow: show login form if secret is not loaded
   const shouldShowLogin = isAdmin
     ? false
     : _.isEmpty(secretRef) && secretLoaded;

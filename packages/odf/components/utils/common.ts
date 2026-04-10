@@ -6,6 +6,7 @@ import {
   NodeData,
   VolumeTypeValidation,
   NetworkType,
+  ErasureCodingSchema,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
@@ -32,6 +33,7 @@ import {
   getUID,
 } from '@odf/shared/selectors';
 import {
+  ManagedResourcesCephClusterKind,
   NetworkAttachmentDefinitionKind,
   NodeKind,
   StorageClusterKind,
@@ -53,6 +55,8 @@ import {
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
+  ERASURE_CODING_BLOCK_METADATA_POOL_NAME,
+  ERASURE_CODING_CEPHFS_DATA_POOL_POSTFIX,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
@@ -438,7 +442,10 @@ export type OCSRequestData = {
   enableNoobaaClientSideCerts?: boolean;
   storageClusterName: string;
   isDbBackup?: boolean;
-  dbBackup?: WizardState['advancedSettings']['dbBackup'];
+  dbBackup?: WizardState['optionalSettings']['dbBackup'];
+  enableForcefulDeployment?: boolean;
+  useErasureCoding?: boolean;
+  erasureCodingSchema?: ErasureCodingSchema | null;
 };
 
 export const getOCSRequestData = ({
@@ -465,6 +472,9 @@ export const getOCSRequestData = ({
   storageClusterName,
   isDbBackup,
   dbBackup,
+  enableForcefulDeployment,
+  useErasureCoding,
+  erasureCodingSchema,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -536,6 +546,35 @@ export const getOCSRequestData = ({
     };
   }
 
+  if (!isMCG && useErasureCoding && erasureCodingSchema) {
+    const k = erasureCodingSchema.k;
+    const m = erasureCodingSchema.m;
+    const erasureCoded = { dataChunks: k, codingChunks: m };
+    requestData.spec.managedResources = {
+      ...requestData.spec.managedResources,
+      cephObjectStores: {
+        ...requestData.spec.managedResources?.cephObjectStores,
+        dataPoolSpec: { erasureCoded },
+      },
+      cephBlockPools: {
+        ...requestData.spec.managedResources?.cephBlockPools,
+        erasureCodedMetadataPool: ERASURE_CODING_BLOCK_METADATA_POOL_NAME,
+        poolSpec: { erasureCoded },
+      },
+      cephFilesystems: {
+        ...requestData.spec.managedResources?.cephFilesystems,
+        defaultStorageClassDataPoolName:
+          ERASURE_CODING_CEPHFS_DATA_POOL_POSTFIX,
+        additionalDataPools: [
+          {
+            name: ERASURE_CODING_CEPHFS_DATA_POOL_POSTFIX,
+            erasureCoded,
+          },
+        ],
+      },
+    };
+  }
+
   if (
     networkConfiguration.networkType === NetworkType.HOST ||
     networkConfiguration.networkType === NetworkType.NIC
@@ -543,7 +582,10 @@ export const getOCSRequestData = ({
     requestData.spec.hostNetwork = true;
     requestData.spec.managedResources = {
       ...requestData.spec.managedResources,
-      cephObjectStores: { hostNetwork: false },
+      cephObjectStores: {
+        ...requestData.spec.managedResources?.cephObjectStores,
+        hostNetwork: false,
+      },
     };
   }
 
@@ -600,6 +642,14 @@ export const getOCSRequestData = ({
       },
     };
   }
+  // Add forceful deployment configuration if enabled
+  if (isNoProvisioner && enableForcefulDeployment) {
+    requestData.spec.managedResources.cephCluster = {
+      ...(requestData.spec.managedResources.cephCluster ||
+        ({} as ManagedResourcesCephClusterKind)),
+      cleanupPolicy: { wipeDevicesFromOtherClusters: true },
+    };
+  }
 
   return requestData;
 };
@@ -614,6 +664,12 @@ const getNetworkField = (
     clusterNetwork,
     addressRanges: { cluster, public: publicAddressRange },
   } = networkConfiguration;
+  const normalizedClusterRange = cluster
+    ?.map((cidr) => cidr?.trim())
+    ?.filter(Boolean);
+  const normalizedPublicRange = publicAddressRange
+    ?.map((cidr) => cidr?.trim())
+    ?.filter(Boolean);
   if (networkType === NetworkType.HOST || networkType === NetworkType.NIC) {
     return {
       network: {
@@ -623,8 +679,8 @@ const getNetworkField = (
           },
         },
         addressRanges: {
-          cluster: cluster,
-          public: publicAddressRange,
+          cluster: normalizedClusterRange,
+          public: normalizedPublicRange,
         },
       },
     } as StorageClusterKind['spec']['network'];

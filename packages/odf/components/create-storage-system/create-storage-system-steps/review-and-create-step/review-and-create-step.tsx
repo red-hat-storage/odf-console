@@ -51,6 +51,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     createLocalVolumeSet,
     backingStorage,
     advancedSettings,
+    optionalSettings,
     connectionDetails,
     createStorageClass,
     nodes,
@@ -59,16 +60,27 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
   const { deployment, externalStorage, type } = backingStorage;
-  const { isDbBackup, enableNFS, isRBDStorageClassDefault } = advancedSettings;
+  const { useErasureCoding, erasureCodingSchema, enableForcefulDeployment } =
+    advancedSettings;
+  const {
+    isDbBackup,
+    enableNFS,
+    isRBDStorageClassDefault,
+    useExternalPostgres,
+  } = optionalSettings;
+
+  const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
+  const includeAdvancedSettingsStep =
+    !isMCG &&
+    (backingStorage.type === BackingStorageType.LOCAL_DEVICES ||
+      isNoProvisioner);
   // External Red Hat Ceph Storage deployment
   const isRhcs = !_.isEmpty(connectionDetails);
   // External IBM deployment without ODF
   const isStandaloneExternal = hasOCS && !_.isEmpty(createStorageClass);
-
-  const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
   const formattedCapacity = !isNoProvisioner
     ? `${Number.isFinite(capacity) ? capacity : getStorageSizeInTiBWithoutUnit(capacity as string)} ${StorageSizeUnitName.TiB}`
     : humanizeBinaryBytes(capacity).string;
@@ -93,9 +105,15 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     : t('Disabled');
   const isDbBackupEnabled = isDbBackup ? t('Enabled') : t('Disabled');
   const isVirtualizeStorageClassDefault =
-    advancedSettings.isVirtualizeStorageClassDefault
+    optionalSettings.isVirtualizeStorageClassDefault
       ? t('Enabled')
       : t('Disabled');
+  const useExternalPostgresStatus = useExternalPostgres
+    ? t('Enabled')
+    : t('Disabled');
+  const forcefulDeploymentStatus = enableForcefulDeployment
+    ? t('Enabled')
+    : t('Disabled');
 
   const kmsStatus = encryption.advanced
     ? kms.providerState.name.value
@@ -130,7 +148,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
           </ListItem>
         )}
       </ReviewItem>
-      <ReviewItem title={t('Advanced settings')}>
+      <ReviewItem title={t('Optional settings')}>
         {deployment === DeploymentType.FULL &&
           type !== BackingStorageType.EXTERNAL && (
             <ListItem>
@@ -159,6 +177,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             </ListItem>
           </>
         )}
+        {!hasOCS && (
+          <ListItem>
+            {t('Use external PostgreSQL: {{useExternalPostgresStatus}}', {
+              useExternalPostgresStatus,
+            })}
+          </ListItem>
+        )}
         {isDbBackup && (
           <ListItem>
             {t('Automatic backup: {{isDbBackupEnabled}}', {
@@ -167,6 +192,28 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
           </ListItem>
         )}
       </ReviewItem>
+      {includeAdvancedSettingsStep && (
+        <ReviewItem title={t('Advanced settings')}>
+          {enableForcefulDeployment && (
+            <ListItem>
+              {t('Forceful deployment: {{forcefulDeploymentStatus}}', {
+                forcefulDeploymentStatus,
+              })}
+            </ListItem>
+          )}
+          {useErasureCoding && erasureCodingSchema && (
+            <ListItem>
+              {t(
+                'Erasure coding: {{k}} + {{m}} ( k = {{k}} , m = {{m}} ) for Block (RBD), File (Ceph FS), and Object (RGW)',
+                {
+                  k: erasureCodingSchema.k,
+                  m: erasureCodingSchema.m,
+                }
+              )}
+            </ListItem>
+          )}
+        </ReviewItem>
+      )}
       {!isMCG && !isRhcs && !isStandaloneExternal && (
         <ReviewItem title={t('Capacity and nodes')}>
           <ListItem>
