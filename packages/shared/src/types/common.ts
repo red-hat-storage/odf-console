@@ -35,6 +35,7 @@ export type InfrastructureKind = K8sResourceCommon & {
   };
   status?: {
     platform: InfraProviders;
+    controlPlaneTopology?: string;
   };
 };
 

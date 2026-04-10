@@ -18,6 +18,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
   supportedExternalStorage,
   systemNamespace,
   nodes = [],
+  isTNFEnabled,
 }) => {
   const {
     networkType: nwType,
@@ -120,6 +121,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           isMultusAcknowledged={isMultusAcknowledged}
           setIsMultusAcknowledged={setIsMultusAcknowledged}
           nodes={nodes}
+          isTNFEnabled={isTNFEnabled}
         />
       )}
       {isExternal && (
@@ -146,4 +148,5 @@ type SecurityAndNetworkProps = {
   supportedExternalStorage?: ExternalStorage[];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   nodes?: WizardState['nodes'];
+  isTNFEnabled: boolean;
 };

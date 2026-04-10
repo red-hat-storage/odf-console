@@ -18,6 +18,7 @@ import {
   isResourceProfileAllowed,
   getNodeTotalMemory,
   isValidCapacityAutoScalingConfig,
+  getTNFSpecs,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import {
@@ -446,6 +447,7 @@ export type OCSRequestData = {
   enableForcefulDeployment?: boolean;
   useErasureCoding?: boolean;
   erasureCodingSchema?: ErasureCodingSchema | null;
+  isTNFEnabled?: boolean;
 };
 
 export const getOCSRequestData = ({
@@ -475,6 +477,7 @@ export const getOCSRequestData = ({
   enableForcefulDeployment,
   useErasureCoding,
   erasureCodingSchema,
+  isTNFEnabled,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -512,6 +515,8 @@ export const getOCSRequestData = ({
         reconcileStrategy: 'standalone',
       },
     };
+  } else if (isTNFEnabled) {
+    requestData.spec = getTNFSpecs(scName, storage);
   } else {
     // for full deployment - ceph + mcg
     requestData.spec = {
@@ -576,8 +581,9 @@ export const getOCSRequestData = ({
   }
 
   if (
-    networkConfiguration.networkType === NetworkType.HOST ||
-    networkConfiguration.networkType === NetworkType.NIC
+    !isTNFEnabled &&
+    (networkConfiguration.networkType === NetworkType.HOST ||
+      networkConfiguration.networkType === NetworkType.NIC)
   ) {
     requestData.spec.hostNetwork = true;
     requestData.spec.managedResources = {
@@ -600,14 +606,14 @@ export const getOCSRequestData = ({
     };
   }
 
-  if (isNFSEnabled) {
+  if (!isTNFEnabled && isNFSEnabled) {
     // for NFS, supported only for full deployment and non-external mode
     requestData.spec.nfs = {
       enable: true,
     };
   }
 
-  if (useExternalPostgres) {
+  if (!isTNFEnabled && useExternalPostgres) {
     requestData.spec.multiCloudGateway = {
       ...requestData.spec.multiCloudGateway,
       externalPgConfig: {
@@ -630,10 +636,10 @@ export const getOCSRequestData = ({
     }
   }
 
-  requestData.spec.resourceProfile = resourceProfile;
+  if (!isTNFEnabled) requestData.spec.resourceProfile = resourceProfile;
 
   // Add automatic backup configuration if enabled
-  if (isDbBackup) {
+  if (!isTNFEnabled && isDbBackup) {
     requestData.spec.multiCloudGateway = {
       ...requestData.spec.multiCloudGateway,
       dbBackup: {

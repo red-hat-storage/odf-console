@@ -288,6 +288,44 @@ export const createDeviceSet = (
   },
 });
 
+export const getTNFSpecs = (scName: string, storage: string) => ({
+  flexibleScaling: true,
+  managedResources: {
+    cephObjectStoreUsers: {
+      reconcileStrategy: 'ignore',
+    },
+    cephObjectStores: {
+      reconcileStrategy: 'ignore',
+    },
+  },
+  monDataDirHostPath: '/var/lib/rook',
+  multiCloudGateway: {
+    reconcileStrategy: 'ignore',
+  },
+  storageDeviceSets: [
+    {
+      name: 'ocs-deviceset',
+      config: {},
+      count: 1,
+      replica: 2,
+      portable: false,
+      resources: {},
+      dataPVCTemplate: {
+        spec: {
+          accessModes: ['ReadWriteOnce'],
+          resources: {
+            requests: {
+              storage,
+            },
+          },
+          storageClassName: scName,
+          volumeMode: 'Block',
+        },
+      },
+    },
+  ],
+});
+
 export const getDeviceSetCount = (pvCount: number, replica: number): number =>
   Math.floor(pvCount / replica) || 1;
 

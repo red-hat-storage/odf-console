@@ -9,8 +9,8 @@ import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
 } from '@odf/odf-plugin-sdk/extensions';
-import { useK8sList } from '@odf/shared';
-import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
+import { useK8sList, DOC_VERSION } from '@odf/shared';
+import { DEFAULT_INFRASTRUCTURE, tnfHomePage } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
   CustomResourceDefinitionModel,
@@ -24,13 +24,21 @@ import {
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
+import { ViewDocumentation } from '@odf/shared/utils/doc-utils';
 import {
   useK8sWatchResource,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
+import ExclamationCircleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon';
 import * as _ from 'lodash-es';
 import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
-import { EmptyStateBody, Wizard, WizardStep } from '@patternfly/react-core';
+import {
+  EmptyStateActions,
+  EmptyStateBody,
+  EmptyStateFooter,
+  Wizard,
+  WizardStep,
+} from '@patternfly/react-core';
 import { EmptyState, Spinner } from '@patternfly/react-core';
 import { CREATE_SS_PAGE_URL, Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
@@ -44,6 +52,7 @@ import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
 import './create-storage-system.scss';
+import useTNFValidation from './useTNFValidation';
 
 const useIsStorageClusterCRDPresent = (): boolean => {
   const [crds, crdsLoaded, crdsError] = useK8sWatchResource<
@@ -87,7 +96,12 @@ export const RedirectStorageSystem: React.FC<{}> = () => {
   return null;
 };
 
-const CreateStorageSystem: React.FC<{}> = () => {
+type CreateStorageSystemProps = {
+  isTNFEnabled: boolean;
+};
+const CreateStorageSystem: React.FC<CreateStorageSystemProps> = ({
+  isTNFEnabled,
+}) => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer<WizardReducer>(
     reducer,
@@ -128,6 +142,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
   const [extensions, extensionsResolved] = useResolvedExtensions(
     isStorageClassWizardStep
   );
+
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
 
@@ -167,7 +182,8 @@ const CreateStorageSystem: React.FC<{}> = () => {
       infraType,
       hasOCS,
       supportedExternalStorage,
-      hasMultipleClusters
+      hasMultipleClusters,
+      isTNFEnabled
     );
   }
 
@@ -185,6 +201,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
           hasInternal={hasInternal}
           stepIdReached={state.stepIdReached}
           infraType={infraType}
+          isTNFEnabled={isTNFEnabled}
           error={anyError}
           loaded={allLoaded}
           supportedExternalStorage={supportedExternalStorage}
@@ -203,6 +220,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
           hasMultipleClusters={hasMultipleClusters}
           deployment={state.backingStorage.deployment}
           backingStorageType={state.backingStorage.type}
+          isTNFEnabled={isTNFEnabled}
         />
       ),
       canJumpTo: true,
@@ -224,6 +242,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
             disableNext={!allLoaded || !!anyError}
             supportedExternalStorage={supportedExternalStorage}
             existingNamespaces={namespaces}
+            isTNFEnabled={isTNFEnabled}
           />
         }
       >
@@ -244,6 +263,8 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
   const isStorageClusterCRDPresent = useIsStorageClusterCRDPresent();
   // It takes a while for the CRD to be present
   const [delayedShow, setDelayedShow] = React.useState(false);
+  const { isTNFEnabled, isTNFValidationLoading, isTNFValidated } =
+    useTNFValidation();
 
   React.useEffect(() => {
     if (isStorageClusterCRDPresent && !isCrdPresent) {
@@ -261,25 +282,55 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
     return () => clearTimeout(timer);
   }, [isCrdPresent]);
 
-  return !isCrdPresent || !delayedShow ? (
+  const isLoading = isTNFValidationLoading || !isCrdPresent || !delayedShow;
+  const isTNFValidationError = isTNFEnabled && !isTNFValidated;
+
+  if (!isLoading && !isTNFValidationError) {
+    return <CreateStorageSystem isTNFEnabled={isTNFEnabled} />;
+  }
+
+  return (
     <>
       <CreateStorageSystemHeader state={{} as any} />
-      <EmptyState
-        icon={Spinner}
-        className="odf-create-storage-system-wizard__empty-state"
-        data-test="create-wizard-empty-state"
-      >
-        <EmptyStateBody>
-          <p>
-            {t(
-              'Data Foundation is gathering required resources, this may take up to a minute.'
-            )}
-          </p>
-        </EmptyStateBody>
-      </EmptyState>
+      {isLoading ? (
+        <EmptyState
+          icon={Spinner}
+          className="odf-create-storage-system-wizard__empty-state"
+          data-test="create-wizard-empty-state"
+        >
+          <EmptyStateBody>
+            <p>
+              {t(
+                'Data Foundation is gathering required resources, this may take up to a minute.'
+              )}
+            </p>
+          </EmptyStateBody>
+        </EmptyState>
+      ) : (
+        <EmptyState
+          headingLevel="h4"
+          icon={ExclamationCircleIcon}
+          titleText={t('Error')}
+        >
+          <EmptyStateBody>
+            <p>
+              {t(
+                'There was an issue while validating the two node configuration on this cluster.'
+              )}
+            </p>
+          </EmptyStateBody>
+          <EmptyStateFooter>
+            <EmptyStateActions>
+              <ViewDocumentation
+                doclink={tnfHomePage(DOC_VERSION)}
+                text={t('Setting up TNF homepage')}
+                padding="0"
+              />{' '}
+            </EmptyStateActions>
+          </EmptyStateFooter>
+        </EmptyState>
+      )}
     </>
-  ) : (
-    <CreateStorageSystem />
   );
 };
 
