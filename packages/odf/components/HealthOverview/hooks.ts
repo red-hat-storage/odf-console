@@ -542,7 +542,10 @@ export const useSilencedAlerts = (storageCluster?: StorageClusterKind) => {
     error: rulesError,
   } = useHealthRules();
 
-  const excludedAlerts = storageCluster?.spec?.monitoring?.excludedAlerts || [];
+  const excludedAlerts = React.useMemo(
+    () => storageCluster?.spec?.monitoring?.excludedAlerts || [],
+    [storageCluster?.spec?.monitoring?.excludedAlerts]
+  );
 
   const timeLimitedSilences = React.useMemo(
     () => mapSilencesToRows(silences, templates, ruleNames),
