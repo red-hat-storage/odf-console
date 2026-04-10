@@ -13,8 +13,14 @@ export type Toleration = {
 };
 
 export type ResourceRequirements = {
-  cpu?: string;
-  memory?: string;
+  limits?: {
+    cpu?: string;
+    memory?: string;
+  };
+  requests?: {
+    cpu?: string;
+    memory?: string;
+  };
 };
 
 export type ContainerResources = {
@@ -116,6 +122,7 @@ export type ClusterSpec = {
 
 // DaemonUserSpec tells the operator how to configure gpfs daemons
 export type DaemonUserSpec = {
+  resources?: ResourceRequirements;
   clusterNameOverride?: string;
   hostAliases?: {
     hostname: string;

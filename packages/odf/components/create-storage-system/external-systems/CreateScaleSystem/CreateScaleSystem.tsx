@@ -34,6 +34,7 @@ import {
   createScaleLocalClusterPayload,
   labelNodes,
 } from '../common/payload';
+import { getOptimalResourceRequests } from '../common/utils';
 import {
   createScaleCaCertSecretPayload,
   createScaleRemoteClusterPayload,
@@ -159,9 +160,18 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     try {
       const formData = getValues();
       const patchNodes = labelNodes(componentState.selectedNodes);
+      const { cpuRequest, memoryRequest } = getOptimalResourceRequests(
+        componentState.selectedNodes
+      );
       if (!isLocalClusterConfigured) {
         await patchNodes();
-        const localClusterPromise = createScaleLocalClusterPayload();
+        const localClusterPromise = createScaleLocalClusterPayload(
+          undefined,
+          undefined,
+          true,
+          cpuRequest.toString(),
+          memoryRequest
+        );
         await localClusterPromise();
         await configureMetricsNamespaceLabels();
       }
