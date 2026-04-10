@@ -6,7 +6,7 @@ import {
   NodeData,
   VolumeTypeValidation,
   NetworkType,
-  ErasureCodingSchema,
+  ErasureCodingScheme,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
@@ -446,7 +446,7 @@ export type OCSRequestData = {
   dbBackup?: WizardState['optionalSettings']['dbBackup'];
   enableForcefulDeployment?: boolean;
   useErasureCoding?: boolean;
-  erasureCodingSchema?: ErasureCodingSchema | null;
+  erasureCodingScheme?: ErasureCodingScheme | null;
   isTNFEnabled?: boolean;
 };
 
@@ -476,7 +476,7 @@ export const getOCSRequestData = ({
   dbBackup,
   enableForcefulDeployment,
   useErasureCoding,
-  erasureCodingSchema,
+  erasureCodingScheme,
   isTNFEnabled,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
@@ -551,9 +551,9 @@ export const getOCSRequestData = ({
     };
   }
 
-  if (!isMCG && useErasureCoding && erasureCodingSchema) {
-    const k = erasureCodingSchema.k;
-    const m = erasureCodingSchema.m;
+  if (!isMCG && useErasureCoding && erasureCodingScheme) {
+    const k = erasureCodingScheme.k;
+    const m = erasureCodingScheme.m;
     const erasureCoded = { dataChunks: k, codingChunks: m };
     requestData.spec.managedResources = {
       ...requestData.spec.managedResources,

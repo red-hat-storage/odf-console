@@ -1,6 +1,6 @@
-import type { ErasureCodingSchema } from '@odf/core/types';
+import type { ErasureCodingScheme } from '@odf/core/types';
 
-export const ERASURE_CODING_SCHEMES: ErasureCodingSchema[] = [
+export const ERASURE_CODING_SCHEMES: ErasureCodingScheme[] = [
   { k: 2, m: 2 },
   { k: 4, m: 2 },
   { k: 5, m: 2 },

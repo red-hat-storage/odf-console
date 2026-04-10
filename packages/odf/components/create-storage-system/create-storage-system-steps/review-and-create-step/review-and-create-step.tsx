@@ -60,7 +60,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
   const { deployment, externalStorage, type } = backingStorage;
-  const { useErasureCoding, erasureCodingSchema, enableForcefulDeployment } =
+  const { useErasureCoding, erasureCodingScheme, enableForcefulDeployment } =
     advancedSettings;
   const {
     isDbBackup,
@@ -201,13 +201,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
               })}
             </ListItem>
           )}
-          {useErasureCoding && erasureCodingSchema && (
+          {useErasureCoding && erasureCodingScheme && (
             <ListItem>
               {t(
                 'Erasure coding: {{k}} + {{m}} ( k = {{k}} , m = {{m}} ) for Block (RBD), File (Ceph FS), and Object (RGW)',
                 {
-                  k: erasureCodingSchema.k,
-                  m: erasureCodingSchema.m,
+                  k: erasureCodingScheme.k,
+                  m: erasureCodingScheme.m,
                 }
               )}
             </ListItem>

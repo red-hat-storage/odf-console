@@ -145,7 +145,7 @@ export const StoragePoolModalFooter = (props: StoragePoolModalFooterProps) => {
         onClick: onSubmit,
         disable:
           primaryAction !== FooterPrimaryActions(t).DELETE &&
-          checkRequiredValues(state.poolName, state.replicaSize),
+          checkRequiredValues(state),
       },
     ],
   };

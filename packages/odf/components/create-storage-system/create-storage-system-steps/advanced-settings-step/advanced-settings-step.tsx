@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DeploymentType, type ErasureCodingSchema } from '@odf/core/types';
+import { DeploymentType, type ErasureCodingScheme } from '@odf/core/types';
 import { getErasureCodingNodeValidation } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -24,7 +24,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   const { t } = useCustomTranslation();
   const {
     useErasureCoding,
-    erasureCodingSchema,
+    erasureCodingScheme,
     enableForcefulDeployment,
     forcefulDeploymentConfirmation,
   } = state;
@@ -32,10 +32,10 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   const ecValidation = getErasureCodingNodeValidation(nodeCount);
   const isMCG = deployment === DeploymentType.MCG;
 
-  const onSelectSchema = (schema: ErasureCodingSchema) => {
+  const onSelectScheme = (scheme: ErasureCodingScheme) => {
     dispatch({
-      type: 'advancedSettings/erasureCodingSchema',
-      payload: schema,
+      type: 'advancedSettings/erasureCodingScheme',
+      payload: scheme,
     });
   };
 
@@ -111,8 +111,8 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             <FormGroup fieldId="erasure-coding-table" className="pf-v6-u-mt-md">
               <ErasureCodingTable
                 nodeCount={nodeCount}
-                selectedSchema={erasureCodingSchema}
-                onSelectSchema={onSelectSchema}
+                selectedScheme={erasureCodingScheme}
+                onSelectScheme={onSelectScheme}
                 rawCapacityBytes={
                   typeof capacity === 'number' ? capacity : null
                 }

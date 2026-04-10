@@ -156,7 +156,7 @@ export const createStorageCluster = async (
     isDbBackup,
     dbBackup,
   } = optionalSettings;
-  const { useErasureCoding, erasureCodingSchema, enableForcefulDeployment } =
+  const { useErasureCoding, erasureCodingScheme, enableForcefulDeployment } =
     advancedSettings;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
@@ -216,8 +216,8 @@ export const createStorageCluster = async (
     dbBackup,
     enableForcefulDeployment,
     useErasureCoding: flexibleScaling && useErasureCoding,
-    erasureCodingSchema:
-      flexibleScaling && useErasureCoding ? erasureCodingSchema : undefined,
+    erasureCodingScheme:
+      flexibleScaling && useErasureCoding ? erasureCodingScheme : undefined,
     isTNFEnabled,
   });
 

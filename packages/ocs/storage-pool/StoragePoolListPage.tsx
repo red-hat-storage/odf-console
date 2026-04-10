@@ -58,6 +58,7 @@ import {
 } from '../types';
 import {
   disableMenuAction,
+  isErasureCodedStoragePool,
   getPerPoolMetrics,
   getScNamesUsingPool,
   isDefaultPool,
@@ -99,7 +100,7 @@ const tableColumnInfo = [
       'pf-m-visible-on-lg',
       'pf-v6-u-w-8-on-2xl'
     ),
-    id: 'replica',
+    id: 'dataProtectionPolicy',
   },
   {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
@@ -169,7 +170,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Replica'),
+        title: t('Data protection policy'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -269,6 +270,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
       ? [ModalKeys.EDIT_LABELS, ModalKeys.EDIT_ANN]
       : [];
   const replica = obj.spec?.replicated?.size;
+  const isErasureCodedPool = isErasureCodedStoragePool(obj);
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;
   const phase = obj?.status?.phase;
 
@@ -348,7 +350,23 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         {poolType}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        <span data-test={`${name}-replicas`}>{replica}</span>
+        <span data-test={`${name}-replicas`}>
+          {isErasureCodedPool ? (
+            <div>
+              <div>{t('Erasure coding')}</div>
+              <div className="pf-v6-u-font-size-sm pf-v6-u-text-color-subtle">
+                {`${obj.spec.erasureCoded.dataChunks}+${obj.spec.erasureCoded.codingChunks}`}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div>{t('Replication')}</div>
+              <div className="pf-v6-u-font-size-sm pf-v6-u-text-color-subtle">
+                {t('Replica {{size}}', { size: replica ?? '-' })}
+              </div>
+            </div>
+          )}
+        </span>
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         {mirroringStatus ? t('Enabled') : t('Disabled')}
@@ -390,6 +408,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
                 {
                   key: ModalKeys.EDIT_RES,
                   value: t('Edit Pool'),
+                  isDisabled: isErasureCodedPool,
                   component: React.lazy(
                     () =>
                       import('../modals/storage-pool/update-storage-pool-modal')
@@ -416,6 +435,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
               {
                 key: ModalKeys.EDIT_RES,
                 value: t('Edit Pool'),
+                isDisabled: isErasureCodedPool,
                 component: React.lazy(
                   () =>
                     import('../modals/storage-pool/update-storage-pool-modal')

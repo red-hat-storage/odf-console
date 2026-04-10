@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ERASURE_CODING_SCHEMES } from '@odf/core/constants';
-import type { ErasureCodingSchema } from '@odf/core/types';
+import type { ErasureCodingScheme } from '@odf/core/types';
 import {
   getStorageOverheadPercent,
   isRecommendedScheme,
@@ -12,16 +12,16 @@ import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 
 export type ErasureCodingTableProps = {
   nodeCount: number;
-  selectedSchema: ErasureCodingSchema | null;
-  onSelectSchema: (schema: ErasureCodingSchema) => void;
+  selectedScheme: ErasureCodingScheme | null;
+  onSelectScheme: (scheme: ErasureCodingScheme) => void;
   rawCapacityBytes?: number | null;
   showOnlySchemeAndOverhead?: boolean;
 };
 
 export const ErasureCodingTable: React.FC<ErasureCodingTableProps> = ({
   nodeCount,
-  selectedSchema,
-  onSelectSchema,
+  selectedScheme,
+  onSelectScheme,
   rawCapacityBytes,
   showOnlySchemeAndOverhead = false,
 }) => {
@@ -77,9 +77,9 @@ export const ErasureCodingTable: React.FC<ErasureCodingTableProps> = ({
             <Td
               select={{
                 rowIndex,
-                onSelect: () => onSelectSchema({ k: row.k, m: row.m }),
+                onSelect: () => onSelectScheme({ k: row.k, m: row.m }),
                 isSelected:
-                  selectedSchema?.k === row.k && selectedSchema?.m === row.m,
+                  selectedScheme?.k === row.k && selectedScheme?.m === row.m,
                 isDisabled: false,
                 variant: 'radio',
               }}
