@@ -25,6 +25,11 @@ import {
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  OSD_APP_LABEL_KEY,
+  OSD_DEVICE_CLASS_LABEL,
+  ROOK_CEPH_OSD,
+} from './constants/common';
 
 export const cephClusterResource: WatchK8sResource = {
   kind: referenceForModel(CephClusterModel),
@@ -103,6 +108,23 @@ export const odfPodsResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(PodModel),
   namespaced: true,
   namespace: ns,
+});
+
+export const getOsdPodsByDeviceClassResource = (
+  namespace: string,
+  deviceClass: string
+): WatchK8sResource => ({
+  isList: true,
+  kind: referenceForModel(PodModel),
+  namespaced: true,
+  namespace,
+  fieldSelector: 'status.phase=Running',
+  selector: {
+    matchLabels: {
+      [OSD_APP_LABEL_KEY]: ROOK_CEPH_OSD,
+      [OSD_DEVICE_CLASS_LABEL]: deviceClass,
+    },
+  },
 });
 
 export const odfDeploymentsResource: K8sResourceObj = (ns) => ({

@@ -3,7 +3,6 @@ import { useSafeK8sGet, useSafeK8sList } from '@odf/core/hooks';
 import { cephClusterResource } from '@odf/core/resources';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { PoolType } from '@odf/ocs/constants';
-import {} from '@odf/shared';
 import { StoragePoolBody } from '@odf/ocs/storage-pool/body';
 import { CephFilesystemKind, StoragePoolKind } from '@odf/ocs/types';
 import {
@@ -100,6 +99,7 @@ const StoragePoolForm: React.FC<StoragePoolFormProps> = ({
           state={state}
           dispatch={dispatch}
           showPoolStatus={false}
+          showErasureCodingOptions={false}
           poolType={state.poolType}
           existingNames={existingNames}
           onPoolTypeChange={onPoolTypeChange}

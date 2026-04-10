@@ -153,7 +153,7 @@ const validateAdvancedSettingsStep = (
 ) => {
   const {
     useErasureCoding,
-    erasureCodingSchema,
+    erasureCodingScheme,
     enableForcefulDeployment,
     forcefulDeploymentConfirmation,
   } = advancedSettings;
@@ -161,7 +161,7 @@ const validateAdvancedSettingsStep = (
   const erasureCodingStepValid =
     !useErasureCoding ||
     !flexibleScaling ||
-    (nodeCount >= ERASURE_CODING_MIN_NODES && !!erasureCodingSchema);
+    (nodeCount >= ERASURE_CODING_MIN_NODES && !!erasureCodingScheme);
 
   // The Next button is disabled only when no VolumeSnapshotClass is selected for MCG Standalone when automatic backup option enabled.
   const hasForcefulDeploymentButNoConfirmation =

@@ -1,4 +1,4 @@
-import type { ErasureCodingSchema } from '@odf/core/types';
+import type { ErasureCodingScheme } from '@odf/core/types';
 import { ERASURE_CODING_SCHEMES, ERASURE_CODING_MIN_NODES } from '../constants';
 
 export const getStorageOverheadPercent = (k: number, m: number): number =>
@@ -14,7 +14,7 @@ export const isRecommendedScheme = (
   if (nodeCount < getRecommendedNodeCount(schema)) return false;
   const recommended = ERASURE_CODING_SCHEMES.filter(
     (s) => nodeCount >= getRecommendedNodeCount(s)
-  ).reduce<ErasureCodingSchema | null>((best, s) => {
+  ).reduce<ErasureCodingScheme | null>((best, s) => {
     const sVal = getRecommendedNodeCount(s);
     if (!best) return s;
     return sVal > getRecommendedNodeCount(best) ? s : best;

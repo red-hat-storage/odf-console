@@ -3,7 +3,7 @@ import {
   ExternalCephStateValues,
   ExternalCephStateKeys,
   ResourceProfile,
-  ErasureCodingSchema,
+  ErasureCodingScheme,
 } from '@odf/core/types';
 import {
   ExternalStateValues,
@@ -49,7 +49,7 @@ export const initialState: CreateStorageSystemState = {
   },
   advancedSettings: {
     useErasureCoding: false,
-    erasureCodingSchema: null as ErasureCodingSchema | null,
+    erasureCodingScheme: null as ErasureCodingScheme | null,
     enableForcefulDeployment: false,
     forcefulDeploymentConfirmation: '',
   },
@@ -149,7 +149,7 @@ type CreateStorageSystemState = {
   };
   advancedSettings: {
     useErasureCoding: boolean;
-    erasureCodingSchema: ErasureCodingSchema | null;
+    erasureCodingScheme: ErasureCodingScheme | null;
     enableForcefulDeployment: boolean;
     forcefulDeploymentConfirmation: string;
   };
@@ -372,11 +372,11 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'advancedSettings/useErasureCoding':
       newState.advancedSettings.useErasureCoding = action.payload;
       if (!action.payload) {
-        newState.advancedSettings.erasureCodingSchema = null;
+        newState.advancedSettings.erasureCodingScheme = null;
       }
       break;
-    case 'advancedSettings/erasureCodingSchema':
-      newState.advancedSettings.erasureCodingSchema = action.payload;
+    case 'advancedSettings/erasureCodingScheme':
+      newState.advancedSettings.erasureCodingScheme = action.payload;
       break;
     case 'optionalSettings/enableNFS':
       newState.optionalSettings.enableNFS = action.payload;
@@ -588,8 +588,8 @@ export type CreateStorageSystemAction =
       payload: WizardState['advancedSettings']['useErasureCoding'];
     }
   | {
-      type: 'advancedSettings/erasureCodingSchema';
-      payload: WizardState['advancedSettings']['erasureCodingSchema'];
+      type: 'advancedSettings/erasureCodingScheme';
+      payload: WizardState['advancedSettings']['erasureCodingScheme'];
     }
   | {
       type: 'optionalSettings/enableNFS';

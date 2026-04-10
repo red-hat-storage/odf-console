@@ -78,6 +78,13 @@ export const isDefaultPool = (pool: StoragePool): boolean => {
 export const disableMenuAction = (pool: StoragePool, isExternal: boolean) =>
   !!(pool?.metadata?.deletionTimestamp || isExternal || isDefaultPool(pool));
 
+export const isErasureCodedStoragePool = (
+  pool: StoragePoolKind | undefined | null
+) => {
+  const ec = pool?.spec?.erasureCoded;
+  return ec != null && ec.dataChunks > 0 && ec.codingChunks > 0;
+};
+
 export const getErrorMessage = (error: string): string =>
   error.replace(ROOK_MODEL, 'Pool');
 
@@ -180,6 +187,7 @@ export const getStoragePoolsFromFilesystem = (
       },
       spec: {
         compressionMode: dataPool?.compressionMode,
+        erasureCoded: dataPool?.erasureCoded,
         replicated: dataPool?.replicated,
       },
       status: { phase: fs.status?.phase },

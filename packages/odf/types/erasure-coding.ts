@@ -1,1 +1,1 @@
-export type ErasureCodingSchema = { k: number; m: number };
+export type ErasureCodingScheme = { k: number; m: number };
