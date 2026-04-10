@@ -28,6 +28,12 @@ export type ManagedResourcesCephClusterKind = {
   monCount: 3 | 5;
 };
 
+export type ExcludedAlert = {
+  alertName: string;
+  excludedAt: string; // ISO 8601 timestamp (metav1.Time)
+  severity: string; // 'critical' | 'warning' | 'info'
+};
+
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
     network?: {
@@ -113,6 +119,9 @@ export type StorageClusterKind = K8sResourceCommon & {
     externalStorage?: {};
     allowRemoteStorageConsumers?: boolean;
     hostNetwork?: boolean;
+    monitoring?: {
+      excludedAlerts?: ExcludedAlert[];
+    };
   };
   status?: {
     phase: StorageClusterPhase | string;

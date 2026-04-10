@@ -10,3 +10,15 @@
     height: auto;
   }
 }
+
+.odf-silenced-alerts__filter-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.odf-silenced-alerts__clear-filters {
+  padding-left: 0;
+  padding-top: var(--pf-t--global--spacer--xs);
+  font-size: var(--pf-t--global--font--size--sm);
+}

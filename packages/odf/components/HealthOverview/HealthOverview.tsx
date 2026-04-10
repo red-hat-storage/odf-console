@@ -1,6 +1,14 @@
 import * as React from 'react';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import {
+  useODFSystemFlagsSelector,
+  useODFNamespaceSelector,
+} from '@odf/core/redux';
 import { PageHeading, useCustomTranslation } from '@odf/shared';
 import { useAlertManagerBasePath } from '@odf/shared/hooks/custom-prometheus-poll';
+import { StorageClusterModel } from '@odf/shared/models';
+import { StorageClusterKind } from '@odf/shared/types';
+import { referenceForModel } from '@odf/shared/utils';
 import { ListPageBody } from '@openshift-console/dynamic-plugin-sdk';
 import { ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
 import { FilterableAlertsTable } from './FilterableAlertsTable';
@@ -10,7 +18,7 @@ import {
   AlertRowData,
   filterOutSilencedAlerts,
 } from './hooks';
-import InfraHealthGraph from './InfraHealthGraph';
+import InfraHealthGraph, { ZoomDomain } from './InfraHealthGraph';
 import { SilenceAlertModal } from './SilenceAlertModal';
 import { SilencedAlertsTable } from './SilencedAlertsTable';
 
@@ -58,6 +66,30 @@ const HealthOverview: React.FC = () => {
   );
   const { t } = useCustomTranslation();
 
+  // Fetch StorageCluster for indefinite silences (excludedAlerts)
+  const { odfNamespace } = useODFNamespaceSelector();
+  const { systemFlags, areFlagsSafe } = useODFSystemFlagsSelector();
+
+  const storageClusterName = React.useMemo(() => {
+    if (!areFlagsSafe || !odfNamespace) return undefined;
+    return systemFlags[odfNamespace]?.ocsClusterName;
+  }, [systemFlags, areFlagsSafe, odfNamespace]);
+
+  // Watch StorageCluster to get real-time updates when excludedAlerts change
+  // useMemo ensures stable function reference that updates when storageClusterName changes
+  const storageClusterResource = React.useMemo(
+    () => (ns: string) => ({
+      kind: referenceForModel(StorageClusterModel),
+      namespace: ns,
+      name: storageClusterName,
+      isList: false,
+    }),
+    [storageClusterName]
+  );
+
+  const [storageCluster, storageClusterLoaded, storageClusterError] =
+    useSafeK8sWatchResource<StorageClusterKind>(storageClusterResource);
+
   const [healthAlerts, healthAlertsLoaded, healthAlertsError] =
     useHealthAlerts();
   const {
@@ -66,18 +98,22 @@ const HealthOverview: React.FC = () => {
     silencedAlertsError,
     refreshSilencedAlerts,
     silences,
-  } = useSilencedAlerts();
+    excludedAlerts,
+  } = useSilencedAlerts(storageCluster);
   const alertManagerBasePath = useAlertManagerBasePath();
 
   // Filter out silenced alerts from the active alerts list
   const activeAlerts = React.useMemo(
-    () => filterOutSilencedAlerts(healthAlerts, silences),
-    [healthAlerts, silences]
+    () => filterOutSilencedAlerts(healthAlerts, silences, excludedAlerts),
+    [healthAlerts, silences, excludedAlerts]
   );
 
   // Track filtered alerts from the FilterableAlertsTable
   const [filteredAlerts, setFilteredAlerts] =
     React.useState<AlertRowData[]>(activeAlerts);
+
+  // Zoom domain state for graph-to-table sync
+  const [zoomDomain, setZoomDomain] = React.useState<ZoomDomain>(null);
 
   // Silence modal state
   const [isSilenceModalOpen, setIsSilenceModalOpen] = React.useState(false);
@@ -131,6 +167,7 @@ const HealthOverview: React.FC = () => {
               alerts={filteredAlerts}
               alertsLoaded={healthAlertsLoaded}
               alertsError={healthAlertsError}
+              onZoomDomainChange={setZoomDomain}
             />
             <FilterableAlertsTable
               alerts={activeAlerts}
@@ -138,16 +175,18 @@ const HealthOverview: React.FC = () => {
               error={healthAlertsError}
               onSilenceClick={handleSilenceAlerts}
               onFilteredAlertsChange={handleFilteredAlertsChange}
+              zoomDomain={zoomDomain}
             />
           </>
         )}
         {selectedTab === HealthOverviewTab.SILENCED_ALERTS && (
           <SilencedAlertsTable
             alerts={silencedAlerts}
-            loaded={silencedAlertsLoaded}
-            error={silencedAlertsError}
+            loaded={silencedAlertsLoaded && storageClusterLoaded}
+            error={silencedAlertsError || storageClusterError}
             alertManagerBasePath={alertManagerBasePath}
             onRefresh={refreshSilencedAlerts}
+            storageCluster={storageCluster}
           />
         )}
       </ListPageBody>
@@ -157,6 +196,8 @@ const HealthOverview: React.FC = () => {
         selectedAlerts={alertsToSilence}
         alertManagerBasePath={alertManagerBasePath}
         onSuccess={handleSilenceSuccess}
+        storageCluster={storageCluster}
+        storageClusterLoaded={storageClusterLoaded}
       />
     </>
   );
