@@ -54,7 +54,9 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
 export const createScaleLocalClusterPayload = (
   externalKmmRegistry?: ExternalKMMRegistryConfig,
   addClusterLabels?: boolean,
-  addResourceLimits?: boolean
+  addResourceLimits?: boolean,
+  cpuLimit?: string,
+  memoryLimit?: string
 ) => {
   const spec: ClusterKind['spec'] = {
     daemon: {
@@ -112,23 +114,12 @@ export const createScaleLocalClusterPayload = (
   if (addResourceLimits) {
     spec.daemon = {
       ...spec.daemon,
-      roles: [
-        {
-          limits: {},
-          name: 'client',
-          profile: {},
-          resources: {
-            cpu: '4',
-            memory: '40540114124',
-          },
+      resources: {
+        requests: {
+          cpu: cpuLimit,
+          memory: memoryLimit,
         },
-        {
-          limits: {},
-          name: 'storage',
-          profile: {},
-          resources: {},
-        },
-      ],
+      },
     };
   }
   const payload: ClusterKind = {
