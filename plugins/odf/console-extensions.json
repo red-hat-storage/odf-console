@@ -379,7 +379,9 @@
             "Component": {
               "$codeRef": "storageProvisionerComponents.StorageClassEncryption"
             },
-            "visible": true
+            "visible": {
+              "$codeRef": "storageProvisioners.isPvEncryptionVisible"
+            }
           },
           "encryptionKMSID": {
             "name": "Encryption ID",

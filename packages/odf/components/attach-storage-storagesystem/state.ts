@@ -1,10 +1,14 @@
 import { DefaultRequestSize } from '@odf/core/constants';
 import { PoolType } from '@odf/ocs/constants';
 import {
-  blockPoolInitialState,
+  DataProtectionPolicy,
+  DataProtectionPolicyType,
+  ErasureCodingSchemaState,
   StoragePoolState,
 } from '@odf/ocs/storage-pool/reducer';
 import { ReclaimPolicy, VolumeBindingMode } from '@odf/shared';
+
+type AttachStoragePoolState = StoragePoolState;
 
 type StorageClassDetails = {
   reclaimPolicy: ReclaimPolicy;
@@ -20,10 +24,10 @@ type PoolDetails = {
   dataProtectionPolicy: number;
   enableCompression: boolean;
   fileSystemName: string;
-  failureDomain: string;
+  failureDomain?: string;
 };
 
-export type AttachStorageFormState = StoragePoolState & {
+export type AttachStorageFormState = AttachStoragePoolState & {
   lsoStorageClassName: string;
   enableEncryptionOnDeviceSet: boolean;
   poolType: PoolType;
@@ -44,7 +48,16 @@ export type AttachStoragePayload = {
 };
 
 export const initialAttachStorageState: AttachStorageFormState = {
-  ...blockPoolInitialState,
+  poolName: '',
+  poolStatus: '',
+  replicaSize: '',
+  isCompressed: false,
+  isArbiterCluster: false,
+  failureDomain: '',
+  inProgress: false,
+  errorMessage: '',
+  dataProtectionPolicy: DataProtectionPolicy.Replication,
+  erasureCodingSchema: null,
   lsoStorageClassName: '',
   enableEncryptionOnDeviceSet: false,
   poolType: PoolType.FILESYSTEM,
@@ -61,7 +74,7 @@ export const initialAttachStorageState: AttachStorageFormState = {
 export const createPayload = (
   state: AttachStorageFormState,
   storageClusterName: string,
-  failureDomain: string,
+  failureDomain: string = '',
   replica: number,
   fileSystemName: string,
   deviceSetCount: number
@@ -70,10 +83,10 @@ export const createPayload = (
   const poolDetails: PoolDetails = {
     volumeType: state.poolType.toLocaleLowerCase(),
     poolName: state.poolName,
-    dataProtectionPolicy: dataProtectionPolicy,
+    dataProtectionPolicy,
     enableCompression: state.isCompressed,
     fileSystemName,
-    failureDomain,
+    failureDomain: failureDomain ?? '',
   };
 
   const payload: AttachStoragePayload = {
@@ -109,6 +122,8 @@ export enum AttachStorageActionType {
   SET_STORAGECLASS_RECLAIM_POLICY = 'SET_STORAGECLASS_RECLAIM_POLICY',
   SET_STORAGECLASS_VOLUME_BINDING_MODE = 'SET_STORAGECLASS_VOLUME_BINDING_MODE',
   SET_DEVICE_CLASS = 'SET_DEVICE_CLASS',
+  SET_DATA_PROTECTION_POLICY = 'SET_DATA_PROTECTION_POLICY',
+  SET_ERASURE_CODING_SCHEMA = 'SET_ERASURE_CODING_SCHEMA',
 }
 
 export type AttachStorageAction =
@@ -152,6 +167,14 @@ export type AttachStorageAction =
   | {
       type: AttachStorageActionType.SET_DEVICE_CLASS;
       payload: string;
+    }
+  | {
+      type: AttachStorageActionType.SET_DATA_PROTECTION_POLICY;
+      payload: DataProtectionPolicyType;
+    }
+  | {
+      type: AttachStorageActionType.SET_ERASURE_CODING_SCHEMA;
+      payload: ErasureCodingSchemaState;
     };
 
 export const attachStorageReducer = (
@@ -274,6 +297,18 @@ export const attachStorageReducer = (
       return {
         ...state,
         deviceClass: action.payload,
+      };
+    }
+    case AttachStorageActionType.SET_DATA_PROTECTION_POLICY: {
+      return {
+        ...state,
+        dataProtectionPolicy: action.payload,
+      };
+    }
+    case AttachStorageActionType.SET_ERASURE_CODING_SCHEMA: {
+      return {
+        ...state,
+        erasureCodingSchema: action.payload,
       };
     }
     default:

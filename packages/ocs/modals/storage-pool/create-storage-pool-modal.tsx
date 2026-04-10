@@ -31,10 +31,12 @@ import { StoragePoolStatus, StoragePoolBody } from '../../storage-pool/body';
 import {
   StoragePoolDefinitionText,
   createFsPoolRequest,
+  ensureErasureCodedMetadataPoolRef,
   getPoolKindObj,
   poolResource,
 } from '../../storage-pool/CreateStoragePool';
 import {
+  DataProtectionPolicy,
   StoragePoolActionType,
   blockPoolInitialState,
   storagePoolReducer,
@@ -111,7 +113,10 @@ export const CreateStoragePoolModal = withHandlePromise(
         onPoolCreation(
           poolType === PoolType.FILESYSTEM
             ? `${filesystemName}-${poolName}`
-            : poolName
+            : poolName,
+          poolType === PoolType.BLOCK
+            ? state.dataProtectionPolicy === DataProtectionPolicy.ErasureCoding
+            : undefined
         );
       } else if (
         resourceLoaded &&
@@ -144,6 +149,7 @@ export const CreateStoragePoolModal = withHandlePromise(
       resource,
       resourceLoadError,
       resourceLoaded,
+      state.dataProtectionPolicy,
       timer,
     ]);
 
@@ -173,8 +179,18 @@ export const CreateStoragePoolModal = withHandlePromise(
             k8sCreate({ model: CephBlockPoolModel, data: poolObj });
         }
 
+        const runCreate = async () => {
+          if (
+            poolType === PoolType.BLOCK &&
+            state.dataProtectionPolicy === DataProtectionPolicy.ErasureCoding
+          ) {
+            await ensureErasureCodedMetadataPoolRef(storageCluster);
+          }
+          return createRequest();
+        };
+
         handlePromise(
-          createRequest(),
+          runCreate(),
           () => {
             setIsSubmit(true);
             // The modal will wait in order to get feedback from Rook
@@ -233,6 +249,7 @@ export const CreateStoragePoolModal = withHandlePromise(
                 existingNames={existingNames}
                 disablePoolType
                 prefixName={filesystemName}
+                erasureCodingDeviceClass={defaultDeviceClass}
               />
             )}
           </ModalBody>
@@ -255,7 +272,7 @@ export const CreateStoragePoolModal = withHandlePromise(
 
 export type CreateStoragePoolModalProps = {
   cephCluster?: CephClusterKind;
-  onPoolCreation: (name: string) => void;
+  onPoolCreation: (name: string, blockPoolIsErasureCoded?: boolean) => void;
   defaultDeviceClass: string;
   poolType: PoolType;
   existingNames: string[];
