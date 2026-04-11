@@ -1,3 +1,12 @@
+// Bridge PF5 icon color variables used by @openshift-console/dynamic-plugin-sdk
+// The SDK's icons.scss uses PF5 vars which are undefined when only PF6 CSS is loaded.
+* {
+  --pf-v5-global--palette--green-500: var(--pf-t--global--icon--color--status--success--default, #3d7317);
+  --pf-v5-global--danger-color--100: var(--pf-t--global--icon--color--status--danger--default, #b1380b);
+  --pf-v5-global--warning-color--100: var(--pf-t--global--icon--color--status--warning--default, #73480b);
+  --pf-v5-global--palette--blue-300: var(--pf-t--global--icon--color--status--info--default, #4394e5);
+}
+
 .odf-icon-space-r {
   margin-right: 0.25em;
 }
