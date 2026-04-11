@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getName, getNamespace } from '@odf/shared';
-import { odfDocBasePath } from '@odf/shared/constants/doc';
+import { cephFSSubvolumeMetricsDoc } from '@odf/shared/constants/doc';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { LoadingInline } from '@odf/shared/generic/status-box';
 import { DOC_VERSION } from '@odf/shared/hooks';
@@ -66,14 +66,9 @@ type SubvolumeRow = K8sResourceCommon & {
   metric: PrometheusResult['metric'];
 };
 
-const getSubvolumeInfoDocsURL = (docVersion: string): string =>
-  `${odfDocBasePath(
-    docVersion
-  )}/managing_and_allocating_storage_resources/managing-container-storage-interface-component-resources_rhodf#monitoring-cephfs-subvolume-metrics_rhodf`;
-
 type CephFSSubvolumeExtraProps = {
   metricLabel: string;
-  fetchPodsForPVC: (namespace: string, pvcName: string) => Promise<PodKind[]>;
+  fetchPods: (namespace: string, pvcName: string) => Promise<PodKind[]>;
 };
 
 const getMetricLabel = (
@@ -104,7 +99,7 @@ const getMetricHumanize = (metricType: CephFSSubvolumeMetric) => {
 };
 
 // Fetch pods for a specific PVC (called on-demand when user clicks name)
-const fetchPodsForPVC = async (
+const fetchPods = async (
   namespace: string,
   pvcName: string
 ): Promise<PodKind[]> => {
@@ -135,7 +130,7 @@ const CephFSSubvolumeRow: React.FC<RowComponentType<SubvolumeRow>> = ({
   extraProps,
 }) => {
   const { t } = useCustomTranslation();
-  const { metricLabel, fetchPodsForPVC: fetchPods }: CephFSSubvolumeExtraProps =
+  const { metricLabel, fetchPods: fetchPodsForRow }: CephFSSubvolumeExtraProps =
     extraProps;
   const [relatedPods, setRelatedPods] = React.useState<PodKind[]>([]);
   const [isLoadingPods, setIsLoadingPods] = React.useState(false);
@@ -166,7 +161,7 @@ const CephFSSubvolumeRow: React.FC<RowComponentType<SubvolumeRow>> = ({
       ) {
         setIsLoadingPods(true);
         try {
-          const pods = await fetchPods(pvcNamespace, pvcName);
+          const pods = await fetchPodsForRow(pvcNamespace, pvcName);
           setRelatedPods(pods);
         } catch {
           setRelatedPods([]);
@@ -175,7 +170,7 @@ const CephFSSubvolumeRow: React.FC<RowComponentType<SubvolumeRow>> = ({
         }
       }
     },
-    [pvcName, pvcNamespace, relatedPods.length, isLoadingPods, fetchPods]
+    [pvcName, pvcNamespace, relatedPods.length, isLoadingPods, fetchPodsForRow]
   );
 
   return (
@@ -371,13 +366,13 @@ export const CephFSSubvolumeCard: React.FC = () => {
                 )}
               </div>
               <div className="pf-v6-u-mt-sm">
-                <ExternalLink href={getSubvolumeInfoDocsURL(DOC_VERSION)}>
+                <ExternalLink href={cephFSSubvolumeMetricsDoc(DOC_VERSION)}>
                   {t('Learn more')}
                 </ExternalLink>
               </div>
             </FieldLevelHelp>
           </div>
-          <div className="pf-v6-u-min-width-on-md-200px">
+          <div className="pf-v6-u-flex-shrink-0 pf-v6-u-w-25">
             <Select
               isOpen={isOpen}
               selected={metricType}
@@ -405,7 +400,7 @@ export const CephFSSubvolumeCard: React.FC = () => {
           loaded={!loading}
           loadError={error}
           variant={TableVariant.compact}
-          extraProps={{ metricLabel, fetchPodsForPVC }}
+          extraProps={{ metricLabel, fetchPods }}
         />
       </CardBody>
     </Card>
