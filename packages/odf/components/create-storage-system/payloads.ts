@@ -131,7 +131,8 @@ export const setCephRBDAsDefault = (
 export const createStorageCluster = async (
   state: WizardState,
   storageClusterNamespace: string,
-  storageClusterName: string
+  storageClusterName: string,
+  isTNFEnabled = false
 ) => {
   const {
     storageClass,
@@ -140,6 +141,7 @@ export const createStorageCluster = async (
     nodes,
     backingStorage,
     advancedSettings,
+    optionalSettings,
   } = state;
   const { capacity, enableArbiter, arbiterLocation, pvCount } =
     capacityAndNodes;
@@ -153,19 +155,20 @@ export const createStorageCluster = async (
     externalPostgres,
     isDbBackup,
     dbBackup,
-  } = advancedSettings;
+  } = optionalSettings;
+  const { useErasureCoding, erasureCodingScheme, enableForcefulDeployment } =
+    advancedSettings;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
-
-  const storage = (
-    isNoProvisioner ? DefaultRequestSize.BAREMETAL : capacity
-  ) as string;
-
   const flexibleScaling = isFlexibleScaling(
     nodes,
     isNoProvisioner,
     enableArbiter
   );
+
+  const storage = (
+    isNoProvisioner ? DefaultRequestSize.BAREMETAL : capacity
+  ) as string;
 
   const isMCG = deployment === DeploymentType.MCG;
   const isNFSEnabled =
@@ -211,6 +214,11 @@ export const createStorageCluster = async (
     storageClusterName,
     isDbBackup,
     dbBackup,
+    enableForcefulDeployment,
+    useErasureCoding: flexibleScaling && useErasureCoding,
+    erasureCodingScheme:
+      flexibleScaling && useErasureCoding ? erasureCodingScheme : undefined,
+    isTNFEnabled,
   });
 
   return k8sCreate({ model: StorageClusterModel, data: payload });

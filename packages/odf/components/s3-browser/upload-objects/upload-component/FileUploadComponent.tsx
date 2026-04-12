@@ -23,6 +23,7 @@ type FileUploadComponentProps = {
   hideSidebar: () => void;
   setCompletionTime: React.Dispatch<React.SetStateAction<number>>;
   triggerRefresh: () => void;
+  blockDataPath?: boolean;
 };
 
 export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
@@ -33,6 +34,7 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
     hideSidebar,
     setCompletionTime,
     triggerRefresh,
+    blockDataPath = false,
   }) => {
     const { t } = useCustomTranslation();
     const [uploadStatus, setUploadStatus] = React.useState<
@@ -98,6 +100,7 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
     const { getRootProps, getInputProps } = useDropzone({
       onDrop,
       useFsAccessApi: false,
+      disabled: blockDataPath,
     });
 
     const abortAll = () => {
@@ -159,7 +162,9 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
               </Flex>
             </FlexItem>
             <FlexItem className="odf-upload-title__input">
-              <Button variant="secondary">{t('Upload')}</Button>
+              <Button variant="secondary" isDisabled={blockDataPath}>
+                {t('Upload')}
+              </Button>
             </FlexItem>
           </Flex>
         </div>

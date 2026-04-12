@@ -7,7 +7,7 @@ import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import { S3ProviderType } from '@odf/core/types';
 import { DASH } from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
-import { StatusBox } from '@odf/shared/generic/status-box';
+import { LoadingBox, StatusBox } from '@odf/shared/generic/status-box';
 import { S3Commands } from '@odf/shared/s3';
 import { isNoLifecycleRuleError } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -308,9 +308,7 @@ const RulesTable: React.FC<RulesTableProps> = (props) => {
   );
 };
 
-export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
-  obj: { fresh },
-}) => {
+const LifecycleRulesListContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const { bucketName } = useParams();
@@ -329,7 +327,7 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
   const noRuleExistsError = isNoLifecycleRuleError(error);
   // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
   const rules: LifecycleRule[] = noRuleExistsError ? [] : data?.Rules || [];
-  const loaded = !isLoading && fresh;
+  const loaded = !isLoading;
   const providerType = s3Client.providerType as S3ProviderType;
   const createRuleLink = `${getBucketOverviewBaseRoute(bucketName, providerType)}/management/lifecycle/create/~new`;
 
@@ -337,10 +335,6 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
     rules,
     nameFilterOverride
   );
-
-  React.useEffect(() => {
-    if (!fresh) mutate();
-  }, [fresh, mutate]);
 
   if (!loaded || (error && !noRuleExistsError)) {
     return (
@@ -400,3 +394,7 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
     </>
   );
 };
+
+export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
+  obj: { fresh },
+}) => (fresh ? <LifecycleRulesListContent /> : <LoadingBox />);

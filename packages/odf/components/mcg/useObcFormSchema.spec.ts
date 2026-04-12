@@ -1,4 +1,4 @@
-import { NOOBAA_PROVISIONER } from '@odf/core/constants';
+import { NOOBAA_PROVISIONER } from '@odf/shared/constants';
 import * as selectors from '@odf/shared/selectors';
 import { renderHook } from '@testing-library/react-hooks';
 import { State } from './state';

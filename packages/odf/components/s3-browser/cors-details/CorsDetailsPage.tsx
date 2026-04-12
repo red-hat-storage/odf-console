@@ -44,7 +44,7 @@ import {
 import { isAllowAllConfig } from '../../../utils';
 import { getRowActions } from '../cors-rules-list/CORSRulesList';
 
-type CorsDetailsContentProps = { corsRule: CORSRule };
+export type CorsDetailsContentProps = { corsRule: CORSRule };
 
 const CustomActionsToggle = (props: CustomActionsToggleProps) => {
   const { t } = useCustomTranslation();
@@ -88,7 +88,7 @@ const createCorsActions = (
   );
 };
 
-const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
+export const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
   corsRule,
 }) => {
   const { t } = useCustomTranslation();

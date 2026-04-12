@@ -1,4 +1,5 @@
 export * from './common';
+export * from './erasure-coding';
 export * from './external-ceph-storage';
 export * from './kms';
 export * from './lso';

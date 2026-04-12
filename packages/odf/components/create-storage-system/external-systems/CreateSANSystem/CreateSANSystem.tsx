@@ -34,6 +34,7 @@ import {
   createScaleLocalClusterPayload,
   labelNodes,
 } from '../common/payload';
+import { getOptimalResourceRequests } from '../common/utils';
 import { ExternalRegistryFormSection } from './ExternalRegistryFormSection';
 import { LUNsTable } from './LUNsTable';
 import {
@@ -131,6 +132,9 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     const mappedLuns: DiscoveredDevice[] = sharedDevices.filter((lun) =>
       componentState.selectedLUNs.has(lun.WWN)
     );
+    const { cpuRequest, memoryRequest } = getOptimalResourceRequests(
+      componentState.selectedNodes
+    );
     try {
       if (!isLocalClusterConfigured) {
         await labelNodes(componentState.selectedNodes)();
@@ -156,7 +160,13 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           return config;
         };
         const externalKmmRegistry = buildExternalKmmRegistry();
-        await createScaleLocalClusterPayload(externalKmmRegistry, false)();
+        await createScaleLocalClusterPayload(
+          externalKmmRegistry,
+          false,
+          true,
+          cpuRequest.toString(),
+          memoryRequest
+        )();
         await createCSIDriver();
         await configureMetricsNamespaceLabels();
       }

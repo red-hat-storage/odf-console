@@ -23,6 +23,7 @@ type TypeaheadDropdownProps = {
   items: SelectOptionProps[];
   placeholder?: string;
   selectedValue?: string | number;
+  isDisabled?: boolean;
 };
 
 export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
@@ -33,6 +34,7 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
   onSelect = () => undefined,
   placeholder,
   selectedValue,
+  isDisabled,
 }) => {
   const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
@@ -247,6 +249,7 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
       onClick={onToggleClick}
       isExpanded={isOpen}
       isFullWidth
+      isDisabled={isDisabled}
     >
       <TextInputGroup isPlain>
         <TextInputGroupMain

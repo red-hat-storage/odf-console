@@ -5,6 +5,7 @@ import {
   ODF_OPERATOR,
   TIB_CONVERSION_DIVISOR,
   STORAGE_SIZE_UNIT_NAME_MAP,
+  NOOBAA_PROVISIONER,
 } from '@odf/shared/constants';
 import { StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors/k8s';
@@ -92,3 +93,6 @@ export const isCephProvisioner = (scProvisioner: string): boolean => {
 
 export const isCephDriver = (driver: string): boolean =>
   _.endsWith(driver, 'ceph.com');
+
+export const isCephOrNooBaaProvisioner = (provisioner: string): boolean =>
+  isCephProvisioner(provisioner) || _.endsWith(provisioner, NOOBAA_PROVISIONER);

@@ -78,6 +78,7 @@ type CapacityAutoScalingProps = {
   onLimitSelect: (selected: string) => void;
   osdAmount: number;
   osdSize: string;
+  isTNFEnabled?: boolean;
 };
 
 export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
@@ -89,6 +90,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
   onLimitSelect,
   osdAmount,
   osdSize,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const capacityItems = React.useMemo(
@@ -165,6 +167,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
         data-checked-state={enable}
         isChecked={enable}
         onChange={onChange}
+        isDisabled={isTNFEnabled}
       />
       {enable && (
         <div className="odf-capacity-limit__section">
@@ -191,6 +194,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
             onSelect={onLimitSelect}
             placeholder={capacityLimitPlaceHolder}
             selectedValue={formatCapacityValue(capacityLimit)}
+            isDisabled={isTNFEnabled}
           />
         </div>
       )}

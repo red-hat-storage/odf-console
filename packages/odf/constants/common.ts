@@ -20,6 +20,9 @@ export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
 export const MINIMUM_NODES = 3;
+export const OSD_APP_LABEL_KEY = 'app';
+export const OSD_DEVICE_CLASS_LABEL = 'device-class';
+export const ROOK_CEPH_OSD = 'rook-ceph-osd';
 export const SECOND = 1000;
 
 // ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters
@@ -94,6 +97,7 @@ export enum Steps {
   SecurityAndNetwork = 'security-and-network',
   Security = 'security',
   ReviewAndCreate = 'review-and-create',
+  OptionalSettings = 'optional-settings',
   AdvancedSettings = 'advanced-settings',
 }
 
@@ -120,6 +124,7 @@ export const StepsName = (t: TFunction) => ({
   [Steps.ReviewAndCreate]: t('plugin__odf-console~Review and create'),
   [Steps.SecurityAndNetwork]: t('plugin__odf-console~Security and network'),
   [Steps.Security]: t('plugin__odf-console~Security'),
+  [Steps.OptionalSettings]: t('plugin__odf-console~Optional settings'),
   [Steps.AdvancedSettings]: t('plugin__odf-console~Advanced settings'),
 });
 

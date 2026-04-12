@@ -18,6 +18,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
   supportedExternalStorage,
   systemNamespace,
   nodes = [],
+  isTNFEnabled,
 }) => {
   const {
     networkType: nwType,
@@ -63,13 +64,15 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
 
   const setCIDRNetwork = React.useCallback(
     (clusterCIDR: string, publicCIDR: string) => {
+      const normalizedClusterCIDR = clusterCIDR.trim();
+      const normalizedPublicCIDR = publicCIDR.trim();
       dispatch({
         type: 'securityAndNetwork/setCephCIDR',
-        payload: [clusterCIDR],
+        payload: normalizedClusterCIDR ? [normalizedClusterCIDR] : [],
       });
       dispatch({
         type: 'securityAndNetwork/setPublicCIDR',
-        payload: [publicCIDR],
+        payload: normalizedPublicCIDR ? [normalizedPublicCIDR] : [],
       });
     },
     [dispatch]
@@ -118,6 +121,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           isMultusAcknowledged={isMultusAcknowledged}
           setIsMultusAcknowledged={setIsMultusAcknowledged}
           nodes={nodes}
+          isTNFEnabled={isTNFEnabled}
         />
       )}
       {isExternal && (
@@ -144,4 +148,5 @@ type SecurityAndNetworkProps = {
   supportedExternalStorage?: ExternalStorage[];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   nodes?: WizardState['nodes'];
+  isTNFEnabled: boolean;
 };

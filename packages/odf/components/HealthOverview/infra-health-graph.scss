@@ -3,4 +3,24 @@
   overflow: visible;
   border: 1px solid var(--pf-t--global--border--color--100);
   border-radius: var(--pf-t--global--border--radius--small);
+  // Add padding so the legend doesn't get cut off by the border
+  padding-bottom: var(--pf-t--global--spacer--sm);
+
+  &__header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--pf-t--global--spacer--sm);
+    padding: var(--pf-t--global--spacer--sm);
+    padding-bottom: 0;
+  }
+
+  &__zoom-indicator {
+    display: flex;
+    align-items: center;
+  }
+
+  &__reset-button {
+    padding: 0;
+  }
 }

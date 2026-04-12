@@ -1,291 +1,80 @@
 import * as React from 'react';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
+import {
+  PolicyBody,
+  PolicyFooter,
+  PolicyHeader,
+} from '@odf/core/components/s3-common/bucket-policy';
 import { BUCKET_POLICY_CACHE_KEY_SUFFIX } from '@odf/core/constants';
+import DeleteBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/DeleteBucketPolicy';
+import SaveBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/SaveBucketPolicy';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
-import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWRMutation from 'swr/mutation';
-import { CodeEditor, Language } from '@patternfly/react-code-editor';
-import {
-  Title,
-  Alert,
-  AlertActionCloseButton,
-  AlertVariant,
-  Button,
-  ButtonVariant,
-  Icon,
-  Tooltip,
-} from '@patternfly/react-core';
-import { PencilAltIcon } from '@patternfly/react-icons';
-import { t_color_blue_40 as blueInfoColor } from '@patternfly/react-tokens';
-import DeleteBucketPolicyModal from '../../../modals/s3-browser/bucket-policy/DeleteBucketPolicy';
-import SaveBucketPolicyModal from '../../../modals/s3-browser/bucket-policy/SaveBucketPolicy';
 import { PreConfiguredPolicies } from './PreConfiguredPolicies';
-import './bucket-policy.scss';
 
 type BucketPolicyProps = {
   obj: { fresh: boolean; triggerRefresh: () => void };
 };
 
-type PolicyHeaderProps = {
+type BucketPolicyContentProps = {
+  triggerRefresh: () => void;
   success: boolean;
   setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-type BucketPolicyContentProps = {
+type DeleteBucketPolicyModalProps = {
   triggerRefresh: () => void;
-} & PolicyHeaderProps;
-
-type PolicyBodyProps = {
-  edit: boolean;
-  setEdit: React.Dispatch<React.SetStateAction<boolean>>;
-  code: string;
-  setCode: React.Dispatch<React.SetStateAction<string>>;
-  noPolicyExists: boolean;
+  deletePolicy: () => Promise<void>;
+  title: string;
 };
 
-type PolicyFooterProps = {
-  noPolicyExists: boolean;
+type SaveBucketPolicyModalProps = {
   triggerRefresh: () => void;
-  s3Client: S3Commands;
-  bucketName: string;
-  code: string;
-  setCode: React.Dispatch<React.SetStateAction<string>>;
   setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
+  savePolicy: () => Promise<void>;
 };
 
-const policySchema = {
-  type: 'object',
-  required: ['Version', 'Statement'],
-  properties: {
-    Version: {
-      type: 'string',
-      enum: ['2012-10-17'],
-    },
-    Statement: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['Effect', 'Action', 'Resource', 'Principal'],
-        properties: {
-          Effect: { type: 'string', enum: ['Allow', 'Deny'] },
-          Action: { type: ['string', 'array'] },
-          Resource: { type: ['string', 'array'] },
-          Principal: { type: ['string', 'object'] },
-        },
-      },
-    },
-  },
-};
-
-const PolicyHeader: React.FC<PolicyHeaderProps> = ({ success, setSuccess }) => {
-  const { t } = useCustomTranslation();
-
-  return (
-    <>
-      <Title
-        headingLevel="h2"
-        size="2xl"
-        className="pf-v6-u-mt-lg pf-v6-u-mb-xs"
-      >
-        {t('Bucket policy')}
-      </Title>
-      <p className="pf-v6-u-mb-lg">
-        {t(
-          'Use bucket policy to grant public or restricted access to the objects stored in the bucket.'
-        )}
-      </p>
-      {success && (
-        <Alert
-          isInline
-          variant={AlertVariant.success}
-          title={t('Bucket policy applied.')}
-          actionClose={
-            <AlertActionCloseButton onClose={() => setSuccess(false)} />
-          }
-          className="pf-v6-u-my-sm"
-        >
-          <p>
-            {t(
-              'The bucket policy has been successfully created and applied to your S3 bucket.'
-            )}
-          </p>
-        </Alert>
-      )}
-    </>
-  );
-};
-
-const PolicyBody: React.FC<PolicyBodyProps> = ({
-  code,
-  setCode,
-  edit,
-  setEdit,
-  noPolicyExists,
-}) => {
-  const { t } = useCustomTranslation();
-
-  const onEdit = () => {
-    setEdit(true);
-  };
-  const handleEditorDidMount = (_editor, monaco) => {
-    monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-      validate: true,
-      schemas: [
-        {
-          uri: 'https://s3.com/s3-bucket-policy-schema.json', // Unique identifier
-          fileMatch: ['*'],
-          schema: policySchema,
-        },
-      ],
-    });
-  };
-
-  const showEdit = !edit && !noPolicyExists;
-  const isReadOnly = !edit && !!code;
-
-  return (
-    <>
-      {showEdit && (
-        <Tooltip
-          content={t(
-            'Edit or delete the current bucket policy to customize access permissions or remove the existing configuration.'
-          )}
-        >
-          <Button
-            icon={
-              <Icon size="sm">
-                <PencilAltIcon color={blueInfoColor.value} />
-              </Icon>
-            }
-            variant={ButtonVariant.link}
-            onClick={onEdit}
-            className="pf-v6-u-my-sm s3-policy-edit--margin"
-          >
-            {t('Edit bucket policy')}{' '}
-          </Button>
-        </Tooltip>
-      )}
-      {edit && <PreConfiguredPolicies setCode={setCode} />}
-      <CodeEditor
-        isUploadEnabled={!isReadOnly}
-        isLanguageLabelVisible
-        height="350px"
-        language={Language.json}
-        code={code}
-        isReadOnly={isReadOnly}
-        onCodeChange={(value: string) => {
-          setCode(value);
-          !edit && onEdit();
-        }}
-        emptyStateTitle={t('You do not have an active bucket policy.')}
-        emptyStateBody={t(
-          'Drag a file here, upload files, or start from scratch.'
-        )}
-        emptyStateButton={t('Browse')}
-        emptyStateLink={
-          <Button variant={ButtonVariant.link} onClick={onEdit}>
-            {t('Start from scratch or use predefined policy configuration')}
-          </Button>
-        }
-        onEditorDidMount={handleEditorDidMount}
-        className="pf-v6-u-mt-sm pf-v6-u-mb-xl"
-      />
-    </>
-  );
-};
-
-const PolicyFooter: React.FC<PolicyFooterProps> = ({
-  noPolicyExists,
-  triggerRefresh,
-  s3Client,
-  bucketName,
-  code,
-  setCode,
-  setSuccess,
-}) => {
-  const { t } = useCustomTranslation();
-  const launcher = useModal();
-
-  const launchDeleteModal = () =>
-    launcher(DeleteBucketPolicyModal, {
-      extraProps: { bucketName, s3Client, triggerRefresh },
-      isOpen: true,
-    });
-  const launchSaveModal = () =>
-    launcher(SaveBucketPolicyModal, {
-      extraProps: {
-        bucketName,
-        s3Client,
-        triggerRefresh,
-        policy: code,
-        setSuccess,
-      },
-      isOpen: true,
-    });
-
-  return (
-    <>
-      {noPolicyExists && (
-        <span className="pf-v6-u-mt-sm">
-          <Button
-            variant={ButtonVariant.primary}
-            onClick={launchSaveModal}
-            className="pf-v6-u-mr-xs"
-          >
-            {t('Apply policy')}
-          </Button>
-          <Button
-            variant={ButtonVariant.link}
-            onClick={() => setCode('')}
-            className="pf-v6-u-ml-xs"
-          >
-            {t('Clear')}
-          </Button>
-        </span>
-      )}
-      {!noPolicyExists && (
-        <span className="pf-v6-u-mt-sm">
-          <Button
-            variant={ButtonVariant.secondary}
-            onClick={launchSaveModal}
-            className="pf-v6-u-mr-xs"
-          >
-            {t('Save changes')}
-          </Button>
-          <Button
-            variant={ButtonVariant.secondary}
-            onClick={launchDeleteModal}
-            className="pf-v6-u-mr-xs pf-v6-u-ml-xs"
-            isDanger
-          >
-            {t('Delete')}
-          </Button>
-          <Button
-            variant={ButtonVariant.link}
-            onClick={triggerRefresh}
-            className="pf-v6-u-ml-xs"
-          >
-            {t('Cancel')}
-          </Button>
-        </span>
-      )}
-    </>
-  );
-};
+const BUCKET_POLICY_SCHEMA_URI = 'https://s3.com/s3-bucket-policy-schema.json';
 
 const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
   success,
   setSuccess,
   triggerRefresh,
 }) => {
+  const { t } = useCustomTranslation();
   const [code, setCode] = React.useState('');
   const [edit, setEdit] = React.useState(false);
-
   const { s3Client } = React.useContext(S3Context);
   const { bucketName } = useParams();
+  const launcher = useModal();
+
+  const launchDeleteModal = () =>
+    launcher(DeleteBucketPolicyModal, {
+      extraProps: {
+        triggerRefresh,
+        title: t('Confirm delete bucket policy?'),
+        deletePolicy: async () => {
+          await s3Client.deleteBucketPolicy({ Bucket: bucketName });
+        },
+      } as DeleteBucketPolicyModalProps,
+      isOpen: true,
+    });
+
+  const launchSaveModal = () =>
+    launcher(SaveBucketPolicyModal, {
+      extraProps: {
+        triggerRefresh,
+        setSuccess,
+        savePolicy: async () => {
+          await s3Client.setBucketPolicy({ Bucket: bucketName, Policy: code });
+        },
+      } as SaveBucketPolicyModalProps,
+      isOpen: true,
+    });
+
   const {
     data: policyData,
     error,
@@ -330,23 +119,40 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
 
   return (
     <div className="pf-v6-u-m-sm">
-      <PolicyHeader success={success} setSuccess={setSuccess} />
+      <PolicyHeader
+        success={success}
+        setSuccess={setSuccess}
+        title={t('Bucket policy')}
+        description={t(
+          'Use bucket policy to grant public or restricted access to the objects stored in the bucket.'
+        )}
+        successAlertTitle={t('Bucket policy applied.')}
+        successAlertBody={t(
+          'The bucket policy has been successfully created and applied to your S3 bucket.'
+        )}
+      />
       <PolicyBody
         code={code}
         setCode={setCode}
         edit={edit}
         setEdit={setEdit}
         noPolicyExists={noPolicyExists}
-      />
+        editTooltip={t(
+          'Edit or delete the current bucket policy to customize access permissions or remove the existing configuration.'
+        )}
+        editButtonLabel={t('Edit bucket policy')}
+        emptyStateTitle={t('You do not have an active bucket policy.')}
+        schemaUri={BUCKET_POLICY_SCHEMA_URI}
+      >
+        {edit && <PreConfiguredPolicies setCode={setCode} />}
+      </PolicyBody>
       {edit && (
         <PolicyFooter
           noPolicyExists={noPolicyExists}
           triggerRefresh={triggerRefresh}
-          s3Client={s3Client}
-          bucketName={bucketName}
-          code={code}
           setCode={setCode}
-          setSuccess={setSuccess}
+          launchSaveModal={launchSaveModal}
+          launchDeleteModal={launchDeleteModal}
         />
       )}
     </div>

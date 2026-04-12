@@ -4,12 +4,10 @@ import {
   BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
   LIST_VERSIONED_OBJECTS,
 } from '@odf/core/constants';
-import { ODF_ADMIN } from '@odf/core/features';
 import { useUserSettingsLocalStorage } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
@@ -77,9 +75,9 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
     true,
     []
   );
-  const isAdmin = useFlag(ODF_ADMIN);
-  // "isCreatedByOBC" denotes whether bucket is created via OBC or S3 endpoint (will be false if we are inside folder view)
-  const { isCreatedByOBC } = useBucketOrigin(bucketName, null, isAdmin);
+
+  // "isCreatedByOBC" denotes whether bucket is created via OBC or S3 endpoint
+  const { isCreatedByOBC } = useBucketOrigin(bucketName, null);
 
   const onDelete = async (event) => {
     event.preventDefault();

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NOOBAA_PROVISIONER } from '@odf/core/constants';
+import { BucketType } from '@odf/core/constants';
 import { projectResource } from '@odf/core/resources';
 import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
 import {
@@ -12,7 +12,11 @@ import {
   NooBaaObjectBucketClaimModel,
   NooBaaBucketClassModel,
 } from '@odf/shared';
-import { formSettings, DEFAULT_NS } from '@odf/shared/constants';
+import {
+  NOOBAA_PROVISIONER,
+  formSettings,
+  DEFAULT_NS,
+} from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
@@ -22,7 +26,11 @@ import { ProjectModel, StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel, ALL_NAMESPACES_KEY } from '@odf/shared/utils';
+import {
+  isClientPlugin,
+  referenceForModel,
+  ALL_NAMESPACES_KEY,
+} from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   getAPIVersionForModel,
@@ -44,6 +52,7 @@ import {
   Form,
   FormGroup,
   Alert,
+  TextInput,
 } from '@patternfly/react-core';
 import NamespaceSafetyBox from '../../components/utils/safety-box';
 import { useODFNamespaceSelector } from '../../redux';
@@ -83,6 +92,7 @@ type CreateOBCFormProps = {
   namespace?: string;
   control: Control;
   fieldRequirements: string[];
+  bucketType?: BucketType;
 };
 
 const createReplicationRulesAndStringify = (
@@ -132,7 +142,9 @@ const generateAdditionalReplicationResources = (
       generateGenericName(rule.namespaceStore, 'destination-bucket'),
       namespace,
       getName(bc),
-      state.scName
+      state.scName,
+      '',
+      BucketType.General
     );
     const res: ReplicationResources = {
       bucketClass: bc as BucketClassKind,
@@ -144,8 +156,26 @@ const generateAdditionalReplicationResources = (
 
 export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   const { t } = useCustomTranslation();
-  const { state, dispatch, namespace, control, fieldRequirements } = props;
+  const {
+    state,
+    dispatch,
+    namespace,
+    control,
+    fieldRequirements,
+    bucketType = BucketType.General,
+  } = props;
   const isNoobaa = state.scProvisioner?.includes(NOOBAA_PROVISIONER);
+  const isClientCluster = isClientPlugin();
+  const allowBucketClass =
+    bucketType === BucketType.S3Vector ? true : isNoobaa && !isClientCluster;
+
+  const filterBucketClassByVectorPolicy = (bc: K8sResourceKind) => {
+    const hasVectorPolicy = !!(bc as BucketClassKind).spec?.vectorPolicy;
+    if (bucketType === BucketType.S3Vector) {
+      return hasVectorPolicy;
+    }
+    return !hasVectorPolicy;
+  };
 
   const { odfNamespace } = useODFNamespaceSelector();
 
@@ -157,6 +187,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   };
 
   const [replicationEnabled, toggleReplication] = React.useState(false);
+  const [s3VectorSubpath, setS3VectorSubpath] = React.useState('');
 
   const updateReplicationPolicy = (
     rules: Rule[],
@@ -203,7 +234,13 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       obj.metadata.generateName = 'bucketclaim-';
       obj.spec.generateBucketName = 'bucket-';
     }
-    if (state.bucketClass && isNoobaa) {
+    if (state.bucketClass && allowBucketClass) {
+      if (bucketType === BucketType.S3Vector) {
+        obj.spec.additionalConfig = {
+          path: s3VectorSubpath,
+          bucketType: BucketType.S3Vector,
+        };
+      }
       if (!!state.replicationRuleFormData.length) {
         const replicationPolicy = createReplicationRulesAndStringify(
           state.replicationRuleFormData,
@@ -219,14 +256,16 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     }
     dispatch({ type: 'setPayload', payload: obj });
   }, [
+    allowBucketClass,
     namespace,
     state.name,
     state.scName,
     state.bucketClass,
-    isNoobaa,
     dispatch,
     state.replicationRuleFormData,
     state.logReplicationInfo,
+    bucketType,
+    s3VectorSubpath,
   ]);
 
   const onChangeReplication = React.useCallback(() => {
@@ -269,37 +308,39 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
         }}
         helperText={t('If not provided a generic name will be generated.')}
       />
-      <FormGroupController
-        name="sc-dropdown"
-        control={control}
-        formGroupProps={{
-          fieldId: 'sc-dropdown',
-          label: t('StorageClass'),
-          helperText: t(
-            'Defines the object-store service and the bucket provisioner.'
-          ),
-          isRequired: true,
-        }}
-        render={({ onChange, onBlur }) => (
-          <ResourcesDropdown<StorageClassResourceKind>
-            resourceModel={StorageClassModel}
-            onSelect={(res) => onScChange(res, onChange)}
-            onBlur={onBlur}
-            filterResource={filterResource}
-            initialSelection={(resources) =>
-              resources?.find((res) =>
-                res.provisioner.includes(NOOBAA_PROVISIONER)
-              )
-            }
-            className="odf-mcg__resource-dropdown"
-            id="sc-dropdown"
-            data-test="sc-dropdown"
-            resource={storageClassResource}
-            secondaryTextGenerator={getStorageClassDescription}
-          />
-        )}
-      />
-      {isNoobaa && (
+      {bucketType === BucketType.General && (
+        <FormGroupController
+          name="sc-dropdown"
+          control={control}
+          formGroupProps={{
+            fieldId: 'sc-dropdown',
+            label: t('StorageClass'),
+            helperText: t(
+              'Defines the object-store service and the bucket provisioner.'
+            ),
+            isRequired: true,
+          }}
+          render={({ onChange, onBlur }) => (
+            <ResourcesDropdown<StorageClassResourceKind>
+              resourceModel={StorageClassModel}
+              onSelect={(res) => onScChange(res, onChange)}
+              onBlur={onBlur}
+              filterResource={filterResource}
+              initialSelection={(resources) =>
+                resources?.find((res) =>
+                  res.provisioner.includes(NOOBAA_PROVISIONER)
+                )
+              }
+              className="odf-mcg__resource-dropdown"
+              id="sc-dropdown"
+              data-test="sc-dropdown"
+              resource={storageClassResource}
+              secondaryTextGenerator={getStorageClassDescription}
+            />
+          )}
+        />
+      )}
+      {allowBucketClass && (
         <>
           <FormGroupController
             name="bucketclass"
@@ -319,7 +360,9 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
                 }}
                 onBlur={onBlur}
                 className="odf-mcg__resource-dropdown"
+                filterResource={filterBucketClassByVectorPolicy}
                 initialSelection={(resources) =>
+                  bucketType === BucketType.General &&
                   resources.find(
                     (res) => res.metadata.name === 'noobaa-default-bucket-class'
                   )
@@ -331,31 +374,49 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
               />
             )}
           />
-          {isNoobaa && (
-            <FormGroup>
-              <Checkbox
-                id="enable-replication"
-                label={t('Enable replication')}
-                isChecked={replicationEnabled}
-                description={t(
-                  'This option provides higher resiliency of objects stored in NooBaa buckets'
-                )}
-                onChange={onChangeReplication}
+          {bucketType === BucketType.S3Vector && (
+            <FormGroup
+              label={t('Subpath')}
+              fieldId="vector-bucket-subpath-obc"
+              className="pf-v6-u-mb-md"
+            >
+              <TextInput
+                id="vector-bucket-subpath-obc"
+                type="text"
+                value={s3VectorSubpath}
+                onChange={(_event, value) => setS3VectorSubpath(value)}
+                className="pf-v6-c-form-control"
+                data-test-id="vector-bucket-subpath-obc"
               />
             </FormGroup>
           )}
-          {replicationEnabled && (
+          {isNoobaa && bucketType !== BucketType.S3Vector && (
             <>
               <FormGroup>
-                <Content component={ContentVariants.h2}>
-                  {t('Replication policy')}
-                </Content>
+                <Checkbox
+                  id="enable-replication"
+                  label={t('Enable replication')}
+                  isChecked={replicationEnabled}
+                  description={t(
+                    'This option provides higher resiliency of objects stored in NooBaa buckets'
+                  )}
+                  onChange={onChangeReplication}
+                />
               </FormGroup>
-              <ReplicationPolicyForm
-                className="form-group"
-                namespace={namespace}
-                updateParentState={updateReplicationPolicy}
-              />
+              {replicationEnabled && (
+                <>
+                  <FormGroup>
+                    <Content component={ContentVariants.h2}>
+                      {t('Replication policy')}
+                    </Content>
+                  </FormGroup>
+                  <ReplicationPolicyForm
+                    className="form-group"
+                    namespace={namespace}
+                    updateParentState={updateReplicationPolicy}
+                  />
+                </>
+              )}
             </>
           )}
         </>
@@ -367,11 +428,13 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
 type CreateOBCProps = {
   className?: string;
   showNamespaceSelector?: boolean;
+  bucketType?: BucketType;
 };
 
 export const CreateOBC: React.FC<CreateOBCProps> = ({
   className,
   showNamespaceSelector = false,
+  bucketType = BucketType.General,
 }) => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
@@ -445,7 +508,10 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
 
     dispatch({ type: 'setProgress' });
     const promises: Promise<K8sResourceKind>[] = [];
-    if (!!state.replicationRuleFormData.length) {
+    if (
+      bucketType !== BucketType.S3Vector &&
+      !!state.replicationRuleFormData.length
+    ) {
       const additionalResources = generateAdditionalReplicationResources(
         state,
         namespace
@@ -537,6 +603,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
           namespace={namespace}
           control={control}
           fieldRequirements={fieldRequirements}
+          bucketType={bucketType}
         />
         {!isValid && isSubmitted && (
           <Alert

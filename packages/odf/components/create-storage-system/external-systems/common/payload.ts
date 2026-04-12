@@ -53,7 +53,10 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
 
 export const createScaleLocalClusterPayload = (
   externalKmmRegistry?: ExternalKMMRegistryConfig,
-  addClusterLabels?: boolean
+  addClusterLabels?: boolean,
+  addResourceLimits?: boolean,
+  cpuLimit?: string,
+  memoryLimit?: string
 ) => {
   const spec: ClusterKind['spec'] = {
     daemon: {
@@ -108,6 +111,17 @@ export const createScaleLocalClusterPayload = (
     };
   }
 
+  if (addResourceLimits) {
+    spec.daemon = {
+      ...spec.daemon,
+      resources: {
+        requests: {
+          cpu: cpuLimit,
+          memory: memoryLimit,
+        },
+      },
+    };
+  }
   const payload: ClusterKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
     kind: 'Cluster',

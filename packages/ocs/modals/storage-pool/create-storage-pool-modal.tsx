@@ -31,10 +31,12 @@ import { StoragePoolStatus, StoragePoolBody } from '../../storage-pool/body';
 import {
   StoragePoolDefinitionText,
   createFsPoolRequest,
+  ensureErasureCodedMetadataPoolRef,
   getPoolKindObj,
   poolResource,
 } from '../../storage-pool/CreateStoragePool';
 import {
+  DataProtectionPolicy,
   StoragePoolActionType,
   blockPoolInitialState,
   storagePoolReducer,
@@ -173,8 +175,18 @@ export const CreateStoragePoolModal = withHandlePromise(
             k8sCreate({ model: CephBlockPoolModel, data: poolObj });
         }
 
+        const runCreate = async () => {
+          if (
+            poolType === PoolType.BLOCK &&
+            state.dataProtectionPolicy === DataProtectionPolicy.ErasureCoding
+          ) {
+            await ensureErasureCodedMetadataPoolRef(storageCluster);
+          }
+          return createRequest();
+        };
+
         handlePromise(
-          createRequest(),
+          runCreate(),
           () => {
             setIsSubmit(true);
             // The modal will wait in order to get feedback from Rook
@@ -233,6 +245,7 @@ export const CreateStoragePoolModal = withHandlePromise(
                 existingNames={existingNames}
                 disablePoolType
                 prefixName={filesystemName}
+                erasureCodingDeviceClass={defaultDeviceClass}
               />
             )}
           </ModalBody>

@@ -7,6 +7,7 @@ import {
   getRBDVolumeSnapshotClassName,
 } from '@odf/core/components/utils';
 import {
+  ERASURE_CODING_MIN_NODES,
   MINIMUM_NODES,
   NO_PROVISIONER,
   Steps,
@@ -16,10 +17,10 @@ import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   labelOCSNamespace,
   isResourceProfileAllowed,
-  isFlexibleScaling,
   getDeviceSetCount,
   getNodeArchitectureFromState,
   getOsdAmount,
+  isFlexibleScaling,
   isValidCapacityAutoScalingConfig,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
@@ -80,8 +81,8 @@ const validateBackingStorageStep = (
   }
 };
 
-const validateAdvancedSettingsStep = (
-  advancedSettings: WizardState['advancedSettings'],
+const validateOptionalSettingsStep = (
+  optionalSettings: WizardState['optionalSettings'],
   sc: WizardState['storageClass'],
   deployment: DeploymentType,
   type: BackingStorageType
@@ -92,7 +93,7 @@ const validateAdvancedSettingsStep = (
     externalPostgres,
     isDbBackup,
     dbBackup,
-  } = advancedSettings;
+  } = optionalSettings;
 
   const {
     username,
@@ -143,11 +144,39 @@ const validateAdvancedSettingsStep = (
       return false;
   }
 };
+
+const validateAdvancedSettingsStep = (
+  advancedSettings: WizardState['advancedSettings'],
+  type: BackingStorageType,
+  nodeCount: number,
+  flexibleScaling: boolean
+) => {
+  const {
+    useErasureCoding,
+    erasureCodingScheme,
+    enableForcefulDeployment,
+    forcefulDeploymentConfirmation,
+  } = advancedSettings;
+
+  const erasureCodingStepValid =
+    !useErasureCoding ||
+    !flexibleScaling ||
+    (nodeCount >= ERASURE_CODING_MIN_NODES && !!erasureCodingScheme);
+
+  // The Next button is disabled only when no VolumeSnapshotClass is selected for MCG Standalone when automatic backup option enabled.
+  const hasForcefulDeploymentButNoConfirmation =
+    type === BackingStorageType.LOCAL_DEVICES &&
+    enableForcefulDeployment &&
+    !(forcefulDeploymentConfirmation?.trim() === 'CONFIRM');
+
+  return erasureCodingStepValid && !hasForcefulDeploymentButNoConfirmation;
+};
 const canJumpToNextStep = (
   name: string,
   state: WizardState,
   t: TFunction,
-  supportedExternalStorage: ExternalStorage[]
+  supportedExternalStorage: ExternalStorage[],
+  isTNFEnabled: boolean
 ) => {
   const {
     storageClass,
@@ -159,6 +188,7 @@ const canJumpToNextStep = (
     connectionDetails,
     nodes,
     advancedSettings,
+    optionalSettings,
   } = state;
   const { type, externalStorage } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
@@ -170,6 +200,12 @@ const canJumpToNextStep = (
     resourceProfile,
     volumeValidationType,
   } = capacityAndNodes;
+  const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
+  const flexibleScaling = isFlexibleScaling(
+    nodes,
+    isNoProvisioner,
+    enableArbiter
+  );
   const { chartNodes, volumeSetName, isValidDiskSize, isValidDeviceType } =
     createLocalVolumeSet;
   const {
@@ -217,12 +253,6 @@ const canJumpToNextStep = (
       return inPublic && inCluster;
     });
 
-  const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
-  const flexibleScaling = isFlexibleScaling(
-    nodes,
-    isNoProvisioner,
-    enableArbiter
-  );
   const deviceSetReplica: number = getDeviceSetReplica(
     enableArbiter,
     flexibleScaling,
@@ -234,12 +264,19 @@ const canJumpToNextStep = (
   switch (name) {
     case StepsName(t)[Steps.BackingStorage]:
       return validateBackingStorageStep(backingStorage, storageClass);
-    case StepsName(t)[Steps.AdvancedSettings]:
-      return validateAdvancedSettingsStep(
-        advancedSettings,
+    case StepsName(t)[Steps.OptionalSettings]:
+      return validateOptionalSettingsStep(
+        optionalSettings,
         storageClass,
         backingStorage.deployment,
         backingStorage.type
+      );
+    case StepsName(t)[Steps.AdvancedSettings]:
+      return validateAdvancedSettingsStep(
+        advancedSettings,
+        backingStorage.type,
+        nodes.length,
+        flexibleScaling
       );
     case StepsName(t)[Steps.CreateStorageClass]:
       return (
@@ -257,24 +294,28 @@ const canJumpToNextStep = (
       );
     case StepsName(t)[Steps.CapacityAndNodes]: {
       const architecture = getNodeArchitectureFromState(nodes);
-      return (
-        nodes.length >= MINIMUM_NODES &&
-        capacity &&
-        ![VolumeTypeValidation.UNKNOWN, VolumeTypeValidation.ERROR].includes(
-          volumeValidationType
-        ) &&
-        isResourceProfileAllowed(
-          resourceProfile,
-          getTotalCpu(nodes),
-          getTotalMemoryInGiB(nodes),
-          osdAmount,
-          architecture
-        ) &&
-        isValidCapacityAutoScalingConfig(
-          capacityAndNodes.capacityAutoScaling.enable,
-          capacityAndNodes.capacityAutoScaling.capacityLimit
-        )
-      );
+      if (isTNFEnabled) {
+        return nodes.length === 2;
+      } else {
+        return (
+          nodes.length >= MINIMUM_NODES &&
+          capacity &&
+          ![VolumeTypeValidation.UNKNOWN, VolumeTypeValidation.ERROR].includes(
+            volumeValidationType
+          ) &&
+          isResourceProfileAllowed(
+            resourceProfile,
+            getTotalCpu(nodes),
+            getTotalMemoryInGiB(nodes),
+            osdAmount,
+            architecture
+          ) &&
+          isValidCapacityAutoScalingConfig(
+            capacityAndNodes.capacityAutoScaling.enable,
+            capacityAndNodes.capacityAutoScaling.capacityLimit
+          )
+        );
+      }
     }
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {
@@ -301,11 +342,12 @@ const handleReviewAndCreateNext = async (
   handleError: (err: string, showError: boolean) => void,
   navigate,
   odfNamespace: string,
-  existingNamespaces: K8sResourceCommon[]
+  existingNamespaces: K8sResourceCommon[],
+  isTNFEnabled: boolean
 ) => {
   const { nodes, capacityAndNodes } = state;
   const { systemNamespace, deployment, type } = state.backingStorage;
-  const { useExternalPostgres, externalPostgres } = state.advancedSettings;
+  const { useExternalPostgres, externalPostgres } = state.optionalSettings;
   const { encryption, kms } = state.securityAndNetwork;
   const isMCG: boolean = deployment === DeploymentType.MCG;
   const nsAlreadyExists = !!existingNamespaces.find(
@@ -353,7 +395,7 @@ const handleReviewAndCreateNext = async (
         )
       );
 
-    await createNooBaaResources();
+    if (!isTNFEnabled) await createNooBaaResources();
   };
 
   try {
@@ -367,7 +409,8 @@ const handleReviewAndCreateNext = async (
       storageCluster = await createStorageCluster(
         state,
         systemNamespace,
-        OCS_INTERNAL_CR_NAME
+        OCS_INTERNAL_CR_NAME,
+        isTNFEnabled
       );
     } else if (
       type === BackingStorageType.EXISTING ||
@@ -378,7 +421,8 @@ const handleReviewAndCreateNext = async (
       storageCluster = await createStorageCluster(
         state,
         systemNamespace,
-        OCS_INTERNAL_CR_NAME
+        OCS_INTERNAL_CR_NAME,
+        isTNFEnabled
       );
     }
     if (storageCluster) {
@@ -432,6 +476,7 @@ export const CreateStorageSystemFooter: React.FC<
   disableNext,
   supportedExternalStorage,
   existingNamespaces,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
@@ -445,14 +490,15 @@ export const CreateStorageSystemFooter: React.FC<
 
   const stepName = activeStep.name as string;
   const { deployment } = state.backingStorage;
-  const { isDbBackup } = state.advancedSettings;
+  const { isDbBackup } = state.optionalSettings;
   const isMCG: boolean = deployment === DeploymentType.MCG;
 
   const jumpToNextStep = canJumpToNextStep(
     stepName,
     state,
     t,
-    supportedExternalStorage
+    supportedExternalStorage,
+    isTNFEnabled
   );
 
   const moveToNextStep = () => {
@@ -472,11 +518,11 @@ export const CreateStorageSystemFooter: React.FC<
           payload: { field: 'showConfirmModal', value: true },
         });
         break;
-      case StepsName(t)[Steps.AdvancedSettings]:
+      case StepsName(t)[Steps.OptionalSettings]:
         // Auto-select the RBD VolumeSnapshotClass for internal mode when automatic backup is enabled.
         if (isDbBackup && !isMCG) {
           dispatch({
-            type: 'advancedSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
+            type: 'optionalSettings/dbBackup/volumeSnapshot/volumeSnapshotClass',
             payload: NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS,
           });
         }
@@ -489,7 +535,8 @@ export const CreateStorageSystemFooter: React.FC<
           handleError,
           navigate,
           odfNamespace,
-          existingNamespaces
+          existingNamespaces,
+          isTNFEnabled
         );
         setRequestInProgress(false);
         break;
@@ -557,4 +604,5 @@ type CreateStorageSystemFooterProps = WizardCommonProps & {
   hasOCS: boolean;
   supportedExternalStorage: ExternalStorage[];
   existingNamespaces: K8sResourceCommon[];
+  isTNFEnabled: boolean;
 };

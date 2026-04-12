@@ -66,3 +66,6 @@ export const getResourceCondition = <
     (current: K8sResourceCondition) => current.type === condition
   );
 };
+
+export const getCreationTimestamp: GetStringProperty = (resource) =>
+  resource?.metadata?.creationTimestamp;

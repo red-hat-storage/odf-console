@@ -1,4 +1,5 @@
 import { S3ProviderType } from '../types';
+import { VECTOR_BUCKETS_BASE_ROUTE } from './s3-vectors';
 
 export const NOOBAA_ADMIN_SECRET = 'noobaa-admin';
 export const NOOBAA_S3_ROUTE = 's3';
@@ -22,6 +23,17 @@ export const BUCKET_NAME_MAX_LENGTH = 63;
 export const BUCKET_NAME_MIN_LENGTH = 3;
 
 export const BUCKETS_BASE_ROUTE = '/odf/object-storage/buckets';
+
+export enum BucketType {
+  General = 'general',
+  S3Vector = 's3Vector',
+}
+
+export const BUCKET_TYPE_ROUTES: Record<BucketType, string> = {
+  [BucketType.General]: BUCKETS_BASE_ROUTE,
+  [BucketType.S3Vector]: VECTOR_BUCKETS_BASE_ROUTE,
+};
+
 export const getBucketOverviewBaseRoute = (
   bucketName: string,
   s3Provider: S3ProviderType

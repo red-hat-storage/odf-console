@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
+import { RemoteClusterKind } from '@odf/core/types/scale';
 import {
-  ClusterModel,
+  RemoteClusterModel,
   Kebab,
   PageHeading,
   useCustomTranslation,
@@ -10,15 +12,20 @@ import {
   Overview,
   OverviewGrid,
   OverviewGridCard,
+  useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
+import { useParams } from 'react-router-dom-v5-compat';
 import ActivityCard from './ActivityCard';
 import CapacityCard from './CapacityCard';
 import DetailsCard from './DetailsCard';
 import FileSystemCard from './FileSystems';
 import StatusCard from './StatusCard';
 
-const scaleDashboardActions = (t: TFunction) => {
+const scaleDashboardActions = (
+  t: TFunction,
+  clusterResource: RemoteClusterKind
+) => {
   const actions = [
     {
       key: 'ADD_REMOTE_FILE_SYSTEM',
@@ -31,8 +38,8 @@ const scaleDashboardActions = (t: TFunction) => {
   return (
     <Kebab
       extraProps={{
-        resource: null,
-        resourceModel: ClusterModel,
+        resource: clusterResource,
+        resourceModel: RemoteClusterModel,
       }}
       customKebabItems={actions}
       toggleType="Dropdown"
@@ -54,6 +61,18 @@ const ScaleDashboard: React.FC = () => {
     { Card: FileSystemCard },
   ];
 
+  const { systemName } = useParams<{ systemName: string }>();
+  const [resource] = useK8sWatchResource<RemoteClusterKind>({
+    groupVersionKind: {
+      group: RemoteClusterModel.apiGroup,
+      version: RemoteClusterModel.apiVersion,
+      kind: RemoteClusterModel.kind,
+    },
+    name: systemName,
+    namespace: IBM_SCALE_NAMESPACE,
+    isList: false,
+  });
+
   const leftCards: OverviewGridCard[] = [{ Card: DetailsCard }];
 
   const rightCards: OverviewGridCard[] = [{ Card: ActivityCard }];
@@ -73,7 +92,7 @@ const ScaleDashboard: React.FC = () => {
             path: '',
           },
         ]}
-        actions={() => scaleDashboardActions(t)}
+        actions={() => scaleDashboardActions(t, resource)}
       />
       <Overview>
         <OverviewGrid

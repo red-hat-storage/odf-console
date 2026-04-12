@@ -16,18 +16,36 @@ import {
   ChartGroup,
   ChartLegend,
   ChartLine,
-  ChartVoronoiContainer,
+  createContainer,
 } from '@patternfly/react-charts/victory';
+import { Button, Label } from '@patternfly/react-core';
 import { t_global_color_nonstatus_blue_default as activeColor } from '@patternfly/react-tokens';
 import { HEALTH_SCORE_QUERY } from '../odf-dashboard/queries';
 import { AlertRowData } from './hooks';
 import { getSeverityColor } from './utils';
 import './infra-health-graph.scss';
 
+// Create a container that supports both zoom and voronoi (tooltips)
+// PF6/Victory compatible - combines zoom and voronoi behaviors
+const ZoomVoronoiContainer = createContainer('zoom', 'voronoi');
+
+// Victory's DomainTuple type - can be [number, number] or [Date, Date]
+type DomainTuple = [number, number] | [Date, Date];
+
+// Victory's internal ZoomDomain type (x and y are both DomainTuple)
+type VictoryZoomDomain = {
+  x: DomainTuple;
+  y: DomainTuple;
+};
+
+// Our simplified zoom domain type for external consumers
+export type ZoomDomain = { start: Date; end: Date } | null;
+
 type InfraHealthGraphProps = {
   alerts?: AlertRowData[];
   alertsLoaded?: boolean;
   alertsError?: unknown;
+  onZoomDomainChange?: (domain: ZoomDomain) => void;
 };
 
 const getScoreSeries = (
@@ -81,10 +99,41 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
   alerts = [],
   alertsLoaded = true,
   alertsError = null,
+  onZoomDomainChange,
 }) => {
   const { t } = useCustomTranslation();
 
   const [ref, width] = useRefWidth();
+
+  // Zoom state for controlled zoom - normalized to Date objects
+  const [zoomDomain, setZoomDomain] = React.useState<
+    { x: [Date, Date] } | undefined
+  >();
+
+  // Handle zoom domain changes from Victory's ZoomContainer
+  // Victory passes the full domain object with x and y tuples
+  // Normalize to Date objects here so we don't need runtime checks elsewhere
+  const handleZoomDomainChange = React.useCallback(
+    (domain: VictoryZoomDomain) => {
+      if (domain?.x) {
+        // Normalize Victory's DomainTuple (number | Date) to Date objects
+        const [start, end] = domain.x;
+        const startDate = start instanceof Date ? start : new Date(start);
+        const endDate = end instanceof Date ? end : new Date(end);
+        setZoomDomain({ x: [startDate, endDate] });
+        onZoomDomainChange?.({ start: startDate, end: endDate });
+      } else {
+        setZoomDomain(undefined);
+        onZoomDomainChange?.(null);
+      }
+    },
+    [onZoomDomainChange]
+  );
+
+  const handleResetZoom = React.useCallback(() => {
+    setZoomDomain(undefined);
+    onZoomDomainChange?.(null);
+  }, [onZoomDomainChange]);
   const [scoreResponse, scoreError, scoreLoading] = useCustomPrometheusPoll({
     query: HEALTH_SCORE_QUERY,
     endpoint: 'api/v1/query_range' as any,
@@ -156,12 +205,15 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
         legendComponent={
           <ChartLegend
             style={{
-              labels: { fill: 'var(--pf-t--color--gray--95)' },
+              labels: { fill: 'var(--pf-t--global--text--color--regular)' },
             }}
           />
         }
         containerComponent={
-          <ChartVoronoiContainer
+          <ZoomVoronoiContainer
+            zoomDimension="x"
+            zoomDomain={zoomDomain}
+            onZoomDomainChange={handleZoomDomainChange}
             voronoiDimension="x"
             constrainToVisibleArea
             labels={({ datum }) => {
@@ -186,14 +238,14 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
       >
         <ChartAxis
           style={{
-            tickLabels: { fill: 'var(--pf-t--color--gray--95)' },
+            tickLabels: { fill: 'var(--pf-t--global--text--color--regular)' },
           }}
         />
         <ChartAxis
           dependentAxis
           tickFormat={(v) => `${v}%`}
           style={{
-            tickLabels: { fill: 'var(--pf-t--color--gray--95)' },
+            tickLabels: { fill: 'var(--pf-t--global--text--color--regular)' },
           }}
         />
         <ChartGroup>
@@ -237,6 +289,26 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
 
   return (
     <div ref={ref} className="pf-v6-u-mt-sm odf-infra-health-graph">
+      {zoomDomain && (
+        <div className="odf-infra-health-graph__header">
+          <Label
+            className="odf-infra-health-graph__zoom-indicator"
+            onClose={handleResetZoom}
+          >
+            {t('Viewing: {{start}} - {{end}}', {
+              start: zoomDomain.x[0].toLocaleTimeString(),
+              end: zoomDomain.x[1].toLocaleTimeString(),
+            })}
+          </Label>
+          <Button
+            variant="link"
+            onClick={handleResetZoom}
+            className="odf-infra-health-graph__reset-button"
+          >
+            {t('Reset zoom')}
+          </Button>
+        </div>
+      )}
       {content}
     </div>
   );

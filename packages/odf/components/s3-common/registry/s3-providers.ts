@@ -6,6 +6,7 @@ import {
   NOOBAA_S3_PROXY_PATH,
   RGW_INTERNAL_S3_PROXY_PATH,
   RGW_S3_INTERNAL_ENDPOINT_SUFFIX,
+  getHubS3EndpointProxyPath,
 } from '@odf/shared/s3';
 import {
   NOOBAA_ADMIN_SECRET,
@@ -15,6 +16,7 @@ import {
   RGW_ACCESS_KEY_ID,
   RGW_SECRET_ACCESS_KEY,
 } from '../../../constants';
+import { HubS3EndpointsData } from '../hooks/useHubS3Endpoints';
 import { SystemInfoData } from '../hooks/useSystemInfo';
 
 const getRGWEndpointURL = (endpoint: string | undefined): URL | undefined => {
@@ -53,8 +55,16 @@ export type ProviderConfig = {
   region: string;
   s3Endpoint?: URL;
   s3EndpointBuilder?: (odfNamespace: string) => URL;
-  s3ConsolePath: string;
+  s3ConsolePath?: string;
   skipSignatureCalculation: boolean;
+  excludePortInSignature?: boolean;
+  dataPathSeparation?: {
+    s3Endpoint?: URL;
+    s3EndpointBuilder?: (odfNamespace: string) => URL;
+    s3ConsolePath?: string;
+    skipSignatureCalculation: boolean;
+    excludePortInSignature?: boolean;
+  };
 };
 
 export type ProviderRegistryEntry = {
@@ -62,9 +72,28 @@ export type ProviderRegistryEntry = {
   dynamicConfig?: {
     getConfig: (
       systemInfo: SystemInfoData,
-      odfNamespace: string
+      odfNamespace: string,
+      hubS3Endpoints?: HubS3EndpointsData
     ) => ProviderConfig;
   };
+};
+
+export const NOOBAA_STATIC_CONFIG: ProviderConfig = {
+  adminSecretName: NOOBAA_ADMIN_SECRET,
+  secretFieldKeys: {
+    accessKey: NOOBAA_ACCESS_KEY_ID,
+    secretKey: NOOBAA_SECRET_ACCESS_KEY,
+  },
+  // "region" is a required parameter for the SDK, using "none" as a workaround
+  region: 'none',
+  s3EndpointBuilder: (odfNamespace: string) =>
+    new URL(
+      window.location.hostname.includes('localhost')
+        ? S3_LOCAL_ENDPOINT
+        : `${NOOBAA_S3_INTERNAL_ENDPOINT_PREFIX}${odfNamespace}${NOOBAA_S3_INTERNAL_ENDPOINT_SUFFIX}`
+    ),
+  s3ConsolePath: NOOBAA_S3_PROXY_PATH,
+  skipSignatureCalculation: false,
 };
 
 export const S3_PROVIDER_REGISTRY: Record<
@@ -72,22 +101,49 @@ export const S3_PROVIDER_REGISTRY: Record<
   ProviderRegistryEntry
 > = {
   [S3ProviderType.Noobaa]: {
-    staticConfig: {
-      adminSecretName: NOOBAA_ADMIN_SECRET,
-      secretFieldKeys: {
-        accessKey: NOOBAA_ACCESS_KEY_ID,
-        secretKey: NOOBAA_SECRET_ACCESS_KEY,
-      },
-      // "region" is a required parameter for the SDK, using "none" as a workaround
-      region: 'none',
-      s3EndpointBuilder: (odfNamespace: string) =>
-        new URL(
+    dynamicConfig: {
+      getConfig: (
+        _systemInfo,
+        odfNamespace,
+        hubS3Endpoints
+      ): ProviderConfig => {
+        const config: ProviderConfig = { ...NOOBAA_STATIC_CONFIG };
+        delete config.s3EndpointBuilder;
+        config.s3Endpoint = new URL(
           window.location.hostname.includes('localhost')
             ? S3_LOCAL_ENDPOINT
             : `${NOOBAA_S3_INTERNAL_ENDPOINT_PREFIX}${odfNamespace}${NOOBAA_S3_INTERNAL_ENDPOINT_SUFFIX}`
-        ),
-      s3ConsolePath: NOOBAA_S3_PROXY_PATH,
-      skipSignatureCalculation: false,
+        );
+
+        // When skipSignatureCalculation is true, "s3Endpoint" should be direct S3 endpoint URL (eg: Route).
+        // When false it can be either service host or direct S3 endpoint URL (only for signing),
+        // but request is still redirected to "s3ConsolePath" (proxy) via middleware
+        if (
+          hubS3Endpoints?.isClientCluster &&
+          !!hubS3Endpoints?.noobaaS3Endpoint &&
+          !!hubS3Endpoints?.uniqueIdentifier
+        ) {
+          config.s3Endpoint = new URL(hubS3Endpoints.noobaaS3Endpoint);
+          config.s3ConsolePath = getHubS3EndpointProxyPath(
+            hubS3Endpoints.uniqueIdentifier
+          );
+          config.skipSignatureCalculation = false;
+          config.excludePortInSignature = true;
+
+          const dataPathEndpointUrl = new URL(hubS3Endpoints.noobaaS3Endpoint);
+          dataPathEndpointUrl.protocol = window.location.hostname.includes(
+            'localhost'
+          )
+            ? 'http:'
+            : 'https:';
+          config.dataPathSeparation = {
+            s3Endpoint: dataPathEndpointUrl,
+            skipSignatureCalculation: true,
+          };
+        }
+
+        return config;
+      },
     },
   },
   [S3ProviderType.RgwInt]: {
@@ -117,31 +173,5 @@ export const S3_PROVIDER_REGISTRY: Record<
       },
     },
   },
-  [S3ProviderType.RgwExt]: {
-    dynamicConfig: {
-      getConfig: (systemInfo): ProviderConfig => {
-        const [extRgwNs, extRgwInfo] =
-          Object.entries(systemInfo ?? {}).find(
-            ([_ns, info]) => info.isExternalMode === true
-          ) || [];
-        return {
-          adminSecretName: getNoobaaCOSUAdminSecret(extRgwInfo?.ocsClusterName),
-          adminSecretNamespace: extRgwNs,
-          secretFieldKeys: {
-            accessKey: RGW_ACCESS_KEY_ID,
-            secretKey: RGW_SECRET_ACCESS_KEY,
-            fallBackAccessKey: NOOBAA_ACCESS_KEY_ID,
-            fallBackSecretKey: NOOBAA_SECRET_ACCESS_KEY,
-          },
-          // "region" is a required parameter for the SDK, using "us-east-1" as a workaround ("none" is not supported)
-          region: 'us-east-1',
-          s3Endpoint: window.location.hostname.includes('localhost')
-            ? new URL(S3_LOCAL_ENDPOINT)
-            : getRGWEndpointURL(extRgwInfo?.rgwSecureEndpoint),
-          s3ConsolePath: extRgwInfo?.rgwSecureEndpoint,
-          skipSignatureCalculation: true,
-        };
-      },
-    },
-  },
+  [S3ProviderType.RgwExt]: {},
 };
