@@ -14,9 +14,9 @@ import { commandPoll } from '../views/common';
 export const configureVault = () => {
   cy.exec('oc get project hashicorp', {
     failOnNonZeroExit: false,
-  }).then(({ code }) => {
+  }).then(({ exitCode }) => {
     // Deploy vault only if doesn't already exist
-    if (code !== 0) {
+    if (exitCode !== 0) {
       cy.log('Create a new project for internel vault');
       cy.exec('oc new-project hashicorp');
 
