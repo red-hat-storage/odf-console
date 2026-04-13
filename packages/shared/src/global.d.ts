@@ -1,11 +1,11 @@
 declare global {
   // Variables replaced with their value at build time by webpack DefinePlugin.
-  declare const PLUGIN_BUILD_I8N_NS: string;
-  declare const PLUGIN_BUILD_NAME: string;
-  declare const PLUGIN_BUILD_VERSION: string;
-  declare const OPENSHIFT_CI: string;
+  const PLUGIN_BUILD_I8N_NS: string;
+  const PLUGIN_BUILD_NAME: string;
+  const PLUGIN_BUILD_VERSION: string;
+  const OPENSHIFT_CI: string;
 
-  declare interface Window {
+  interface Window {
     SERVER_FLAGS: {
       alertManagerBaseURL: string;
       authDisabled: boolean;

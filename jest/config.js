@@ -1,6 +1,6 @@
 /** @type {import('jest').Config} */
 const config = {
-  collectCoverageFrom: ['<rootDir>/packages/**/*.{ts,tsx}'],
+  collectCoverageFrom: ['<rootDir>/packages/**/*.{ts,tsx}', '!**/*.d.ts'],
   moduleNameMapper: {
     '^@console': 'identity-obj-proxy',
     '^@odf/shared(.*)': '<rootDir>/packages/shared/src$1',
