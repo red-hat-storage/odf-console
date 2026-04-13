@@ -92,17 +92,17 @@ export const PreConfiguredPolicies: React.FC<PreConfiguredPoliciesProps> = ({
     <>
       <Switch
         label={t('Use a predefined policy configuration?')}
-        className="pf-v5-u-my-sm"
+        className="pf-v6-u-my-sm"
         isChecked={isChecked}
         onChange={(_event, checked) => setIsChecked(checked)}
         isReversed
       />
       {isChecked && (
-        <FormGroup label={t('Available policies')} className="pf-v5-u-mb-md">
+        <FormGroup label={t('Available policies')} className="pf-v6-u-mb-md">
           <StaticDropdown
             dropdownItems={getLabels(t)}
             onSelect={onSelect}
-            className="pf-v5-u-w-50"
+            className="pf-v6-u-w-50"
             defaultText={t('Select from available policies')}
           />
         </FormGroup>

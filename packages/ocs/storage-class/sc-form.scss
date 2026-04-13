@@ -1,24 +1,24 @@
 .ocs-storage-class__input {
-  margin-bottom: var(--pf-v5-global--spacer--md);
+  margin-bottom: var(--pf-t--global--spacer--md);
 }
 
 .ocs-storage-class__form {
-  margin-bottom: var(--pf-v5-global--spacer--md);
+  margin-bottom: var(--pf-t--global--spacer--md);
 }
 
 .ocs-storage-class-encryption {
   &__form-body {
-    padding: var(--pf-v5-global--spacer--md) !important;
+    padding: var(--pf-t--global--spacer--md) !important;
   }
 
   &__form-body--small-padding {
-    padding: var(--pf-v5-global--spacer--md) var(--pf-v5-global--spacer--md)
-      var(--pf-v5-global--spacer--md) 0 !important;
+    padding: var(--pf-t--global--spacer--md) var(--pf-t--global--spacer--md)
+      var(--pf-t--global--spacer--md) 0 !important;
   }
 
   &__card {
-    margin: var(--pf-v5-global--spacer--md) !important; // To override patternfly card class
-    padding: var(--pf-v5-global--spacer--md) !important; // To override patternfly card class
+    margin: var(--pf-t--global--spacer--md) !important; // To override patternfly card class
+    padding: var(--pf-t--global--spacer--md) !important; // To override patternfly card class
   }
 
   &__pv-title {
@@ -26,13 +26,13 @@
   }
 
   &__pv-title--padding {
-    padding: var(--pf-v5-global--spacer--sm) var(--pf-v5-global--spacer--sm)
-      var(--pf-v5-global--spacer--sm) 0;
+    padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--sm)
+      var(--pf-t--global--spacer--sm) 0;
   }
 
   &__details {
     list-style: none !important; // To override patternfly content class
-    margin: var(--pf-v5-global--spacer--md) 0 !important; // To override patternfly content class
+    margin: var(--pf-t--global--spacer--md) 0 !important; // To override patternfly content class
     padding: 0 !important; // To override patternfly content class
   }
 
@@ -40,23 +40,23 @@
     display: inline !important; //To override bootstrap help-block
   }
 
-  &__form-checkbox .pf-v5-c-check__description {
-    margin-bottom: var(--pf-v5-global--spacer--md);
+  &__form-checkbox .pf-v6-c-check__description {
+    margin-bottom: var(--pf-t--global--spacer--md);
   }
 
   &__form-radio {
-    margin-bottom: var(--pf-v5-global--spacer--md) !important;
+    margin-bottom: var(--pf-t--global--spacer--md) !important;
   }
 
   &__form--padding {
-    padding-left: var(--pf-v5-global--spacer--md) !important;
+    padding-left: var(--pf-t--global--spacer--md) !important;
   }
 
   &__form-dropdown--padding {
-    padding: 0 0 var(--pf-v5-global--spacer--md) var(--pf-v5-global--spacer--md);
+    padding: 0 0 var(--pf-t--global--spacer--md) var(--pf-t--global--spacer--md);
   }
 }
 
 .ocs-storage-class__pool--create {
-  color: var(--pf-v5-global--primary-color--100);
+  color: var(--pf-t--global--color--brand--default);
 }

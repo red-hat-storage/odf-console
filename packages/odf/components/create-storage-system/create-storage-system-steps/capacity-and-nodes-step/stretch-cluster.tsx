@@ -12,9 +12,8 @@ import {
   FormGroup,
   Alert,
   Checkbox,
-  TextContent,
-  TextVariants,
-  Text,
+  Content,
+  ContentVariants,
   FormHelperText,
   HelperTextItem,
   HelperText as PfHelperText,
@@ -28,13 +27,13 @@ const HelperText: React.FC<{ enableArbiter: boolean }> = ({
   const { t } = useCustomTranslation();
   return (
     <>
-      <TextContent>
-        <Text component={TextVariants.small}>
+      <Content>
+        <Content component={ContentVariants.small}>
           {t(
             'To support high availability when two data centers can be used, enable arbiter to get a valid quorum between the two data centers.'
           )}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
       {enableArbiter && (
         <Alert
           title={t('Arbiter minimum requirements')}
@@ -89,9 +88,9 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
 
   return (
     <>
-      <TextContent>
-        <Text component={TextVariants.h3}>{t('Stretch Cluster')}</Text>
-      </TextContent>
+      <Content>
+        <Content component={ContentVariants.h3}>{t('Stretch Cluster')}</Content>
+      </Content>
       <Checkbox
         aria-label={t('Enable arbiter')}
         id="stretch-cluster"

@@ -176,7 +176,7 @@ const getPoolDropdownItems = (
         }
       >
         <span className="ocs-storage-class__pool--create">
-          <AddCircleOIcon className="pf-v5-u-mr-sm" />
+          <AddCircleOIcon className="pf-v6-u-mr-sm" />
           {t('Create new storage pool')}
         </span>
       </DropdownItem>,
@@ -205,7 +205,7 @@ const StorageSystemDropdown: React.FC<{
         {t('Storage system')}
       </label>
       <ResourceDropdown<K8sResourceKind>
-        className="pf-v5-c-dropdown dropdown--full-width"
+        className="pf-v6-c-dropdown dropdown--full-width"
         onSelect={onSelect}
         initialSelection={initialSSSelection}
         filterResource={filterOCSStorageSystems}
@@ -277,7 +277,7 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
             {t('Filesystem name')}
           </label>
           <input
-            className="pf-v5-c-form-control"
+            className="pf-v6-c-form-control"
             type="text"
             value={parameterValue}
             disabled={!isExternal}
@@ -413,7 +413,7 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
             {t('Storage Pool')}
           </label>
           <input
-            className="pf-v5-c-form-control"
+            className="pf-v6-c-form-control"
             type="text"
             onChange={onPoolInput}
             value={parameterValue}
@@ -586,7 +586,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
             {t('Storage Pool')}
           </label>
           <input
-            className="pf-v5-c-form-control"
+            className="pf-v6-c-form-control"
             type="text"
             onChange={onPoolInput}
             value={poolName}
@@ -995,7 +995,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
             data-test={`sc-form-new-kms-radio`}
           />
           {!isExistingKms && (
-            <Card isFlat className="ocs-storage-class-encryption__card">
+            <Card className="ocs-storage-class-encryption__card">
               <KMSConfigure
                 state={state.securityAndNetwork}
                 dispatch={dispatch}

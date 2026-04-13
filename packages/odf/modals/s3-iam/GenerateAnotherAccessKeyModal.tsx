@@ -4,14 +4,13 @@ import { IamCommands } from '@odf/shared/iam';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
-  Modal,
   Button,
-  ModalVariant,
   ButtonVariant,
   FormGroup,
   TextInput,
-  Text,
+  Content,
   FormHelperText,
   HelperText,
   HelperTextItem,
@@ -139,12 +138,14 @@ export const GenerateAnotherAccessKeyModal: GenerateAnotherAccessKeyModalProps =
         ]}
       >
         <FormGroup label={t('Username')} fieldId="username-input">
-          <Text id="username-input">{userName}</Text>
+          <Content component="p" id="username-input">
+            {userName}
+          </Content>
         </FormGroup>
         <FormGroup
           label={t('Description tag')}
           fieldId="description-input"
-          className="pf-v5-u-mt-md"
+          className="pf-v6-u-mt-md"
         >
           <TextInput
             id="description-input"

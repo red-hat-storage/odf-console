@@ -226,9 +226,7 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
               value: t('Attach to Deployment'),
               component: React.lazy(
                 () =>
-                  import(
-                    '../../modals/attach-deployment/attach-deployment-obc-modal'
-                  )
+                  import('../../modals/attach-deployment/attach-deployment-obc-modal')
               ),
             },
           ]}
@@ -400,9 +398,7 @@ export const OBCDetailsPage: React.FC<{}> = () => {
             value: t('Attach to Deployment'),
             component: React.lazy(
               () =>
-                import(
-                  '../../modals/attach-deployment/attach-deployment-obc-modal'
-                )
+                import('../../modals/attach-deployment/attach-deployment-obc-modal')
             ),
           },
         ]}
