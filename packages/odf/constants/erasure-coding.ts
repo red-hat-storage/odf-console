@@ -5,6 +5,7 @@ export const ERASURE_CODING_SCHEMES: ErasureCodingScheme[] = [
   { k: 4, m: 2 },
   { k: 5, m: 2 },
   { k: 6, m: 2 },
+  { k: 8, m: 2 },
   { k: 8, m: 3 },
   { k: 8, m: 4 },
   { k: 8, m: 6 },

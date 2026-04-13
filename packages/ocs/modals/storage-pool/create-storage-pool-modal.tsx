@@ -113,7 +113,8 @@ export const CreateStoragePoolModal = withHandlePromise(
         onPoolCreation(
           poolType === PoolType.FILESYSTEM
             ? `${filesystemName}-${poolName}`
-            : poolName
+            : poolName,
+          state.dataProtectionPolicy === DataProtectionPolicy.ErasureCoding
         );
       } else if (
         resourceLoaded &&
@@ -146,6 +147,7 @@ export const CreateStoragePoolModal = withHandlePromise(
       resource,
       resourceLoadError,
       resourceLoaded,
+      state.dataProtectionPolicy,
       timer,
     ]);
 
@@ -268,7 +270,7 @@ export const CreateStoragePoolModal = withHandlePromise(
 
 export type CreateStoragePoolModalProps = {
   cephCluster?: CephClusterKind;
-  onPoolCreation: (name: string) => void;
+  onPoolCreation: (name: string, isErasureCodedPool?: boolean) => void;
   defaultDeviceClass: string;
   poolType: PoolType;
   existingNames: string[];
