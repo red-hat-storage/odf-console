@@ -36,6 +36,7 @@ import {
   PROVIDERS_NOOBAA_MAP,
   BUCKET_LABEL_NOOBAA_MAP,
   StoreType,
+  NAMESPACE_STORE_FILESYSTEM,
   providerSchema,
 } from '../../constants';
 import { NamespaceStoreKind } from '../../types';
@@ -69,6 +70,8 @@ type NamespaceStoreFormProps = {
   namespace: string;
   className?: string;
   onCancel: () => void;
+  /** Vector BucketClass flow: Provider dropdown lists Filesystem only. */
+  isVector?: boolean;
 };
 
 const createSecret = async (
@@ -124,7 +127,17 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   const [error, setError] = React.useState('');
   const [showSecret, setShowSecret] = React.useState(true);
 
-  const { onCancel, className, redirectHandler, namespace } = props;
+  const { onCancel, className, redirectHandler, namespace, isVector } = props;
+
+  const providerDefault = React.useMemo(
+    () => (isVector ? StoreProviders.FILESYSTEM : StoreProviders.AWS),
+    [isVector]
+  );
+
+  const providerDropdownItems = React.useMemo(
+    () => (isVector ? NAMESPACE_STORE_FILESYSTEM : PROVIDERS),
+    [isVector]
+  );
 
   const [data, loaded, loadError] = useSafeK8sList<NamespaceStoreKind>(
     NooBaaNamespaceStoreModel,
@@ -175,6 +188,9 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   } = useForm({
     ...formSettings,
     resolver,
+    defaultValues: {
+      'provider-name': providerDefault,
+    },
   });
 
   const provider = watch('provider-name');
@@ -296,7 +312,6 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         <FormGroupController
           name="provider-name"
           control={control}
-          defaultValue={StoreProviders.AWS}
           formGroupProps={{
             label: t('Provider'),
             fieldId: 'provider-name',
@@ -308,7 +323,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
               className="nb-endpoints-form-entry__dropdown"
               onSelect={onChange}
               onBlur={onBlur}
-              dropdownItems={PROVIDERS}
+              dropdownItems={providerDropdownItems}
               defaultSelection={value}
               data-test="namespacestore-provider"
               isFullWidth

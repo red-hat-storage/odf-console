@@ -238,9 +238,9 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
               </span>
             </ReviewListBody>
           )}
-          {bucketClassType === BucketClassType.NAMESPACE
-            ? getReviewForNamespaceStore()
-            : getReviewForBackingStore()}
+          {bucketClassType === BucketClassType.STANDARD
+            ? getReviewForBackingStore()
+            : getReviewForNamespaceStore()}
         </div>
       </DescriptionList>
       {isLoading && <LoadingInline />}
