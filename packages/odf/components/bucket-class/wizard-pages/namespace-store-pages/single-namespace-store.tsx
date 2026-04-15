@@ -2,7 +2,7 @@ import * as React from 'react';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Form, FormGroup, Title } from '@patternfly/react-core';
-import { NamespaceStoreKind } from '../../../../types';
+import { BucketClassType, NamespaceStoreKind } from '../../../../types';
 import { NamespaceStoreDropdown } from '../../../namespace-store/namespace-store-dropdown';
 import { Action, State } from '../../state';
 
@@ -23,6 +23,9 @@ export const SingleNamespaceStorePage: React.FC<SingleNamespaceStoreProps> =
           value: [selectedNamespaceStore],
         });
       };
+
+      const isVector = state.bucketClassType === BucketClassType.VECTOR;
+
       return (
         <div>
           <Title
@@ -50,6 +53,7 @@ export const SingleNamespaceStorePage: React.FC<SingleNamespaceStoreProps> =
                 selectedKey={getName(state.readNamespaceStore[0])}
                 creatorDisabled={hideCreateNamespaceStore}
                 launchModal={launchModal}
+                filterFilesystem={isVector}
               />
             </FormGroup>
           </Form>

@@ -39,6 +39,10 @@ export enum StoreType {
   NS = 'NamespaceStore',
 }
 
+export const NAMESPACE_STORE_FILESYSTEM: Record<string, string> = {
+  [StoreProviders.FILESYSTEM]: StoreProviders.FILESYSTEM,
+};
+
 export const BUCKET_LABEL_NOOBAA_MAP = {
   [StoreProviders.AWS]: 'targetBucket',
   [StoreProviders.S3]: 'targetBucket',
