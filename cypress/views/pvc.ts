@@ -32,9 +32,9 @@ export const deletePVCFromCLI = (pvcName: string, ns = 'default') => {
   cy.log('Deleting the PVC');
   cy.exec(`oc delete pvc ${pvcName} -n ${ns}`, {
     failOnNonZeroExit: false,
-  }).then((result) => {
-    if (result.code !== 0 && !result.stderr.includes('not found')) {
-      throw new Error(`PVC deletion failed: ${result.stderr}`);
+  }).then(({ exitCode, stderr }) => {
+    if (exitCode !== 0 && !stderr.includes('not found')) {
+      throw new Error(`PVC deletion failed: ${stderr}`);
     }
   });
 
