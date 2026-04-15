@@ -9,7 +9,7 @@ import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
 const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
   const { t } = useCustomTranslation();
-  const { isOpen, closeModal } = props;
+  const { isOpen, closeModal, extraProps } = props;
 
   const { odfNamespace } = useODFNamespaceSelector();
 
@@ -32,6 +32,7 @@ const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
             namespace={odfNamespace}
             onCancel={closeModal}
             redirectHandler={closeModal}
+            isVector={extraProps?.isVector}
           />
         </ModalBody>
       </div>
@@ -40,7 +41,7 @@ const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
 };
 
 type NamespaceStoreModalProps = CommonModalProps<{
-  namespace: string;
+  isVector?: boolean;
 }>;
 
 export default NamespaceStoreModal;

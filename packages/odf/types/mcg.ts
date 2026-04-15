@@ -68,6 +68,7 @@ export enum PlacementPolicy {
 export enum BucketClassType {
   STANDARD = 'Standard',
   NAMESPACE = 'Namespace',
+  VECTOR = 'Vector',
 }
 
 export type BucketClassKind = K8sResourceCommon & {
