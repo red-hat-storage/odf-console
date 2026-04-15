@@ -46,8 +46,8 @@ Cypress.Commands.add('install', () => {
     {
       failOnNonZeroExit: false,
     }
-  ).then(({ code }) => {
-    if (code !== 0) {
+  ).then(({ exitCode }) => {
+    if (exitCode !== 0) {
       cy.clickNavLink(['Storage', 'Storage cluster']);
       // Clicks create Data Foundation button
       cy.byTestID('configure-data-foundation').click();
