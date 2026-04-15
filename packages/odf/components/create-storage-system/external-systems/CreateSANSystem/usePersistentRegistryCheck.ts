@@ -14,22 +14,19 @@ export const usePersistentRegistryCheck = () => {
   });
 
   let hasPersistentRegistry = false;
-  if (loaded && !error && config?.spec?.managementState === 'Managed') {
-    const storageMgmt = config.status?.storage?.managementState;
-    if (!storageMgmt || storageMgmt === 'Managed') {
-      const specStorage = config.spec?.storage;
-      const statusStorage = config.status?.storage;
-      if (!specStorage?.emptyDir && !statusStorage?.emptyDir) {
-        hasPersistentRegistry = !!(
-          specStorage?.pvc ||
-          specStorage?.s3 ||
-          specStorage?.gcs ||
-          specStorage?.azure ||
-          specStorage?.swift ||
-          specStorage?.ibmcos ||
-          specStorage?.oss
-        );
-      }
+  if (loaded && !error) {
+    const specStorage = config.spec?.storage;
+    const statusStorage = config.status?.storage;
+    if (!specStorage?.emptyDir && !statusStorage?.emptyDir) {
+      hasPersistentRegistry = !!(
+        specStorage?.pvc ||
+        specStorage?.s3 ||
+        specStorage?.gcs ||
+        specStorage?.azure ||
+        specStorage?.swift ||
+        specStorage?.ibmcos ||
+        specStorage?.oss
+      );
     }
   }
 

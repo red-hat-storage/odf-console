@@ -44,6 +44,14 @@ export const bucketClassTypeRadios = (t: TFunction) => [
       'Data is stored on the NamespaceStores without performing de-duplication, compression, or encryption. BucketClasses of namespace type allow connecting to existing data and serving from them. These are best used for existing data or when other applications (and cloud-native services) need to access the data from outside Data Foundation.'
     ),
   },
+  {
+    id: BucketClassType.VECTOR,
+    value: BucketClassType.VECTOR,
+    label: t('Vector'),
+    description: t(
+      'Data is stored on filesystem NamespaceStores without performing de-duplication, compression, or encryption. BucketClasses of vector type allow storing vector indexes and serving semantic search workloads from them. These are best used with Object Bucket Claims or the S3 Vectors API.'
+    ),
+  },
 ];
 
 const GeneralPage: React.FC<GeneralPageProps> = ({
