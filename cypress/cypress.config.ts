@@ -1,6 +1,6 @@
 import { defineConfig } from 'cypress';
 import { SECOND } from './consts';
-import * as setupNodeEvents from './plugin.js';
+import setupNodeEvents from './plugin.js';
 
 export default defineConfig({
   defaultCommandTimeout: 30 * SECOND,
