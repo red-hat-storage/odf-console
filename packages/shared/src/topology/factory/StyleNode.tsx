@@ -1,8 +1,4 @@
 import * as React from 'react';
-import {
-  STEP_INTO_EVENT,
-  STEP_TO_OSD_INFORMATION,
-} from '@odf/core/components/topology/constants';
 import { DeploymentModel, NodeModel } from '@odf/shared/models';
 import { getUID } from '@odf/shared/selectors';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk';
@@ -42,6 +38,7 @@ import {
 } from '@patternfly/react-topology';
 import useAlerts from '../../monitoring/useAlert';
 import { useCustomTranslation } from '../../useCustomTranslationHook';
+import { STEP_INTO_EVENT, STEP_TO_OSD_INFORMATION } from '../constants';
 import { TopologyDataContext } from '../Context';
 import { TopologySearchContext } from '../Context/SearchContext';
 import { getStatusWithDescriptors } from '../utils';

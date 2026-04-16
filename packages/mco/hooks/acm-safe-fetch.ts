@@ -8,12 +8,20 @@ import { useSafeFetch } from '@odf/shared/hooks/custom-prometheus-poll/safe-fetc
 
 export const useACMSafeFetch: ACMSafeFetchProps = (
   searchQuery: SearchQuery
-): [SearchResult, any, boolean] => {
+): [SearchResult, Error | null, boolean] => {
   const safeFetch = useSafeFetch();
-  const [error, setError] = React.useState();
+  const [error, setError] = React.useState<Error | null>(null);
   const [loaded, setLoaded] = React.useState(false);
   const [response, setResponse] = React.useState<SearchResult>();
   React.useEffect(() => {
+    // Skip fetch if searchQuery is null or undefined
+    if (!searchQuery) {
+      setLoaded(true);
+      setResponse(undefined);
+      setError(null);
+      return;
+    }
+
     setLoaded(false);
     safeFetch({
       url: ACM_SEARCH_PROXY_ENDPOINT,
@@ -41,4 +49,4 @@ export const useACMSafeFetch: ACMSafeFetchProps = (
 
 type ACMSafeFetchProps = (
   searchQuery: SearchQuery
-) => [SearchResult, any, boolean];
+) => [SearchResult, Error | null, boolean];

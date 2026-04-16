@@ -210,12 +210,15 @@ jest.mock('@odf/shared/hooks/useK8sList', () => ({
 jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   __esModule: true,
   useACMSafeFetch: jest.fn((searchQuery: SearchQuery) => {
+    if (!searchQuery) {
+      return [undefined, undefined, true];
+    }
     const queryStr = JSON.stringify(searchQuery);
     if (queryStr.includes('recipe')) {
       return [searchResultForRecipe, undefined, true];
     } else {
       let clusterName = '';
-      searchQuery.variables.input.forEach((param) => {
+      searchQuery.variables?.input?.forEach((param) => {
         const filter = param.filters.find(
           (filter) => filter.property === 'cluster'
         );
