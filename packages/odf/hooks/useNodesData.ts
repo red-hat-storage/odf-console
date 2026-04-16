@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { nodeResource } from '@odf/core/resources';
+import { getName } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -23,22 +24,23 @@ import { NodeData } from '../types';
 export const useNodesData = (): [NodeData[], boolean, any] => {
   const [nodes, nodesLoaded, nodesLoadError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
-  const [utilization, promError, promLoading] = useCustomPrometheusPoll({
+  const [utilization, , promLoading] = useCustomPrometheusPoll({
     query: allNodesUtilizationQueries[NodeQueries.ALL_NODES_MEMORY_TOTAL],
     endpoint: 'api/v1/query' as any,
     basePath: usePrometheusBasePath(),
   });
 
   const loaded = nodesLoaded && !promLoading;
-  const error = nodesLoadError || promError;
+  const error = nodesLoadError;
+
   const nodesData = React.useMemo(() => {
     let nodesData = [];
-    // For data consistency, we must return nodes with their metrics.
-    if (nodes && utilization && loaded && !error) {
+    // Fallback to node.status.capacity when prometheus is unavailable
+    if (nodes && loaded && !error) {
       nodesData = nodes.map((node: Partial<NodeData>): NodeData => {
-        const metric = _.find(utilization.data.result, [
+        const metric = _.find(utilization?.data?.result || [], [
           'metric.instance',
-          node.metadata.name,
+          getName(node),
         ]);
         node['metrics'] = { memory: metric ? metric.value[1] : undefined };
         return node as NodeData;
