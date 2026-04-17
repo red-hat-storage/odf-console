@@ -194,6 +194,16 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
           backingStores: state.tier2BackingStore.map(getName),
         });
       }
+    }
+    if (state.bucketClassType === BucketClassType.VECTOR) {
+      payload = {
+        ...metadata,
+        spec: {
+          vectorPolicy: {
+            resource: getName(state.readNamespaceStore[0]),
+          },
+        },
+      };
     } else {
       switch (state.namespacePolicyType) {
         case NamespacePolicyType.SINGLE:
@@ -364,13 +374,22 @@ const CreateBucketClass: React.FC = () => {
   const launcher = useModal();
 
   const launchNamespaceStoreModal = React.useCallback(
-    () => launcher(NamespaceStoreCreateModal, { isOpen: true }),
-    [launcher]
+    () =>
+      launcher(NamespaceStoreCreateModal, {
+        isOpen: true,
+        extraProps: {
+          isVector: state.bucketClassType === BucketClassType.VECTOR,
+        },
+      }),
+    [launcher, state.bucketClassType]
   );
   const launchBackingStoreModal = React.useCallback(
     () => launcher(CreateBackingStoreFormModal, { isOpen: true }),
     [launcher]
   );
+
+  const shouldShowPlacementPolicyStep =
+    state.bucketClassType !== BucketClassType.VECTOR;
 
   const renderNamespaceStorePage = () => {
     switch (state.namespacePolicyType) {
@@ -415,16 +434,20 @@ const CreateBucketClass: React.FC = () => {
         <GeneralPage dispatch={dispatch} state={state} namespace={namespace} />
       ),
     },
-    {
-      id: CreateStepsBC.PLACEMENT,
-      name: t('Placement Policy'),
-      component:
-        state.bucketClassType === BucketClassType.STANDARD ? (
-          <PlacementPolicyPage state={state} dispatch={dispatch} />
-        ) : (
-          <NamespacePolicyPage state={state} dispatch={dispatch} />
-        ),
-    },
+    ...(shouldShowPlacementPolicyStep
+      ? [
+          {
+            id: CreateStepsBC.PLACEMENT,
+            name: t('Placement Policy'),
+            component:
+              state.bucketClassType === BucketClassType.STANDARD ? (
+                <PlacementPolicyPage state={state} dispatch={dispatch} />
+              ) : (
+                <NamespacePolicyPage state={state} dispatch={dispatch} />
+              ),
+          },
+        ]
+      : []),
     {
       id: CreateStepsBC.RESOURCES,
       name: t('Resources'),
@@ -465,6 +488,7 @@ const CreateBucketClass: React.FC = () => {
       <div className="nb-create-bc-wizard">
         <NamespaceSafetyBox>
           <Wizard
+            key={state.bucketClassType}
             isVisitRequired
             footer={
               <BucketClassWizardFooter
