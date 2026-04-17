@@ -1,3 +1,5 @@
+@import '@patternfly/patternfly/sass-utilities/colors';
+
 .nb-resource-providers-card__not-available {
   display: flex;
   align-items: center;
@@ -9,7 +11,6 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-
   :last-child {
     margin-right: 0;
   }
@@ -23,7 +24,6 @@
 }
 
 .nb-resource-providers-card__row-status-item-text {
-  color: var(--pf-t--color--blue--30);
   margin-left: 0.25em;
 }
 
@@ -32,5 +32,5 @@
 }
 
 .nb-resource-providers-card__status-icon {
-  color: var(--pf-t--color--gray--50);
+  color: $pf-v5-color-black-700;
 }

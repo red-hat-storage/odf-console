@@ -41,11 +41,8 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
   const [selectedItem, setSelectedItem] = React.useState(defaultSelection);
   const [isOpen, setOpen] = React.useState(false);
 
-  const onChange = (
-    _event?: React.MouseEvent<Element, MouseEvent>,
-    value?: string | number
-  ) => {
-    const key = value as string;
+  const onChange = (event?: React.SyntheticEvent<HTMLDivElement>) => {
+    const key = event?.currentTarget?.id;
     if (key) {
       setSelectedItem(key);
       onSelect(key);
@@ -57,7 +54,7 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
   const processedDropdownItems = React.useMemo(
     () =>
       Object.entries(dropdownItems).map(([k, v]) => (
-        <DropdownItem key={k} id={k} value={k} data-test-dropdown-menu={v}>
+        <DropdownItem key={k} id={k} data-test-dropdown-menu={v}>
           {v}
         </DropdownItem>
       )),

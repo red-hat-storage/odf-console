@@ -222,10 +222,7 @@ describe('Subscription manage disaster recovery modal', () => {
       )
     ).toBeInTheDocument();
     // Check primary action is enabled
-    const enrollButton = screen
-      .getByText('Enroll application')
-      .closest('button');
-    expect(enrollButton).toBeEnabled();
+    expect(screen.getByText('Enroll application')).toBeEnabled();
   });
 
   test('manage policy view test', async () => {
@@ -275,14 +272,10 @@ describe('Subscription manage disaster recovery modal', () => {
 
     // Step 1 - select a policy
     // Buttons
-    expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
-
-    expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled();
+    expect(screen.getByText('Next')).toBeEnabled();
+    expect(screen.getByText('Back')).toBeDisabled();
     // Policy selector
-    const selectPolicyButton = screen
-      .getByText('Select a policy')
-      .closest('button');
-    expect(selectPolicyButton).toBeEnabled();
+    expect(screen.getByText('Select a policy')).toBeEnabled();
     await user.click(screen.getByText('Select a policy'));
 
     const policies = screen.getAllByText('mock-policy-1');
@@ -293,8 +286,8 @@ describe('Subscription manage disaster recovery modal', () => {
 
     // Step 2 - select a placement and labels
     // Buttons
-    expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Back' })).toBeEnabled();
+    expect(screen.getByText('Next')).toBeEnabled();
+    expect(screen.getByText('Back')).toBeEnabled();
     // PVC selector
     screen.getByText(
       /Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information/i
@@ -336,16 +329,12 @@ describe('Subscription manage disaster recovery modal', () => {
 
     // Step 3 - review and assign
     // Buttons
-    expect(screen.getByRole('button', { name: 'Assign' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Back' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeEnabled();
+    expect(screen.getByText('Assign')).toBeEnabled();
+    expect(screen.getByText('Back')).toBeEnabled();
+    expect(screen.getByText('Cancel')).toBeEnabled();
 
     // Headers
-    expect(
-      await screen.findByText('Policy', {
-        selector: '.pf-v6-c-wizard__nav-link-main',
-      })
-    ).toBeInTheDocument();
+    screen.getByText(/Policy/i, { selector: 'span' });
     // Labels
     expect(screen.getByText('Policy name:')).toBeInTheDocument();
     expect(screen.getByText('Clusters:')).toBeInTheDocument();

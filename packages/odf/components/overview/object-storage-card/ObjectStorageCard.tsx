@@ -58,7 +58,7 @@ export const ObjectStorageCard: React.FC<CardProps> = ({ className }) => {
       : 0;
 
   return (
-    <Card className={classNames(className)}>
+    <Card className={classNames(className)} isFlat={true}>
       <CardHeader
         actions={
           nbBuckets && {
@@ -92,7 +92,7 @@ export const ObjectStorageCard: React.FC<CardProps> = ({ className }) => {
               variant={ButtonVariant.link}
               icon={<ArrowRightIcon />}
               iconPosition="end"
-              className="pf-v6-u-font-size-lg pf-v6-u-mt-md odf-cluster-card__storage-link"
+              className="pf-v5-u-font-size-lg pf-v5-u-mt-md odf-cluster-card__storage-link"
               component="a"
               onClick={() => navigate('/odf/object-storage')}
             >

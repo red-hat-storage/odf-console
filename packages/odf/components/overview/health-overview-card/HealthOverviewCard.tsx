@@ -11,6 +11,7 @@ import {
   AlertSeverity,
   PrometheusEndpoint,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Chart,
   ChartArea,
@@ -18,8 +19,7 @@ import {
   ChartGroup,
   ChartThemeColor,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts/victory';
-import { useNavigate } from 'react-router-dom-v5-compat';
+} from '@patternfly/react-charts';
 import {
   Card,
   CardBody,
@@ -31,10 +31,12 @@ import {
   ButtonVariant,
   EmptyState,
   EmptyStateVariant,
+  EmptyStateIcon,
   EmptyStateBody,
+  EmptyStateHeader,
   Title,
-  Content,
-  ContentVariants,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { ArrowRightIcon, SpaceShuttleIcon } from '@patternfly/react-icons';
 import {
@@ -159,17 +161,17 @@ export const HealthOverviewCard: React.FC = () => {
 
   if (showEmptyState) {
     return (
-      <Card>
+      <Card isFlat>
         <CardHeader>
           <CardTitle>{cardTitle}</CardTitle>
         </CardHeader>
         <CardBody>
-          <EmptyState
-            headingLevel="h4"
-            icon={SpaceShuttleIcon}
-            titleText={t('Waiting for health checks')}
-            variant={EmptyStateVariant.lg}
-          >
+          <EmptyState variant={EmptyStateVariant.lg}>
+            <EmptyStateHeader
+              titleText={t('Waiting for health checks')}
+              icon={<EmptyStateIcon icon={SpaceShuttleIcon} />}
+              headingLevel="h4"
+            />
             <EmptyStateBody>{getErrorMessage()}</EmptyStateBody>
           </EmptyState>
         </CardBody>
@@ -178,7 +180,7 @@ export const HealthOverviewCard: React.FC = () => {
   }
 
   return (
-    <Card className="odf-infrastructure-health-card">
+    <Card isFlat className="odf-infrastructure-health-card">
       <CardHeader>
         <CardTitle>{cardTitle}</CardTitle>
       </CardHeader>
@@ -192,14 +194,12 @@ export const HealthOverviewCard: React.FC = () => {
                   <Title headingLevel="h2" size="3xl">
                     {Math.round(currentHealthScore)}%
                   </Title>
-                  <Content component={ContentVariants.small}>
+                  <Text component={TextVariants.small}>
                     {t('Health Score')}
-                  </Content>
+                  </Text>
                 </>
               ) : (
-                <Content component={ContentVariants.small}>
-                  {t('No data')}
-                </Content>
+                <Text component={TextVariants.small}>{t('No data')}</Text>
               )}
             </div>
           </GridItem>
@@ -207,9 +207,7 @@ export const HealthOverviewCard: React.FC = () => {
           <GridItem md={9} sm={12} ref={chartRef}>
             {chartData.length > 0 ? (
               <div className="odf-infrastructure-health-card__chart">
-                <Content component={ContentVariants.small}>
-                  {t('Last 24 hours')}
-                </Content>
+                <Text component={TextVariants.small}>{t('Last 24 hours')}</Text>
                 <Chart
                   ariaTitle={t('Health Score Over Time')}
                   containerComponent={
@@ -240,7 +238,7 @@ export const HealthOverviewCard: React.FC = () => {
                       axis: { stroke: 'transparent' },
                       tickLabels: {
                         fontSize: 12,
-                        fill: 'var(--pf-t--color--gray--50)',
+                        fill: 'var(--pf-v5-global--Color--200)',
                       },
                     }}
                   />
@@ -250,9 +248,9 @@ export const HealthOverviewCard: React.FC = () => {
                       interpolation="monotoneX"
                       style={{
                         data: {
-                          fill: 'var(--pf-t--chart--color--blue--300)',
+                          fill: 'var(--pf-v5-chart-color-blue-300)',
                           fillOpacity: 0.3,
-                          stroke: 'var(--pf-t--chart--color--blue--400)',
+                          stroke: 'var(--pf-v5-chart-color-blue-400)',
                           strokeWidth: 2,
                         },
                       }}
@@ -261,12 +259,12 @@ export const HealthOverviewCard: React.FC = () => {
                 </Chart>
               </div>
             ) : (
-              <Content
-                component={ContentVariants.small}
-                className="pf-v6-u-text-align-center"
+              <Text
+                component={TextVariants.small}
+                className="pf-v5-u-text-align-center"
               >
                 {t('No chart data available')}
-              </Content>
+              </Text>
             )}
           </GridItem>
 
@@ -286,7 +284,7 @@ export const HealthOverviewCard: React.FC = () => {
               <Title headingLevel="h4" size="2xl">
                 {count}
               </Title>
-              <Content component={ContentVariants.small}>{t(label)}</Content>
+              <Text component={TextVariants.small}>{t(label)}</Text>
             </GridItem>
           ))}
 
@@ -296,7 +294,7 @@ export const HealthOverviewCard: React.FC = () => {
               variant={ButtonVariant.link}
               icon={<ArrowRightIcon />}
               iconPosition="end"
-              className="pf-v6-u-font-size-lg"
+              className="pf-v5-u-font-size-lg"
               component="a"
               onClick={() => navigate('/odf/overview/health')}
             >

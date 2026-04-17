@@ -26,9 +26,14 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Modal } from '@patternfly/react-core/deprecated';
 import { useParams, useNavigate } from 'react-router-dom-v5-compat';
-import { Button, Content, ContentVariants } from '@patternfly/react-core';
+import {
+  Button,
+  Modal,
+  TextContent,
+  Text,
+  TextVariants,
+} from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
@@ -350,11 +355,9 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
   return (
     <>
       <div className="odf-create-operand__header">
-        <Content className="odf-create-operand__header-text">
-          <Content component={ContentVariants.h1}>
-            {t('Create storage pool')}
-          </Content>
-        </Content>
+        <TextContent className="odf-create-operand__header-text">
+          <Text component={TextVariants.h1}>{t('Create storage pool')}</Text>
+        </TextContent>
         <StoragePoolDefinitionText />
       </div>
       <div className="create-storage-pool__form">

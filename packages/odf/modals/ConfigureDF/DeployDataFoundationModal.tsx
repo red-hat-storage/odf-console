@@ -4,7 +4,6 @@ import { StartingPoint } from '@odf/core/types/install-ui';
 import { useCustomTranslation } from '@odf/shared';
 import { GreenCheckCircleIcon } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -12,9 +11,13 @@ import {
   EmptyStateActions,
   EmptyStateBody,
   EmptyStateFooter,
+  EmptyStateHeader,
+  EmptyStateIcon,
   EmptyStateVariant,
+  Modal,
   Button,
   ButtonVariant,
+  ModalVariant,
 } from '@patternfly/react-core';
 
 export const DeployDataFoundationModal: ModalComponent = ({ closeModal }) => {
@@ -37,12 +40,12 @@ export const DeployDataFoundationModal: ModalComponent = ({ closeModal }) => {
       onClose={closeModal}
       variant={ModalVariant.small}
     >
-      <EmptyState
-        headingLevel="h4"
-        icon={GreenCheckCircleIcon}
-        titleText={t('Deploy Data Foundation on IBM FlashSystem')}
-        variant={EmptyStateVariant.sm}
-      >
+      <EmptyState variant={EmptyStateVariant.sm}>
+        <EmptyStateHeader
+          titleText={t('Deploy Data Foundation on IBM FlashSystem')}
+          headingLevel="h4"
+          icon={<EmptyStateIcon icon={GreenCheckCircleIcon} />}
+        />
         <EmptyStateBody>
           <Trans t={t}>
             Your IBM FlashSystem has been successfully configured. To enable

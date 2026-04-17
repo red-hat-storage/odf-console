@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { getName } from '@odf/shared';
 import {
-  Content,
-  ContentVariants,
+  TextContent,
+  Text,
+  TextVariants,
   CardBody,
   Card,
 } from '@patternfly/react-core';
@@ -10,15 +10,15 @@ import { BackingStoreKind, NamespaceStoreKind } from '../../types';
 
 export const StoreCard: React.FC<StoreCardProp> = ({ resources }) =>
   !!resources.length && (
-    <Card isCompact component="div">
+    <Card isCompact isFlat component="div">
       <CardBody isFilled>
-        <Content>
+        <TextContent>
           {resources.map((res) => (
-            <Content key={getName(res)} component={ContentVariants.small}>
-              {getName(res)}
-            </Content>
+            <Text key={res.metadata.name} component={TextVariants.small}>
+              {res.metadata.name}
+            </Text>
           ))}
-        </Content>
+        </TextContent>
       </CardBody>
     </Card>
   );

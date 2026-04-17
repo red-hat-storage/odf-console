@@ -39,11 +39,12 @@ import {
   ActionGroup,
   Button,
   Checkbox,
-  ContentVariants,
-  Content,
+  TextVariants,
+  Text,
   Form,
   FormGroup,
   Alert,
+  TextContent,
 } from '@patternfly/react-core';
 import NamespaceSafetyBox from '../../components/utils/safety-box';
 import { useODFNamespaceSelector } from '../../redux';
@@ -261,7 +262,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
         textInputProps={{
           id: 'obc-name',
           name: 'obcName',
-          className: 'pf-v6-c-form-control',
+          className: 'pf-v5-c-form-control',
           type: 'text',
           placeholder: t('my-object-bucket'),
           'aria-describedby': 'obc-name-help',
@@ -347,9 +348,9 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
           {replicationEnabled && (
             <>
               <FormGroup>
-                <Content component={ContentVariants.h2}>
+                <Text component={TextVariants.h2}>
                   {t('Replication policy')}
-                </Content>
+                </Text>
               </FormGroup>
               <ReplicationPolicyForm
                 className="form-group"
@@ -546,7 +547,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
           />
         )}
         <ButtonBar errorMessage={state.error} inProgress={state.progress}>
-          <ActionGroup className="pf-v6-c-form">
+          <ActionGroup className="pf-v5-c-form">
             <Button
               id={submitBtnId}
               type="submit"
@@ -579,11 +580,11 @@ export const CreateOBCPage: React.FC<{}> = () => {
         <Helmet>
           <title>{t('Create ObjectBucketClaim')}</title>
         </Helmet>
-        <Content className="odf-m-pane__heading odf-m-pane__heading--baseline">
-          <Content component={ContentVariants.h1}>
+        <TextContent className="odf-m-pane__heading odf-m-pane__heading--baseline">
+          <Text component={TextVariants.h1}>
             {t('Create ObjectBucketClaim')}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
         <CreateOBC />
       </div>
     </>

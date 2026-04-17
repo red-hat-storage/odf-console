@@ -21,6 +21,8 @@ import {
   EmptyStateActions,
   EmptyStateBody,
   EmptyStateFooter,
+  EmptyStateHeader,
+  EmptyStateIcon,
 } from '@patternfly/react-core';
 import { CubesIcon, StorageDomainIcon } from '@patternfly/react-icons';
 
@@ -76,7 +78,7 @@ const EmptyStateBodyExternalSystemPage: React.FC = () => {
   return (
     <Trans t={t}>
       Connect an external storage system to get started. Add{' '}
-      <span className="pf-v6-u-font-weight-bold">
+      <span className="pf-v5-u-font-weight-bold">
         IBM FlashSystem, IBM Scale or Red Hat Ceph Storage{' '}
       </span>{' '}
       to begin managing it.
@@ -105,11 +107,12 @@ const ExternalSystemsEmptyState: React.FC = () => {
   const { t } = useCustomTranslation();
   const launchModal = useModal();
   return (
-    <EmptyState
-      headingLevel="h4"
-      icon={CubesIcon}
-      titleText={t('No external systems connected')}
-    >
+    <EmptyState>
+      <EmptyStateHeader
+        titleText={t('No external systems connected')}
+        headingLevel="h4"
+        icon={<EmptyStateIcon icon={CubesIcon} />}
+      />
       <EmptyStateBody>
         <EmptyStatePageBody />
       </EmptyStateBody>
@@ -152,11 +155,12 @@ const InitialEmptyStatePage: React.FC = () => {
       {!!isExternalSystems ? (
         <ExternalSystemsEmptyState />
       ) : (
-        <EmptyState
-          headingLevel="h4"
-          icon={StorageDomainIcon}
-          titleText={t('Storage cluster is not configured')}
-        >
+        <EmptyState>
+          <EmptyStateHeader
+            titleText={t('Storage cluster is not configured')}
+            headingLevel="h4"
+            icon={<EmptyStateIcon icon={StorageDomainIcon} />}
+          />
           <EmptyStateBody>
             <EmptyStatePageBody />
           </EmptyStateBody>

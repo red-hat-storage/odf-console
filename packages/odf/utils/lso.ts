@@ -175,8 +175,9 @@ export const updateLocalVolumeDiscovery = async (nodes, ns, setError) => {
     getNodeSelectorTermsIndices(nodeSelectorTerms);
   if (selectorIndex !== -1 && expIndex !== -1) {
     const existingNodes = new Set(
-      lvd?.spec?.nodeSelector?.nodeSelectorTerms?.[selectorIndex]
-        ?.matchExpressions?.[expIndex]?.values
+      lvd?.spec?.nodeSelector?.nodeSelectorTerms?.[
+        selectorIndex
+      ]?.matchExpressions?.[expIndex]?.values
     );
     nodes.forEach((name) => existingNodes.add(name));
     const patch = [

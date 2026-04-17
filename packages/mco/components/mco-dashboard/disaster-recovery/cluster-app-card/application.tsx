@@ -25,8 +25,8 @@ import { TFunction } from 'react-i18next';
 import {
   Pagination,
   PaginationVariant,
-  Content,
-  ContentVariants,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { InProgressIcon, PendingIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
@@ -203,9 +203,7 @@ export const NamespaceSection: React.FC<CommonProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Content component={ContentVariants.h1}>
-        {workloadNamespace.length}
-      </Content>
+      <Text component={TextVariants.h1}>{workloadNamespace.length}</Text>
       <StatusText>{t('Namespaces')}</StatusText>
     </div>
   );
@@ -239,11 +237,11 @@ export const SnapshotSection: React.FC<SnapshotSectionProps> = ({
   return (
     <div className="mco-dashboard__contentColumn">
       <StatusText>{title}</StatusText>
-      <Content component="p" className="text-muted">
+      <Text className="text-muted">
         {t('Last on: {{ syncTime }}', {
           syncTime: syncTime,
         })}
-      </Content>
+      </Text>
     </div>
   );
 };
@@ -303,7 +301,7 @@ export const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
   );
   return (
     <div className="mco-dashboard__contentColumn">
-      <Content component={ContentVariants.h1}>{subsCount}</Content>
+      <Text component={TextVariants.h1}>{subsCount}</Text>
       <StatusText>{t('Subscription')}</StatusText>
     </div>
   );
@@ -371,9 +369,7 @@ export const SubscriptionDetailsTable: React.FC<
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Content component={ContentVariants.h3}>
-        {t('Subscription details')}
-      </Content>
+      <Text component={TextVariants.h3}>{t('Subscription details')}</Text>
       <div className="mco-cluster-app__subs-table--width">
         <VirtualizedTable
           data={subscriptionRows}

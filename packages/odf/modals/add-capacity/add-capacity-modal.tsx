@@ -37,7 +37,6 @@ import {
   PrometheusEndpoint,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
@@ -45,9 +44,11 @@ import { compose } from 'redux';
 import {
   FormGroup,
   TextInput,
-  Content,
+  TextContent,
   Button,
+  Modal,
   Alert,
+  ModalVariant,
   SelectOption,
 } from '@patternfly/react-core';
 import {
@@ -203,14 +204,14 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
     <FormGroup
       fieldId="request-size"
       label={t('Raw Capacity')}
-      labelHelp={<FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>}
+      labelIcon={<FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>}
     >
-      <div className="pf-v6-u-display-flex pf-v6-u-pt-sm pf-v6-u-pl-xs">
+      <div className="pf-v5-u-display-flex pf-v5-u-pt-sm pf-v5-u-pl-xs">
         <TextInput
           isDisabled
           id="request-size"
           className={classNames(
-            'pf-v6-c-form-control',
+            'pf-v5-c-form-control',
             'ceph-add-capacity__input'
           )}
           type="number"
@@ -219,7 +220,7 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
           aria-label="requestSize"
           data-test="requestSize"
         />
-        <Content className="ceph-add-capacity__provisioned-capacity pf-v6-u-ml-xs">
+        <TextContent className="ceph-add-capacity__provisioned-capacity pf-v5-u-ml-xs">
           {' '}
           {t('x {{ replica, number }} replicas =', {
             replica,
@@ -227,7 +228,7 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
           <strong data-test="provisioned-capacity">
             {provisionedCapacity}&nbsp;TiB
           </strong>
-        </Content>
+        </TextContent>
       </div>
     </FormGroup>
   );
@@ -495,11 +496,11 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
             increase your expenses.
           </Trans>
           <FormGroup
-            className="pf-v6-u-pt-md pf-v6-u-pb-sm"
+            className="pf-v5-u-pt-md pf-v5-u-pb-sm"
             id="add-cap-sc-dropdown__FormGroup"
             fieldId="add-capacity-dropdown"
             label={t('StorageClass')}
-            labelHelp={
+            labelIcon={
               <FieldLevelHelp>{storageClassTooltip(t)}</FieldLevelHelp>
             }
             isRequired
@@ -521,10 +522,10 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
           </FormGroup>
           {hasMultiDeviceClasses && (
             <FormGroup
-              className="pf-v6-u-pt-md pf-v6-u-pb-sm"
+              className="pf-v5-u-pt-md pf-v5-u-pb-sm"
               label={t('Device class')}
               fieldId="device-class"
-              labelHelp={
+              labelIcon={
                 <FieldLevelHelp>{deviceClassTooltip(t)}</FieldLevelHelp>
               }
             >
@@ -556,10 +557,10 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
                     osdSizeWithoutUnit={osdSizeWithoutUnit}
                   />
                 )}
-                <Content className="ceph-add-capacity__current-capacity pf-v6-u-mt-sm">
+                <TextContent className="ceph-add-capacity__current-capacity pf-v5-u-mt-sm">
                   {t('Currently Used:')}&nbsp;
                   {currentCapacity}
-                </Content>
+                </TextContent>
               </>
             ))}
           {errorMessage && (

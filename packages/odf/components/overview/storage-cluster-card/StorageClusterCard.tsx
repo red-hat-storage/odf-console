@@ -36,14 +36,14 @@ import {
   HealthState,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  ChartDonut,
-  ChartLabel,
-  ChartLegend,
-} from '@patternfly/react-charts/victory';
+import { chart_color_blue_100 as general2 } from '@patternfly/react-tokens/dist/js/chart_color_blue_100';
+import { chart_color_blue_300 as general1 } from '@patternfly/react-tokens/dist/js/chart_color_blue_300';
+import { global_danger_color_100 as danger1 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
+import { global_warning_color_100 as warning1 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router-dom-v5-compat';
+import { ChartDonut, ChartLabel, ChartLegend } from '@patternfly/react-charts';
 import {
   DescriptionList,
   DescriptionListTerm,
@@ -63,12 +63,6 @@ import {
   GridItem,
 } from '@patternfly/react-core';
 import { ArrowRightIcon } from '@patternfly/react-icons';
-import {
-  chart_color_blue_100 as general2,
-  chart_color_blue_300 as general1,
-  t_global_color_status_warning_100 as warning1,
-  t_global_color_status_danger_100 as danger1,
-} from '@patternfly/react-tokens';
 import './StorageClusterCard.scss';
 
 const generalColorScale = [general1.value, general2.value];
@@ -196,7 +190,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
   }, [capacityRatio]);
 
   return (
-    <Card className={classNames(className)}>
+    <Card className={classNames(className)} isFlat={true}>
       <CardHeader>
         <CardTitle>{t('Storage cluster')}</CardTitle>
       </CardHeader>
@@ -211,7 +205,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                   </DescriptionListTerm>
                   <DescriptionListDescription>
                     {healthIcon}
-                    <span className="pf-v6-u-ml-xs">{healthMessage}</span>
+                    <span className="pf-v5-u-ml-xs">{healthMessage}</span>
                   </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
@@ -220,7 +214,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                   </DescriptionListTerm>
                   <DescriptionListDescription>
                     {cephResiliencyIcon}
-                    <span className="pf-v6-u-ml-xs">
+                    <span className="pf-v5-u-ml-xs">
                       {cephResiliencyMessage}
                     </span>
                   </DescriptionListDescription>
@@ -231,7 +225,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                   </DescriptionListTerm>
                   <DescriptionListDescription>
                     {objectResiliencyIcon}
-                    <span className="pf-v6-u-ml-xs">
+                    <span className="pf-v5-u-ml-xs">
                       {objectResiliencyMessage}
                     </span>
                   </DescriptionListDescription>
@@ -277,7 +271,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                     <ChartLabel
                       className="odf-cluster-card__chart-title"
                       style={{
-                        fill: 'var(--pf-t--color--gray--95)',
+                        fill: 'var(--pf-v5-global--Color--100)',
                         fontSize: 20,
                       }}
                     />
@@ -285,7 +279,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                   subTitleComponent={
                     <ChartLabel
                       className="odf-cluster-card__chart-subtitle"
-                      style={{ fill: 'var(--pf-t--color--gray--50)' }}
+                      style={{ fill: 'var(--pf-v5-global--Color--200)' }}
                       dy={5}
                     />
                   }
@@ -294,7 +288,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                       orientation="vertical"
                       gutter={20}
                       style={{
-                        labels: { fill: 'var(--pf-t--color--gray--50)' },
+                        labels: { fill: 'var(--pf-v5-global--Color--200)' },
                       }}
                     />
                   }
@@ -318,7 +312,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                 variant={ButtonVariant.link}
                 icon={<ArrowRightIcon />}
                 iconPosition="end"
-                className="pf-v6-u-font-size-lg odf-cluster-card__storage-link"
+                className="pf-v5-u-font-size-lg odf-cluster-card__storage-link"
                 component="a"
                 onClick={() => navigate('/odf/storage-cluster')}
               >

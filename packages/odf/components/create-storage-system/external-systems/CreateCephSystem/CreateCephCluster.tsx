@@ -20,8 +20,9 @@ import { k8sCreate, K8sModel } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
-  Content,
-  ContentVariants,
+  TextContent,
+  TextVariants,
+  Text,
   Checkbox,
   Alert,
   AlertVariant,
@@ -363,29 +364,29 @@ const CreateCephCluster: React.FC = () => {
   return (
     <>
       <PageHeading title={t('Connect Red Hat Ceph storage')}>
-        <Content>
-          <Content component={ContentVariants.small}>
+        <TextContent>
+          <Text component={TextVariants.small}>
             {t(
               'Connect to a Red Hat Ceph cluster to unify and scale your block, file, and object storage with Data Foundation'
             )}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
       </PageHeading>
       <div className="odf-m-pane__body">
-        <Content>
-          <Content component={ContentVariants.h3}>
+        <TextContent>
+          <Text component={TextVariants.h3}>
             {t('Configure connection network')}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
         <div>
           <ConnectionDetails setFormState={setFormState} formState={state} />
         </div>
-        <div className="pf-v6-u-mt-lg">
-          <Content>
-            <Content component={ContentVariants.h3}>{t('Encryption')}</Content>
-          </Content>
+        <div className="pf-v5-u-mt-lg">
+          <TextContent>
+            <Text component={TextVariants.h3}>{t('Encryption')}</Text>
+          </TextContent>
           <Checkbox
-            className="pf-v6-u-mt-md"
+            className="pf-v5-u-mt-md"
             data-test="in-transit-encryption-checkbox"
             id="in-transit-encryption"
             isChecked={encryption}
@@ -399,7 +400,7 @@ const CreateCephCluster: React.FC = () => {
           <Alert
             variant={AlertVariant.info}
             isInline
-            className="pf-v6-u-mt-sm"
+            className="pf-v5-u-mt-sm"
             title={
               <>
                 {t(
@@ -416,14 +417,14 @@ const CreateCephCluster: React.FC = () => {
             }
           />
         </div>
-        <div className="pf-v6-u-mt-lg">
-          <Content>
-            <Content component={ContentVariants.h3}>
+        <div className="pf-v5-u-mt-lg">
+          <TextContent>
+            <Text component={TextVariants.h3}>
               {t('Advanced configuration')}
-            </Content>
-          </Content>
+            </Text>
+          </TextContent>
           <SetCephRBDStorageClassDefault
-            className="pf-v6-u-mt-md"
+            className="pf-v5-u-mt-md"
             dispatch={() =>
               setRBDStorageClassDefault((currState) => !currState)
             }
@@ -434,7 +435,7 @@ const CreateCephCluster: React.FC = () => {
             label={
               <>
                 {t('Use external PostgreSQL')}
-                <span className="pf-v6-u-ml-sm">
+                <span className="pf-v5-u-ml-sm">
                   <TechPreviewBadge />
                 </span>
               </>
@@ -469,7 +470,7 @@ const CreateCephCluster: React.FC = () => {
               enableClientSideCerts={externalPostgres.tls.enableClientSideCerts}
             />
           )}
-          <div className="pf-v6-u-my-md">
+          <div className="pf-v5-u-my-md">
             <AutomaticBackup
               dispatch={advancedDispatch}
               isDbBackup={isDbBackup}

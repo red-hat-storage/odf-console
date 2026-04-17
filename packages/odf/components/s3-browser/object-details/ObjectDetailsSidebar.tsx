@@ -52,8 +52,9 @@ import {
   Tabs,
   TabTitleText,
   PaginationVariant,
-  Content,
-  ContentVariants,
+  TextContent,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { TagIcon } from '@patternfly/react-icons';
 import { IAction, TableVariant } from '@patternfly/react-table';
@@ -87,9 +88,9 @@ type ObjectVersionsProps = {
 };
 
 const ItemHeading: React.FC<{ text: string }> = ({ text }) => (
-  <Content>
-    <Content component={ContentVariants.h5}>{text}</Content>
-  </Content>
+  <TextContent>
+    <Text component={TextVariants.h5}>{text}</Text>
+  </TextContent>
 );
 
 const fetchVersions = async ({
@@ -208,13 +209,13 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
 
   return (
     <>
-      <Content className="pf-v6-u-my-sm">
-        <Content component={ContentVariants.small}>
+      <TextContent className="pf-v5-u-my-sm">
+        <Text component={TextVariants.small}>
           {t(
             'Perform actions such as sharing, downloading, previewing, and deleting different versions of an object. For a comprehensive view of each version, enable "List all versions."'
           )}
-        </Content>
-      </Content>
+        </Text>
+      </TextContent>
       <DeletionAlerts
         deleteResponse={deleteResponseSideBar}
         foldersPath={foldersPath}
@@ -295,7 +296,7 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
   );
 
   const tags = tagData?.TagSet?.map((tag: Tag) => (
-    <Label className="pf-v6-u-mr-xs" color="grey" icon={<TagIcon />}>
+    <Label className="pf-v5-u-mr-xs" color="grey" icon={<TagIcon />}>
       {tag.Key}
       {tag.Value && `=${tag.Value}`}
     </Label>
@@ -319,7 +320,7 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
   return isLoading ? (
     <LoadingBox />
   ) : (
-    <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
+    <Grid className="odf-object-sidebar__data-grid pf-v5-u-mt-sm" hasGutter>
       <GridItem span={6}>
         <ItemHeading text={t('Name')} />
         {objShortenedName}
@@ -401,13 +402,7 @@ const ObjectDetailsSidebarContent: React.FC<
   if (Array.isArray(actionItems)) {
     actionItems.forEach((action: IAction) =>
       dropdownItems.push(
-        <DropdownItem
-          onClick={(event) =>
-            action.onClick?.(event, undefined, undefined, undefined)
-          }
-          isDisabled={action?.isDisabled}
-          key={action.itemKey}
-        >
+        <DropdownItem onClick={action.onClick} isDisabled={action?.isDisabled}>
           {action.title}
         </DropdownItem>
       )
@@ -445,7 +440,7 @@ const ObjectDetailsSidebarContent: React.FC<
           isInline
           variant={AlertVariant.info}
           title={t('Why this object has a delete marker?')}
-          className="pf-v6-u-m-sm"
+          className="pf-v5-u-m-sm"
         >
           <p>
             {t(

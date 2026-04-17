@@ -26,7 +26,7 @@ import {
   Label,
   MenuToggle,
   MenuToggleElement,
-  Content,
+  Text,
   Title,
 } from '@patternfly/react-core';
 import { BanIcon, EllipsisVIcon } from '@patternfly/react-icons';
@@ -187,7 +187,7 @@ const AccessKeyCard: React.FC<AccessKeyCardProps> = ({
   );
 
   return (
-    <GridItem xl={4} lg={6} md={6} sm={12} className="pf-v6-u-my-md">
+    <GridItem xl={4} lg={6} md={6} sm={12} className="pf-v5-u-my-md">
       <Card>
         <CardHeader
           actions={{
@@ -207,18 +207,16 @@ const AccessKeyCard: React.FC<AccessKeyCardProps> = ({
           <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
             <FlexItem>
               <CardTitle>{`${t('Access key')} ${accessKeyNumber}`} </CardTitle>
-              <Content component="p">
-                {accessKeyCard.AccessKeyId || DASH}
-              </Content>
+              <Text>{accessKeyCard.AccessKeyId || DASH}</Text>
             </FlexItem>
             <FlexItem>{renderStatusLabel(accessKeyCard.Status, t)}</FlexItem>
           </Flex>
         </CardHeader>
-        <CardBody className="pf-v6-u-mt-md">
-          <Title headingLevel="h4" className="pf-v6-u-mb-sm">
+        <CardBody className="pf-v5-u-mt-md">
+          <Title headingLevel="h4" className="pf-v5-u-mb-sm">
             {t('Description tag')}
           </Title>
-          <Content component="p">{descriptionTag}</Content>
+          <Text>{descriptionTag}</Text>
         </CardBody>
       </Card>
     </GridItem>

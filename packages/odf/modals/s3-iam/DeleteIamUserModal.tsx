@@ -9,14 +9,15 @@ import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { IamCommands } from '@odf/shared/iam';
 import { CommonModalProps } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
+  Modal,
   Button,
-  Content,
+  ModalVariant,
+  Text,
   TextInput,
   TextInputTypes,
   FormGroup,
@@ -191,7 +192,7 @@ export const DeleteIamUserModal: React.FC<
         >
           <span>
             <Button
-              className="pf-v6-u-mr-xs"
+              className="pf-v5-u-mr-xs"
               variant={ButtonVariant.danger}
               isLoading={inProgress}
               isDisabled={deleteText !== t('delete') || inProgress}
@@ -202,7 +203,7 @@ export const DeleteIamUserModal: React.FC<
             <Button
               variant={ButtonVariant.link}
               onClick={closeModal}
-              className="pf-v6-u-ml-xs"
+              className="pf-v5-u-ml-xs"
             >
               {t('Cancel')}
             </Button>
@@ -210,7 +211,7 @@ export const DeleteIamUserModal: React.FC<
         </ButtonBar>,
       ]}
     >
-      <Table variant="compact" borders={true} className="pf-v6-u-mb-md">
+      <Table variant="compact" borders={true} className="pf-v5-u-mb-md">
         <Thead>
           <Tr>
             <Th>{t('User name')}</Th>
@@ -227,7 +228,7 @@ export const DeleteIamUserModal: React.FC<
         </Tbody>
       </Table>
       {isChecking ? (
-        <Spinner size="md" className="pf-v6-u-mb-md" />
+        <Spinner size="md" className="pf-v5-u-mb-md" />
       ) : (
         hasAccessKeys &&
         !deleteSuccess && (
@@ -245,12 +246,12 @@ export const DeleteIamUserModal: React.FC<
                 </AlertActionLink>
               }
             >
-              <Content component="p">
+              <Text>
                 {t('IAM user has {{count}} access keys', {
                   count: iamAccessKeys.length,
                 })}
-              </Content>
-              <List component="ol" className="pf-v6-u-mt-sm">
+              </Text>
+              <List component="ol" className="pf-v5-u-mt-sm">
                 {iamAccessKeys.map(
                   (accessKey) =>
                     accessKey.Status === AccessKeyStatus.ACTIVE && (
@@ -260,13 +261,13 @@ export const DeleteIamUserModal: React.FC<
                     )
                 )}
               </List>
-              <Content component="p" className="pf-v6-u-mt-md">
+              <Text className="pf-v5-u-mt-md">
                 <b>
                   {t(
                     'You must delete the access keys before deleting this user'
                   )}
                 </b>
-              </Content>
+              </Text>
             </Alert>
           </FlexItem>
         )
@@ -276,14 +277,14 @@ export const DeleteIamUserModal: React.FC<
           variant={AlertVariant.success}
           isInline
           title={t('Access keys deleted successfully')}
-          className="co-alert pf-v6-u-mb-md"
+          className="co-alert pf-v5-u-mb-md"
         >
           <p>{t('All access keys assigned to the user have been deleted')}</p>
         </Alert>
       )}
       <FormGroup
         label={getTextInputLabel(t)}
-        className="pf-v6-u-mt-lg pf-v6-u-mb-sm"
+        className="pf-v5-u-mt-lg pf-v5-u-mb-sm"
         fieldId="delete-user"
       >
         <TextInput

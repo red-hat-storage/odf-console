@@ -65,7 +65,10 @@ describe('Test drpolicy list page', () => {
     expect(
       screen.getByText('No disaster recovery policies yet')
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Empty Page')).toBeEnabled();
+    expect(screen.getByLabelText('Empty Page')).toHaveAttribute(
+      'aria-disabled',
+      'false'
+    );
   });
 
   test('Empty page un authorized test', async () => {
@@ -75,7 +78,10 @@ describe('Test drpolicy list page', () => {
     expect(
       screen.getByText('No disaster recovery policies yet')
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Empty Page')).toBeEnabled();
+    expect(screen.getByLabelText('Empty Page')).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
     // Tooltip content check
     await user.hover(screen.getByLabelText('Empty Page'));
     expect(
