@@ -11,11 +11,12 @@ import {
   Button,
   ButtonVariant,
   ButtonType,
-  Content,
-  ContentVariants,
+  TextContent,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { CopyIcon, StarIcon } from '@patternfly/react-icons';
-import { t_global_color_status_warning_100 as warningColor } from '@patternfly/react-tokens';
+import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens';
 import { BUCKET_BOOKMARKS_USER_SETTINGS_KEY } from '../../../constants';
 import { getPath, getProviderLabel } from '../../../utils';
 import './bucket-overview.scss';
@@ -59,11 +60,12 @@ const Favorite: React.FC<FavoriteProps> = ({ bucketName }) => {
 
   return (
     <Button
-      icon={<StarIcon color={isFavorite && warningColor.value} />}
       variant={ButtonVariant.plain}
       type={ButtonType.button}
       onClick={onClick}
-    />
+    >
+      <StarIcon color={isFavorite && warningColor.value} />
+    </Button>
   );
 };
 
@@ -84,21 +86,21 @@ export const PageTitle: React.FC<TitleProps> = ({
   const createdBy = isCreatedByOBC ? t('Created via OBC') : t('Created via S3');
 
   return (
-    <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column">
-      <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-row">
+    <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-column">
+      <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
         {!foldersPath ? bucketName : currentFolder}
         {!foldersPath && (
           <>
             <Favorite bucketName={bucketName} />
             <Label
-              color="yellow"
-              className="pf-v6-u-mt-sm bucket-label--height"
+              color="gold"
+              className="pf-v5-u-mt-sm bucket-label--height"
               isCompact
             >
               {getProviderLabel(providerType)}
             </Label>
             <Label
-              className="pf-v6-u-ml-sm pf-v6-u-mt-sm bucket-label--height"
+              className="pf-v5-u-ml-sm pf-v5-u-mt-sm bucket-label--height"
               isCompact
             >
               {createdBy}
@@ -109,22 +111,22 @@ export const PageTitle: React.FC<TitleProps> = ({
           </>
         )}
       </div>
-      <Content>
-        <Content component={ContentVariants.h4}>
+      <TextContent>
+        <Text component={TextVariants.h4}>
           {t('Object path: ')}
           <span className="text-muted">{objectPath}</span>
           <Button
-            icon={<CopyIcon className="pf-v6-u-mr-sm" />}
             type="button"
             onClick={() => {
               navigator.clipboard.writeText(objectPath);
             }}
             variant={ButtonVariant.link}
           >
+            <CopyIcon className="pf-v5-u-mr-sm" />
             {t('Copy to share')}
           </Button>
-        </Content>
-      </Content>
+        </Text>
+      </TextContent>
     </div>
   );
 };

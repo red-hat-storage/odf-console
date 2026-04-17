@@ -78,11 +78,9 @@ export const UploadStatusItem: React.FC<UploadStatusItemProps> = observer(
         </FlexItem>
         <FlexItem>
           {progress !== 100 && !failed && (
-            <Button
-              icon={<CloseIcon />}
-              onClick={onAbort}
-              variant={ButtonVariant.plain}
-            />
+            <Button onClick={onAbort} variant={ButtonVariant.plain}>
+              <CloseIcon />
+            </Button>
           )}
         </FlexItem>
       </Flex>

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { Link } from 'react-router-dom-v5-compat';
 import {
   Chart,
   ChartAxis,
@@ -10,8 +11,7 @@ import {
   ChartStack,
   ChartThemeColor,
   ChartTooltip,
-} from '@patternfly/react-charts/victory';
-import { Link } from 'react-router-dom-v5-compat';
+} from '@patternfly/react-charts';
 import { Tooltip } from '@patternfly/react-core';
 import { BUCKETCLASSKIND, CLUSTERWIDE, OTHER } from './consts';
 import { getBarRadius, StackDataPoint } from './utils';
@@ -41,7 +41,7 @@ export const LinkableLegend: React.FC<LinkableLegendProps> = React.memo(
             lineHeight={1.2}
             style={[
               { ...datum.labels, fontSize: 9 },
-              { fill: `var(--pf-t--global--text--color--subtle)`, fontSize: 8 },
+              { fill: `var(--pf-v5-global--Color--200)`, fontSize: 8 },
             ]}
           />
         </g>
@@ -98,6 +98,7 @@ export const BreakdownChart: React.FC<BreakdownChartProps> = ({
         orientation="horizontal"
         symbolSpacer={7}
         gutter={10}
+        height={50}
         style={{
           labels: Object.assign(
             { fontSize: 10 },

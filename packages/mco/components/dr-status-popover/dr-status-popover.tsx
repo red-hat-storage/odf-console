@@ -39,7 +39,7 @@ import {
   DescriptionListTerm,
   Flex,
   Popover,
-  Content,
+  Text,
 } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
 import { ProgressionTrainView } from './progression-train-view';
@@ -182,9 +182,9 @@ const SyncDetails: React.FC<{
 
   return (
     <>
-      <Content component="p" className="pf-v6-u-mt-md pf-v6-u-font-weight-bold">
+      <Text className="pf-v5-u-mt-md pf-v5-u-font-weight-bold">
         {t('Last synced on')}
-      </Content>
+      </Text>
       <SyncStatus
         label={t('Application volumes (PVCs):')}
         value={volumeLastGroupSyncTime && formatTime(volumeLastGroupSyncTime)}
@@ -208,18 +208,14 @@ const DRPolicyDetails: React.FC<{
   const { t } = useCustomTranslation();
 
   return (
-    <Content
-      component="p"
-      className="pf-v6-u-mt-md"
-      data-test-id="dr-policy-details"
-    >
+    <Text className="pf-v5-u-mt-md" data-test-id="dr-policy-details">
       <strong>{t('DR Policy:')}</strong>
       <br />
       {t('{{policyName}}, sync every {{schedulingInterval}}', {
         policyName,
         schedulingInterval: schedulingInterval || t('Unknown'),
       })}
-    </Content>
+    </Text>
   );
 });
 
@@ -340,10 +336,8 @@ const createCompletionStatus = (
 ): StatusContent => {
   const message = healthStatusMessage ? (
     <>
-      <Content component="p">{completionMessage}</Content>
-      <Content component="p" className="pf-v6-u-mt-sm">
-        {healthStatusMessage}
-      </Content>
+      <Text>{completionMessage}</Text>
+      <Text className="pf-v5-u-mt-sm">{healthStatusMessage}</Text>
     </>
   ) : (
     completionMessage
@@ -910,13 +904,12 @@ const DRStatusPopoverBody: React.FC<{
   return (
     <>
       {message && (
-        <Content
-          component="p"
+        <Text
           className="dr-status-popover__description"
           data-test-id="popover-description"
         >
           {message}
-        </Content>
+        </Text>
       )}
       {[
         DRStatus.FailingOver,

@@ -1,24 +1,18 @@
 // Config
-@forward './styles/vars';
+@import './styles/vars';
 
 // Mixins
-@forward './styles/mixin/break-word';
-@forward './styles/mixin/break-word';
+@import './styles/mixin/break-word';
+@import './styles/mixin/break-word';
 
 // React Components
-@forward './styles/common';
-@forward './styles/dashboard';
-@forward './styles/dropdown';
-@forward './styles/skeleton';
-@forward './styles/alerts';
-@forward './styles/copy-to-clipboard';
-@forward './styles/status-box';
-@forward './styles/resource';
-@forward './styles/actions';
-@forward './styles/icons';
-
-//Patternfly utilities (Sass mixins/variables)
-@forward '@patternfly/patternfly/sass-utilities';
-
-//Patternfly utility CSS classes (pf-v6-u-* classes like margin, padding, flex, display, etc.)
-@import '@patternfly/patternfly/utilities/_index.css';
+@import './styles/common';
+@import './styles/dashboard';
+@import './styles/dropdown';
+@import './styles/skeleton';
+@import './styles/alerts';
+@import './styles/copy-to-clipboard';
+@import './styles/status-box';
+@import './styles/resource';
+@import './styles/actions';
+@import './styles/icons';

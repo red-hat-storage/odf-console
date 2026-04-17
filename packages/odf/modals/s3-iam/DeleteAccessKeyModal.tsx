@@ -5,18 +5,20 @@ import { useCustomTranslation } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { IamCommands } from '@odf/shared/iam';
 import { CommonModalProps } from '@odf/shared/modals';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction, Trans } from 'react-i18next';
 import {
+  Modal,
+  ModalVariant,
   Button,
   ButtonVariant,
-  Content,
-  ContentVariants,
+  TextContent,
+  TextVariants,
   FormGroup,
   TextInput,
   TextInputTypes,
   Alert,
   AlertVariant,
+  Text,
   ActionGroup,
 } from '@patternfly/react-core';
 
@@ -144,23 +146,23 @@ const DeleteAccessKeyModal: React.FC<
         </ButtonBar>,
       ]}
     >
-      <Content className="text-muted">
-        <Content component={ContentVariants.p}>
+      <TextContent className="text-muted">
+        <Text component={TextVariants.p}>
           {t(
             'Delete the access key? All policies and permissions under this access key will be deleted.'
           )}
-        </Content>
-        <Content component={ContentVariants.p}>
+        </Text>
+        <Text component={TextVariants.p}>
           {t('This action cannot be undone')}
-        </Content>
+        </Text>
         {accessKeyCard.Status === AccessKeyStatus.ACTIVE &&
           !deactivateSuccess && (
             <>
-              <Content component={ContentVariants.p}>
+              <Text component={TextVariants.p}>
                 {t(
                   'You must deactivate the access key before you can delete it. We recommend analyzing the impact of deactivating the access key before permanently deleting it.'
                 )}
-              </Content>
+              </Text>
               <Button
                 variant="warning"
                 onClick={onDeactivate}
@@ -170,20 +172,20 @@ const DeleteAccessKeyModal: React.FC<
               </Button>
             </>
           )}
-      </Content>
+      </TextContent>
       {deactivateSuccess && (
         <Alert
           variant={AlertVariant.success}
           isInline
           title={t('Access key deactivated successfully')}
-          className="pf-v6-u-mt-md"
+          className="pf-v5-u-mt-md"
         >
           {t('You can now delete the access key.')}
         </Alert>
       )}
       <FormGroup
         label={getTextInputLabel(t)}
-        className="pf-v6-u-mt-2xl pf-v6-u-mb-sm"
+        className="pf-v5-u-mt-2xl pf-v5-u-mb-sm"
         fieldId="delete-bucket"
       >
         <TextInput

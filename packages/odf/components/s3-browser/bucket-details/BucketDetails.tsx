@@ -30,8 +30,9 @@ import {
   Level,
   LevelItem,
   Switch,
-  Content,
-  ContentVariants,
+  TextContent,
+  Text,
+  TextVariants,
   DescriptionList,
   DescriptionListDescription,
   DescriptionListGroup,
@@ -54,7 +55,7 @@ const S3BucketDetailsOverview: React.FC<{}> = ({}) => {
   );
 
   const tags = tagData?.TagSet?.map((tag: Tag) => (
-    <Label className="pf-v6-u-mr-xs" color="grey" icon={<TagIcon />}>
+    <Label className="pf-v5-u-mr-xs" color="grey" icon={<TagIcon />}>
       {tag.Key}
       {tag.Value && `=${tag.Value}`}
     </Label>
@@ -121,19 +122,20 @@ const S3BucketProperties: React.FC<{}> = ({}) => {
       <SectionHeading text={t('Bucket properties')} />
       <Level>
         <LevelItem>
-          <Content>
-            <Content component={ContentVariants.h4}>{t('Versioning')}</Content>
-            <Content component={ContentVariants.small}>
+          <TextContent>
+            <Text component={TextVariants.h4}>{t('Versioning')}</Text>
+            <Text component={TextVariants.small}>
               {t(
                 'Versioning helps in keeping multiple version of an object in the bucket.'
               )}
-            </Content>
-          </Content>
+            </Text>
+          </TextContent>
         </LevelItem>
         <LevelItem>
           <Switch
             id="versioning-switch"
             label={versioningStatus}
+            labelOff={versioningStatus}
             isChecked={isVersioningChecked}
             onChange={(_event, checked) =>
               launcher(SetVersioningModal, {

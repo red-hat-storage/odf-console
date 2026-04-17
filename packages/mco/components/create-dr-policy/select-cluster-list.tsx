@@ -25,7 +25,7 @@ import {
   GridItem,
   Pagination,
   PaginationVariant,
-  Content,
+  Text,
 } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {
@@ -63,7 +63,7 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
         <Popover
           headerContent={t('Storage provisioners')}
           bodyContent={
-            <ul className="pf-v6-u-m-0 pf-v6-u-pl-xs">
+            <ul className="pf-v5-u-m-0 pf-v5-u-pl-xs">
               {providers.map((p) => (
                 <li key={p.displayName}>
                   {p.displayName}
@@ -90,7 +90,7 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
           getColumnHelper(ClusterListColumns.ManagedCluster, t).columnName
         }
       >
-        <Content component="p">{getName(cluster)}</Content>
+        <Text>{getName(cluster)}</Text>
       </Td>
       <Td
         dataLabel={
@@ -114,9 +114,9 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
           getColumnHelper(ClusterListColumns.DataFoundation, t).columnName
         }
       >
-        <Content component="p" className={cn({ 'text-muted': !odfVersion })}>
+        <Text className={cn({ 'text-muted': !odfVersion })}>
           {odfVersion || t('Not Installed')}
-        </Content>
+        </Text>
       </Td>
 
       <Td
@@ -124,9 +124,9 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
           getColumnHelper(ClusterListColumns.StorageClients, t).columnName
         }
       >
-        <Content component="p" className={cn({ 'text-muted': !clientName })}>
+        <Text className={cn({ 'text-muted': !clientName })}>
           {!!clientName ? clientName : t('Unavailable')}
-        </Content>
+        </Text>
       </Td>
     </>
   );
@@ -171,7 +171,7 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
   return (
     <>
       <Grid>
-        <GridItem md={8} sm={12} className="pf-v6-u-mt-md">
+        <GridItem md={8} sm={12} className="pf-v5-u-mt-md">
           <ListPageFilter
             data={data}
             loaded={isLoaded}
@@ -181,7 +181,7 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
         </GridItem>
         <GridItem md={4} sm={12}>
           <Pagination
-            className="pf-v6-u-mt-md"
+            className="pf-v5-u-mt-md"
             itemCount={filteredData.length || 0}
             widgetId="paginated-list-page"
             perPage={perPage}

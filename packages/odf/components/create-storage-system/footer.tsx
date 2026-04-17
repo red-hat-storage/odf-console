@@ -521,7 +521,6 @@ export const CreateStorageSystemFooter: React.FC<
           }
           variant="primary"
           onClick={handleNext}
-          className="pf-v6-u-mr-sm"
         >
           {stepName === StepsName(t)[Steps.ReviewAndCreate]
             ? t('Create storage system')
@@ -536,12 +535,11 @@ export const CreateStorageSystemFooter: React.FC<
             requestInProgress ||
             !isNsSafe
           }
-          className="pf-v6-u-mr-sm"
         >
           {t('Back')}
         </Button>
         <Button
-          variant="secondary"
+          variant="link"
           onClick={() => navigate(-1)}
           isDisabled={requestInProgress}
         >

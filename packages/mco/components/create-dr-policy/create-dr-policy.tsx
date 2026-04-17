@@ -27,9 +27,10 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
-  Content,
+  Text,
+  TextContent,
   TextInput,
-  ContentVariants,
+  TextVariants,
 } from '@patternfly/react-core';
 import {
   ACM_OPERATOR_SPEC_NAME,
@@ -120,11 +121,11 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
         name="flat-image-checkbox"
       />
       <Alert
-        className="pf-v6-u-mt-md odf-alert mco-create-data-policy__alert"
+        className="pf-v5-u-mt-md odf-alert mco-create-data-policy__alert"
         title={
           <Trans>
             Before choosing this option, read the section
-            <i className="pf-v6-u-mx-xs">
+            <i className="pf-v5-u-mx-xs">
               Creating Disaster Recovery Policy on Hub cluster chapter of
               Regional-DR solution guide
             </i>
@@ -299,13 +300,13 @@ const CreateDRPolicy: React.FC<{}> = () => {
   return (
     <>
       <PageHeading title={t('Create DRPolicy')}>
-        <Content className="mco-create-data-policy__description">
-          <Content component={ContentVariants.small}>
+        <TextContent className="mco-create-data-policy__description">
+          <Text component={TextVariants.small}>
             {t(
               'Get a quick recovery in a remote or secondary cluster with a disaster recovery (DR) policy'
             )}
-          </Content>
-        </Content>
+          </Text>
+        </TextContent>
       </PageHeading>
       {loaded && !loadedError ? (
         <Form className="mco-create-data-policy__body">

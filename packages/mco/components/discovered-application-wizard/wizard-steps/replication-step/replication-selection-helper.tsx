@@ -22,8 +22,8 @@ import {
   FormSection,
   HelperText,
   HelperTextItem,
-  Content,
-  ContentVariants,
+  Text,
+  TextVariants,
   SelectOption,
 } from '@patternfly/react-core';
 
@@ -77,10 +77,10 @@ const PolicySelection: React.FC<PolicySelectionProps> = ({
 
   return (
     <FormGroup
-      className="pf-v6-u-w-50"
+      className="pf-v5-u-w-50"
       fieldId="dr-policy-selection"
       label={t('Disaster recovery policy')}
-      labelHelp={
+      labelIcon={
         <FieldLevelHelp>
           {t('The policy sync interval is only applicable to volumes.')}
         </FieldLevelHelp>
@@ -132,11 +132,11 @@ export const ReplicationSelectionHelper: React.FC<
   return (
     <Form maxWidth="58rem">
       <FormSection title={t('Volume and Kubernetes object replication')}>
-        <Content component={ContentVariants.small}>
+        <Text component={TextVariants.small}>
           {t(
             'Define where to sync or replicate your application volumes and Kubernetes object using a disaster recovery policy.'
           )}
-        </Content>
+        </Text>
         <PolicySelection
           policy={policy}
           eligiblePolicies={eligiblePolicies}

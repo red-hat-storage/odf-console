@@ -1,13 +1,11 @@
-@import '../../enroll-discovered-application';
+@import '../../enroll-discovered-application.scss';
 
 .mco-namespace-selection {
-  &__border {
-    border: var(--pf-t--global--border--width--regular) solid
-      var(--pf-t--global--border--color--100);
-  }
-
-  &__table {
-    overflow-y: auto;
-    display: block;
-  }
+    &__border {
+        border: var(--pf-v5-global--BorderWidth--sm) solid var(--pf-v5-global--BorderColor--100);
+    }
+    &__table {
+        overflow-y: auto;
+        display: block;
+    }
 }

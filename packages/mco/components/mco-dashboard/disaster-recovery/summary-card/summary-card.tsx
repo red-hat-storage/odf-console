@@ -12,7 +12,7 @@ import {
   Gallery,
   GalleryItem,
   Divider,
-  Content,
+  Text,
 } from '@patternfly/react-core';
 import { DRResourcesContext } from '../dr-dashboard-context';
 
@@ -88,25 +88,16 @@ export const SummaryCard: React.FC = () => {
         {loaded && !loadError && (
           <Gallery hasGutter>
             <GalleryItem className="mco-dashboard__contentColumn">
-              <Content
-                component="p"
-                className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size"
-              >
+              <Text className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size">
                 {t('Clusters')}
-              </Content>
-              <Content
-                component="p"
-                className="mco-dashboard__statusText--margin pf-v6-u-font-size-4xl mco-dashboard__statusText--weight"
-              >
+              </Text>
+              <Text className="mco-dashboard__statusText--margin pf-v5-u-font-size-4xl mco-dashboard__statusText--weight">
                 {summaryMap.clusters.totalCount}
-              </Content>
-              <Content
-                component="p"
-                className="text-muted mco-dashboard__statusText--margin"
-              >
+              </Text>
+              <Text className="text-muted mco-dashboard__statusText--margin">
                 {t('in disaster recovery relationship')}
-              </Content>
-              <Divider className="pf-v6-u-w-75 mco-dashboard__statusText--margin" />
+              </Text>
+              <Divider className="pf-v5-u-w-75 mco-dashboard__statusText--margin" />
               <HealthItem
                 title={t('{{ healthy }} healthy', {
                   healthy: healthyClusters,
@@ -125,38 +116,26 @@ export const SummaryCard: React.FC = () => {
               />
             </GalleryItem>
             <GalleryItem className="mco-dashboard__contentColumn">
-              <Content
-                component="p"
-                className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size"
-              >
+              <Text className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size">
                 {t('Applications')}
-              </Content>
-              <Content
-                component="p"
-                className="mco-dashboard__statusText--margin pf-v6-u-font-size-4xl mco-dashboard__statusText--weight"
-              >
+              </Text>
+              <Text className="mco-dashboard__statusText--margin pf-v5-u-font-size-4xl mco-dashboard__statusText--weight">
                 {totalAppCount}
-              </Content>
-              <Content
-                component="p"
-                className="text-muted mco-dashboard__statusText--margin"
-              >
+              </Text>
+              <Text className="text-muted mco-dashboard__statusText--margin">
                 {t('enrolled in disaster recovery')}
-              </Content>
-              <Divider className="pf-v6-u-w-75 mco-dashboard__statusText--margin" />
-              <Content
-                component="p"
-                className="text-muted mco-dashboard__statusText--margin"
-              >
+              </Text>
+              <Divider className="pf-v5-u-w-75 mco-dashboard__statusText--margin" />
+              <Text className="text-muted mco-dashboard__statusText--margin">
                 {t('ACM discovered applications: {{count}}', {
                   count: summaryMap.applications.totalDiscovredAppsCount,
                 })}
-              </Content>
-              <Content component="p" className="text-muted">
+              </Text>
+              <Text className="text-muted">
                 {t('ACM managed applications: {{count}}', {
                   count: summaryMap.applications.totalManagedAppsCount,
                 })}
-              </Content>
+              </Text>
             </GalleryItem>
           </Gallery>
         )}

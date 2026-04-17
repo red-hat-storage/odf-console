@@ -1,8 +1,6 @@
 import * as React from 'react';
 import TimesIcon from '@patternfly/react-icons/dist/esm/icons/times-icon';
 import {
-  Label,
-  LabelGroup,
   Select,
   SelectOption,
   SelectList,
@@ -14,13 +12,15 @@ import {
   Button,
   SelectProps,
   MenuToggleStatus,
+  ChipGroup,
+  Chip,
 } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import './multiselectdropdown.scss';
 
 export type MultiSelectDropdownProps = Omit<
   SelectProps,
-  'onChange' | 'onToggle' | 'toggle' | 'variant'
+  'onChange' | 'onToggle' | 'toggle'
 > & {
   id?: string;
   className?: string;
@@ -31,7 +31,7 @@ export type MultiSelectDropdownProps = Omit<
   validated?: 'success' | 'warning' | 'error' | 'default';
   isCreatable?: boolean;
   isDisabled?: boolean;
-  variant?: 'checkbox' | 'typeahead';
+  variant?: 'typeahead' | 'checkbox';
   popperProps?: SelectProps['popperProps'];
   hasInlineFilter?: boolean;
   onClear?: () => void;
@@ -56,7 +56,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   validated,
   isCreatable = false,
   isDisabled,
-  variant,
+  variant = 'typeahead',
   popperProps,
   hasInlineFilter,
   onClear,
@@ -70,7 +70,6 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   const [newOptionVal, setNewOptionVal] = React.useState('');
   const textInputRef = React.useRef<HTMLInputElement>(null);
   const DISABLED = '__disabled__';
-  const isCheckboxVariant = variant === 'checkbox';
 
   const baseOptions = React.useMemo<Option[]>(() => {
     return selectOptions.map((opt) => ({
@@ -237,31 +236,31 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
             }
           >
             {hasSelection && variant === 'typeahead' && (
-              <LabelGroup aria-label={t('Current selections')}>
+              <ChipGroup aria-label={t('Current selections')}>
                 {selections.map((sel) => (
-                  <Label
-                    variant="outline"
+                  <Chip
                     key={sel}
-                    onClose={(ev: React.MouseEvent | React.ChangeEvent) => {
+                    onClick={(ev: React.MouseEvent | React.ChangeEvent) => {
                       ev.stopPropagation();
                       onSelect(ev, sel);
                     }}
                   >
                     {sel}
-                  </Label>
+                  </Chip>
                 ))}
-              </LabelGroup>
+              </ChipGroup>
             )}
           </TextInputGroupMain>
           <TextInputGroupUtilities
             {...(selections.length === 0 ? { style: { display: 'none' } } : {})}
           >
             <Button
-              icon={<TimesIcon aria-hidden />}
               variant="plain"
               onClick={onClearAll}
               aria-label={t('Clear input value')}
-            />
+            >
+              <TimesIcon aria-hidden />
+            </Button>
           </TextInputGroupUtilities>
         </TextInputGroup>
       </MenuToggle>
@@ -282,7 +281,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         key={opt.value}
         value={opt.value}
         description={opt.description}
-        hasCheckbox={isCheckboxVariant}
+        hasCheckbox={variant === 'checkbox'}
         isSelected={selections.includes(opt.value)}
       >
         {opt.label}
@@ -299,6 +298,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       selected={selections}
       onOpenChange={(open) => setIsOpen(open)}
       toggle={toggle}
+      isDisabled={isDisabled}
       popperProps={popperProps}
       data-test={props['data-test']}
     >

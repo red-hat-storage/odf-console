@@ -4,10 +4,14 @@ import {
   K8sResourceCommon,
   OwnerReference,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
-import { Button, ButtonVariant } from '@patternfly/react-core';
+import {
+  Button,
+  Modal,
+  ModalVariant,
+  ButtonVariant,
+} from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForOwnerRef } from '../utils';
@@ -16,7 +20,7 @@ import { ModalBody, ModalFooter, ModalHeader, CommonModalProps } from './Modal';
 const header = (t: TFunction) => (
   <ModalHeader>
     <ExclamationTriangleIcon
-      color="var(--pf-t--global--color--status--warning--100)"
+      color="var(--pf-v5-global--warning-color--100)"
       className="icon--spacer"
     />
     {t('Managed resource')}

@@ -2,8 +2,9 @@ import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Trans } from 'react-i18next';
 import {
-  ContentVariants,
-  Content,
+  TextVariants,
+  Text,
+  TextContent,
   Accordion,
   AccordionItem,
   AccordionContent,
@@ -45,11 +46,11 @@ const ExpiredDeleteMarkers: React.FC<StateAndDispatchProps> = ({
   const deleteCurrent = state.actions.deleteCurrent;
 
   return (
-    <div className="pf-v6-u-ml-xl">
+    <div className="pf-v5-u-ml-xl">
       <Checkbox
         id="expired-delete-marker"
         label={t('Delete expired object delete markers')}
-        className="pf-v6-u-mb-md"
+        className="pf-v5-u-mb-md"
         isChecked={deleteExpiredMarkers}
         isDisabled={deleteCurrent.isChecked}
         onChange={(_e, checked) =>
@@ -93,11 +94,11 @@ const IncompleteMultipartUploads: React.FC<StateAndDispatchProps> = ({
     state.triggerInlineValidations && isInvalidDeleteMultiparts(state);
 
   return (
-    <div className="pf-v6-u-ml-xl">
+    <div className="pf-v5-u-ml-xl">
       <Checkbox
         id="incomplete-multiparts-delete"
         label={t('Delete incomplete multipart uploads')}
-        className="pf-v6-u-mb-md"
+        className="pf-v5-u-mb-md"
         isChecked={deleteIncompleteMultiparts.isChecked}
         onChange={(_e, checked) =>
           dispatch({
@@ -107,7 +108,7 @@ const IncompleteMultipartUploads: React.FC<StateAndDispatchProps> = ({
         }
         body={
           deleteIncompleteMultiparts.isChecked ? (
-            <div className="pf-v6-u-w-25">
+            <div className="pf-v5-u-w-25">
               <TextInput
                 id="incomplete-multiparts-delete-days"
                 value={deleteIncompleteMultiparts.days}
@@ -207,7 +208,7 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
       description={t(
         'Delete older versions of objects after they become noncurrent (e.g., a new version overwrites them).'
       )}
-      className="pf-v6-u-ml-xl"
+      className="pf-v5-u-ml-xl"
       isChecked={deleteNonCurrent.isChecked}
       onChange={(_e, checked) =>
         dispatch({
@@ -218,7 +219,7 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
       body={
         deleteNonCurrent.isChecked ? (
           <>
-            <div className="pf-v6-u-w-25">
+            <div className="pf-v5-u-w-25">
               <TextInput
                 id="noncurrent-object-delete-days"
                 value={deleteNonCurrent.days}
@@ -258,19 +259,19 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
               </FormHelperText>
             </div>
 
-            <Content className="pf-v6-u-mt-lg">
-              <Content component={ContentVariants.p}>
+            <TextContent className="pf-v5-u-mt-lg">
+              <Text component={TextVariants.p}>
                 {t('Preserve object version history (Optional)')}
-              </Content>
-              <Content
-                component={ContentVariants.small}
+              </Text>
+              <Text
+                component={TextVariants.small}
                 className="s3-lifecycle-action--margin"
               >
                 {t(
                   'Keep up to 100 noncurrent versions of objects for version management and rollback. Excess versions will be automatically deleted.'
                 )}
-              </Content>
-            </Content>
+              </Text>
+            </TextContent>
             <NumberInput
               value={deleteNonCurrent.retention}
               min={0}
@@ -278,7 +279,7 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
               onMinus={() => onNumberInputAction(FuncType.ON_MINUS)}
               onPlus={() => onNumberInputAction(FuncType.ON_PLUS)}
               onChange={(e) => onNumberInputAction(FuncType.ON_CHANGE, e)}
-              className="pf-v6-u-mt-md"
+              className="pf-v5-u-mt-md"
             />
             <FormHelperText>
               <HelperText>
@@ -312,7 +313,7 @@ const CurrentObjects: React.FC<StateAndDispatchProps> = ({
       description={t(
         'When deleting for versioned buckets a delete marker is added and the current version of the object is retained as noncurrent version, for non-versioned buckets object deletion is permanent.'
       )}
-      className="pf-v6-u-ml-xl"
+      className="pf-v5-u-ml-xl"
       isChecked={deleteCurrent.isChecked}
       onChange={(_e, checked) => {
         dispatch({
@@ -326,7 +327,7 @@ const CurrentObjects: React.FC<StateAndDispatchProps> = ({
       }}
       body={
         deleteCurrent.isChecked ? (
-          <div className="pf-v6-u-w-25">
+          <div className="pf-v5-u-w-25">
             <TextInput
               id="current-object-delete-days"
               value={deleteCurrent.days}
@@ -392,22 +393,20 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
 
   return (
     <>
-      <Content>
-        <Content component={ContentVariants.h2}>
-          {t('Lifecycle rule actions')}
-        </Content>
-        <Content component={ContentVariants.small}>
+      <TextContent>
+        <Text component={TextVariants.h2}>{t('Lifecycle rule actions')}</Text>
+        <Text component={TextVariants.small}>
           {t(
             'Define what happens to objects in an S3 bucket during their lifecycle.'
           )}
-        </Content>
-        <Content component={ContentVariants.small} className="pf-v6-u-my-sm">
+        </Text>
+        <Text component={TextVariants.small} className="pf-v5-u-my-sm">
           <Trans t={t} values={{ actionsCount }}>
             You have defined{' '}
             <strong>{{ actionsCount }} lifecycle rules.</strong>
           </Trans>
-        </Content>
-      </Content>
+        </Text>
+      </TextContent>
       {validate && invalidActionsCount && (
         <Alert
           variant={AlertVariant.danger}
@@ -419,16 +418,17 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
       )}
 
       <Accordion togglePosition="start" className="s3-lifecycle--margin">
-        <AccordionItem isExpanded={expanded === Actions.CURRENT_OBJECTS}>
+        <AccordionItem>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.CURRENT_OBJECTS);
             }}
+            isExpanded={expanded === Actions.CURRENT_OBJECTS}
             id={Actions.CURRENT_OBJECTS}
           >
-            <Content
-              component={ContentVariants.h3}
-              className="pf-v6-u-text-align-left"
+            <Text
+              component={TextVariants.h3}
+              className="pf-v5-u-text-align-left"
             >
               <span>
                 {t('Objects')}
@@ -436,7 +436,7 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                   <Label
                     variant="outline"
                     color="blue"
-                    className="pf-v6-u-mx-xs"
+                    className="pf-v5-u-mx-xs"
                   >
                     {t('Selected')}
                   </Label>
@@ -445,35 +445,39 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                   <Label
                     variant="outline"
                     color="red"
-                    className="pf-v6-u-mx-xs"
+                    className="pf-v5-u-mx-xs"
                   >
                     {t('Details needed')}
                   </Label>
                 )}
               </span>
-            </Content>
-            <Content
-              component={ContentVariants.small}
+            </Text>
+            <Text
+              component={TextVariants.small}
               className={invalidDeleteCurrent && 's3-lifecycle--margin'}
             >
               {t('Delete an object after a specified time.')}
-            </Content>
+            </Text>
           </AccordionToggle>
-          <AccordionContent id={Actions.CURRENT_OBJECTS}>
+          <AccordionContent
+            id={Actions.CURRENT_OBJECTS}
+            isHidden={expanded !== Actions.CURRENT_OBJECTS}
+          >
             <CurrentObjects state={state} dispatch={dispatch} />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded === Actions.NONCURRENT_OBJECTS}>
+        <AccordionItem>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.NONCURRENT_OBJECTS);
             }}
+            isExpanded={expanded === Actions.NONCURRENT_OBJECTS}
             id={Actions.NONCURRENT_OBJECTS}
           >
-            <Content
-              component={ContentVariants.h3}
-              className="pf-v6-u-text-align-left"
+            <Text
+              component={TextVariants.h3}
+              className="pf-v5-u-text-align-left"
             >
               <span>
                 {t('Noncurrent versions of objects')}
@@ -481,7 +485,7 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                   <Label
                     variant="outline"
                     color="blue"
-                    className="pf-v6-u-mx-xs"
+                    className="pf-v5-u-mx-xs"
                   >
                     {t('Selected')}
                   </Label>
@@ -490,34 +494,38 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                   <Label
                     variant="outline"
                     color="red"
-                    className="pf-v6-u-mx-xs"
+                    className="pf-v5-u-mx-xs"
                   >
                     {t('Details needed')}
                   </Label>
                 )}
               </span>
-            </Content>
-            <Content component={ContentVariants.small}>
+            </Text>
+            <Text component={TextVariants.small}>
               {t(
                 'Delete older versions of objects after they become noncurrent (e.g., a new version overwrites them). Applies only to versioned buckets.'
               )}
-            </Content>
+            </Text>
           </AccordionToggle>
-          <AccordionContent id={Actions.NONCURRENT_OBJECTS}>
+          <AccordionContent
+            id={Actions.NONCURRENT_OBJECTS}
+            isHidden={expanded !== Actions.NONCURRENT_OBJECTS}
+          >
             <NonCurrentObjects state={state} dispatch={dispatch} />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded === Actions.INCOMPLETE_UPLOADS}>
+        <AccordionItem>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.INCOMPLETE_UPLOADS);
             }}
+            isExpanded={expanded === Actions.INCOMPLETE_UPLOADS}
             id={Actions.INCOMPLETE_UPLOADS}
           >
-            <Content
-              component={ContentVariants.h3}
-              className="pf-v6-u-text-align-left"
+            <Text
+              component={TextVariants.h3}
+              className="pf-v5-u-text-align-left"
             >
               <span>
                 {t('Incomplete multipart uploads')}
@@ -525,7 +533,7 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                   <Label
                     variant="outline"
                     color="blue"
-                    className="pf-v6-u-mx-xs"
+                    className="pf-v5-u-mx-xs"
                   >
                     {t('Selected')}
                   </Label>
@@ -534,49 +542,56 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                   <Label
                     variant="outline"
                     color="red"
-                    className="pf-v6-u-mx-xs"
+                    className="pf-v5-u-mx-xs"
                   >
                     {t('Details needed')}
                   </Label>
                 )}
               </span>
-            </Content>
-            <Content component={ContentVariants.small}>
+            </Text>
+            <Text component={TextVariants.small}>
               {t(
                 'Clean up abandoned uploads to prevent accruing unnecessary storage costs. Targets multipart uploads that were initiated but never completed.'
               )}
-            </Content>
+            </Text>
           </AccordionToggle>
-          <AccordionContent id={Actions.INCOMPLETE_UPLOADS}>
+          <AccordionContent
+            id={Actions.INCOMPLETE_UPLOADS}
+            isHidden={expanded !== Actions.INCOMPLETE_UPLOADS}
+          >
             <IncompleteMultipartUploads state={state} dispatch={dispatch} />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded === Actions.EXPIRED_MARKERS}>
+        <AccordionItem>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.EXPIRED_MARKERS);
             }}
+            isExpanded={expanded === Actions.EXPIRED_MARKERS}
             id={Actions.EXPIRED_MARKERS}
           >
-            <Content
-              component={ContentVariants.h3}
-              className="pf-v6-u-text-align-left"
+            <Text
+              component={TextVariants.h3}
+              className="pf-v5-u-text-align-left"
             >
               {t('Expired object delete markers')}
               {state.actions.deleteExpiredMarkers && (
-                <Label variant="outline" color="blue" className="pf-v6-u-mx-xs">
+                <Label variant="outline" color="blue" className="pf-v5-u-mx-xs">
                   {t('Selected')}
                 </Label>
               )}
-            </Content>
-            <Content component={ContentVariants.small}>
+            </Text>
+            <Text component={TextVariants.small}>
               {t(
                 'Remove unnecessary delete markers that clutter bucket listings and do not serve a purpose. Targets delete markers in versioned buckets that do not have any associated object versions (orphaned delete markers).'
               )}
-            </Content>
+            </Text>
           </AccordionToggle>
-          <AccordionContent id={Actions.EXPIRED_MARKERS}>
+          <AccordionContent
+            id={Actions.EXPIRED_MARKERS}
+            isHidden={expanded !== Actions.EXPIRED_MARKERS}
+          >
             <ExpiredDeleteMarkers state={state} dispatch={dispatch} />
           </AccordionContent>
         </AccordionItem>

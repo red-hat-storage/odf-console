@@ -27,7 +27,7 @@ import {
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
-import { Bullseye, Grid, GridItem, Content } from '@patternfly/react-core';
+import { Bullseye, Grid, GridItem, Text } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {
   EnrollDiscoveredApplicationAction,
@@ -93,7 +93,7 @@ const TableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
 
 const EmptyRowMessageWrapper: React.FC = ({ children }) => {
   return (
-    <Bullseye className="mco-namespace-selection__border pf-v6-u-mt-md pf-v6-u-mb-sm pf-v6-u-h-33vh">
+    <Bullseye className="mco-namespace-selection__border pf-v5-u-mt-md pf-v5-u-mb-sm pf-v5-u-h-33vh">
       {children}
     </Bullseye>
   );
@@ -179,14 +179,14 @@ export const NamespaceSelectionTable: React.FC<
   return (
     <Grid>
       <GridItem span={10}>
-        <Content component="p" className="text-muted pf-v6-u-font-size-lg">
+        <Text className="text-muted pf-v5-u-font-size-lg">
           {!!clusterName
             ? t('{{count}} results found for {{clusterName}}', {
                 count: userNamespaces.length,
                 clusterName,
               })
             : t('0 results found')}
-        </Content>
+        </Text>
       </GridItem>
       <GridItem span={10}>
         <ListPageFilter
@@ -201,7 +201,7 @@ export const NamespaceSelectionTable: React.FC<
           />
         )}
         <SelectableTable<K8sResourceCommon>
-          className="mco-namespace-selection__table mco-namespace-selection__border pf-v6-u-mt-sm pf-v6-u-mb-sm pf-v6-u-h-33vh"
+          className="mco-namespace-selection__table mco-namespace-selection__border pf-v5-u-mt-sm pf-v5-u-mb-sm pf-v5-u-h-33vh"
           columns={getColumns(t)}
           rows={filteredData}
           RowComponent={TableRow}
@@ -217,11 +217,11 @@ export const NamespaceSelectionTable: React.FC<
                 : NoClusterEmptyRowMessage
           }
         />
-        <Content component="p">
+        <Text>
           {t(
             'This list does not include namespaces where applications are enrolled separately under disaster recovery protection.'
           )}
-        </Content>
+        </Text>
       </GridItem>
     </Grid>
   );

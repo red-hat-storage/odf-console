@@ -74,11 +74,11 @@ export const getSeverityColor = (severity: string): string => {
   const normalizedSeverity = severity?.toLowerCase();
 
   if (normalizedSeverity === AlertSeverity.Critical) {
-    return 'var(--pf-t--global--color--status--danger--default)';
+    return 'var(--pf-v5-global--danger-color--100)';
   } else if (normalizedSeverity === AlertSeverity.Warning) {
-    return 'var(--pf-t--global--color--status--warning--default)';
+    return 'var(--pf-v5-global--warning-color--100)';
   } else {
-    return 'var(--pf-t--global--color--status--info--default)';
+    return 'var(--pf-v5-global--info-color--100)';
   }
 };
 
@@ -87,11 +87,11 @@ export const getSeverityIcon = (severity: string): React.ReactNode => {
   const normalizedSeverity = severity?.toLowerCase();
 
   if (normalizedSeverity === AlertSeverity.Critical) {
-    return <SeverityImportantIcon className="pf-v6-u-mr-sm" color={color} />;
+    return <SeverityImportantIcon className="pf-v5-u-mr-sm" color={color} />;
   } else if (normalizedSeverity === AlertSeverity.Warning) {
-    return <SeverityModerateIcon className="pf-v6-u-mr-sm" color={color} />;
+    return <SeverityModerateIcon className="pf-v5-u-mr-sm" color={color} />;
   } else {
-    return <SeverityMinorIcon className="pf-v6-u-mr-sm" color={color} />;
+    return <SeverityMinorIcon className="pf-v5-u-mr-sm" color={color} />;
   }
 };
 

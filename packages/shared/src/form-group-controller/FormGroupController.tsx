@@ -48,7 +48,7 @@ const FormGroupController: React.FC<FormGroupControllerProps> = ({
       {render({ value, validated, onChange, onBlur })}
       <FormHelperText>
         <HelperText>
-          <HelperTextItem>
+          <HelperTextItem variant={validated}>
             {validated === ValidatedOptions.error && error?.message}
             {validated === ValidatedOptions.default &&
               formGroupProps?.helperText}

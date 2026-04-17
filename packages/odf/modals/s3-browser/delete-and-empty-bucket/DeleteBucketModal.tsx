@@ -11,17 +11,19 @@ import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {
+  Modal,
   Button,
-  Content,
+  Text,
   TextInput,
+  ModalVariant,
   ValidatedOptions,
   TextInputTypes,
-  ContentVariants,
+  TextVariants,
+  TextContent,
   FormGroup,
   Alert,
   Spinner,
@@ -113,11 +115,11 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
       actions={[
         <div>
           {inProgress && (
-            <Content component="p" className="text-muted pf-v6-u-mb-sm">
+            <Text className="text-muted pf-v5-u-mb-sm">
               <em>
                 {t('The bucket is being deleted. This may take a while.')}
               </em>
-            </Content>
+            </Text>
           )}
           <Button
             key="confirm"
@@ -140,14 +142,14 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
       ]}
     >
       {isChecking ? (
-        <Spinner size="md" className="pf-v6-u-mb-md" />
+        <Spinner size="md" className="pf-v5-u-mb-md" />
       ) : (
         hasObjects && (
           <Alert
             variant={AlertVariant.danger}
             isInline
             title={t('Cannot delete this bucket: it is not empty')}
-            className="co-alert pf-v6-u-mb-md"
+            className="co-alert pf-v5-u-mb-md"
             actionLinks={
               <AlertActionLink
                 onClick={() =>
@@ -176,21 +178,21 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
           </Alert>
         )
       )}
-      <Content className="text-muted">
-        <Content component={ContentVariants.p}>
+      <TextContent className="text-muted">
+        <Text component={TextVariants.p}>
           {t('Deleting a bucket cannot be undone.')}
-        </Content>
-        <Content component={ContentVariants.p}>
+        </Text>
+        <Text component={TextVariants.p}>
           {t(
             'Bucket names are unique. If you delete a bucket, another S3 user can use the name.'
           )}
-        </Content>
-      </Content>
+        </Text>
+      </TextContent>
       {isCreatedByOBC && (
         <Alert
           title={t('Delete OBC')}
           variant={AlertVariant.warning}
-          className="pf-v6-u-mt-md"
+          className="pf-v5-u-mt-md"
           isInline
         >
           {t(
@@ -201,7 +203,7 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
 
       <FormGroup
         label={getTextInputLabel(t, bucketName)}
-        className="pf-v6-u-mt-2xl pf-v6-u-mb-sm"
+        className="pf-v5-u-mt-2xl pf-v5-u-mb-sm"
         fieldId="delete-bucket"
       >
         <TextInput
@@ -222,7 +224,7 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
           variant={AlertVariant.danger}
           isInline
           title={t('Error')}
-          className="pf-v6-u-mt-md"
+          className="pf-v5-u-mt-md"
         >
           {error?.message || deleteError?.message}
         </Alert>
