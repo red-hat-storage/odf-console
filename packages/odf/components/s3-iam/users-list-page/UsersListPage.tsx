@@ -43,9 +43,9 @@ const UsersListPageBody: React.FC<UsersListPageBodyProps> = ({
   const [allUsers, filteredUsers, onFilterChange] = useListPageFilter(users);
   return (
     <ListPageBody>
-      <Flex className="pf-v5-u-mt-md">
+      <Flex className="pf-v6-u-mt-md">
         <Flex flex={{ default: 'flex_1' }}>
-          <FlexItem className="pf-v5-u-mr-md">
+          <FlexItem className="pf-v6-u-mr-md">
             <ListPageFilter
               loaded={true}
               hideLabelFilter={true}
@@ -56,13 +56,12 @@ const UsersListPageBody: React.FC<UsersListPageBodyProps> = ({
           </FlexItem>
           <FlexItem>
             <Button
+              icon={<SyncAltIcon />}
               data-test="users-list-sync-button"
               variant={ButtonVariant.plain}
               onClick={triggerRefresh}
               isDisabled={!fresh}
-            >
-              <SyncAltIcon />
-            </Button>
+            />
           </FlexItem>
         </Flex>
         <Flex>
@@ -119,7 +118,7 @@ const UsersListPageContent: React.FC = () => {
           />
         )}
       </ListPageHeader>
-      <div className="pf-v5-u-ml-lg pf-v5-u-mr-lg text-muted">
+      <div className="pf-v6-u-ml-lg pf-v6-u-mr-lg text-muted">
         {t('IAM account is used to manage users, access keys and policies')}
       </div>
       <UsersListPageBody usersInfo={usersInfo} setUsersInfo={setUsersInfo} />

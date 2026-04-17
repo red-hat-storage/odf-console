@@ -1,5 +1,26 @@
 .mco-empty-page {
   &__skeleton {
-    margin: var(--pf-v5-global--spacer--lg) var(--pf-v5-global--spacer--lg)
+    margin: var(--pf-t--global--spacer--lg) var(--pf-t--global--spacer--lg);
+  }
+}
+
+.odf-empty-page {
+  &__backdrop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    width: 100%;
+    padding: var(--pf-t--global--spacer--2xl) var(--pf-t--global--spacer--lg);
+    background-color: var(--pf-t--global--background--color--secondary--default);
+  }
+
+  &__dialog {
+    background-color: var(--pf-t--global--background--color--primary--default);
+    border-radius: var(--pf-t--global--border--radius--medium);
+    box-shadow: var(--pf-t--global--box-shadow--lg);
+    padding: var(--pf-t--global--spacer--2xl);
+    max-width: 600px;
+    width: 100%;
   }
 }

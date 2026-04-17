@@ -7,11 +7,11 @@
 }
 
 .odf-status-popup__icon {
-  padding-left: var(--pf-v5-global--spacer--xs);
+  padding-left: var(--pf-t--global--spacer--xs);
 }
 
 .odf-status-popup__text {
-  padding-left: var(--pf-v5-global--spacer--sm);
+  padding-left: var(--pf-t--global--spacer--sm);
 }
 
 .odf-status-popup__row {
@@ -19,15 +19,15 @@
   flex-grow: 1;
   justify-content: space-between;
   min-width: 17rem;
-  padding-bottom: var(--pf-v5-global--spacer--xs);
+  padding-bottom: var(--pf-t--global--spacer--xs);
 }
 
 .odf-status-popup__section {
-  margin-top: var(--pf-v5-global--spacer--md);
+  margin-top: var(--pf-t--global--spacer--md);
 }
 
 .odf-status-popup__text--bold {
-  font-weight: var(--pf-v5-global--FontWeight--bold);
+  font-weight: var(--pf-t--global--font--weight--body--bold);
 }
 
 .odf-status-popup__title .odf-resource-item__resource-name {

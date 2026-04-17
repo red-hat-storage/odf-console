@@ -31,7 +31,7 @@ import {
   useNavigate,
   useParams,
 } from 'react-router-dom-v5-compat';
-import { Text, TextContent, TextVariants } from '@patternfly/react-core';
+import { Content, ContentVariants } from '@patternfly/react-core';
 import { createWizardNodeState, getDeviceSetReplica } from '../utils';
 import { AttachStorageFormFooter } from './attach-storage-footer';
 import './attach-storage.scss';
@@ -248,13 +248,13 @@ const AttachStorage = () => {
   return (
     <>
       <PageHeading title={t('Attach Storage')} breadcrumbs={breadcrumbs}>
-        <TextContent className="attachstorage__description">
-          <Text component={TextVariants.small}>
+        <Content className="attachstorage__description">
+          <Content component={ContentVariants.small}>
             {t('Attach a new storage device class set to {{ resourceName }}', {
               resourceName,
             })}
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       </PageHeading>
       {!isLoaded || isLoadError ? (
         <div className="pf-v6-u-pb-xl">

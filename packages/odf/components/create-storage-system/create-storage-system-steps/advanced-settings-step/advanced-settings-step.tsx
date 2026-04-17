@@ -63,7 +63,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             label={
               <>
                 {t('Use external PostgreSQL')}
-                <span className="pf-v5-u-ml-sm">
+                <span className="pf-v6-u-ml-sm">
                   <TechPreviewBadge />
                 </span>
               </>

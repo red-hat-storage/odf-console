@@ -13,9 +13,8 @@ import {
   FormGroup,
   TextInput,
   TextArea,
-  TextContent,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   ActionGroup,
   ValidatedOptions,
   FormHelperText,
@@ -30,12 +29,14 @@ const CreateStorageClientHeader: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <div className="odf-create-storage-client__header">
-      <TextContent>
-        <Text component={TextVariants.h1}>{t('Create StorageClient')}</Text>
-        <Text component={TextVariants.small}>
+      <Content>
+        <Content component={ContentVariants.h1}>
+          {t('Create StorageClient')}
+        </Content>
+        <Content component={ContentVariants.small}>
           {t('Create a StorageClient to connect to a Data Foundation system.')}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
     </div>
   );
 };
@@ -156,7 +157,7 @@ const CreateStorageClient: React.FC = () => {
             />
           </FormGroup>
           <ButtonBar inProgress={inProgress} errorMessage={error?.message}>
-            <ActionGroup className="pf-v5-c-form">
+            <ActionGroup className="pf-v6-c-form">
               <Button onClick={submit}>{t('Create')}</Button>
               <Button variant="secondary" onClick={() => navigate(-1)}>
                 {t('Cancel')}

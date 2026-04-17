@@ -1,12 +1,10 @@
-@import '@patternfly/patternfly/sass-utilities/colors';
-
 .add-capacity-modal--overflow {
   overflow-x: unset;
   overflow-y: unset;
 }
 
 .ceph-add-capacity__current-capacity {
-  font-size: var(--pf-v5-c-form__label--FontSize);
+  font-size: var(--pf-v6-c-form__label--FontSize);
   font-weight: bold;
   display: flex;
 }
