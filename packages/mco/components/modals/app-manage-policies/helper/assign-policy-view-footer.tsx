@@ -8,8 +8,8 @@ import { requirementFromString } from '@odf/shared/modals';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Operator } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { useWizardContext, WizardFooterWrapper } from '@patternfly/react-core';
 import {
   Button,

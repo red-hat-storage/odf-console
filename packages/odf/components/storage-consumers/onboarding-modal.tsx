@@ -33,8 +33,9 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import type { TFunction } from 'i18next';
 import { Base64 } from 'js-base64';
-import { TFunction, Trans } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import {
   Button,
   FlexItem,

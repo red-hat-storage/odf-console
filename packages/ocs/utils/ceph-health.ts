@@ -11,8 +11,8 @@ import {
 import { getResiliencyProgress } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 
 export type WatchCephResource = {
   ceph: K8sResourceKind;

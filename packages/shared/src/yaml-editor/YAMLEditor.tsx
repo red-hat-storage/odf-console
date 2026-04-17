@@ -6,9 +6,9 @@ import {
   OwnerReference,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import type { TFunction } from 'i18next';
 import { load } from 'js-yaml';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { Alert } from '@patternfly/react-core';
 import { DetailsPageTitle } from '../details-page/DetailsPage';
 import { LoadingBox } from '../generic/status-box';
@@ -182,7 +182,7 @@ const YAMLEditor: React.FC<YAMLEditorProps> = ({
 
   return csvLoaded && !csvLoadError ? (
     <>
-      <React.Suspense fallback={LoadingBox}>
+      <React.Suspense fallback={<LoadingBox />}>
         <PageHeading
           title={
             <DetailsPageTitle resource={sourceObj} resourceModel={model} />

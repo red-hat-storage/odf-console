@@ -2,7 +2,7 @@ import * as React from 'react';
 import { DrawerHead as PFDrawerHead } from '@patternfly/react-core';
 import './drawer-head.scss';
 
-const DrawerHead: React.FC = ({ children }) => {
+const DrawerHead: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   return (
     <div className="odf-sidebar__drawer-head">
       <PFDrawerHead>{children}</PFDrawerHead>

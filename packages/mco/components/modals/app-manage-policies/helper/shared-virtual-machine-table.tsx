@@ -13,8 +13,8 @@ import {
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { sortRows, sort } from '@odf/shared/utils';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import { stubTrue } from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { VirtualMachineIcon } from '@patternfly/react-icons';
 import { TableVariant, Td } from '@patternfly/react-table';

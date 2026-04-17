@@ -8,7 +8,7 @@ import {
   k8sGet,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { ACMManagedClusterViewKind } from '../types';
 
 export const deleteManagedClusterView = (

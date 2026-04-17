@@ -12,7 +12,7 @@ import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Button,
   ButtonVariant,

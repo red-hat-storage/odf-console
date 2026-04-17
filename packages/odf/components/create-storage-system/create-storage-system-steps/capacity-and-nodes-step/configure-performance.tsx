@@ -20,7 +20,7 @@ import {
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Content, ContentVariants, SelectOption } from '@patternfly/react-core';
 import './configure-performance.scss';
 

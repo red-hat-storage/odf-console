@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Label } from '@patternfly/react-core';
 import { Tr, Td, ActionsColumn } from '@patternfly/react-table';
 import { ObjectCrFormat } from '../../../types';

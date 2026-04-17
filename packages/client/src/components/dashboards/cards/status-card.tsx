@@ -23,6 +23,9 @@ import {
 } from '@patternfly/react-core';
 import '../../../../style.scss';
 
+const HealthBodyCompat =
+  HealthBody as React.ComponentType<React.PropsWithChildren>;
+
 const clientResource: WatchK8sResource = {
   kind: referenceForModel(StorageClientModel),
   isList: true,
@@ -72,7 +75,7 @@ export const StatusCard: React.FC = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <HealthBody>
+        <HealthBodyCompat>
           <Gallery className="odf-overview-status__health" hasGutter>
             <GalleryItem>
               <HealthItem
@@ -82,7 +85,7 @@ export const StatusCard: React.FC = () => {
               />
             </GalleryItem>
           </Gallery>
-        </HealthBody>
+        </HealthBodyCompat>
       </CardBody>
     </Card>
   );

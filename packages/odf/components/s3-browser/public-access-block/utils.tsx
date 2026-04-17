@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { GetPublicAccessBlockCommandOutput } from '@aws-sdk/client-s3';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   TreeViewDataItem,
   Content,

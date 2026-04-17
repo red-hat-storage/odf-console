@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { DeploymentType } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Select, SelectOption, SelectProps } from '@patternfly/react-core';
 import {
   FormGroup,

@@ -8,7 +8,7 @@ import { ModalBody } from '@odf/shared/modals';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Wizard, WizardStep, WizardStepProps } from '@patternfly/react-core';
 import { AssignPolicyViewFooter } from './helper/assign-policy-view-footer';
 import ProtectionTypeWizardContent from './helper/protection-type-wizard-content';

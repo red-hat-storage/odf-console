@@ -10,9 +10,9 @@ import { IamCommands } from '@odf/shared/iam';
 import { CommonModalProps } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
-import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Button,

@@ -6,8 +6,8 @@ import {
 } from '@odf/shared/types/storage';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getStorageSizeInTiBWithoutUnit } from '@odf/shared/utils';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { SelectOption } from '@patternfly/react-core';
 import '../../style.scss';
 

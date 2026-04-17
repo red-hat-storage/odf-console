@@ -17,7 +17,9 @@ import { useVisualizationController } from '@patternfly/react-topology';
 import { STEP_INTO_EVENT, STEP_TO_CLUSTER } from '../constants';
 import './TopologyNavigation.scss';
 
-const TopologyNavigationItem: React.FC = ({ children }) => {
+const TopologyNavigationItem: React.FC<{ children?: React.ReactNode }> = ({
+  children,
+}) => {
   return <div className="odf-topology-nav__item">{children}</div>;
 };
 
@@ -118,7 +120,9 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
   );
 };
 
-const TopologyNavigationBarGroup: React.FC = ({ children }) => {
+const TopologyNavigationBarGroup: React.FC<{
+  children?: React.ReactNode;
+}> = ({ children }) => {
   const childArray = React.Children.toArray(children);
   return (
     <div className="odf-topology-nav">

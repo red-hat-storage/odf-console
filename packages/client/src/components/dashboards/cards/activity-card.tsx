@@ -77,7 +77,12 @@ const RecentEvent: React.FC = () => {
   };
 
   return (
-    <RecentEventsBody events={eventObject} filter={clientEventsFilter()} />
+    <RecentEventsBody
+      eventsData={eventObject.data}
+      eventsLoaded={eventObject.loaded}
+      eventsLoadError={eventObject.loadError}
+      filter={clientEventsFilter()}
+    />
   );
 };
 

@@ -3,7 +3,7 @@ import { isFlexibleScaling } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { StorageClusterModel } from '@odf/shared/models';
 import { InfraProviders } from '@odf/shared/types';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { WizardStepProps } from '@patternfly/react-core';
 import { NO_PROVISIONER, Steps, StepsName } from '../../constants';
 import { BackingStorageType, DeploymentType } from '../../types';

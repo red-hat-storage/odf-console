@@ -27,5 +27,5 @@
     "**/*.spec.ts",
     "**/*.spec.tsx"
   ],
-  "include": ["packages"]
+  "include": ["packages", "types"]
 }

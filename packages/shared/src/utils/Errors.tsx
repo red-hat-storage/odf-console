@@ -9,7 +9,7 @@ export type ErrorComponentProps = {
   message?: string;
 };
 
-const ErrorComponent: React.SFC<ErrorComponentProps> = ({ title, message }) => {
+const ErrorComponent: React.FC<ErrorComponentProps> = ({ title, message }) => {
   const { t } = useCustomTranslation();
   return (
     <>

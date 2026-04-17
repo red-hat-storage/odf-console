@@ -36,11 +36,9 @@ export const GeneralOverviewActivityCard: React.FC<CardProps> = ({
       </CardHeader>
       <CardBody className="odf-general-overview__activity-card-body">
         <RecentEventsBody
-          events={{
-            data,
-            loaded,
-            loadError,
-          }}
+          eventsData={data}
+          eventsLoaded={loaded}
+          eventsLoadError={loadError}
         />
       </CardBody>
     </Card>

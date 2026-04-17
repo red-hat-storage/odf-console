@@ -14,6 +14,7 @@ export type HealthItemProps = {
   popupTitle?: string;
   noIcon?: boolean;
   icon?: React.ReactNode;
+  children?: React.ReactNode;
   maxWidth?: string;
   disableDetails?: boolean;
   onClick?: () => void;

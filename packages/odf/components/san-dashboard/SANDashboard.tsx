@@ -7,7 +7,7 @@ import {
 } from '@odf/shared';
 import { ModalKeys } from '@odf/shared/modals';
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Grid, GridItem } from '@patternfly/react-core';
 import ActivityCard from '../ibm-common/ActivityCard';
 import CapacityCard from '../ibm-common/CapacityCard';

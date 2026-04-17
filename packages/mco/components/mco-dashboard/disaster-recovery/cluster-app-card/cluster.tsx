@@ -465,7 +465,7 @@ type SnapshotUtilizationCardProps = {
   humanizeValue: Humanize;
   chartLabel?: string;
   clusters?: string[];
-  titleToolTip: JSX.Element;
+  titleToolTip?: React.ReactNode;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
 };
 

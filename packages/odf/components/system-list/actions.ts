@@ -8,7 +8,7 @@ import {
 } from '@odf/shared';
 import { ModalKeys } from '@odf/shared/modals';
 import { getGVK } from '@odf/shared/utils';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 const getKindOfExternalSystem = (obj: StorageSystemKind): string => {
   const { kind } = getGVK(obj.spec.kind);

@@ -7,7 +7,7 @@ import { SVGIconProps } from '@patternfly/react-icons/dist/esm/createIcon';
 import DefaultIcon from '@patternfly/react-icons/dist/esm/icons/builder-image-icon';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
 import classNames from 'classnames';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Tooltip } from '@patternfly/react-core';
 import {
   ContainerNodeIcon,

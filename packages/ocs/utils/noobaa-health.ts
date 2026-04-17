@@ -5,7 +5,7 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 const parseNoobaaStatus = (status: string, t: TFunction): SubsystemHealth => {
   switch (status) {

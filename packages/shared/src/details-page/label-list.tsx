@@ -16,7 +16,7 @@ export const isGroupVersionKind = (ref: GroupVersionKind | string) =>
 export const kindForReference = (ref: K8sResourceKindReference) =>
   isGroupVersionKind(ref) ? ref.split('~')[2] : ref;
 
-export const Label: React.SFC<LabelProps> = ({ kind, name, value, expand }) => {
+export const Label: React.FC<LabelProps> = ({ kind, name, value, expand }) => {
   const href = `/search?kind=${kind}&q=${
     value ? encodeURIComponent(`${name}=${value}`) : name
   }`;

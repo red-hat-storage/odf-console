@@ -5,7 +5,7 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown'
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Form,
   FormGroup,

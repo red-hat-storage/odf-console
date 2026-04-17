@@ -2,7 +2,6 @@ import * as React from 'react';
 import {
   CodeRef,
   Extension,
-  ExtensionDeclaration,
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 
 export type HorizontalNavTabExtensionProps = {
@@ -22,7 +21,7 @@ export type HorizontalNavTabExtensionProps = {
   component: CodeRef<React.ComponentType<{}>>;
 };
 
-export type HorizontalNavTab = ExtensionDeclaration<
+export type HorizontalNavTab = Extension<
   'odf.horizontalNav/tab',
   HorizontalNavTabExtensionProps
 >;

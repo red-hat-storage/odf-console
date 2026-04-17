@@ -3,7 +3,7 @@ import { S3ProviderType } from '@odf/core/types';
 import { NooBaaObjectBucketClaimModel } from '@odf/shared/models';
 import { SecretKind } from '@odf/shared/types';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Label } from '@patternfly/react-core';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 import { IAction } from '@patternfly/react-table';

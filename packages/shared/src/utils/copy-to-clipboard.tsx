@@ -8,6 +8,7 @@ import { useCustomTranslation } from '../useCustomTranslationHook';
 import '../style.scss';
 
 type CopyToClipboardWrapperProps = {
+  children?: React.ReactNode;
   visibleValue: React.ReactNode;
   iconOnly?: boolean;
 };

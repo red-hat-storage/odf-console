@@ -13,6 +13,7 @@ import './common-details.scss';
 import '../../style.scss';
 
 type DetailsItemProps = {
+  children?: React.ReactNode;
   field: string;
   padChildElement?: boolean; // Add slight padding to the left for cascade effect
   showBorder?: boolean;
@@ -44,6 +45,7 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
 );
 
 type CommonDetailsSectionProps = {
+  children?: React.ReactNode;
   resource: K8sResourceCommon;
   resourceModel: K8sModel;
 };

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { docLinks } from '@odf/mco/constants/doc';
 import { ViewDocumentation } from '@odf/shared/utils';
 import { K8sResourceCondition } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { AlertVariant } from '@patternfly/react-core';
 

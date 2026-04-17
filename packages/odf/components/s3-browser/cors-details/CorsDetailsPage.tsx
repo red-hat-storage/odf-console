@@ -14,9 +14,9 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
-import { TFunction } from 'react-i18next';
 import {
   useParams,
   useSearchParams,

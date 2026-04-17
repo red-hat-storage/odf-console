@@ -37,6 +37,7 @@ type GCPEndPointTypeProps = {
 type ExternalLinkProps = {
   href: string;
   text?: React.ReactNode;
+  children?: React.ReactNode;
   additionalClassName?: string;
   dataTestID?: string;
   stopPropagation?: boolean;

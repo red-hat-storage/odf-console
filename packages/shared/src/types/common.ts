@@ -4,7 +4,7 @@ import {
   FirehoseResult,
   SubsystemHealth,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 export type HumanizeResult = {
   value: number;

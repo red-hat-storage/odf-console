@@ -3,7 +3,7 @@ import { MultiSelectDropdown } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName, getUID } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { SelectOption } from '@patternfly/react-core';
 import { HelperText, HelperTextItem } from '@patternfly/react-core';
 import { checkDRActionReadiness } from '../../../../utils';

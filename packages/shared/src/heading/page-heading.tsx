@@ -45,6 +45,7 @@ const BreadCrumbs: React.FC<BreadCrumbsProps> = ({ breadcrumbs }) => (
 );
 
 type PageHeadingProps = {
+  children?: React.ReactNode;
   breadcrumbs?: { name: string; path: string }[];
   style?: object;
   title?: string | JSX.Element;

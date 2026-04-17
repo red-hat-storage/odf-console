@@ -13,6 +13,7 @@ import {
 import '../../../style.scss';
 
 type CreateS3BucketProps = {
+  children?: React.ReactNode;
   title: string;
   description: string;
   showNamespaceSelector?: boolean;

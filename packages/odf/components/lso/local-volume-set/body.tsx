@@ -12,8 +12,8 @@ import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { NodeKind } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import {
   Alert,
   AlertVariant,

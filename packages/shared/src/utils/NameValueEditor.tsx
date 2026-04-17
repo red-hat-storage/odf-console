@@ -78,8 +78,8 @@ export type PairElementProps = {
   isDragging?: () => void;
   onMove: any;
   rowSourceId?: any;
-  toolTip: {};
-  alwaysAllowRemove?: {};
+  toolTip?: React.ReactNode;
+  alwaysAllowRemove?: boolean;
   onRemove?: any;
   isEmpty: boolean;
   disableReorder: boolean;
@@ -183,7 +183,7 @@ const PairElement: React.FC<PairElementProps> = ({
       </div>
       {!readOnly && (
         <div className="col-xs-1 pairs-list__action">
-          <Tooltip content={toolTip || t('Remove')}>
+          <Tooltip content={<>{toolTip || t('Remove')}</>}>
             <Button
               icon={deleteIcon}
               type="button"

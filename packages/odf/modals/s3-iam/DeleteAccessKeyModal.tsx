@@ -6,7 +6,8 @@ import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { IamCommands } from '@odf/shared/iam';
 import { CommonModalProps } from '@odf/shared/modals';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { TFunction, Trans } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import { Trans } from 'react-i18next';
 import {
   Button,
   ButtonVariant,

@@ -15,8 +15,9 @@ import {
   StatusIconAndText,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction, Trans } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import {
   Alert,
   AlertVariant,

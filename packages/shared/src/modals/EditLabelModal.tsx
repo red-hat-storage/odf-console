@@ -58,8 +58,8 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
     arrayify(_.get(resource, LABELS_PATH.split('/').slice(1)))
   );
   const [loading, setLoading] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState();
-  const [errorTitle, setErrorTitle] = React.useState();
+  const [errorMessage, setErrorMessage] = React.useState<string | undefined>();
+  const [errorTitle, setErrorTitle] = React.useState<string | undefined>();
   const [errorVariant, setErrorVariant] = React.useState<AlertVariant>();
 
   const createPath = !labels.length;

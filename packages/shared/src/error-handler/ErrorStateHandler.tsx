@@ -6,6 +6,7 @@ const DefaultErrorMessage: React.FC<{ error: string }> = ({ error }) => (
 );
 
 type HandleErrorAndLoadingProps = {
+  children?: React.ReactNode;
   loading: boolean;
   error: string;
   ErrorMessage?: React.FC<{ error: string }>;

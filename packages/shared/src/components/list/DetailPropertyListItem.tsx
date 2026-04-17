@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ListItem } from '@patternfly/react-core';
 
 type DetailPropertyListItemProps = {
+  children?: React.ReactNode;
   title?: string;
 };
 

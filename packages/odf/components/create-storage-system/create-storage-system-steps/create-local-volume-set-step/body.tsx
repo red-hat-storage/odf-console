@@ -23,9 +23,9 @@ import { StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
-import { TFunction } from 'react-i18next';
 import * as Yup from 'yup';
 import {
   Alert,

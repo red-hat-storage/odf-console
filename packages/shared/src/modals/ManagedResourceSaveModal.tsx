@@ -5,7 +5,7 @@ import {
   OwnerReference,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';

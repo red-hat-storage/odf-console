@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
 
 type PopoverStatusProps = {
+  children?: React.ReactNode;
   statusBody: React.ReactNode;
   onHide?: () => void;
   onShow?: () => void;

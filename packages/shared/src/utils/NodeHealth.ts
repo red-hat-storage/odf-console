@@ -1,6 +1,6 @@
 import { DeploymentKind, NodeCondition, NodeKind } from '@odf/shared/types';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { NodeStatus } from '@patternfly/react-topology';
 
 const isNodeReady = (node: NodeKind): boolean => {
@@ -65,4 +65,5 @@ export const getNodeStatus = (
   node: NodeKind,
   deployments: DeploymentKind[]
 ): NodeStatus =>
-  getNodeStatusWithDescriptors(node, deployments, _.identity).status;
+  getNodeStatusWithDescriptors(node, deployments, _.identity as TFunction)
+    .status;

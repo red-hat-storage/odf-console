@@ -26,7 +26,7 @@ import {
   ListPageFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Bullseye, Grid, GridItem, Content } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {
@@ -91,7 +91,9 @@ const TableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
   );
 };
 
-const EmptyRowMessageWrapper: React.FC = ({ children }) => {
+const EmptyRowMessageWrapper: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   return (
     <Bullseye className="mco-namespace-selection__border pf-v6-u-mt-md pf-v6-u-mb-sm pf-v6-u-h-33vh">
       {children}

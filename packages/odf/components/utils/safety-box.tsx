@@ -3,12 +3,14 @@ import { useODFNamespaceSelector } from '@odf/core/redux';
 import { StatusBox } from '@odf/shared/generic';
 
 type SafetyBoxWrapperProps = {
+  children?: React.ReactNode;
   areResourcesLoaded?: boolean;
   resourcesError?: unknown;
   allowFallback?: boolean;
 };
 
 type SafetyBoxProps = {
+  children?: React.ReactNode;
   isAllSafe: boolean;
   isAllLoaded: boolean;
   anyError: unknown;

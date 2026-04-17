@@ -2,6 +2,8 @@
 const config = {
   collectCoverageFrom: ['<rootDir>/packages/**/*.{ts,tsx}', '!**/*.d.ts'],
   moduleNameMapper: {
+    '^@console/shared/src/components/layout/PaneBody$':
+      '<rootDir>/jest/mocks/PaneBody.tsx',
     '^@console': 'identity-obj-proxy',
     '^@odf/shared(.*)': '<rootDir>/packages/shared/src$1',
     '^@odf/(mco|odf|ocs)/(.*)': '<rootDir>/packages/$1/$2',

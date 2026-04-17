@@ -11,8 +11,8 @@ import {
 } from '@odf/shared/status/icons';
 import { sortRows, referenceForModel } from '@odf/shared/utils';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { NavigateFunction } from 'react-router-dom-v5-compat';
 import {
   AlertProps,

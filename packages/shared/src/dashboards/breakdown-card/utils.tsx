@@ -1,6 +1,6 @@
 import { DataPoint } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { t_global_color_nonstatus_gray_400 as globalBlack400 } from '@patternfly/react-tokens';
 import { Colors } from './consts';
 

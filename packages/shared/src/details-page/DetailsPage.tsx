@@ -127,6 +127,7 @@ export type ResourceSummaryProps = {
 };
 
 export type DetailsItemProps = {
+  children?: React.ReactNode;
   canEdit?: boolean;
   defaultValue?: React.ReactNode;
   description?: string;
@@ -162,6 +163,7 @@ export const PropertyPath: React.FC<{
 };
 
 type EditButtonProps = {
+  children?: React.ReactNode;
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   testId?: string;
 };

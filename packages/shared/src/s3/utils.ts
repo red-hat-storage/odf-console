@@ -2,7 +2,7 @@ import {
   BucketVersioningStatus,
   GetBucketVersioningCommandOutput,
 } from '@aws-sdk/client-s3';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 export const isNoLifecycleRuleError = (error) =>
   error?.name === 'NoSuchLifecycleConfiguration';

@@ -43,7 +43,9 @@ const RecentEvent: React.FC<ActivityProps> = ({ systemFlags, clusterNs }) => {
     useK8sWatchResource<EventKind[]>(eventsResource);
   return (
     <RecentEventsBody
-      events={{ data, loaded, loadError }}
+      eventsData={data}
+      eventsLoaded={loaded}
+      eventsLoadError={loadError}
       filter={isObjectStorageEvent(isRGWSupported, isMCGSupported)}
     />
   );

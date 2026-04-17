@@ -39,7 +39,7 @@ import {
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { compose } from 'redux';
 import {

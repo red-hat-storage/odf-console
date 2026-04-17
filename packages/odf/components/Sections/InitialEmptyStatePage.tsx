@@ -11,8 +11,9 @@ import {
 import { DOC_VERSION } from '@odf/shared/hooks/use-doc-version';
 import { ViewDocumentation } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import { Helmet } from 'react-helmet';
-import { TFunction, Trans } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import { useLocation } from 'react-router-dom-v5-compat';
 import {
   Button,

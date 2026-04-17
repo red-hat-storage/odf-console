@@ -116,6 +116,7 @@ export const RequestSizeInput: React.FC<RequestSizeInputProps> = ({
 };
 
 export type RequestSizeInputProps = {
+  children?: React.ReactNode;
   placeholder?: string;
   name: string;
   onChange: Function;

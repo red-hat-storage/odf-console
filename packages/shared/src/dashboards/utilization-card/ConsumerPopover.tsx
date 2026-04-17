@@ -31,6 +31,7 @@ import {
 } from '../../utils';
 
 export type ConsumerPopoverProps = PopoverProps & {
+  children?: React.ReactNode;
   position?: PopoverPosition;
   title: string;
   current: string;
@@ -102,6 +103,7 @@ type PopoverProps = {
 };
 
 type PopoverBodyProps = PopoverProps & {
+  children?: React.ReactNode;
   topConsumers?: DataPoint[][];
   error?: boolean;
   isOpen: boolean;
@@ -128,6 +130,7 @@ const ListItem: React.FC<ListItemProps> = ({ children, value }) => (
 );
 
 type ListItemProps = {
+  children?: React.ReactNode;
   value: React.ReactText;
 };
 

@@ -9,8 +9,8 @@ import {
 import { DASH, WILDCARD } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import {
   DELIMITER,
   BUCKETS_BASE_ROUTE,

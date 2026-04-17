@@ -5,8 +5,8 @@ import {
 } from '@odf/mco/constants';
 import { isLabelOnlyOperator } from '@odf/shared/label-expression-selector';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import {
   Button,
   ButtonVariant,

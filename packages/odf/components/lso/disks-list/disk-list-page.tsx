@@ -38,8 +38,8 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import cx from 'classnames';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { Button, EmptyState, EmptyStateVariant } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 

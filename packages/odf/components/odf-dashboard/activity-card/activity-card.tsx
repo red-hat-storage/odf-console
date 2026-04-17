@@ -25,11 +25,9 @@ const ActivityCard: React.FC = () => {
       </CardHeader>
       <CardBody className="odf-activityCard">
         <RecentEventsBody
-          events={{
-            data,
-            loaded,
-            loadError,
-          }}
+          eventsData={data}
+          eventsLoaded={loaded}
+          eventsLoadError={loadError}
         />
       </CardBody>
     </Card>

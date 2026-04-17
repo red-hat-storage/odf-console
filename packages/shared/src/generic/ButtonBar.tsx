@@ -63,6 +63,7 @@ export const ButtonBar: React.FC<ButtonBarProps> = ({
 };
 
 type ButtonBarProps = {
+  children?: React.ReactNode;
   successMessage?: string;
   errorMessage: React.ReactNode;
   infoMessage?: string;

@@ -1,6 +1,6 @@
 import { ListUsersCommandOutput } from '@aws-sdk/client-iam';
 import { IamCommands } from '@odf/shared/iam';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { ValidatedOptions } from '@patternfly/react-core';
 import {
   TAG_KEY_MIN_LENGTH,

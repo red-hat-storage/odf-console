@@ -1,9 +1,6 @@
 import { K8sResourceKind } from '@odf/shared/types';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import {
-  Extension,
-  ExtensionDeclaration,
-} from '@openshift-console/dynamic-plugin-sdk/lib/types';
+import { Extension } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import { Control } from 'react-hook-form';
 import { ObjectSchema } from 'yup';
 
@@ -20,13 +17,13 @@ export type StorageClassWizardStepExtensionProps = {
   /** The model referring the `apiGroup`,`apiVersion`, `plural` and `kind` of the external storage vendor's CRD. */
   model: Model;
   /** A React Functional Component to input the connection details of the external storage vendor. */
-  component: React.FunctionComponent<StorageClassComponentProps<{}>>;
+  component: React.FunctionComponent<StorageClassComponentProps<any>>;
   /** A React Hook returning the `Yup` schema object (if `react-hook-form` is used in the `component`) */
   schemaHandler?: () => ObjectSchema<{}>;
   /**  Handler function to create external storage storage vendor CR or resources. */
-  createPayload: CreatePayload<{}>;
+  createPayload: CreatePayload<any>;
   /**  Handler function to validate the storage class page in order to move to the next step of wizard */
-  canGoToNextStep: CanGoToNextStep<{}>;
+  canGoToNextStep: CanGoToNextStep<any>;
   /** A function returing a promise, resolving any resources which should be created (if any) before creation of external sub-system */
   waitToCreate?: WaitToCreate;
 };
@@ -103,7 +100,7 @@ export type ExternalStateValues = string | number | Object | Array<any>;
 
 export type ExternalState = { [key: string]: ExternalStateValues };
 
-export type StorageClassWizardStep = ExtensionDeclaration<
+export type StorageClassWizardStep = Extension<
   'odf.wizard/storageclass',
   StorageClassWizardStepExtensionProps
 >;

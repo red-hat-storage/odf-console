@@ -57,6 +57,22 @@ const config: webpack.Configuration & DevServerConfiguration = {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     alias: {
       '@odf/shared': path.resolve(__dirname, './packages/shared/src/'),
+      'react/jsx-runtime.js': path.resolve(
+        __dirname,
+        './node_modules/react/jsx-runtime.js'
+      ),
+      'react/jsx-dev-runtime.js': path.resolve(
+        __dirname,
+        './node_modules/react/jsx-dev-runtime.js'
+      ),
+      'react/jsx-runtime': path.resolve(
+        __dirname,
+        './node_modules/react/jsx-runtime.js'
+      ),
+      'react/jsx-dev-runtime': path.resolve(
+        __dirname,
+        './node_modules/react/jsx-dev-runtime.js'
+      ),
     },
   },
   module: {

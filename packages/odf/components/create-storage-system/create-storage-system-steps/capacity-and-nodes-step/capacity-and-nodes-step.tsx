@@ -92,8 +92,8 @@ const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
         <Content component="p">
           <Trans t={t as any} ns="plugin__odf-console">
             If not labeled, the selected nodes are labeled{' '}
-            <Label color="blue">{{ label }}</Label> to make them target hosts
-            for Data Foundation
+            <Label color="blue">{label}</Label> to make them target hosts for
+            Data Foundation
             {/* eslint-disable react/no-unescaped-entities */}'s components.
           </Trans>
         </Content>
@@ -104,7 +104,7 @@ const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
 SelectNodesText.displayName = 'SelectNodesText';
 
 type SelectNodesTextProps = {
-  text: JSX.Element;
+  text: React.ReactNode;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 

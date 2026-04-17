@@ -30,8 +30,8 @@ import {
   Operator,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import { DRPlacementControlType } from '../components/modals/app-manage-policies/utils/types';
 import {

@@ -1,5 +1,5 @@
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { t_global_color_status_danger_100 as dangerColor } from '@patternfly/react-tokens';
 import { t_global_color_status_danger_300 as veryDangerColor } from '@patternfly/react-tokens';
 import { t_global_color_disabled_100 as disabledColor } from '@patternfly/react-tokens';

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import validationRegEx from '@odf/shared/utils/validation';
+import type { TFunction } from 'i18next';
 import { useForm } from 'react-hook-form';
-import { TFunction } from 'react-i18next';
 import * as Yup from 'yup';
 import { fieldRequirementsTranslations, formSettings } from '../constants';
 import { useCustomTranslation } from '../useCustomTranslationHook';

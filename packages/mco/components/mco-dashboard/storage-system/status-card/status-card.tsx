@@ -31,6 +31,9 @@ import {
 } from './storage-system-popup';
 import './status-card.scss';
 
+const HealthBodyCompat =
+  HealthBody as React.ComponentType<React.PropsWithChildren>;
+
 type SubSystemMap = {
   [key: string]: string;
 };
@@ -198,7 +201,7 @@ export const StatusCard: React.FC = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <HealthBody>
+        <HealthBodyCompat>
           <Flex
             justifyContent={{ default: 'justifyContentSpaceBetween' }}
             className="odf-StatusCard__items--width"
@@ -210,7 +213,7 @@ export const StatusCard: React.FC = () => {
               <StorageSystemHealthItem />
             </FlexItem>
           </Flex>
-        </HealthBody>
+        </HealthBodyCompat>
       </CardBody>
     </Card>
   );

@@ -21,7 +21,7 @@ import {
   VirtualizedTable,
   useActiveColumns,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Pagination,
   PaginationVariant,

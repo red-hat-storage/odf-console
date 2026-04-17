@@ -11,7 +11,8 @@ import {
 import NameInputWithValidation from '@odf/shared/input-with-requirements/NameInputWithValidation';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction, Trans } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import { Trans } from 'react-i18next';
 import {
   Alert,
   AlertVariant,

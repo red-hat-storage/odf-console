@@ -9,6 +9,19 @@ import { Link } from 'react-router-dom-v5-compat';
 
 const CAN_GET_NS = 'CAN_GET_NS';
 
+type PrometheusGraphLinkProps = {
+  children?: React.ReactNode;
+  query: string | string[];
+  namespace?: string;
+  ariaChartLinkLabel?: string;
+};
+
+type PrometheusGraphProps = {
+  children?: React.ReactNode;
+  className?: string;
+  title?: string;
+};
+
 export const getPrometheusExpressionBrowserURL = (url, queries): string => {
   if (!url || _.isEmpty(queries)) {
     return null;
@@ -57,30 +70,20 @@ export const PrometheusGraphLink: React.FC<PrometheusGraphLinkProps> = ({
   );
 };
 
-// eslint-disable-next-line react/display-name
-export const PrometheusGraph: React.FC<PrometheusGraphProps> = React.forwardRef(
-  ({ children, className, title }, ref: React.RefObject<HTMLDivElement>) => (
-    <div
-      ref={ref}
-      className={classNames(
-        'graph-wrapper graph-wrapper__horizontal-bar',
-        className
-      )}
-    >
-      {title && <h5 className="graph-title">{title}</h5>}
-      {children}
-    </div>
-  )
-);
+export const PrometheusGraph = React.forwardRef<
+  HTMLDivElement,
+  PrometheusGraphProps
+>(({ children, className, title }, ref) => (
+  <div
+    ref={ref}
+    className={classNames(
+      'graph-wrapper graph-wrapper__horizontal-bar',
+      className
+    )}
+  >
+    {title && <h5 className="graph-title">{title}</h5>}
+    {children}
+  </div>
+));
 
-type PrometheusGraphLinkProps = {
-  query: string | string[];
-  namespace?: string;
-  ariaChartLinkLabel?: string;
-};
-
-type PrometheusGraphProps = {
-  className?: string;
-  ref?: React.Ref<HTMLDivElement>;
-  title?: string;
-};
+PrometheusGraph.displayName = 'PrometheusGraph';

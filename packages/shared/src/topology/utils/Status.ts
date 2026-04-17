@@ -3,8 +3,8 @@ import {
   K8sResourceCommon,
   Alert,
 } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { NodeStatus } from '@patternfly/react-topology';
 import { DeploymentModel, NodeModel } from '../../models';
 import { getNodeStatusWithDescriptors } from '../../Nodes';
@@ -102,5 +102,5 @@ export const getStatus = (
     nodeDeploymentMap,
     resource,
     alerts,
-    _.identity
+    _.identity as TFunction
   ).status;

@@ -86,7 +86,7 @@ const RecentEvent: React.FC = () => {
   const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const [pvcs, pvcLoaded] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
-  const [events, eventsLoaded] =
+  const [events, eventsLoaded, eventsLoadError] =
     useK8sWatchResource<EventKind[]>(eventsResource);
 
   const validPVC = pvcs
@@ -101,14 +101,14 @@ const RecentEvent: React.FC = () => {
     [memoizedPVCNames, clusterNs]
   );
 
-  const eventObject = {
-    data: events,
-    loaded: eventsLoaded && pvcLoaded,
-    kind: 'Event',
-    loadError: null,
-  };
-
-  return <RecentEventsBody events={eventObject} filter={ocsEventsFilter()} />;
+  return (
+    <RecentEventsBody
+      eventsData={events}
+      eventsLoaded={eventsLoaded && pvcLoaded}
+      eventsLoadError={eventsLoadError}
+      filter={ocsEventsFilter()}
+    />
+  );
 };
 
 export const storageClusterResource = {

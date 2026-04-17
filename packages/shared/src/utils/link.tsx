@@ -161,6 +161,7 @@ export const LinkifyExternal: React.FC<{ children: React.ReactNode }> = ({
 LinkifyExternal.displayName = 'LinkifyExternal';
 
 type ExternalLinkProps = {
+  children?: React.ReactNode;
   href: string;
   text?: React.ReactNode;
   additionalClassName?: string;

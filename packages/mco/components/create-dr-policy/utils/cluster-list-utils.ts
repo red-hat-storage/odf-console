@@ -15,9 +15,9 @@ import {
 import { ConfigMapKind } from '@odf/shared/types';
 import { sortRows } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import { load } from 'js-yaml';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import {
   MAX_ALLOWED_CLUSTERS,
   MANAGED_CLUSTER_JOINED,

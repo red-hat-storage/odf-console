@@ -24,7 +24,7 @@ import { PaginatedListPage } from '@odf/shared/list-page';
 import { S3Commands } from '@odf/shared/s3';
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {

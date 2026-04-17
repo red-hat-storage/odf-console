@@ -104,7 +104,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
     return (
       <ChartVoronoiContainer
         voronoiDimension="x"
-        labels={getLabel}
+        labels={(point) => getLabel(point)}
         activateData={false}
       />
     );

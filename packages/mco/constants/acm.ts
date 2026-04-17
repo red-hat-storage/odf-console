@@ -1,4 +1,4 @@
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 // Managed cluster OCP public URL claim
 export const CLUSTER_CLAIM_URL_NAME =

@@ -64,7 +64,7 @@ describe('Label expression selector', () => {
     await user.click(option1);
 
     rerender(component());
-    expect(screen.getByText('option-1')).toBeInTheDocument();
+    expect(screen.getByText(/option-1/)).toBeInTheDocument();
 
     // Step 2: Select operator
     // PFv5 renders operator as typeahead input
@@ -93,7 +93,7 @@ describe('Label expression selector', () => {
     await user.click(notInOption);
 
     rerender(component());
-    expect(screen.getByText('NotIn')).toBeInTheDocument();
+    expect(screen.getByText(/option-1 does not equal/)).toBeInTheDocument();
 
     // Step 3: Select values
     // Find the Values section and its combobox input

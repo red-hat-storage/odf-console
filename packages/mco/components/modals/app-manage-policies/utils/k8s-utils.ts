@@ -47,8 +47,8 @@ import {
   ObjectMetadata,
   Patch,
 } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import { AssignPolicyViewState } from './reducer';
 import {
   DRPlacementControlType,

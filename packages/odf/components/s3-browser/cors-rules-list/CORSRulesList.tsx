@@ -32,8 +32,8 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import type { TFunction } from 'i18next';
 import { murmur3 } from 'murmurhash-js';
-import { TFunction } from 'react-i18next';
 import {
   Link,
   NavigateFunction,

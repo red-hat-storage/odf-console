@@ -25,9 +25,9 @@ import {
   useFlag,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
+import type { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
-import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import * as Yup from 'yup';
 import {

@@ -1,6 +1,6 @@
 import { STORAGE_SIZE_UNIT_NAME_MAP } from '@odf/shared';
 import { StorageSizeUnit } from '@odf/shared/types/storage';
-import { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { DiskType } from '../types';
 
 export const LABEL_SELECTOR = 'discovery-result-node';
