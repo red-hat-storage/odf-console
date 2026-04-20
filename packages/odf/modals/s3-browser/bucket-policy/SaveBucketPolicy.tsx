@@ -3,12 +3,8 @@ import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  Modal,
-  ModalVariant,
-  Button,
-  ButtonVariant,
-} from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
+import { Button, ButtonVariant } from '@patternfly/react-core';
 
 type SaveBucketPolicyModalModalProps = {
   bucketName: string;
@@ -71,14 +67,14 @@ const SaveBucketPolicyModal: React.FC<
               variant={ButtonVariant.primary}
               onClick={onSave}
               isDisabled={!!error || inProgress}
-              className="pf-v5-u-mr-xs"
+              className="pf-v6-u-mr-xs"
             >
               {t('Update policy')}
             </Button>
             <Button
               variant={ButtonVariant.link}
               onClick={closeModal}
-              className="pf-v5-u-ml-xs"
+              className="pf-v6-u-ml-xs"
             >
               {t('Cancel')}
             </Button>

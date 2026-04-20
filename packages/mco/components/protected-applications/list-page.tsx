@@ -80,7 +80,7 @@ const ProtectedAppsTableRow: React.FC<
     return (
       <Tr>
         <Td colSpan={Object.keys(columnNames).length + 1}>
-          <div className="text-muted pf-v5-u-text-align-center pf-v5-u-p-md">
+          <div className="text-muted pf-v6-u-text-align-center pf-v6-u-p-md">
             {t('DRPlacementControl resource not found for')}{' '}
             <strong>{appName}</strong>
           </div>

@@ -131,7 +131,7 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
               fieldId: 'existing',
               label: t('ObjectBucketClaim'),
               isRequired: true,
-              className: 'pf-v5-u-ml-lg',
+              className: 'pf-v6-u-ml-lg',
             }}
             render={({ onChange }) => (
               <ResourceDropdown
@@ -163,10 +163,10 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
           id="create"
           name="create"
           isChecked={createOBC}
-          className="pf-v5-u-mt-sm"
+          className="pf-v6-u-mt-sm"
         />
         {createOBC && (
-          <div className="pf-v5-u-ml-lg">
+          <div className="pf-v6-u-ml-lg">
             <CreateOBCForm
               state={state}
               dispatch={dispatch}
@@ -188,7 +188,7 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
         errorMessage={state.error || loadError?.message}
         inProgress={state.progress}
       >
-        <ActionGroup className="pf-v5-c-form">
+        <ActionGroup className="pf-v6-c-form">
           <Button
             type="submit"
             variant="primary"

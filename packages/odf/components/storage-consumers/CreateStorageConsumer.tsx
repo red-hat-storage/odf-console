@@ -30,9 +30,8 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 import * as Yup from 'yup';
 import {
   Form,
-  TextContent,
-  TextVariants,
-  Text,
+  Content,
+  ContentVariants,
   ActionGroup,
   Button,
 } from '@patternfly/react-core';
@@ -161,9 +160,11 @@ const CreateStorageConsumer: React.FC = () => {
       <Helmet>
         <title>{t('Create StorageConsumer')}</title>
       </Helmet>
-      <TextContent className="odf-m-pane__heading odf-m-pane__heading--baseline">
-        <Text component={TextVariants.h1}>{t('Create StorageConsumer')}</Text>
-      </TextContent>
+      <Content className="odf-m-pane__heading odf-m-pane__heading--baseline">
+        <Content component={ContentVariants.h1}>
+          {t('Create StorageConsumer')}
+        </Content>
+      </Content>
       <NamespaceSafetyBox>
         <Form onSubmit={handleSubmit(onSubmit)}>
           <TextInputWithFieldRequirements
@@ -181,7 +182,7 @@ const CreateStorageConsumer: React.FC = () => {
             textInputProps={{
               id: 'storageconsumer-name',
               name: 'storageconsumerName',
-              className: 'pf-v5-c-form-control',
+              className: 'pf-v6-c-form-control',
               type: 'text',
               placeholder: t('stark-lab-storage-consumer'),
               'data-test': 'storage-consumer-name',
@@ -190,7 +191,7 @@ const CreateStorageConsumer: React.FC = () => {
           />
           <StorageQuotaBody quota={quota} setQuota={setQuota} />
           <ButtonBar errorMessage={error} inProgress={progress}>
-            <ActionGroup className="pf-v5-c-form">
+            <ActionGroup className="pf-v6-c-form">
               <Button id="submit-btn" type="submit" variant="primary">
                 {t('Create')}
               </Button>

@@ -6,14 +6,14 @@ export const LoadingComponent: React.FC = () => {
 
   return (
     <span
-      className="pf-v5-c-spinner"
+      className="pf-v6-c-spinner"
       role="progressbar"
       aria-label={t('Loading...')}
       aria-valuetext={t('Loading...')}
     >
-      <span className="pf-v5-c-spinner__clipper" />
-      <span className="pf-v5-c-spinner__lead-ball" />
-      <span className="pf-v5-c-spinner__tail-ball" />
+      <span className="pf-v6-c-spinner__clipper" />
+      <span className="pf-v6-c-spinner__lead-ball" />
+      <span className="pf-v6-c-spinner__tail-ball" />
     </span>
   );
 };

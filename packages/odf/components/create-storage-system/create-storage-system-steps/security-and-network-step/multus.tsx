@@ -116,13 +116,13 @@ export const MultusNetworkConfigurationComponent: React.FC<
         onChange={handleMultusToggle}
         label={t('Isolate network using Multus')}
         id="multus-checkbox"
-        className="pf-v5-u-mb-md"
+        className="pf-v6-u-mb-md"
       />
 
       {networkType === NetworkType.MULTUS && (
         <>
           <Alert
-            className="pf-v5-u-ml-md"
+            className="pf-v6-u-ml-md"
             variant={AlertVariant.warning}
             isInline
             title={t('Run Validation test before to proceed further.')}
@@ -164,12 +164,12 @@ export const MultusNetworkConfigurationComponent: React.FC<
             )}
             onChange={handleAcknowledgementChange}
             id="acknowledgment-checkbox"
-            className="pf-v5-u-ml-md pf-v5-u-mt-md"
+            className="pf-v6-u-ml-md pf-v6-u-mt-md"
           />
         </>
       )}
       {isMultusAcknowledged && (
-        <div className="pf-v5-u-ml-md pf-v5-u-mt-md">
+        <div className="pf-v6-u-ml-md pf-v6-u-mt-md">
           <MultusDropdown
             setNetwork={setNetwork}
             clusterNetwork={clusterNetwork}
@@ -282,11 +282,11 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
   );
 
   return (
-    <Form className="pf-v5-u-font-weight-normal">
+    <Form className="pf-v6-u-font-weight-normal">
       <FormGroup
         fieldId="configure-multus-public"
         label={
-          <span className="pf-v5-u-font-weight-normal">
+          <span className="pf-v6-u-font-weight-normal">
             {t('Public Network Interface')}
           </span>
         }
@@ -305,7 +305,7 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
       <FormGroup
         fieldId="configure-multus-cluster"
         label={
-          <span className="pf-v5-u-font-weight-normal">
+          <span className="pf-v6-u-font-weight-normal">
             {t('Cluster Network Interface')}
           </span>
         }
