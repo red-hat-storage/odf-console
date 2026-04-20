@@ -18,6 +18,9 @@ export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
         position={position}
       >
         <Button
+          icon={
+            <OutlinedQuestionCircleIcon className="odf-field-level-help__icon" />
+          }
           aria-label={t('Help')}
           variant="link"
           isInline
@@ -25,7 +28,6 @@ export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
           data-test-id={testId || null}
         >
           {!!buttonText && buttonText + ' '}
-          <OutlinedQuestionCircleIcon className="odf-field-level-help__icon" />
         </Button>
       </Popover>
     );

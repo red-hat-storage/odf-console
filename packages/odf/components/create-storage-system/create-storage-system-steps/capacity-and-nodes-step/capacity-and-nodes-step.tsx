@@ -52,10 +52,9 @@ import {
   GridItem,
   Form,
   FormGroup,
-  Text,
+  Content,
   Label,
-  TextVariants,
-  TextContent,
+  ContentVariants,
   TextInput,
 } from '@patternfly/react-core';
 import { ValidationMessage } from '../../../utils/common-odf-install-el';
@@ -88,17 +87,17 @@ const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
     // ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters
     const label = `cluster.ocs.openshift.io/${DEFAULT_STORAGE_NAMESPACE}=""`;
     return (
-      <TextContent>
-        <Text>{text}</Text>
-        <Text>
+      <Content>
+        <Content component="p">{text}</Content>
+        <Content component="p">
           <Trans t={t as any} ns="plugin__odf-console">
             If not labeled, the selected nodes are labeled{' '}
             <Label color="blue">{{ label }}</Label> to make them target hosts
             for Data Foundation
             {/* eslint-disable react/no-unescaped-entities */}'s components.
           </Trans>
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
     );
   }
 );
@@ -173,13 +172,13 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
 
   return (
     <>
-      <TextContent>
-        <Text component={TextVariants.h3}>{t('Select capacity')}</Text>
-      </TextContent>
+      <Content>
+        <Content component={ContentVariants.h3}>{t('Select capacity')}</Content>
+      </Content>
       <FormGroup
         fieldId="requested-capacity-dropdown"
         label={t('Requested capacity')}
-        labelIcon={
+        labelHelp={
           <FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>
         }
       >
@@ -204,11 +203,11 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
           </GridItem>
         </Grid>
       </FormGroup>
-      <TextContent>
-        <Text id="select-nodes" component={TextVariants.h3}>
+      <Content>
+        <Content id="select-nodes" component={ContentVariants.h3}>
           {t('Select nodes')}
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
       <Grid>
         <GridItem span={11}>
           <SelectNodesText
@@ -340,9 +339,11 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
       errorMessage={t('Error while loading PersistentVolumes.')}
     >
       <>
-        <TextContent>
-          <Text component={TextVariants.h3}>{t('Selected capacity')}</Text>
-        </TextContent>
+        <Content>
+          <Content component={ContentVariants.h3}>
+            {t('Selected capacity')}
+          </Content>
+        </Content>
         <FormGroup
           fieldId="available-raw-capacity"
           label={t('Available raw capacity')}
@@ -354,17 +355,17 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
                 id="available-raw-capacity"
                 readOnlyVariant="default"
               />
-              <TextContent>
-                <Text component={TextVariants.small}>
+              <Content>
+                <Content component={ContentVariants.small}>
                   <Trans ns="plugin__odf-console">
                     The available capacity is based on all attached disks
                     associated with the selected{' '}
                     {/* eslint-disable-next-line react/no-unescaped-entities */}
                     StorageClass <b>{{ storageClassName }}</b>
                   </Trans>
-                </Text>
-              </TextContent>
-              <TextContent />
+                </Content>
+              </Content>
+              <Content />
             </GridItem>
             <GridItem span={7} />
           </Grid>
@@ -378,11 +379,11 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
             onSelect={onZonesSelect}
           />
         )}
-        <TextContent>
-          <Text id="selected-nodes" component={TextVariants.h3}>
+        <Content>
+          <Content id="selected-nodes" component={ContentVariants.h3}>
             {t('Selected nodes')}
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
         <Grid>
           <GridItem span={11}>
             <SelectNodesText
@@ -515,7 +516,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
       {isCapacityAutoScalingAllowed(infraType, resourceProfile) && (
         <CapacityAutoScaling
           capacityLimit={capacityLimit}
-          className="pf-v5-u-w-75"
+          className="pf-v6-u-w-75"
           enable={enableAutoScaling}
           onChange={onCapacityAutoscalingChange}
           onLimitSelect={onCapacityAutoscalingSelect}

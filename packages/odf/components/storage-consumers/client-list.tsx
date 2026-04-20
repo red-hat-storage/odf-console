@@ -73,7 +73,7 @@ const StorageQuotaPopoverContent: React.FC = () => {
 
   return (
     <Trans t={t} ns="plugin__odf-console">
-      <p className="pf-v5-u-mb-md">
+      <p className="pf-v6-u-mb-md">
         The amount of storage allocated to the client cluster for usage.
       </p>
       <p>
@@ -376,9 +376,7 @@ const StorageClientRow: React.FC<
                     isDisabled: isLocalClient || hasDeletionTimestamp,
                     component: React.lazy(
                       () =>
-                        import(
-                          '../../modals/ResourceDistributionModal/ResourceDistributionModal'
-                        )
+                        import('../../modals/ResourceDistributionModal/ResourceDistributionModal')
                     ),
                   },
                   {
@@ -465,7 +463,7 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
       <ListPageHeader title={t('Storage Consumers')}>
         <Button
           variant="primary"
-          className="pf-v5-u-mr-sm"
+          className="pf-v6-u-mr-sm"
           onClick={() => navigate('/odf/storage-consumers/create')}
         >
           {t('Create Storage Consumer')}

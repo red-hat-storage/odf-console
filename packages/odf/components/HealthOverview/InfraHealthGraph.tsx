@@ -17,8 +17,8 @@ import {
   ChartLegend,
   ChartLine,
   ChartVoronoiContainer,
-} from '@patternfly/react-charts';
-import { global_active_color_100 as activeColor } from '@patternfly/react-tokens';
+} from '@patternfly/react-charts/victory';
+import { t_global_color_nonstatus_blue_default as activeColor } from '@patternfly/react-tokens';
 import { HEALTH_SCORE_QUERY } from '../odf-dashboard/queries';
 import { AlertRowData } from './hooks';
 import { getSeverityColor } from './utils';
@@ -156,7 +156,7 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
         legendComponent={
           <ChartLegend
             style={{
-              labels: { fill: 'var(--pf-v5-global--Color--100)' },
+              labels: { fill: 'var(--pf-t--color--gray--95)' },
             }}
           />
         }
@@ -186,14 +186,14 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
       >
         <ChartAxis
           style={{
-            tickLabels: { fill: 'var(--pf-v5-global--Color--100)' },
+            tickLabels: { fill: 'var(--pf-t--color--gray--95)' },
           }}
         />
         <ChartAxis
           dependentAxis
           tickFormat={(v) => `${v}%`}
           style={{
-            tickLabels: { fill: 'var(--pf-v5-global--Color--100)' },
+            tickLabels: { fill: 'var(--pf-t--color--gray--95)' },
           }}
         />
         <ChartGroup>
@@ -236,7 +236,7 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
   }
 
   return (
-    <div ref={ref} className="pf-v5-u-mt-sm odf-infra-health-graph">
+    <div ref={ref} className="pf-v6-u-mt-sm odf-infra-health-graph">
       {content}
     </div>
   );
