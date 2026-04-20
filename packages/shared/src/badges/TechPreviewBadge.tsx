@@ -7,7 +7,7 @@ import { useCustomTranslation } from '../useCustomTranslationHook';
 const TechPreviewBadge: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <Label icon={<InfoCircleIcon />} className="ocs-preview-badge">
+    <Label icon={<InfoCircleIcon />} className="ocs-preview-badge" color="teal">
       {t('Technology preview')}
     </Label>
   );

@@ -25,6 +25,7 @@ import {
   K8sModel,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
@@ -32,8 +33,6 @@ import {
   Alert,
   Button,
   FormGroup,
-  Modal,
-  ModalVariant,
   Spinner,
   TextInput,
 } from '@patternfly/react-core';
@@ -269,9 +268,9 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
         <>
           <ModalBody>
             {deletionStatus === DeletionStatus.LOADING ? (
-              <div className="pf-v5-u-text-align-center">
+              <div className="pf-v6-u-text-align-center">
                 <Spinner size="lg" />
-                <p className="pf-v5-u-mt-md">{t('Checking dependencies...')}</p>
+                <p className="pf-v6-u-mt-md">{t('Checking dependencies...')}</p>
               </div>
             ) : deletionStatus === DeletionStatus.BOUNDED ? (
               <div>
@@ -301,7 +300,7 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
                     variant="warning"
                     isInline
                     title={t('Resources to be deleted')}
-                    className="pf-v5-u-mt-md"
+                    className="pf-v6-u-mt-md"
                   >
                     <ul>
                       <li>
@@ -325,7 +324,7 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
                 <FormGroup
                   label={t('Type {{name}} to confirm', { name: fsName })}
                   fieldId="confirm-name"
-                  className="pf-v5-u-mt-md"
+                  className="pf-v6-u-mt-md"
                 >
                   <TextInput
                     id="confirm-name"
@@ -342,7 +341,7 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
                 isInline
                 variant="danger"
                 title={t('An error occurred')}
-                className="pf-v5-u-mt-md"
+                className="pf-v6-u-mt-md"
               >
                 {error}
               </Alert>

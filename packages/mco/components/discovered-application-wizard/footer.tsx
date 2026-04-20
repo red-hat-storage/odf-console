@@ -134,6 +134,7 @@ export const EnrollDiscoveredApplicationFooter: React.FC<
           isDisabled={requestInProgress}
           variant={ButtonVariant.primary}
           onClick={handleNext}
+          className="pf-v6-u-mr-lg"
         >
           {stepName ===
           enrollDiscoveredApplicationStepNames[

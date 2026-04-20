@@ -2,17 +2,17 @@
 
 .capacity-breakdown-card__available-body {
   float: right;
-  font-weight: var(--pf-v5-global--FontWeight--normal);
+  font-weight: var(--pf-t--global--font--weight--body--default);
 }
 
 .capacity-breakdown-card__capacity-body {
-  font-size: var(--pf-v5-global--FontSize--sm);
+  font-size: var(--pf-t--global--font--size--sm);
   margin-bottom: 0;
 }
 
 .capacity-breakdown-card__header-link {
-  padding: var(--pf-v5-global--spacer--xs);
-  margin-right: var(--pf-v5-global--spacer--md);
+  padding: var(--pf-t--global--spacer--xs);
+  margin-right: var(--pf-t--global--spacer--md);
 }
 
 .capacity-breakdown-card__legend-link {
@@ -31,8 +31,9 @@
   background: $skeleton-color;
   opacity: 0;
   border-radius: 6px;
-  margin: 0.5rem 0.7em 0.5rem 0.7em;
+  margin: 0.5rem 0.7em;
   height: 30px;
+
   &::after {
     background-repeat: no-repeat;
     content: '';
@@ -43,15 +44,15 @@
 }
 
 .skeleton-stack-no-show {
-  background-color: var(--pf-v5-global--BackgroundColor--100);
+  background-color: var(--pf-t--global--background--color--100);
   animation: none;
 }
 
 .skeleton-stack-bar {
-  margin: 0.2rem 0.7em 0.2rem 0.7em;
+  margin: 0.2rem 0.7em;
 }
 
 .skeleton-stack-legend {
-  margin: 1.5rem 0.7em 1.5rem 0.7em;
+  margin: 1.5rem 0.7em;
   height: 50px;
 }

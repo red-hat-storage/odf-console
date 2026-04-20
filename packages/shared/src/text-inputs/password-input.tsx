@@ -218,7 +218,6 @@ const ValidatedPasswordInput: React.FC<ValidatedPasswordInputProps> = ({
                   {Object.keys(state.fieldRequirements).map((rule) => {
                     return (
                       <HelperTextItem
-                        isDynamic
                         variant={state.fieldRequirements[rule]}
                         component="li"
                         key={rule}
@@ -232,11 +231,16 @@ const ValidatedPasswordInput: React.FC<ValidatedPasswordInputProps> = ({
               withFocusTrap={false}
               {...popoverProps}
             >
-              <Button variant="plain" aria-label="Validation" tabIndex={-1}>
-                <Icon status={getVariant(validated)}>
-                  {getStatusIcon(validated)}
-                </Icon>
-              </Button>
+              <Button
+                icon={
+                  <Icon status={getVariant(validated)}>
+                    {getStatusIcon(validated)}
+                  </Icon>
+                }
+                variant="plain"
+                aria-label="Validation"
+                tabIndex={-1}
+              />
             </Popover>
           </InputGroupItem>
         </InputGroup>

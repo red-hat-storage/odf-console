@@ -90,7 +90,6 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
             <Card
               className="odf-nodes-section__card"
               isSelected={isUseAllNodes}
-              isRounded
               isSelectable
               id="all-nodes"
               isDisabled={isDisabled}
@@ -115,7 +114,6 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
             <Card
               className="odf-nodes-section__card"
               isSelected={!isUseAllNodes}
-              isRounded
               isSelectable
               id="selected-nodes"
               isDisabled={isDisabled}
@@ -149,7 +147,7 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
             variant="info"
             title={t('Nodes are disabled')}
             isInline
-            className="pf-v5-u-mt-md"
+            className="pf-v6-u-mt-md"
           >
             {t('Nodes are disabled because the local cluster is configured')}
           </Alert>
