@@ -158,9 +158,8 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = ({
     if (extensionsResolved) {
       return [
         ...EXTERNAL_CEPH_STORAGE,
-        ...(extensions?.map(
-          (vendor) => vendor.properties
-        ) as ExternalStorage[]),
+        ...((extensions?.map((vendor) => vendor.properties) ??
+          []) as unknown as ExternalStorage[]),
       ];
     }
     return EXTERNAL_CEPH_STORAGE;
