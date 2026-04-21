@@ -13,6 +13,7 @@ import {
   KMSConfigMapCSIName,
   SupportedProviders,
   DescriptionKey,
+  ERASURE_CODING_BLOCK_METADATA_POOL_NAME,
 } from '@odf/core/constants';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import {
@@ -54,6 +55,7 @@ import {
   StorageClassResourceKind,
   SecretKind,
   InfrastructureKind,
+  StorageClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isOCSStorageSystem, referenceForModel } from '@odf/shared/utils';
@@ -86,6 +88,8 @@ import {
   ClusterStatus,
   PoolState,
   CEPH_NS_SESSION_STORAGE,
+  CEPH_RBD_EC_METADATA_POOL_SESSION_STORAGE,
+  POOL_FS_DEFAULT,
   PoolType,
 } from '../constants';
 import { CreateStoragePoolModal } from '../modals/storage-pool/create-storage-pool-modal';
@@ -97,6 +101,7 @@ import {
   getExistingFsPoolNames,
   getStoragePoolsFromBlockPools,
   getStoragePoolsFromFilesystem,
+  isErasureCodedStoragePool,
 } from '../utils';
 
 type OnParamChange = (id: string, paramName: string, checkbox: boolean) => void;
@@ -358,6 +363,12 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
   const poolData = getStoragePoolsFromFilesystem(fsData) || [];
   const existingNames = getExistingFsPoolNames(fsData);
 
+  const defaultPoolName = `${filesystemName}-${POOL_FS_DEFAULT}`;
+  const defaultPool = poolData.find(
+    (pool: StoragePool) => getName(pool) === defaultPoolName
+  );
+  const defaultDeviceClass = defaultPool?.spec?.deviceClass || '';
+
   const poolToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
       ref={toggleRef}
@@ -393,7 +404,7 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
                 onPoolCreation,
                 launchModal,
                 t,
-                '',
+                defaultDeviceClass,
                 PoolType.FILESYSTEM,
                 existingNames,
                 filesystemName
@@ -440,6 +451,7 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
 
 export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   parameterKey,
+  parameterValue,
   onParamChange,
 }) => {
   const { t } = useCustomTranslation();
@@ -451,6 +463,10 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
 
   const [cephClusters, cephClustersLoaded, cephClustersLoadError] =
     useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
+
+  const [storageClusters, , storageClustersLoadError] = useK8sWatchResource<
+    StorageClusterKind[]
+  >(storageClusterResource);
 
   const [isOpen, setOpen] = React.useState(false);
   const [poolName, setPoolName] = React.useState('');
@@ -478,16 +494,51 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
 
   // Get the default deviceClass required by the 'create' modal.
   const defaultPool = filteredPools.find(
-    (pool: StoragePoolKind) => pool.metadata.name === defaultPoolName
+    (pool: StoragePoolKind) => getName(pool) === defaultPoolName
   );
   const defaultDeviceClass = defaultPool?.spec?.deviceClass || '';
+
+  const storageCluster =
+    poolNs && clusterName
+      ? storageClusters?.find(
+          (sc) => getNamespace(sc) === poolNs && getName(sc) === clusterName
+        )
+      : undefined;
+
+  const syncEcMetadataPool = (name: string, isEcMetadataPool?: boolean) => {
+    const pool = filteredPools?.find((p) => getName(p) === name);
+    if (isEcMetadataPool || isErasureCodedStoragePool(pool)) {
+      const metadataPool =
+        storageCluster?.spec?.managedResources?.cephBlockPools
+          ?.erasureCodedMetadataPool || ERASURE_CODING_BLOCK_METADATA_POOL_NAME;
+      sessionStorage.setItem(
+        CEPH_RBD_EC_METADATA_POOL_SESSION_STORAGE,
+        metadataPool
+      );
+    } else {
+      sessionStorage.removeItem(CEPH_RBD_EC_METADATA_POOL_SESSION_STORAGE);
+    }
+  };
+
+  // session value will get removed after clicking "Create" (check "mutators.ts"),
+  // so in case of any error (after clicking "Create") form persists but session gets removed.
+  const setSessionStorageRbdEcMetadataPool = () => {
+    const sessionEcValue = sessionStorage.getItem(
+      CEPH_RBD_EC_METADATA_POOL_SESSION_STORAGE
+    );
+    if (!sessionEcValue && !!parameterValue) {
+      syncEcMetadataPool(parameterValue);
+    }
+  };
 
   const handleDropdownChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
     setPoolName(e.currentTarget.id);
     onParamChange(parameterKey, e.currentTarget.id, false);
+    syncEcMetadataPool(e.currentTarget.id);
   };
 
-  const onPoolCreation = (name: string) => {
+  const onPoolCreation = (name: string, isEcMetadataPool?: boolean) => {
+    syncEcMetadataPool(name, isEcMetadataPool);
     setPoolName(name);
     onParamChange(parameterKey, name, false);
   };
@@ -495,12 +546,14 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   const onPoolInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPoolName(e.currentTarget.value);
     onParamChange(parameterKey, e.currentTarget.value, false);
+    syncEcMetadataPool(e.currentTarget.value);
   };
 
   const onSelect = React.useCallback(
     (resource: K8sResourceKind) => {
       const ns = getNamespace(resource);
       sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, ns);
+      sessionStorage.removeItem(CEPH_RBD_EC_METADATA_POOL_SESSION_STORAGE);
       setSystemNamespace(ns);
       setPoolName('');
       onParamChangeRef.current(parameterKey, '', false);
@@ -509,6 +562,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   );
 
   setSessionStorageSystemNamespace(systemNamespace);
+  setSessionStorageRbdEcMetadataPool();
 
   const blockPoolToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -526,7 +580,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   if (areFlagsSafe && !isExternal) {
     return (
       <>
-        {!poolDataLoadError && !flagsLoadError && (
+        {!poolDataLoadError && !storageClustersLoadError && !flagsLoadError && (
           <>
             <StorageSystemDropdown
               onSelect={onSelect}
@@ -563,7 +617,10 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
             </div>
           </>
         )}
-        {(poolDataLoadError || cephClustersLoadError || flagsLoadError) && (
+        {(poolDataLoadError ||
+          cephClustersLoadError ||
+          storageClustersLoadError ||
+          flagsLoadError) && (
           <Alert
             className="co-alert"
             variant="danger"
