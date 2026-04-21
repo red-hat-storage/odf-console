@@ -37,7 +37,7 @@ describe('Tests creation of Namespace Stores', () => {
       log: true,
       timeout: 2 * MIN,
     })
-      .its('code')
+      .its('exitCode')
       .should('eq', 0);
   };
   it('Test creation of AWS namespace store', () => {

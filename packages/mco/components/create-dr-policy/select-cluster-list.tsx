@@ -232,6 +232,8 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   selectedClusters,
   requiredODFVersion,
   dispatch,
+  preSelectedClusterNames = [],
+  showOnlyPreselected = false,
 }) => {
   const [managedClusters, loaded, loadError] = useK8sWatchResource<
     ACMManagedClusterKind[]
@@ -262,7 +264,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   const allLoaded = loaded && mcvsLoaded && providersLoaded;
   const anyError = loadError || mcvsLoadError || error;
 
-  const clusters: ManagedClusterInfoType[] = React.useMemo(() => {
+  const allClusters: ManagedClusterInfoType[] = React.useMemo(() => {
     if (!!requiredODFVersion && allLoaded && !anyError)
       // TODO: Switch from using the MCV-based odf-info ConfigMap to using
       // the odf-client-info ConfigMap from the openshift-operators namespace
@@ -283,40 +285,72 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     providersByCluster,
   ]);
 
-  const onChange = (selectedClusterList: ManagedClusterInfoType[]) => {
-    dispatch({
-      type: DRPolicyActionType.SET_SELECTED_CLUSTERS,
-      payload: selectedClusterList,
-    });
-
-    if (selectedClusterList?.length >= 2) {
-      const doClustersHaveODF = selectedClusterList?.every(
-        (cluster) => cluster?.odfInfo?.isValidODFVersion
+  // Filter clusters to only show pre-selected ones when in modal mode
+  const clusters: ManagedClusterInfoType[] = React.useMemo(() => {
+    if (showOnlyPreselected && preSelectedClusterNames.length > 0) {
+      return allClusters.filter((cluster) =>
+        preSelectedClusterNames.includes(getName(cluster))
       );
+    }
+    return allClusters;
+  }, [allClusters, showOnlyPreselected, preSelectedClusterNames]);
+
+  const onChange = React.useCallback(
+    (selectedClusterList: ManagedClusterInfoType[]) => {
       dispatch({
-        type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
-        payload: doClustersHaveODF,
+        type: DRPolicyActionType.SET_SELECTED_CLUSTERS,
+        payload: selectedClusterList,
       });
 
-      dispatch({
-        type: DRPolicyActionType.SET_REPLICATION_BACKEND,
-        payload: doClustersHaveODF
-          ? BackendType.DataFoundation
-          : BackendType.ThirdParty,
-      });
-    }
-    if (selectedClusterList.length < 2) {
-      dispatch({
-        type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
-        payload: false,
-      });
+      if (selectedClusterList?.length >= 2) {
+        const doClustersHaveODF = selectedClusterList?.every(
+          (cluster) => cluster?.odfInfo?.isValidODFVersion
+        );
+        dispatch({
+          type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
+          payload: doClustersHaveODF,
+        });
 
-      dispatch({
-        type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
-        payload: false,
-      });
+        dispatch({
+          type: DRPolicyActionType.SET_REPLICATION_BACKEND,
+          payload: doClustersHaveODF
+            ? BackendType.DataFoundation
+            : BackendType.ThirdParty,
+        });
+      }
+      if (selectedClusterList.length < 2) {
+        dispatch({
+          type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
+          payload: false,
+        });
+
+        dispatch({
+          type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
+          payload: false,
+        });
+      }
+    },
+    [dispatch]
+  );
+
+  // Handle pre-selection from topology view
+  const hasPreSelected = React.useRef(false);
+  React.useEffect(() => {
+    if (
+      !hasPreSelected.current &&
+      preSelectedClusterNames.length > 0 &&
+      clusters.length > 0 &&
+      selectedClusters.length === 0
+    ) {
+      const preSelected = clusters.filter((cluster) =>
+        preSelectedClusterNames.includes(getName(cluster))
+      );
+      if (preSelected.length === preSelectedClusterNames.length) {
+        hasPreSelected.current = true;
+        onChange(preSelected);
+      }
     }
-  };
+  }, [preSelectedClusterNames, clusters, selectedClusters.length, onChange]);
 
   const clustersLoaded = allLoaded && !!requiredODFVersion;
 
@@ -335,6 +369,12 @@ type SelectClusterListProps = {
   selectedClusters: ManagedClusterInfoType[];
   requiredODFVersion: string;
   dispatch: React.Dispatch<DRPolicyAction>;
+  preSelectedClusterNames?: string[];
+  /**
+   * When true, only shows clusters in preSelectedClusterNames
+   * Used in modal view to limit cluster selection
+   */
+  showOnlyPreselected?: boolean;
 };
 
 type PaginatedClusterTableProps = {

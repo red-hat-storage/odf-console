@@ -62,6 +62,7 @@ export const getDRPlacementControlResourceObj = (
 export const getProtectedApplicationViewResourceObj = (
   namespace?: string
 ): {
+  cluster: string;
   kind: string;
   namespaced: boolean;
   isList: boolean;
@@ -72,6 +73,7 @@ export const getProtectedApplicationViewResourceObj = (
     kind: string;
   };
 } => ({
+  cluster: HUB_CLUSTER_NAME,
   kind: ProtectedApplicationViewModel.kind,
   namespaced: true,
   isList: true,

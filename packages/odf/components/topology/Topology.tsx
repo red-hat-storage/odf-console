@@ -12,11 +12,16 @@ import { getName, getUID } from '@odf/shared/selectors';
 import { BlueInfoCircleIcon } from '@odf/shared/status';
 import {
   createNode,
-  defaultLayoutFactory,
   stylesComponentFactory,
   TopologyDataContext,
   TopologySearchContext,
   TopologyViewLevel,
+  BaseTopologyView,
+  useSelectionHandler,
+  useTopologyControls,
+  useVisualizationSetup,
+  STEP_INTO_EVENT,
+  STEP_TO_CLUSTER,
 } from '@odf/shared/topology';
 import {
   DeploymentKind,
@@ -41,17 +46,10 @@ import {
 import { ArrowCircleLeftIcon, TopologyIcon } from '@patternfly/react-icons';
 import {
   useVisualizationController,
-  TopologyView,
-  VisualizationSurface,
-  Visualization,
   VisualizationProvider,
-  SELECTION_EVENT,
-  TopologyControlBar,
   LabelPosition,
   NodeShape,
   GraphElement,
-  defaultControlButtonsOptions,
-  createTopologyControlButtons,
 } from '@patternfly/react-topology';
 import { cephStorageLabel, CREATE_SS_PAGE_URL } from '../../constants';
 import {
@@ -70,13 +68,6 @@ import {
   hasAnyNoobaaStandalone,
 } from '../../utils';
 import {
-  STEP_INTO_EVENT,
-  STEP_TO_CLUSTER,
-  STEP_TO_OSD_INFORMATION,
-  ZOOM_IN,
-  ZOOM_OUT,
-} from './constants';
-import {
   generateDeploymentsInNodes,
   generateNodesInZone,
   generateStorageClusterGroup,
@@ -89,31 +80,6 @@ import {
   groupNodesByZones,
 } from './utils';
 import './topology.scss';
-
-type SideBarProps = {
-  onClose: any;
-  isExpanded: boolean;
-  shouldToggleToOSDInformation: boolean;
-};
-
-const Sidebar: React.FC<SideBarProps> = ({
-  onClose,
-  isExpanded,
-  shouldToggleToOSDInformation,
-}) => {
-  const { selectedElement: element } = React.useContext(TopologyDataContext);
-  const data = element?.getData();
-  const resource = data?.resource;
-
-  return (
-    <TopologySideBar
-      resource={resource}
-      onClose={onClose}
-      isExpanded={isExpanded}
-      shouldToggleToOSDInformation={shouldToggleToOSDInformation}
-    />
-  );
-};
 
 type BackButtonProps = {
   onClick: () => void;
@@ -154,8 +120,10 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
   );
 };
 
+const shouldSelectElement = (element: GraphElement) =>
+  !_.has(element.getData(), 'zone');
+
 const TopologyViewComponent: React.FC = () => {
-  const { t } = useCustomTranslation();
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [currentView, setCurrentView] = React.useState(TopologyViewLevel.NODES);
   const controller = useVisualizationController();
@@ -163,7 +131,6 @@ const TopologyViewComponent: React.FC = () => {
   const lastNode = React.useRef<string>();
 
   const [isSideBarOpen, setSideBarOpen] = React.useState(false);
-  const [isOSDInformationOpen, setIsOSDInformationOpen] = React.useState(false);
   const {
     nodes,
     storageCluster,
@@ -180,39 +147,20 @@ const TopologyViewComponent: React.FC = () => {
     setSelectedIds([]);
   }, []);
 
-  React.useEffect(() => {
-    const selectionHandler = (ids: string[]) => {
-      const element = controller.getElementById(ids[0]);
-      if (!!element && !_.has(element.getData(), 'zone')) {
-        setSelectedElement(element);
-        setSelectedIds([ids[0]]);
-        setSideBarOpen(true);
-        setIsOSDInformationOpen(false);
-      }
-    };
-    const onStepToOSDInformation = ({ id }) => {
-      const element = controller.getElementById(id);
-      if (!!element && !_.has(element.getData(), 'zone')) {
-        setSelectedElement(element);
-        setSelectedIds([id]);
-        setSideBarOpen(true);
-      }
-      setIsOSDInformationOpen(true);
-      setSideBarOpen(true);
-    };
-    controller.addEventListener(SELECTION_EVENT, selectionHandler);
-    controller.addEventListener(STEP_INTO_EVENT, onCloseSideBar);
-    controller.addEventListener(STEP_TO_CLUSTER, onCloseSideBar);
-    controller.addEventListener(
-      STEP_TO_OSD_INFORMATION,
-      onStepToOSDInformation
-    );
-    return () => {
-      controller.removeEventListener(SELECTION_EVENT, selectionHandler);
-      controller.removeEventListener(STEP_INTO_EVENT, onCloseSideBar);
-      controller.removeEventListener(STEP_TO_CLUSTER, onCloseSideBar);
-    };
-  }, [controller, setSelectedElement, onCloseSideBar]);
+  const additionalCloseEvents = React.useMemo(
+    () => [STEP_INTO_EVENT, STEP_TO_CLUSTER],
+    []
+  );
+
+  useSelectionHandler({
+    controller,
+    setSelectedElement,
+    setSelectedIds,
+    setSideBarOpen,
+    shouldSelect: shouldSelectElement,
+    additionalCloseEvents,
+    onCloseSideBar,
+  });
 
   React.useEffect(() => {
     const groupedNodes = groupNodesByZones(nodes);
@@ -457,63 +405,39 @@ const TopologyViewComponent: React.FC = () => {
     () => controller.fireEvent(STEP_TO_CLUSTER),
     [controller]
   );
+
+  const controlButtons = useTopologyControls({ controller });
+
   return (
-    <TopologyView
-      controlBar={
-        <TopologyControlBar
-          data-test="topology-control-bar"
-          controlButtons={createTopologyControlButtons({
-            ...defaultControlButtonsOptions,
-            zoomInTip: t('Zoom in'),
-            zoomInCallback: () => {
-              controller && controller.getGraph().scaleBy(ZOOM_IN);
-            },
-            zoomOutTip: t('Zoom out'),
-            zoomOutCallback: () => {
-              controller && controller.getGraph().scaleBy(ZOOM_OUT);
-            },
-            fitToScreenTip: t('Fit to screen'),
-            fitToScreenCallback: () => {
-              controller && controller.getGraph().fit(100);
-            },
-            resetViewTip: t('Reset view'),
-            resetViewCallback: () => {
-              if (controller) {
-                controller.getGraph().reset();
-                controller.getGraph().layout();
-              }
-            },
-            legend: false,
-          })}
-        />
-      }
+    <BaseTopologyView
+      controlButtons={controlButtons}
       sideBar={
-        <Sidebar
+        <TopologySideBar
+          resource={
+            React.useContext(TopologyDataContext).selectedElement?.getData()
+              ?.resource
+          }
           onClose={onCloseSideBar}
           isExpanded={isSideBarOpen}
-          shouldToggleToOSDInformation={isOSDInformationOpen}
         />
       }
       sideBarResizable={true}
       minSideBarSize="400px"
       sideBarOpen={isSideBarOpen}
+      selectedIds={selectedIds}
     >
       {currentView === TopologyViewLevel.DEPLOYMENTS && (
         <BackButton onClick={toggleVisualizationLevel} />
       )}
       <MessageButton />
-      <VisualizationSurface state={{ selectedIds }} />
-    </TopologyView>
+    </BaseTopologyView>
   );
 };
-
-const Error = ({ error }) => <>{error}</>;
 
 const Topology: React.FC = () => {
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
 
-  const [controller, setController] = React.useState<Visualization>(null);
   const [visualizationLevel, setVisualizationLevel] =
     React.useState<TopologyViewLevel>(TopologyViewLevel.NODES);
   const [activeItemsUID, setActiveItemsUID] = React.useState<string[]>([]);
@@ -604,30 +528,29 @@ const Topology: React.FC = () => {
     ]
   );
 
-  const onStepInto = (args) => {
+  const onStepInto = React.useCallback((args) => {
     const nodeName = args.label;
     setActiveNode(nodeName);
     setVisualizationLevel(TopologyViewLevel.DEPLOYMENTS);
-  };
+  }, []);
 
-  const onStepOut = () => {
+  const onStepOut = React.useCallback(() => {
     setActiveNode('');
     setVisualizationLevel(TopologyViewLevel.NODES);
-  };
-
-  React.useEffect(() => {
-    const temp = new Visualization();
-    temp.registerLayoutFactory(defaultLayoutFactory);
-    temp.registerComponentFactory(stylesComponentFactory as any);
-    temp.addEventListener(STEP_INTO_EVENT, onStepInto);
-    temp.addEventListener(STEP_TO_CLUSTER, onStepOut);
-    setController(temp);
-
-    return () => {
-      temp.removeEventListener(STEP_INTO_EVENT, onStepInto);
-      temp.removeEventListener(STEP_TO_CLUSTER, onStepOut);
-    };
   }, []);
+
+  const eventListeners = React.useMemo(
+    () => [
+      { event: STEP_INTO_EVENT, handler: onStepInto },
+      { event: STEP_TO_CLUSTER, handler: onStepOut },
+    ],
+    [onStepInto, onStepOut]
+  );
+
+  const controller = useVisualizationSetup({
+    componentFactory: stylesComponentFactory as any,
+    eventListeners,
+  });
 
   const loading =
     !nodesLoaded ||
@@ -697,7 +620,6 @@ const Topology: React.FC = () => {
                 statefulSetError ||
                 odfNsLoadError
               }
-              ErrorMessage={Error}
             >
               <TopologyViewComponent />
             </HandleErrorAndLoading>

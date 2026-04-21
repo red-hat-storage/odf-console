@@ -1,0 +1,30 @@
+.mco-pairing-box {
+  // Style the group's background rect with dotted border
+  .pf-topology__group__background {
+    fill: none !important; // No fill, just border
+    stroke: var(--pf-t--global--border--color--default) !important;
+    stroke-width: 2 !important;
+    stroke-dasharray: 8, 4 !important; // Dotted pattern
+    rx: 8;
+    ry: 8;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    pointer-events: all; // Make it clickable
+  }
+
+  &.pf-m-selected .pf-topology__group__background {
+    stroke: var(--pf-t--global--color--brand--default) !important;
+    stroke-width: 3 !important;
+    opacity: 1;
+  }
+
+  &:hover .pf-topology__group__background {
+    opacity: 0.9;
+    stroke-width: 3 !important;
+  }
+
+  // Ensure label is clickable
+  .pf-topology-node-label {
+    pointer-events: all;
+  }
+}
