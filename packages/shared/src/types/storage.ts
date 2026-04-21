@@ -8,6 +8,7 @@ export type ErasureCodedPoolSpec = {
 
 export type DataPool = {
   compressionMode?: string;
+  deviceClass?: string;
   mirroring?: {
     enabled: boolean;
   };

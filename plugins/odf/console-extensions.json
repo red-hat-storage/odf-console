@@ -379,7 +379,9 @@
             "Component": {
               "$codeRef": "storageProvisionerComponents.StorageClassEncryption"
             },
-            "visible": true
+            "visible": {
+              "$codeRef": "storageProvisioners.isEncryptionVisible"
+            }
           },
           "encryptionKMSID": {
             "name": "Encryption ID",
@@ -402,7 +404,7 @@
           }
         },
         "mutator": {
-          "$codeRef": "mutators.addRBDAnnotations"
+          "$codeRef": "mutators.addRbdConfig"
         }
       }
     }
