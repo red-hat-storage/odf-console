@@ -2,6 +2,7 @@ import * as React from 'react';
 import { getName } from '@odf/shared/selectors';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { DRPolicyKind } from '../types';
+import { isDRPolicyValidated } from '../utils';
 import { getDRPolicyResourceObj } from './mco-resources';
 
 export type DRPolicyInfo = {
@@ -57,19 +58,10 @@ export const useDRPoliciesByClusterPair = (): [
         const [cluster1, cluster2] = drClusters;
         const pairKey = createClusterPairKey(cluster1, cluster2);
         const policyName = getName(policy);
-        const phase = policy.status?.phase || 'Unknown';
+        const isValidated = isDRPolicyValidated(policy);
+        const phase = isValidated ? 'Validated' : 'Not validated';
         const schedulingInterval = policy.spec?.schedulingInterval || '';
-
-        // Consider policy as configuring only if phase indicates an error or pending state
-        // Any other phase (Available, Validated, Succeeded, etc.) is considered ready
-        const configuringPhases = [
-          'Pending',
-          'Unknown',
-          'Failed',
-          'Error',
-          'Configuring',
-        ];
-        const isConfiguring = configuringPhases.includes(phase);
+        const isConfiguring = !isValidated;
 
         const policyInfo: DRPolicyInfo = {
           name: policyName,

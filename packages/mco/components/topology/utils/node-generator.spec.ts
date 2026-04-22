@@ -4,6 +4,7 @@ import { ClusterPairPoliciesMap } from '../../../hooks/useDRPoliciesByClusterPai
 import {
   ACMManagedClusterKind,
   DRPolicyKind,
+  Phase,
   Progression,
 } from '../../../types';
 import { generateClusterNodesModel } from './node-generator';
@@ -31,7 +32,10 @@ const createMockDRPolicy = (name: string): DRPolicyKind => ({
     schedulingInterval: '5m',
   },
   status: {
-    phase: 'Available',
+    phase: '',
+    conditions: [
+      { type: 'Validated', status: 'True', lastTransitionTime: '', reason: '' },
+    ],
   },
 });
 
@@ -85,7 +89,7 @@ describe('generateClusterNodesModel', () => {
         'cluster1::cluster2': [
           {
             name: 'dr-policy-1',
-            phase: 'Available',
+            phase: 'Validated',
             isConfiguring: false,
             schedulingInterval: '5m',
             policy: createMockDRPolicy('dr-policy-1'),
@@ -95,7 +99,6 @@ describe('generateClusterNodesModel', () => {
 
       const model = generateClusterNodesModel(clusters, policies);
 
-      // Should create pairing box node
       const pairingBox = model.nodes!.find(
         (n) =>
           n.type === 'pairing-box' && n.id === 'pairing-box-cluster1::cluster2'
@@ -116,7 +119,7 @@ describe('generateClusterNodesModel', () => {
         'cluster1::cluster2': [
           {
             name: 'dr-policy-1',
-            phase: 'Configuring',
+            phase: 'Not validated',
             isConfiguring: true,
             schedulingInterval: '5m',
             policy: createMockDRPolicy('dr-policy-1'),
@@ -140,7 +143,7 @@ describe('generateClusterNodesModel', () => {
         'cluster1::cluster2': [
           {
             name: 'dr-policy-1',
-            phase: 'Available',
+            phase: 'Validated',
             isConfiguring: false,
             schedulingInterval: '5m',
             policy: createMockDRPolicy('dr-policy-1'),
@@ -155,8 +158,8 @@ describe('generateClusterNodesModel', () => {
             applicationName: 'app1',
             applicationNamespace: 'ns1',
             action: DRActionType.FAILOVER,
-            phase: 'FailingOver',
-            progression: Progression.WaitOnUserToCleanUp,
+            phase: Phase.FailingOver,
+            progression: Progression.FailingOver,
             sourceCluster: 'cluster1',
             targetCluster: 'cluster2',
             actionStartTime: new Date().toISOString(),
@@ -167,11 +170,9 @@ describe('generateClusterNodesModel', () => {
 
       const model = generateClusterNodesModel(clusters, policies, operations);
 
-      // Should still have pairing box to show the policy relationship
       const pairingBox = model.nodes!.find((n) => n.type === 'pairing-box');
       expect(pairingBox).toBeDefined();
 
-      // Should have operation edges for active operations
       const operationEdges =
         model.edges?.filter((e) => e.type === 'app-operation-edge') || [];
       expect(operationEdges.length).toBeGreaterThan(0);
@@ -192,7 +193,7 @@ describe('generateClusterNodesModel', () => {
             applicationName: 'app1',
             applicationNamespace: 'ns1',
             action: DRActionType.FAILOVER,
-            phase: 'FailingOver',
+            phase: Phase.FailingOver,
             progression: Progression.FailingOver,
             sourceCluster: 'cluster1',
             targetCluster: 'cluster2',
@@ -220,7 +221,6 @@ describe('generateClusterNodesModel', () => {
         model.nodes?.filter((n) => n.type === 'failover-node') || [];
       expect(failoverNodes).toHaveLength(1);
 
-      // Cluster groups should contain app nodes as children
       clusterGroups.forEach((group) => {
         expect(group.children?.length).toBeGreaterThan(0);
       });
@@ -234,7 +234,7 @@ describe('generateClusterNodesModel', () => {
       expect(targetNode?.data?.clusterName).toBe('cluster2');
     });
 
-    it('should create app-to-app edge for operations', () => {
+    it('should create cluster-to-cluster edges for operations', () => {
       const clusters: ACMManagedClusterKind[] = [
         createMockCluster('cluster1', 'uid-1'),
         createMockCluster('cluster2', 'uid-2'),
@@ -247,7 +247,7 @@ describe('generateClusterNodesModel', () => {
             applicationName: 'app1',
             applicationNamespace: 'ns1',
             action: DRActionType.RELOCATE,
-            phase: 'Relocating',
+            phase: Phase.Relocating,
             progression: Progression.Relocating,
             sourceCluster: 'cluster1',
             targetCluster: 'cluster2',
@@ -258,32 +258,70 @@ describe('generateClusterNodesModel', () => {
 
       const model = generateClusterNodesModel(clusters, null, operations);
 
-      // Now creates 2 edges: source -> failover, failover -> target
+      // 2 edges: source cluster -> failover, failover -> target cluster
       expect(model.edges).toHaveLength(2);
 
       const operationEdges =
         model.edges?.filter((e) => e.type === 'app-operation-edge') || [];
       expect(operationEdges).toHaveLength(2);
 
-      // All edges should be operation edges
       operationEdges.forEach((edge) => {
         expect(edge.data?.isOperation).toBe(true);
         expect(edge.data?.action).toBe(DRActionType.RELOCATE);
       });
 
-      // One edge should go from source app to failover node
+      // Source edge: cluster-group -> failover-node
       const sourceEdge = operationEdges.find((e) =>
-        e.source?.includes('source')
+        e.id.includes('edge-source')
       );
       expect(sourceEdge).toBeDefined();
+      expect(sourceEdge?.source).toBe('cluster-group-cluster1');
       expect(sourceEdge?.target).toContain('failover-node');
 
-      // One edge should go from failover node to target app
+      // Target edge: failover-node -> cluster-group
       const targetEdge = operationEdges.find((e) =>
-        e.target?.includes('target')
+        e.id.includes('edge-target')
       );
       expect(targetEdge).toBeDefined();
       expect(targetEdge?.source).toContain('failover-node');
+      expect(targetEdge?.target).toBe('cluster-group-cluster2');
+    });
+
+    it('should create edges referencing cluster groups not app groups', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('clusterA', 'uid-a'),
+        createMockCluster('clusterB', 'uid-b'),
+      ];
+
+      const operations: ClusterPairOperationsMap = {
+        'clusterA::clusterB': [
+          {
+            drpcName: 'drpc-1',
+            applicationName: 'app1',
+            applicationNamespace: 'ns1',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailingOver,
+            progression: Progression.FailingOver,
+            sourceCluster: 'clusterA',
+            targetCluster: 'clusterB',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+
+      const edges = model.edges || [];
+      edges.forEach((edge) => {
+        // No edge should reference app-group nodes
+        expect(edge.source).not.toContain('app-group');
+        expect(edge.target).not.toContain('app-group');
+        // Edges should only connect cluster-group or failover-node
+        const isClusterOrFailover = (id: string) =>
+          id.startsWith('cluster-group-') || id.startsWith('failover-node-');
+        expect(isClusterOrFailover(edge.source!)).toBe(true);
+        expect(isClusterOrFailover(edge.target!)).toBe(true);
+      });
     });
 
     it('should create multiple app nodes for each operation', () => {
@@ -299,7 +337,7 @@ describe('generateClusterNodesModel', () => {
             applicationName: 'app1',
             applicationNamespace: 'ns1',
             action: DRActionType.FAILOVER,
-            phase: 'FailingOver',
+            phase: Phase.FailingOver,
             progression: Progression.FailingOver,
             sourceCluster: 'cluster1',
             targetCluster: 'cluster2',
@@ -310,7 +348,7 @@ describe('generateClusterNodesModel', () => {
             applicationName: 'app2',
             applicationNamespace: 'ns2',
             action: DRActionType.RELOCATE,
-            phase: 'Relocating',
+            phase: Phase.Relocating,
             progression: Progression.Relocating,
             sourceCluster: 'cluster1',
             targetCluster: 'cluster2',
@@ -326,14 +364,12 @@ describe('generateClusterNodesModel', () => {
       // 2 operations with different action-phase combinations = 4 app nodes (2 source + 2 target)
       expect(appNodes).toHaveLength(4);
 
-      // Verify source and target nodes for both operations
       const sourceNodes = appNodes.filter((n) => n.data?.isSource === true);
       const targetNodes = appNodes.filter((n) => n.data?.isSource === false);
 
       expect(sourceNodes).toHaveLength(2);
       expect(targetNodes).toHaveLength(2);
 
-      // Each should have correct dimensions
       sourceNodes.forEach((node) => {
         expect(node.width).toBe(50);
         expect(node.height).toBe(50);
@@ -353,7 +389,7 @@ describe('generateClusterNodesModel', () => {
             applicationName: 'app1',
             applicationNamespace: 'ns1',
             action: DRActionType.FAILOVER,
-            phase: 'FailingOver',
+            phase: Phase.FailingOver,
             progression: Progression.FailingOver,
             sourceCluster: 'cluster1',
             targetCluster: 'cluster2',
@@ -364,7 +400,7 @@ describe('generateClusterNodesModel', () => {
             applicationName: 'app2',
             applicationNamespace: 'ns2',
             action: DRActionType.RELOCATE,
-            phase: 'Relocating',
+            phase: Phase.Relocating,
             progression: Progression.Relocating,
             sourceCluster: 'cluster1',
             targetCluster: 'cluster2',
@@ -377,15 +413,285 @@ describe('generateClusterNodesModel', () => {
 
       const operationEdges =
         model.edges?.filter((e) => e.type === 'app-operation-edge') || [];
-      // 2 operations with different actions = 2 failover nodes
-      // Each failover node has 2 edges (source->failover, failover->target)
-      // Total = 4 edges
+      // 2 actions x 2 edges each (source cluster->failover, failover->target cluster) = 4
       expect(operationEdges).toHaveLength(4);
 
-      // Verify failover nodes exist for both actions
       const failoverNodes =
         model.nodes?.filter((n) => n.type === 'failover-node') || [];
       expect(failoverNodes).toHaveLength(2);
+    });
+
+    it('should carry all operations for the action in edge data', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('cluster1', 'uid-1'),
+        createMockCluster('cluster2', 'uid-2'),
+      ];
+
+      const operations: ClusterPairOperationsMap = {
+        'cluster1::cluster2': [
+          {
+            drpcName: 'drpc-app1',
+            applicationName: 'app1',
+            applicationNamespace: 'ns1',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailingOver,
+            progression: Progression.FailingOver,
+            sourceCluster: 'cluster1',
+            targetCluster: 'cluster2',
+            isDiscoveredApp: false,
+          },
+          {
+            drpcName: 'drpc-app2',
+            applicationName: 'app2',
+            applicationNamespace: 'ns2',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailingOver,
+            progression: Progression.FailingOver,
+            sourceCluster: 'cluster1',
+            targetCluster: 'cluster2',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+
+      const edges =
+        model.edges?.filter((e) => e.type === 'app-operation-edge') || [];
+      // Both edges should carry all 2 operations for the action
+      edges.forEach((edge) => {
+        expect(edge.data?.operations).toHaveLength(2);
+      });
+    });
+  });
+
+  describe('Effective DR Status and Progression', () => {
+    it('should use effective status for node labels when progression overrides phase', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('cluster1', 'uid-1'),
+        createMockCluster('cluster2', 'uid-2'),
+      ];
+
+      const operations: ClusterPairOperationsMap = {
+        'cluster1::cluster2': [
+          {
+            drpcName: 'drpc-app1',
+            applicationName: 'app1',
+            applicationNamespace: 'ns1',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailedOver,
+            progression: Progression.WaitOnUserToCleanUp,
+            sourceCluster: 'cluster1',
+            targetCluster: 'cluster2',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+
+      const appNodes =
+        model.nodes?.filter((n) => n.type === 'app-node-operation') || [];
+      // Labels should show WaitOnUserToCleanUp, not FailedOver
+      appNodes.forEach((node) => {
+        expect(node.label).toBe('WaitOnUserToCleanUp');
+      });
+    });
+
+    it('should pass progression data to operation app nodes', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('cluster1', 'uid-1'),
+        createMockCluster('cluster2', 'uid-2'),
+      ];
+
+      const operations: ClusterPairOperationsMap = {
+        'cluster1::cluster2': [
+          {
+            drpcName: 'drpc-app1',
+            applicationName: 'app1',
+            applicationNamespace: 'ns1',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailedOver,
+            progression: Progression.WaitOnUserToCleanUp,
+            sourceCluster: 'cluster1',
+            targetCluster: 'cluster2',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+
+      const appNodes =
+        model.nodes?.filter((n) => n.type === 'app-node-operation') || [];
+      appNodes.forEach((node) => {
+        expect(node.data?.progression).toBe(Progression.WaitOnUserToCleanUp);
+        expect(node.data?.phase).toBe(Phase.FailedOver);
+      });
+    });
+
+    it('should group operations by effective status not raw phase', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('cluster1', 'uid-1'),
+        createMockCluster('cluster2', 'uid-2'),
+      ];
+
+      const operations: ClusterPairOperationsMap = {
+        'cluster1::cluster2': [
+          {
+            drpcName: 'drpc-app1',
+            applicationName: 'app1',
+            applicationNamespace: 'ns1',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailedOver,
+            progression: Progression.WaitOnUserToCleanUp,
+            sourceCluster: 'cluster1',
+            targetCluster: 'cluster2',
+            isDiscoveredApp: false,
+          },
+          {
+            drpcName: 'drpc-app2',
+            applicationName: 'app2',
+            applicationNamespace: 'ns2',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailedOver,
+            progression: Progression.Completed,
+            sourceCluster: 'cluster1',
+            targetCluster: 'cluster2',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+
+      const appNodes =
+        model.nodes?.filter((n) => n.type === 'app-node-operation') || [];
+      // Same phase (FailedOver) but different effective statuses
+      // (WaitOnUserToCleanUp vs FailedOver) should produce separate node groups.
+      // 2 effective statuses x 2 (source + target) = 4 app nodes
+      expect(appNodes).toHaveLength(4);
+
+      const labels = appNodes.map((n) => n.label);
+      expect(labels).toContain('WaitOnUserToCleanUp');
+      expect(labels).toContain('FailedOver');
+    });
+  });
+
+  describe('Post-Failover WaitOnUserToCleanUp (bug regression)', () => {
+    it('should create edges between different clusters when source != target', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('dr1-cluster', 'uid-dr1'),
+        createMockCluster('local-cluster', 'uid-local'),
+      ];
+
+      // After failover completes: phase=FailedOver, progression=WaitOnUserToCleanUp
+      // Source should be preferredCluster (dr1-cluster), target should be failoverCluster (local-cluster)
+      const operations: ClusterPairOperationsMap = {
+        'dr1-cluster::local-cluster': [
+          {
+            drpcName: 'protection-drpc',
+            applicationName: 'protection-drpc',
+            applicationNamespace: 'openshift-dr-ops',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailedOver,
+            progression: Progression.WaitOnUserToCleanUp,
+            sourceCluster: 'dr1-cluster',
+            targetCluster: 'local-cluster',
+            actionStartTime: '2026-04-21T06:59:47Z',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+
+      const edges =
+        model.edges?.filter((e) => e.type === 'app-operation-edge') || [];
+      expect(edges).toHaveLength(2);
+
+      const sourceEdge = edges.find((e) => e.id.includes('edge-source'));
+      const targetEdge = edges.find((e) => e.id.includes('edge-target'));
+
+      // Source edge should originate from dr1-cluster's group
+      expect(sourceEdge?.source).toBe('cluster-group-dr1-cluster');
+      // Target edge should point to local-cluster's group
+      expect(targetEdge?.target).toBe('cluster-group-local-cluster');
+      // They should NOT be the same cluster
+      expect(sourceEdge?.source).not.toBe(targetEdge?.target);
+    });
+
+    it('should not create duplicate app nodes in the same cluster', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('dr1-cluster', 'uid-dr1'),
+        createMockCluster('local-cluster', 'uid-local'),
+      ];
+
+      const operations: ClusterPairOperationsMap = {
+        'dr1-cluster::local-cluster': [
+          {
+            drpcName: 'protection-drpc',
+            applicationName: 'protection-drpc',
+            applicationNamespace: 'openshift-dr-ops',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailedOver,
+            progression: Progression.WaitOnUserToCleanUp,
+            sourceCluster: 'dr1-cluster',
+            targetCluster: 'local-cluster',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+
+      const appNodes =
+        model.nodes?.filter((n) => n.type === 'app-node-operation') || [];
+      // Should be 2 app nodes: 1 source in dr1-cluster, 1 target in local-cluster
+      expect(appNodes).toHaveLength(2);
+
+      const clusterGroups =
+        model.nodes?.filter(
+          (n) => n.type === 'group' && n.data?.isClusterGroup
+        ) || [];
+      // Each cluster group should have exactly 1 child app node
+      clusterGroups.forEach((group) => {
+        expect(group.children).toHaveLength(1);
+      });
+    });
+
+    it('should set failover node label to action and carry correct operation data', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('dr1-cluster', 'uid-dr1'),
+        createMockCluster('local-cluster', 'uid-local'),
+      ];
+
+      const operations: ClusterPairOperationsMap = {
+        'dr1-cluster::local-cluster': [
+          {
+            drpcName: 'protection-drpc',
+            applicationName: 'protection-drpc',
+            applicationNamespace: 'openshift-dr-ops',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailedOver,
+            progression: Progression.WaitOnUserToCleanUp,
+            sourceCluster: 'dr1-cluster',
+            targetCluster: 'local-cluster',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+
+      const failoverNode = model.nodes?.find((n) => n.type === 'failover-node');
+      expect(failoverNode).toBeDefined();
+      expect(failoverNode?.label).toBe(DRActionType.FAILOVER);
+      expect(failoverNode?.data?.operationCount).toBe(1);
+      expect(failoverNode?.data?.operations).toHaveLength(1);
+      expect(failoverNode?.data?.operations[0].progression).toBe(
+        Progression.WaitOnUserToCleanUp
+      );
     });
   });
 
@@ -401,7 +707,7 @@ describe('generateClusterNodesModel', () => {
         'cluster1::cluster2': [
           {
             name: 'policy1',
-            phase: 'Available',
+            phase: 'Validated',
             isConfiguring: false,
             schedulingInterval: '5m',
             policy: createMockDRPolicy('policy1'),
@@ -410,7 +716,7 @@ describe('generateClusterNodesModel', () => {
         'cluster2::cluster3': [
           {
             name: 'policy2',
-            phase: 'Available',
+            phase: 'Validated',
             isConfiguring: false,
             schedulingInterval: '5m',
             policy: createMockDRPolicy('policy2'),
@@ -425,7 +731,7 @@ describe('generateClusterNodesModel', () => {
             applicationName: 'app1',
             applicationNamespace: 'ns1',
             action: DRActionType.FAILOVER,
-            phase: 'FailingOver',
+            phase: Phase.FailingOver,
             progression: Progression.FailingOver,
             sourceCluster: 'cluster1',
             targetCluster: 'cluster2',
@@ -445,7 +751,7 @@ describe('generateClusterNodesModel', () => {
       // Total = 8 nodes
       expect(model.nodes).toHaveLength(8);
 
-      // Should have 2 app-operation edges (source->failover, failover->target)
+      // Should have 2 app-operation edges (source cluster->failover, failover->target cluster)
       expect(model.edges).toHaveLength(2);
 
       const operationEdges = model.edges?.filter(
@@ -453,7 +759,6 @@ describe('generateClusterNodesModel', () => {
       );
       expect(operationEdges).toHaveLength(2);
 
-      // Verify pairing boxes exist for both policies
       const pairingBoxes = model.nodes?.filter((n) => n.type === 'pairing-box');
       expect(pairingBoxes).toHaveLength(2);
     });

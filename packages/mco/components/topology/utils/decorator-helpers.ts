@@ -1,55 +1,68 @@
+import { DRStatus } from '@odf/mco/utils/dr-status';
 import { NodeStatus, TopologyQuadrant } from '@patternfly/react-topology';
+import { Phase, Progression } from '../../../types/ramen';
 import { DecoratorIcon, TopologyDecorator } from '../types';
 
 /**
- * Determines decorator properties based on phase/status
+ * Determines decorator properties based on DR status
  * Centralized logic to avoid duplication across node generation
  */
-export const getDecoratorForPhase = (
-  phase: string,
+export const getDecoratorForStatus = (
+  drStatus: string,
   quadrant: TopologyQuadrant = TopologyQuadrant.upperRight
-): TopologyDecorator | undefined => {
-  let icon: DecoratorIcon | undefined;
-  let tooltip = phase;
+): TopologyDecorator => {
+  let icon: DecoratorIcon;
+  let tooltip = drStatus;
   let status = NodeStatus.default;
 
-  switch (phase) {
-    case 'Critical':
+  switch (drStatus) {
+    case DRStatus.Critical:
+    case DRStatus.ProtectionError:
+    case DRStatus.Unknown:
+    case Progression.FailedToFailover:
+    case Progression.FailedToRelocate:
       icon = DecoratorIcon.ExclamationCircle;
-      tooltip = 'Critical';
+      tooltip = drStatus;
       status = NodeStatus.danger;
       break;
-    case 'Completed':
-    case 'Available':
+    case DRStatus.Healthy:
+    case DRStatus.Available:
+    case DRStatus.Relocated:
+    case Phase.Deployed:
+    case Progression.Completed:
       icon = DecoratorIcon.CheckCircle;
-      tooltip = phase;
+      tooltip = drStatus;
       status = NodeStatus.success;
       break;
-    case 'FailingOver':
-    case 'Relocating':
-    case 'Initiating':
-    case 'Deploying':
+    case DRStatus.FailingOver:
+    case DRStatus.Relocating:
+    case DRStatus.Deleting:
+    case DRStatus.Protecting:
+    case Phase.Initiating:
+    case Phase.Deploying:
+    case Progression.CleaningUp:
       icon = DecoratorIcon.InProgress;
-      tooltip = `${phase}...`;
+      tooltip = `${drStatus}...`;
       status = NodeStatus.info;
       break;
-    case 'FailedOver':
+    case DRStatus.WaitOnUserToCleanUp:
+    case DRStatus.WaitForUser:
+    case Progression.WaitForUserAction:
+      icon = DecoratorIcon.InfoCircle;
+      tooltip = 'Action required';
+      status = NodeStatus.info;
+      break;
+    case DRStatus.FailedOver:
+    case DRStatus.Warning:
       icon = DecoratorIcon.ExclamationTriangle;
-      tooltip = 'FailedOver';
+      tooltip = drStatus;
       status = NodeStatus.warning;
       break;
     default:
-      // For unknown phases, show warning
-      if (phase !== 'Unknown') {
-        icon = DecoratorIcon.ExclamationTriangle;
-        tooltip = phase;
-        status = NodeStatus.warning;
-      }
+      icon = DecoratorIcon.ExclamationTriangle;
+      tooltip = drStatus;
+      status = NodeStatus.warning;
       break;
-  }
-
-  if (!icon) {
-    return undefined;
   }
 
   return {

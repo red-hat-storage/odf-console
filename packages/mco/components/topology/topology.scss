@@ -1,10 +1,16 @@
 .mco-topology {
-  height: calc(100vh - 150px);
+  height: 100%;
   width: 100%;
   background-color: var(--pf-v6-global--BackgroundColor--100);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+
+  &__content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
 
   &__sidebar {
     padding: var(--pf-v6-global--spacer--md);

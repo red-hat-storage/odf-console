@@ -26,14 +26,13 @@ import {
   PlusCircleIcon,
   ExclamationCircleIcon,
 } from '@patternfly/react-icons';
-import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import {
   DR_BASE_ROUTE,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
 } from '../../../constants';
 import { ACMManagedClusterKind } from '../../../types';
 import { TopologyDataContext } from '../context/TopologyContext';
-import { DRStatusIcon } from '../utils/sidebar-utils';
+import { DRPCTable } from './AppSidebar';
 import './TopologySidebar.scss';
 
 type ClusterSidebarProps = {
@@ -47,10 +46,12 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
   const [activeTabKey, setActiveTabKey] = React.useState<string | number>(0);
 
   const resourceName = getName(resource);
-  const protectedApps = clusterAppsMap?.[resourceName] || [];
+  const protectedApps = React.useMemo(
+    () => clusterAppsMap?.[resourceName] || [],
+    [clusterAppsMap, resourceName]
+  );
   const hasApps = protectedApps.length > 0;
 
-  // Extract cluster information
   const conditions: K8sResourceCondition[] = resource.status?.conditions || [];
   const isHealthy = conditions.find(
     (c) => c.type === MANAGED_CLUSTER_CONDITION_AVAILABLE && c.status === 'True'
@@ -60,18 +61,27 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
     resource.spec?.clusterID || resource.status?.clusterID || t('N/A');
   const labels = getLabels(resource) || {};
 
+  const drpcApps = React.useMemo(
+    () =>
+      protectedApps.map((app) => ({
+        name: app.name,
+        namespace: app.namespace,
+        status: app.status,
+        drPolicy: app.drPolicy,
+      })),
+    [protectedApps]
+  );
+
   return (
     <div className="mco-topology-sidebar__container">
-      {/* Header with cluster name */}
       <div className="mco-topology-sidebar__header">
         <Title
           headingLevel="h2"
           size="xl"
-          className="mco-topology-sidebar__header-title"
+          className="mco-topology-sidebar__header-title pf-v6-u-mr-sm"
         >
           {resourceName}
         </Title>
-        {/* Add status badge if cluster is available */}
         {isHealthy ? (
           <Label color="green" icon={<CheckCircleIcon />}>
             {t('Healthy')}
@@ -182,45 +192,10 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
             eventKey={1}
             title={<TabTitleText>{t('Application Details')}</TabTitleText>}
           >
-            <div className="mco-topology-sidebar__tab-content">
-              {/* Show table when there are apps */}
+            <div className="pf-v6-u-mt-md">
               {hasApps ? (
-                <Table
-                  aria-label={t('Protected applications table')}
-                  variant="compact"
-                >
-                  <Thead>
-                    <Tr>
-                      <Th>{t('Name')}</Th>
-                      <Th>{t('DR Status')}</Th>
-                      <Th>{t('Policies')}</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {protectedApps.map((app, index) => (
-                      <Tr key={`${app.namespace}-${app.name}-${index}`}>
-                        <Td dataLabel={t('Name')}>
-                          <div>
-                            <Label color="green" isCompact>
-                              {t('DRPC')}
-                            </Label>{' '}
-                            <Button variant="link" isInline>
-                              {app.name}
-                            </Button>
-                          </div>
-                        </Td>
-                        <Td dataLabel={t('DR Status')}>
-                          <div className="mco-topology-sidebar__app-status">
-                            <DRStatusIcon status={app.status} />
-                          </div>
-                        </Td>
-                        <Td dataLabel={t('Policies')}>{app.drPolicy}</Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
+                <DRPCTable apps={drpcApps} />
               ) : (
-                /* Empty State (when no apps) */
                 <EmptyState variant="lg">
                   <PlusCircleIcon className="mco-topology-sidebar__empty-state-icon" />
                   <Title headingLevel="h4" size="lg">
