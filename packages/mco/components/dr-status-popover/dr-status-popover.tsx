@@ -98,11 +98,16 @@ const shouldShowSyncDetails = ({
   status,
   volumeHealth,
   kubeHealth,
+  schedulingInterval,
 }: {
   status: DRStatus;
   volumeHealth: VolumeReplicationHealth;
   kubeHealth?: VolumeReplicationHealth;
+  schedulingInterval?: string;
 }): boolean => {
+  // No sync details to show when no replication is required (0m interval).
+  if (schedulingInterval === '0m') return false;
+
   if ([DRStatus.Healthy, DRStatus.Warning, DRStatus.Critical].includes(status))
     return true;
 
@@ -410,6 +415,8 @@ const isWithinSyncThreshold = (
   schedulingInterval?: string
 ): boolean => {
   if (!actionStartTime || !schedulingInterval) return true;
+  // No sync threshold applies when no replication is required (0m interval).
+  if (schedulingInterval === '0m') return true;
   const elapsedSeconds = getTimeDifferenceInSeconds(actionStartTime);
   const [, slaDiff] = getVolumeReplicationHealth(
     elapsedSeconds,
@@ -528,10 +535,13 @@ const getDRStatus = ({
   // is shown immediately after failover/relocate completes, even if protectedCondition
   // is still in "Unknown" or "Progressing" state.
   const hasSyncStarted = !!volumeLastGroupSyncTime;
+  // When schedulingInterval is 0m (e.g. FusionAccess), no replication occurs,
+  // so sync will never start. Skip the hasSyncStarted gate for these policies.
+  const isNoReplicationRequired = schedulingInterval === '0m';
 
   if (phase === Phase.FailedOver || phase === Phase.Relocated) {
-    // If sync hasn't started yet, show completion message (phase status)
-    if (!hasSyncStarted) {
+    // If sync hasn't started yet and replication is expected, show completion message (phase status)
+    if (!hasSyncStarted && !isNoReplicationRequired) {
       return phase === Phase.FailedOver
         ? DRStatus.FailedOver
         : DRStatus.Relocated;
@@ -1006,6 +1016,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
               status,
               volumeHealth: disasterRecoveryStatus.volumeReplicationHealth,
               kubeHealth: disasterRecoveryStatus.kubeObjectReplicationHealth,
+              schedulingInterval: disasterRecoveryStatus.schedulingInterval,
             }) && (
               <>
                 <div className="dr-status-popover__sync-details">
