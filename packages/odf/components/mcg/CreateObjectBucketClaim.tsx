@@ -11,13 +11,13 @@ import {
 import {
   NooBaaObjectBucketClaimModel,
   NooBaaBucketClassModel,
+  ResourceDropdown,
 } from '@odf/shared';
 import {
   NOOBAA_PROVISIONER,
   formSettings,
   DEFAULT_NS,
 } from '@odf/shared/constants';
-import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
@@ -39,6 +39,7 @@ import {
   NamespaceBar,
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Tile } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { Control, useForm } from 'react-hook-form';
@@ -166,8 +167,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   } = props;
   const isNoobaa = state.scProvisioner?.includes(NOOBAA_PROVISIONER);
   const isClientCluster = isClientPlugin();
-  const allowBucketClass =
-    bucketType === BucketType.S3Vector ? true : isNoobaa && !isClientCluster;
+  const allowBucketClass = isNoobaa && !isClientCluster;
 
   const filterBucketClassByVectorPolicy = (bc: K8sResourceKind) => {
     const hasVectorPolicy = !!(bc as BucketClassKind).spec?.vectorPolicy;
@@ -235,12 +235,6 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       obj.spec.generateBucketName = 'bucket-';
     }
     if (state.bucketClass && allowBucketClass) {
-      if (bucketType === BucketType.S3Vector) {
-        obj.spec.additionalConfig = {
-          path: s3VectorSubpath,
-          bucketType: BucketType.S3Vector,
-        };
-      }
       if (!!state.replicationRuleFormData.length) {
         const replicationPolicy = createReplicationRulesAndStringify(
           state.replicationRuleFormData,
@@ -251,6 +245,10 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       }
       obj.spec.additionalConfig = {
         ...obj.spec.additionalConfig,
+        ...(bucketType === BucketType.S3Vector && {
+          path: s3VectorSubpath,
+          bucketType: 'vector',
+        }),
         bucketclass: state.bucketClass,
       };
     }
@@ -308,115 +306,117 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
         }}
         helperText={t('If not provided a generic name will be generated.')}
       />
-      {bucketType === BucketType.General && (
+      <FormGroupController
+        name="sc-dropdown"
+        control={control}
+        formGroupProps={{
+          fieldId: 'sc-dropdown',
+          label: t('StorageClass'),
+          helperText: t(
+            'Defines the object-store service and the bucket provisioner.'
+          ),
+          isRequired: true,
+        }}
+        render={({ onChange, onBlur }) => (
+          <ResourcesDropdown<StorageClassResourceKind>
+            resourceModel={StorageClassModel}
+            onSelect={(res) => onScChange(res, onChange)}
+            onBlur={onBlur}
+            filterResource={filterResource}
+            initialSelection={(resources) =>
+              resources?.find((res) =>
+                res.provisioner.includes(NOOBAA_PROVISIONER)
+              )
+            }
+            className="odf-mcg__resource-dropdown"
+            id="sc-dropdown"
+            data-test="sc-dropdown"
+            resource={storageClassResource}
+            secondaryTextGenerator={getStorageClassDescription}
+          />
+        )}
+      />
+      {bucketType === BucketType.S3Vector && (
+        <FormGroup
+          label={t('Subpath')}
+          fieldId="vector-bucket-subpath-obc"
+          className="pf-v6-u-mb-md"
+        >
+          <TextInput
+            id="vector-bucket-subpath-obc"
+            type="text"
+            value={s3VectorSubpath}
+            onChange={(_event, value) => setS3VectorSubpath(value)}
+            className="pf-v6-c-form-control"
+            data-test-id="vector-bucket-subpath-obc"
+          />
+          <div className="pf-v6-c-form__helper-text">
+            {t(
+              'An optional path within the bucket used to separate vector storage.'
+            )}
+          </div>
+        </FormGroup>
+      )}
+      {allowBucketClass && (
         <FormGroupController
-          name="sc-dropdown"
+          name="bucketclass"
           control={control}
           formGroupProps={{
-            fieldId: 'sc-dropdown',
-            label: t('StorageClass'),
-            helperText: t(
-              'Defines the object-store service and the bucket provisioner.'
-            ),
+            label: t('BucketClass'),
             isRequired: true,
           }}
           render={({ onChange, onBlur }) => (
-            <ResourcesDropdown<StorageClassResourceKind>
-              resourceModel={StorageClassModel}
-              onSelect={(res) => onScChange(res, onChange)}
+            <ResourceDropdown<K8sResourceKind>
+              key={bucketType}
+              onSelect={(sc) => {
+                onChange(getName(sc));
+                dispatch({
+                  type: 'setBucketClass',
+                  name: getName(sc),
+                });
+              }}
               onBlur={onBlur}
-              filterResource={filterResource}
-              initialSelection={(resources) =>
-                resources?.find((res) =>
-                  res.provisioner.includes(NOOBAA_PROVISIONER)
-                )
-              }
               className="odf-mcg__resource-dropdown"
-              id="sc-dropdown"
-              data-test="sc-dropdown"
-              resource={storageClassResource}
-              secondaryTextGenerator={getStorageClassDescription}
+              {...(bucketType === BucketType.General && {
+                initialSelection: (resources) =>
+                  resources.find(
+                    (res) => getName(res) === 'noobaa-default-bucket-class'
+                  ),
+              })}
+              filterResource={filterBucketClassByVectorPolicy}
+              id="bc-dropdown"
+              data-test="bc-dropdown"
+              resource={bucketClassResource(odfNamespace)}
+              resourceModel={NooBaaBucketClassModel}
             />
           )}
         />
       )}
-      {allowBucketClass && (
+      {allowBucketClass && bucketType !== BucketType.S3Vector && (
         <>
-          <FormGroupController
-            name="bucketclass"
-            control={control}
-            formGroupProps={{
-              label: t('BucketClass'),
-              isRequired: true,
-            }}
-            render={({ onChange, onBlur }) => (
-              <ResourceDropdown<K8sResourceKind>
-                onSelect={(sc) => {
-                  onChange(sc.metadata?.name);
-                  dispatch({
-                    type: 'setBucketClass',
-                    name: sc.metadata?.name,
-                  });
-                }}
-                onBlur={onBlur}
-                className="odf-mcg__resource-dropdown"
-                filterResource={filterBucketClassByVectorPolicy}
-                initialSelection={(resources) =>
-                  bucketType === BucketType.General &&
-                  resources.find(
-                    (res) => res.metadata.name === 'noobaa-default-bucket-class'
-                  )
-                }
-                id="bc-dropdown"
-                data-test="bc-dropdown"
-                resource={bucketClassResource(odfNamespace)}
-                resourceModel={NooBaaBucketClassModel}
-              />
-            )}
-          />
-          {bucketType === BucketType.S3Vector && (
-            <FormGroup
-              label={t('Subpath')}
-              fieldId="vector-bucket-subpath-obc"
-              className="pf-v6-u-mb-md"
-            >
-              <TextInput
-                id="vector-bucket-subpath-obc"
-                type="text"
-                value={s3VectorSubpath}
-                onChange={(_event, value) => setS3VectorSubpath(value)}
-                className="pf-v6-c-form-control"
-                data-test-id="vector-bucket-subpath-obc"
-              />
-            </FormGroup>
-          )}
-          {isNoobaa && bucketType !== BucketType.S3Vector && (
+          <FormGroup>
+            <Checkbox
+              id="enable-replication"
+              label={t('Enable replication')}
+              isChecked={replicationEnabled}
+              description={t(
+                'This option provides higher resiliency of objects stored in NooBaa buckets'
+              )}
+              onChange={onChangeReplication}
+            />
+          </FormGroup>
+          {replicationEnabled && (
             <>
               <FormGroup>
-                <Checkbox
-                  id="enable-replication"
-                  label={t('Enable replication')}
-                  isChecked={replicationEnabled}
-                  description={t(
-                    'This option provides higher resiliency of objects stored in NooBaa buckets'
-                  )}
-                  onChange={onChangeReplication}
-                />
+                <Content component={ContentVariants.h2}>
+                  {t('Replication policy')}
+                </Content>
               </FormGroup>
-              {replicationEnabled && (
-                <>
-                  <FormGroup>
-                    <Content component={ContentVariants.h2}>
-                      {t('Replication policy')}
-                    </Content>
-                  </FormGroup>
-                  <ReplicationPolicyForm
-                    className="form-group"
-                    namespace={namespace}
-                    updateParentState={updateReplicationPolicy}
-                  />
-                </>
-              )}
+              <ReplicationPolicyForm
+                className="form-group"
+                namespace={namespace}
+                updateParentState={updateReplicationPolicy}
+              />
             </>
           )}
         </>
@@ -429,17 +429,21 @@ type CreateOBCProps = {
   className?: string;
   showNamespaceSelector?: boolean;
   bucketType?: BucketType;
+  showBucketTypeSelector?: boolean;
 };
 
 export const CreateOBC: React.FC<CreateOBCProps> = ({
   className,
   showNamespaceSelector = false,
   bucketType = BucketType.General,
+  showBucketTypeSelector = false,
 }) => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
   const [projectNs, setProjectNs] = useActiveNamespace();
   const { odfNamespace } = useODFNamespaceSelector();
+  const [selectedBucketType, setSelectedBucketType] =
+    React.useState<BucketType>(bucketType);
   const [namespace, setNamespace] = React.useState(
     showNamespaceSelector ? odfNamespace : projectNs
   );
@@ -470,6 +474,8 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
     ...formSettings,
     resolver,
   });
+
+  const isClientCluster = isClientPlugin();
 
   const obcName: string = watch('obcName');
 
@@ -509,7 +515,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
     dispatch({ type: 'setProgress' });
     const promises: Promise<K8sResourceKind>[] = [];
     if (
-      bucketType !== BucketType.S3Vector &&
+      selectedBucketType !== BucketType.S3Vector &&
       !!state.replicationRuleFormData.length
     ) {
       const additionalResources = generateAdditionalReplicationResources(
@@ -567,6 +573,30 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
   return (
     <NamespaceSafetyBox allowFallback>
       <Form onSubmit={handleSubmit(save)} className={className}>
+        {!isClientCluster && showBucketTypeSelector && (
+          <FormGroup
+            label={t('Select bucket type')}
+            className="pf-v6-u-mb-md"
+            isRequired
+          >
+            <div className="odf-mcg__bucket-type-tiles">
+              <Tile
+                title={t('General')}
+                isSelected={selectedBucketType === BucketType.General}
+                onClick={() => setSelectedBucketType(BucketType.General)}
+                data-test="bucket-type-general-tile"
+                className="odf-mcg__bucket-type-tile"
+              />
+              <Tile
+                title={t('S3 Vector')}
+                isSelected={selectedBucketType === BucketType.S3Vector}
+                onClick={() => setSelectedBucketType(BucketType.S3Vector)}
+                data-test="bucket-type-s3vector-tile"
+                className="odf-mcg__bucket-type-tile"
+              />
+            </div>
+          </FormGroup>
+        )}
         {showNamespaceSelector && (
           <FormGroupController
             name="ns-dropdown"
@@ -603,7 +633,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
           namespace={namespace}
           control={control}
           fieldRequirements={fieldRequirements}
-          bucketType={bucketType}
+          bucketType={selectedBucketType}
         />
         {!isValid && isSubmitted && (
           <Alert
@@ -651,7 +681,7 @@ export const CreateOBCPage: React.FC<{}> = () => {
             {t('Create ObjectBucketClaim')}
           </Content>
         </Content>
-        <CreateOBC />
+        <CreateOBC showBucketTypeSelector />
       </div>
     </>
   );

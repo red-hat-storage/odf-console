@@ -201,6 +201,7 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
         spec: {
           vectorPolicy: {
             resource: getName(state.readNamespaceStore[0]),
+            vectorDBType: 'lance',
           },
         },
       };
