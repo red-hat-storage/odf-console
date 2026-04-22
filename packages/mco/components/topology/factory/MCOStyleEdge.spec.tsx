@@ -29,7 +29,7 @@ describe('MCOStyleEdge', () => {
     it('should render edge with DefaultEdge component', () => {
       const edge = createMockEdge({
         policies: [
-          { name: 'policy1', phase: 'Available', isConfiguring: false },
+          { name: 'policy1', phase: 'Validated', isConfiguring: false },
         ],
         isConfiguring: false,
         pairKey: 'cluster1::cluster2',
@@ -48,7 +48,7 @@ describe('MCOStyleEdge', () => {
     it('should render dashed edge style', () => {
       const edge = createMockEdge({
         policies: [
-          { name: 'policy1', phase: 'Configuring', isConfiguring: true },
+          { name: 'policy1', phase: 'Not validated', isConfiguring: true },
         ],
         isConfiguring: true,
         pairKey: 'cluster1::cluster2',
@@ -66,7 +66,7 @@ describe('MCOStyleEdge', () => {
     it('should render without terminal arrows', () => {
       const edge = createMockEdge({
         policies: [
-          { name: 'policy1', phase: 'Available', isConfiguring: false },
+          { name: 'policy1', phase: 'Validated', isConfiguring: false },
         ],
         isConfiguring: false,
         pairKey: 'cluster1::cluster2',

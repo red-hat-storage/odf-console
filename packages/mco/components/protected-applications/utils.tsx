@@ -27,7 +27,11 @@ import {
   ReplicationType,
   ApplicationType,
 } from '../../constants';
-import { DRPlacementControlKind, Progression, Phase } from '../../types';
+import { DRPlacementControlKind } from '../../types';
+import {
+  isFailingOrRelocating as isFailingOrRelocatingUtil,
+  isCleanupRequired as isCleanupRequiredUtil,
+} from '../../utils/dr-status';
 import { DRPlacementControlParser } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import { AppManagePoliciesModalWrapper } from '../modals/protected-applications/app-manage-policies-modal-wrapper';
 import { ApplicationActionModal } from '../modals/protected-applications/applications-action-modal';
@@ -121,14 +125,10 @@ export const getAlertMessages = (
 
 export const isFailingOrRelocating = (
   application: DRPlacementControlKind
-): boolean =>
-  [Phase.FailingOver, Phase.Relocating].includes(
-    application?.status?.phase as Phase
-  );
+): boolean => isFailingOrRelocatingUtil(application?.status?.phase);
 
 export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
-  [Phase.FailedOver, Phase.Relocating].includes(drpc?.status?.phase as Phase) &&
-  drpc?.status?.progression === Progression.WaitOnUserToCleanUp;
+  isCleanupRequiredUtil(drpc?.status?.phase, drpc?.status?.progression);
 
 export type ReplicationHealthMap = {
   title: string;

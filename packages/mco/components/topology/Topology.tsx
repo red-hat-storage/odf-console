@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
+import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
   BaseTopologyView,
@@ -63,30 +64,65 @@ const TopologyViewComponent: React.FC = () => {
     setSideBarOpen,
   });
 
-  // Initialize and update model when data changes
-  React.useEffect(() => {
-    if (!controller) return;
+  const prevStructureKeyRef = React.useRef<string>('');
 
-    const model = generateClusterNodesModel(
-      clusters,
-      clusterPairPoliciesMap,
-      clusterPairOperationsMap,
-      clusterAppsMap,
+  const memoizedClusters = useDeepCompareMemoize(clusters);
+  const memoizedPolicies = useDeepCompareMemoize(clusterPairPoliciesMap);
+  const memoizedOperations = useDeepCompareMemoize(clusterPairOperationsMap);
+  const memoizedApps = useDeepCompareMemoize(clusterAppsMap);
+
+  const model = React.useMemo(() => {
+    return generateClusterNodesModel(
+      memoizedClusters,
+      memoizedPolicies,
+      memoizedOperations,
+      memoizedApps,
       {
         searchValue,
         filterTypes: selectedFilters,
       }
     );
-    controller.fromModel(model);
   }, [
-    controller,
-    clusters,
-    clusterPairPoliciesMap,
-    clusterPairOperationsMap,
-    clusterAppsMap,
+    memoizedClusters,
+    memoizedPolicies,
+    memoizedOperations,
+    memoizedApps,
     searchValue,
     selectedFilters,
   ]);
+
+  // Memoize structure key to avoid recreating arrays on every render
+  const structureKey = React.useMemo(() => {
+    return (model.nodes || [])
+      .map((n) => n.id)
+      .sort()
+      .join(',');
+  }, [model.nodes]);
+
+  // Initialize and update model when data changes
+  React.useEffect(() => {
+    if (!controller) return;
+
+    controller.fromModel(model);
+
+    if (structureKey !== prevStructureKeyRef.current) {
+      prevStructureKeyRef.current = structureKey;
+      const graph = controller.getGraph();
+      if (!graph) return;
+
+      // Delay fit until after the layout engine finishes positioning nodes
+      requestAnimationFrame(() => {
+        // Check if controller still exists (component may have unmounted)
+        if (!controller) return;
+        graph.layout();
+        requestAnimationFrame(() => {
+          // Check again before calling fit (double RAF delay)
+          if (!controller) return;
+          graph.fit(100);
+        });
+      });
+    }
+  }, [controller, model, structureKey]);
 
   const controlButtons = useTopologyControls({ controller });
 
@@ -121,19 +157,21 @@ const TopologyViewComponent: React.FC = () => {
         selectedFilters={selectedFilters}
         onFilterChange={setSelectedFilters}
       />
-      <BaseTopologyView
-        controlButtons={controlButtons}
-        sideBar={
-          <TopologySideBar
-            resource={sidebarResource}
-            edgeData={sidebarEdgeData}
-            onClose={onCloseSideBar}
-            isExpanded={isSideBarOpen}
-          />
-        }
-        sideBarOpen={isSideBarOpen}
-        selectedIds={selectedIds}
-      />
+      <div className="mco-topology__content">
+        <BaseTopologyView
+          controlButtons={controlButtons}
+          sideBar={
+            <TopologySideBar
+              resource={sidebarResource}
+              edgeData={sidebarEdgeData}
+              onClose={onCloseSideBar}
+              isExpanded={isSideBarOpen}
+            />
+          }
+          sideBarOpen={isSideBarOpen}
+          selectedIds={selectedIds}
+        />
+      </div>
     </>
   );
 };

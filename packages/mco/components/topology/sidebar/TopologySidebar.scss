@@ -2,7 +2,7 @@
   &__container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     overflow: hidden;
   }
 
@@ -14,6 +14,7 @@
     margin-bottom: var(--pf-t--global--spacer--md);
     margin-top: var(--pf-t--global--spacer--md);
     margin-left: var(--pf-t--global--spacer--md);
+    flex-shrink: 0; // Prevent header from shrinking
 
     &-title {
       margin-bottom: 0;
@@ -22,9 +23,9 @@
 
   &__content {
     flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
   }
 
   &__policy-item {
@@ -33,11 +34,6 @@
 
   &__policy-phase {
     margin-top: var(--pf-t--global--spacer--xs);
-  }
-
-  &__tab-content {
-    overflow-y: auto;
-    height: 100%;
   }
 
   &__app-status {

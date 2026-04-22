@@ -12,7 +12,6 @@ import {
 import { ClusterContextMenu } from '../components/ClusterContextMenu';
 import { TopologyDataContext } from '../context/TopologyContext';
 import { useClusterContextMenu } from '../hooks/useClusterContextMenu';
-import { renderDecorators } from '../utils/decorator-utils';
 import './MCOStyleAppGroup.scss';
 
 type MCOStyleAppGroupProps = {
@@ -80,7 +79,6 @@ const MCOStyleAppGroup: React.FunctionComponent<MCOStyleAppGroupProps> = ({
           {...groupProps}
           {...rest}
         />
-        {renderDecorators(element, data)}
       </g>
       {/* Render drilldown menu using portal - only for cluster groups */}
       {data.isClusterGroup && (

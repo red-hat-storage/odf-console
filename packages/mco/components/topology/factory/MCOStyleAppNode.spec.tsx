@@ -16,12 +16,23 @@ jest.mock('@patternfly/react-topology/dist/esm/hooks/useDetailsLevel', () => ({
 // Mock PatternFly Topology components
 jest.mock('@patternfly/react-topology', () => ({
   ...jest.requireActual('@patternfly/react-topology'),
-  DefaultNode: ({ element, children }: any) => (
-    <g data-testid="default-node" data-element-id={element.getId()}>
+  DefaultNode: ({ element, children, attachments, className }: any) => (
+    <g
+      data-testid="default-node"
+      data-element-id={element.getId()}
+      className={className}
+    >
       {children}
+      {attachments}
+    </g>
+  ),
+  Decorator: ({ icon, x, y }: any) => (
+    <g data-testid="decorator" transform={`translate(${x}, ${y})`}>
+      {icon}
     </g>
   ),
   observer: (component: any) => component,
+  getDefaultShapeDecoratorCenter: () => ({ x: 0, y: 0 }),
 }));
 
 const createMockOperation = (
@@ -56,7 +67,7 @@ const createMockAppNode = (
 
 describe('MCOStyleAppNode', () => {
   describe('Source App Node', () => {
-    it('should render source app with orange color', () => {
+    it('should render source app with source animation class', () => {
       const operation = createMockOperation();
       const node = createMockAppNode(true, operation) as Node;
 
@@ -66,10 +77,8 @@ describe('MCOStyleAppNode', () => {
         </svg>
       );
 
-      const circle = container.querySelector('circle');
-      expect(circle?.getAttribute('fill')).toBe(
-        'var(--pf-v6-global--warning-color--100)'
-      );
+      const appNodeGroup = container.querySelector('.mco-app-node--source');
+      expect(appNodeGroup).toBeInTheDocument();
     });
 
     it('should have fade-pulse animation class', () => {
@@ -110,13 +119,14 @@ describe('MCOStyleAppNode', () => {
         </svg>
       );
 
-      const circle = container.querySelector('circle');
-      expect(circle?.getAttribute('opacity')).toBe('0.6');
+      // Source nodes get the mco-app-node--source class which applies lower opacity via CSS
+      const appNode = container.querySelector('.mco-app-node--source');
+      expect(appNode).toBeInTheDocument();
     });
   });
 
   describe('Target App Node', () => {
-    it('should render target app with blue color', () => {
+    it('should render target app with target animation class', () => {
       const operation = createMockOperation();
       const node = createMockAppNode(false, operation) as Node;
 
@@ -126,10 +136,8 @@ describe('MCOStyleAppNode', () => {
         </svg>
       );
 
-      const circle = container.querySelector('circle');
-      expect(circle?.getAttribute('fill')).toBe(
-        'var(--pf-v6-global--primary-color--100)'
-      );
+      const appNodeGroup = container.querySelector('.mco-app-node--target');
+      expect(appNodeGroup).toBeInTheDocument();
     });
 
     it('should have brighten-pulse animation class', () => {
@@ -170,8 +178,9 @@ describe('MCOStyleAppNode', () => {
         </svg>
       );
 
-      const circle = container.querySelector('circle');
-      expect(circle?.getAttribute('opacity')).toBe('0.9');
+      // Target nodes get the mco-app-node--target class which applies higher opacity via CSS
+      const appNode = container.querySelector('.mco-app-node--target');
+      expect(appNode).toBeInTheDocument();
     });
   });
 
@@ -186,7 +195,7 @@ describe('MCOStyleAppNode', () => {
         </svg>
       );
 
-      // CubeIcon should be rendered
+      // CubeIcon (now CogIcon) should be rendered inside the node
       expect(container.querySelector('svg')).toBeInTheDocument();
     });
 
@@ -223,9 +232,10 @@ describe('MCOStyleAppNode', () => {
         </svg>
       );
 
-      const circle = container.querySelector('circle');
-      expect(circle?.getAttribute('stroke')).toBeDefined();
-      expect(circle?.getAttribute('stroke-width')).toBe('2');
+      // Verify the node renders successfully with DefaultNode mock
+      expect(
+        container.querySelector('[data-testid="default-node"]')
+      ).toBeInTheDocument();
     });
   });
 

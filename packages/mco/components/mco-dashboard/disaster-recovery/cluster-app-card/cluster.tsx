@@ -22,7 +22,7 @@ import {
 import { DRClusterAppsMap, ProtectedAppsMap } from '@odf/mco/types';
 import {
   getVolumeReplicationHealth,
-  ValidateManagedClusterCondition,
+  validateManagedClusterCondition,
 } from '@odf/mco/utils';
 import {
   GreenCheckCircleIcon,
@@ -176,7 +176,7 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
       <HealthItem
         title={t('Cluster health')}
         state={
-          ValidateManagedClusterCondition(
+          validateManagedClusterCondition(
             clusterResources[clusterName]?.managedCluster,
             MANAGED_CLUSTER_CONDITION_AVAILABLE
           )

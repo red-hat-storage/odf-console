@@ -1,0 +1,15 @@
+.mco-decorator-icon--spinning {
+  animation: mco-decorator-spin 2s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+
+@keyframes mco-decorator-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

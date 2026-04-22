@@ -2,7 +2,7 @@ import { ClusterProviders } from '@odf/mco/hooks/use-storage-provisioner';
 import { ConnectedClient, ODFInfoYamlObject } from '@odf/mco/types';
 import {
   getMajorVersion,
-  ValidateManagedClusterCondition,
+  validateManagedClusterCondition,
   isMinimumSupportedODFVersion,
   getNameNamespace,
 } from '@odf/mco/utils';
@@ -156,7 +156,7 @@ const getManagedClusterInfo = (
   return {
     id: clusterId,
     metadata: cluster.metadata,
-    isManagedClusterAvailable: ValidateManagedClusterCondition(
+    isManagedClusterAvailable: validateManagedClusterCondition(
       cluster,
       MANAGED_CLUSTER_CONDITION_AVAILABLE
     ),
@@ -215,7 +215,7 @@ export const getManagedClusterInfoTypes = (
   );
 
   return managedClusters?.reduce((acc, cluster) => {
-    if (ValidateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED))
+    if (validateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED))
       return [
         ...acc,
         getManagedClusterInfo(
