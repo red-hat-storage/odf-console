@@ -25,4 +25,15 @@
   &__rule {
     width: 90%;
   }
+
+  &__bucket-type-tiles {
+    display: flex;
+    gap: var(--pf-t--global--spacer--md);
+    flex-wrap: wrap;
+  }
+
+  &__bucket-type-tile {
+    flex: 1;
+    min-width: 300px;
+  }
 }
