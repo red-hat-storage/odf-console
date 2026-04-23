@@ -593,7 +593,7 @@ export const findPlacementDecisionUsingPlacement = (
   );
 };
 
-export const ValidateManagedClusterCondition = (
+export const validateManagedClusterCondition = (
   managedCluster: ACMManagedClusterKind,
   conditionType: string
 ): boolean => {

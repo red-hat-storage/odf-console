@@ -17,7 +17,11 @@ import {
   getClustersFromPairKey,
 } from '../../../hooks/useDRPoliciesByClusterPair';
 import { ClusterAppsMap } from '../../../hooks/useProtectedAppsByCluster';
-import { ACMManagedClusterKind } from '../../../types';
+import {
+  ACMManagedClusterKind,
+  DRPlacementControlConditionType,
+} from '../../../types';
+import { getEffectiveDRStatus } from '../../../utils/dr-status';
 import { TOPOLOGY_CONSTANTS } from '../constants';
 import {
   DecoratorIcon,
@@ -27,7 +31,7 @@ import {
   DROperationInfo,
   TopologyNodeData,
 } from '../types';
-import { getDecoratorForPhase } from './decorator-helpers';
+import { getDecoratorForStatus } from './decorator-helpers';
 
 /**
  * Helper function to check if a cluster is healthy
@@ -54,8 +58,19 @@ const createGroupedOperationNodes = (
     const count = ops.length;
     const action = ops[0].action;
     const phase = ops[0].phase || 'Unknown';
-    const label =
-      count === 1 ? ops[0].applicationName : `Apps in ${action} (${count})`;
+    const progression = ops[0].progression;
+    const protectedCondition = ops[0].drpc?.status?.conditions?.find(
+      (c) => c.type === DRPlacementControlConditionType.Protected
+    );
+    const volumeLastGroupSyncTime = ops[0].drpc?.status?.lastGroupSyncTime;
+    const effectiveStatus = getEffectiveDRStatus(
+      phase,
+      progression,
+      ops[0].hasProtectionError,
+      protectedCondition,
+      volumeLastGroupSyncTime
+    );
+    const label = effectiveStatus;
     const directionLabel = isSource ? 'source' : 'target';
     const appId = `app-group-${clusterName}-${directionLabel}-${groupKey}`;
 
@@ -65,13 +80,16 @@ const createGroupedOperationNodes = (
       label,
       labelPosition: LabelPosition.bottom,
       badge: 'DRPC',
-      shape: NodeShape.ellipse,
+      shape: NodeShape.rect,
       resource: ops[0].pav,
       width: TOPOLOGY_CONSTANTS.APP_NODE_WIDTH,
       height: TOPOLOGY_CONSTANTS.APP_NODE_HEIGHT,
     } as any);
 
-    const decorator = getDecoratorForPhase(phase, TopologyQuadrant.upperRight);
+    const decorator = getDecoratorForStatus(
+      effectiveStatus,
+      TopologyQuadrant.upperLeft
+    );
 
     (appNode.data as TopologyNodeData) = {
       ...(appNode.data || {}),
@@ -83,7 +101,8 @@ const createGroupedOperationNodes = (
       appCount: count,
       action,
       phase,
-      decorators: decorator ? [decorator] : undefined,
+      progression,
+      decorators: [decorator],
     };
     nodes.push(appNode);
   });
@@ -120,9 +139,22 @@ const generateClusterWithApps = (
       const pavName = getName(op.pav) || op.applicationName;
       appsInOperations.add(pavName);
 
-      // Use action-phase as the grouping key
+      // Use action + effective status as the grouping key so that
+      // operations in different progression states (e.g. FailedOver vs WaitOnUserToCleanUp)
+      // are shown as separate nodes.
       const phase = op.phase || 'Unknown';
-      const groupKey = `${op.action}-${phase}`;
+      const protectedCondition = op.drpc?.status?.conditions?.find(
+        (c) => c.type === DRPlacementControlConditionType.Protected
+      );
+      const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
+      const effectiveStatus = getEffectiveDRStatus(
+        phase,
+        op.progression,
+        op.hasProtectionError,
+        protectedCondition,
+        volumeLastGroupSyncTime
+      );
+      const groupKey = `${op.action}-${effectiveStatus}`;
 
       if (op.isSource) {
         if (!sourceOperationsByActionPhase.has(groupKey)) {
@@ -151,13 +183,12 @@ const generateClusterWithApps = (
     appNodes.push(...sourceNodes, ...targetNodes);
   }
 
-  // Group static apps (those not in operations) by their status
+  // Group static apps (those not in operations) by their status within this cluster
   if (apps && apps.length > 0) {
     // Filter out apps that are currently in operations
     const staticApps = apps.filter((app) => !appsInOperations.has(app.name));
 
     if (staticApps.length > 0) {
-      // Group static apps by their status
       const appsByStatus = staticApps.reduce<
         Record<string, ProtectedAppInfo[]>
       >((acc, app) => {
@@ -169,28 +200,26 @@ const generateClusterWithApps = (
         return acc;
       }, {});
 
-      // Create one node per status group
+      // Create one node per status group within this cluster
       Object.entries(appsByStatus).forEach(
         ([status, groupedApps]: [string, ProtectedAppInfo[]]) => {
           const count = groupedApps.length;
           const firstApp = groupedApps[0];
-
-          // Use first app's name if only one, otherwise show count
-          const label = count === 1 ? firstApp.name : `Apps (${count})`;
+          const label = status;
 
           const appNode = createNode({
             id: `app-group-${clusterName}-${status}`,
             type: 'app-node-operation',
             label,
             labelPosition: LabelPosition.bottom,
-            badge: 'APP',
-            shape: NodeShape.ellipse,
+            badge: 'DRPC',
+            shape: NodeShape.rect,
             resource: firstApp.pav,
             width: TOPOLOGY_CONSTANTS.APP_NODE_WIDTH,
             height: TOPOLOGY_CONSTANTS.APP_NODE_HEIGHT,
           } as any);
 
-          const decorator = getDecoratorForPhase(
+          const decorator = getDecoratorForStatus(
             status,
             TopologyQuadrant.upperLeft
           );
@@ -202,7 +231,7 @@ const generateClusterWithApps = (
             appStatus: status,
             clusterName,
             isStatic: true,
-            decorators: decorator ? [decorator] : undefined,
+            decorators: [decorator],
           };
           appNodes.push(appNode);
         }
@@ -227,7 +256,6 @@ const generateClusterWithApps = (
       isClusterGroup: true,
       resource: cluster,
       kind: ACMManagedClusterModel.kind,
-      badge: ACMManagedClusterModel.abbr || 'CL',
       collapsible: false,
       canDropOnNode: false,
       decorators: [
@@ -552,7 +580,6 @@ export const generateClusterNodesModel = (
         type: 'cluster-node',
         label: clusterName,
         labelPosition: LabelPosition.bottom,
-        badge: ACMManagedClusterModel.abbr || 'CL',
         shape: NodeShape.rect,
         resource: cluster,
         kind: ACMManagedClusterModel.kind,
@@ -638,38 +665,34 @@ export const generateClusterNodesModel = (
             },
           });
 
-          // Group actionOps by phase for source and target
-          const sourceOpsByPhase = new Map<string, any[]>();
-          const targetOpsByPhase = new Map<string, any[]>();
-
+          // Collect unique source and target clusters for this action
+          const sourceClusters = new Set<string>();
+          const targetClusters = new Set<string>();
           actionOps.forEach((op) => {
-            const phase = op.phase || 'Unknown';
-            const groupKey = `${action}-${phase}`;
-
-            if (!sourceOpsByPhase.has(groupKey)) {
-              sourceOpsByPhase.set(groupKey, []);
-            }
-            sourceOpsByPhase.get(groupKey)!.push(op);
-
-            if (!targetOpsByPhase.has(groupKey)) {
-              targetOpsByPhase.set(groupKey, []);
-            }
-            targetOpsByPhase.get(groupKey)!.push(op);
+            if (op.sourceCluster) sourceClusters.add(op.sourceCluster);
+            if (op.targetCluster) targetClusters.add(op.targetCluster);
           });
 
-          // Create edges from each source app group to failover node
-          sourceOpsByPhase.forEach((ops, groupKey) => {
-            const sourceAppId = `app-group-${ops[0].sourceCluster}-source-${groupKey}`;
-
-            // Only create edge if source node exists (might be filtered out)
-            if (existingNodeIds.has(sourceAppId)) {
+          // Create one edge per source cluster -> failover node
+          sourceClusters.forEach((sourceCluster) => {
+            // Validate cluster is not empty/undefined (defensive check)
+            if (!sourceCluster) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `Operation has undefined source cluster:`,
+                actionOps[0]
+              );
+              return;
+            }
+            const sourceClusterId = `cluster-group-${sourceCluster}`;
+            if (existingNodeIds.has(sourceClusterId)) {
               edges.push({
-                id: `edge-source-${pairKey}-${groupKey}`,
+                id: `edge-source-${pairKey}-${action}-${sourceCluster}`,
                 type: 'app-operation-edge',
-                source: sourceAppId,
+                source: sourceClusterId,
                 target: failoverNodeId,
                 data: {
-                  operations: ops,
+                  operations: actionOps,
                   isOperation: true,
                   pairKey,
                   action,
@@ -678,19 +701,26 @@ export const generateClusterNodesModel = (
             }
           });
 
-          // Create edges from failover node to each target app group
-          targetOpsByPhase.forEach((ops, groupKey) => {
-            const targetAppId = `app-group-${ops[0].targetCluster}-target-${groupKey}`;
-
-            // Only create edge if target node exists (might be filtered out)
-            if (existingNodeIds.has(targetAppId)) {
+          // Create one edge per failover node -> target cluster
+          targetClusters.forEach((targetCluster) => {
+            // Validate cluster is not empty/undefined (defensive check)
+            if (!targetCluster) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `Operation has undefined target cluster:`,
+                actionOps[0]
+              );
+              return;
+            }
+            const targetClusterId = `cluster-group-${targetCluster}`;
+            if (existingNodeIds.has(targetClusterId)) {
               edges.push({
-                id: `edge-target-${pairKey}-${groupKey}`,
+                id: `edge-target-${pairKey}-${action}-${targetCluster}`,
                 type: 'app-operation-edge',
                 source: failoverNodeId,
-                target: targetAppId,
+                target: targetClusterId,
                 data: {
-                  operations: ops,
+                  operations: actionOps,
                   isOperation: true,
                   pairKey,
                   action,

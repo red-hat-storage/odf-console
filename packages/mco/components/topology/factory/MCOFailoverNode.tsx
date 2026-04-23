@@ -1,20 +1,111 @@
 import * as React from 'react';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
-import { ExchangeAltIcon } from '@patternfly/react-icons';
+import { InfoCircleIcon, SyncAltIcon } from '@patternfly/react-icons';
 import {
+  DEFAULT_DECORATOR_PADDING,
+  DEFAULT_DECORATOR_RADIUS,
+  Decorator,
   DefaultNode,
   Node,
+  NodeModel,
+  NodeStatus,
+  TopologyQuadrant,
+  getDefaultShapeDecoratorCenter,
   observer,
   ScaleDetailsLevel,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import './MCOFailoverNode.scss';
+import { DRPlacementControlConditionType } from '../../../types';
+import {
+  getEffectiveDRStatus,
+  isUserActionRequired,
+} from '../../../utils/dr-status';
+import { FailoverNodeData } from '../types';
+import { getDRNodeStatus } from '../utils/sidebar-utils';
+import '../utils/decorator-utils.scss';
 
 type MCOFailoverNodeProps = {
-  element: Node;
+  element: Node<NodeModel, FailoverNodeData>;
 } & Partial<WithSelectionProps & { hover?: boolean }>;
 
-export const ICON_SIZE = 40;
+export const ICON_SIZE = 25;
+
+/**
+ * Determines the aggregate status of a failover node from its operations,
+ * using effective DR status (phase + progression) for each operation.
+ * Priority: danger > info (in-progress) > success.
+ */
+const getFailoverNodeStatus = (data: FailoverNodeData): NodeStatus => {
+  const operations = data.operations || [];
+  if (operations.length === 0) return NodeStatus.info;
+
+  let hasInfo = false;
+  let allSuccess = true;
+
+  for (const op of operations) {
+    const protectedCondition = op.drpc?.status?.conditions?.find(
+      (c) => c.type === DRPlacementControlConditionType.Protected
+    );
+    const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
+    const effectiveStatus = getEffectiveDRStatus(
+      op.phase,
+      op.progression,
+      op.hasProtectionError,
+      protectedCondition,
+      volumeLastGroupSyncTime
+    );
+    const nodeStatus = getDRNodeStatus(effectiveStatus);
+
+    // Priority: danger > info > success
+    if (nodeStatus === NodeStatus.danger) {
+      return NodeStatus.danger;
+    }
+
+    if (nodeStatus === NodeStatus.info) {
+      hasInfo = true;
+      allSuccess = false;
+    } else if (nodeStatus === NodeStatus.warning) {
+      allSuccess = false;
+    } else if (nodeStatus !== NodeStatus.success) {
+      allSuccess = false;
+    }
+  }
+
+  if (allSuccess) return NodeStatus.success;
+  if (hasInfo) return NodeStatus.info;
+  return NodeStatus.info;
+};
+
+const renderCountDecorator = (
+  element: Node<NodeModel, FailoverNodeData>,
+  count: number
+): React.ReactNode => {
+  const { x, y } = getDefaultShapeDecoratorCenter(
+    TopologyQuadrant.upperRight,
+    element
+  );
+
+  return (
+    <Decorator
+      x={x}
+      y={y}
+      radius={DEFAULT_DECORATOR_RADIUS}
+      showBackground
+      icon={
+        <text
+          x={DEFAULT_DECORATOR_RADIUS - DEFAULT_DECORATOR_PADDING}
+          y={DEFAULT_DECORATOR_RADIUS - DEFAULT_DECORATOR_PADDING}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="10"
+          fontWeight="bold"
+        >
+          {count}
+        </text>
+      }
+    />
+  );
+};
 
 const MCOFailoverNodeComponent: React.FC<MCOFailoverNodeProps> = ({
   element,
@@ -24,62 +115,61 @@ const MCOFailoverNodeComponent: React.FC<MCOFailoverNodeProps> = ({
   const detailsLevel = useDetailsLevel();
   const { width, height } = element.getDimensions();
 
+  // Use operations array length as source of truth for count
+  const operations = data.operations || [];
+  const operationCount = operations.length;
   const showLabel = rest.hover || detailsLevel !== ScaleDetailsLevel.low;
-  const operationCount = data?.operationCount || 0;
+  const nodeStatus = getFailoverNodeStatus(data);
+  const action = data.action || 'Failover';
+  const needsUserAction = operations.some((op) => {
+    const protectedCondition = op.drpc?.status?.conditions?.find(
+      (c) => c.type === DRPlacementControlConditionType.Protected
+    );
+    const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
+    return isUserActionRequired(
+      getEffectiveDRStatus(
+        op.phase,
+        op.progression,
+        op.hasProtectionError,
+        protectedCondition,
+        volumeLastGroupSyncTime
+      )
+    );
+  });
+  const label = needsUserAction ? 'Action required' : action;
+  const statusTooltip = `${action} operation${operationCount > 1 ? 's' : ''}`;
 
   return (
-    <g className="mco-failover-node">
-      <DefaultNode
-        element={element}
-        scaleLabel={false}
-        showLabel={showLabel}
-        {...rest}
-        showStatusDecorator={false}
+    <DefaultNode
+      element={element}
+      scaleLabel={false}
+      showLabel={showLabel}
+      attachments={
+        operationCount > 1
+          ? renderCountDecorator(element, operationCount)
+          : undefined
+      }
+      nodeStatus={nodeStatus}
+      showStatusDecorator={detailsLevel === ScaleDetailsLevel.high}
+      statusDecoratorTooltip={statusTooltip}
+      label={label}
+      onStatusDecoratorClick={() => null}
+      {...rest}
+    >
+      <g
+        transform={`translate(${(width - ICON_SIZE) / 2}, ${
+          (height - ICON_SIZE) / 2
+        })`}
       >
-        {/* Background circle */}
-        <circle
-          cx={width / 2}
-          cy={height / 2}
-          r={width / 2}
-          fill="var(--pf-v6-global--warning-color--100)"
-          opacity={0.9}
-          stroke="var(--pf-v6-global--warning-color--200)"
-          strokeWidth="2"
-        />
-
-        {/* Failover icon */}
-        <g
-          transform={`translate(${(width - ICON_SIZE) / 2}, ${
-            (height - ICON_SIZE) / 2
-          })`}
-        >
-          <ExchangeAltIcon width={ICON_SIZE} height={ICON_SIZE} color="white" />
-        </g>
-
-        {/* Operation count badge */}
-        {operationCount > 1 && (
-          <g transform={`translate(${width - 8}, 8)`}>
-            <circle
-              r="10"
-              fill="var(--pf-v6-global--BackgroundColor--dark--100)"
-              stroke="var(--pf-v6-global--BackgroundColor--100)"
-              strokeWidth="2"
-            />
-            <text
-              x="0"
-              y="0"
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize="10"
-              fontWeight="bold"
-              fill="var(--pf-v6-global--BackgroundColor--100)"
-            >
-              {operationCount}
-            </text>
+        {needsUserAction ? (
+          <InfoCircleIcon width={ICON_SIZE} height={ICON_SIZE} />
+        ) : (
+          <g className="mco-decorator-icon--spinning">
+            <SyncAltIcon width={ICON_SIZE} height={ICON_SIZE} />
           </g>
         )}
-      </DefaultNode>
-    </g>
+      </g>
+    </DefaultNode>
   );
 };
 

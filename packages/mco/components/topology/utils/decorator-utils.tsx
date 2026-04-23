@@ -4,6 +4,7 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
+  InfoCircleIcon,
   InProgressIcon,
 } from '@patternfly/react-icons';
 import {
@@ -13,6 +14,7 @@ import {
   getDefaultShapeDecoratorCenter,
 } from '@patternfly/react-topology';
 import { DecoratorIcon, TopologyDecorator, TopologyNodeData } from '../types';
+import './decorator-utils.scss';
 
 /**
  * Maps icon string identifiers to their corresponding React icon components
@@ -22,25 +24,33 @@ export const getDecoratorIcon = (icon: DecoratorIcon): React.ReactNode => {
     case DecoratorIcon.CheckCircle:
       return (
         <CheckCircleIcon
-          style={{ fill: 'var(--pf-v6-global--success-color--100)' }}
+          style={{ fill: 'var(--pf-t--global--color--status--success--100)' }}
         />
       );
     case DecoratorIcon.ExclamationCircle:
       return (
         <ExclamationCircleIcon
-          style={{ fill: 'var(--pf-v6-global--danger-color--100)' }}
+          style={{ fill: 'var(--pf-t--global--color--status--danger--100)' }}
         />
       );
     case DecoratorIcon.ExclamationTriangle:
       return (
         <ExclamationTriangleIcon
-          style={{ fill: 'var(--pf-v6-global--warning-color--100)' }}
+          style={{ fill: 'var(--pf-t--global--color--status--warning--100)' }}
         />
       );
     case DecoratorIcon.InProgress:
       return (
-        <InProgressIcon
-          style={{ fill: 'var(--pf-v6-global--info-color--100)' }}
+        <g className="mco-decorator-icon--spinning">
+          <InProgressIcon
+            style={{ fill: 'var(--pf-t--global--color--status--info--100)' }}
+          />
+        </g>
+      );
+    case DecoratorIcon.InfoCircle:
+      return (
+        <InfoCircleIcon
+          style={{ fill: 'var(--pf-t--global--color--status--info--100)' }}
         />
       );
     default:

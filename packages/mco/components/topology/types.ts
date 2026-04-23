@@ -1,3 +1,4 @@
+import { DRStatus } from '@odf/mco/utils/dr-status';
 import { TopologyQuadrant, NodeStatus } from '@patternfly/react-topology';
 import {
   ActiveDROperation,
@@ -18,6 +19,7 @@ export enum DecoratorIcon {
   ExclamationCircle = 'exclamation-circle',
   ExclamationTriangle = 'exclamation-triangle',
   InProgress = 'in-progress',
+  InfoCircle = 'info-circle',
 }
 
 export interface TopologyDecorator {
@@ -50,7 +52,7 @@ export type { ClusterAppsMap, ClusterPairOperationsMap };
 export type AppSidebarItem = {
   name: string;
   namespace: string;
-  status: string;
+  status: DRStatus;
   drPolicy: string;
 };
 
@@ -102,3 +104,27 @@ export interface TopologyNodeData {
   decorators?: TopologyDecorator[];
   [key: string]: any;
 }
+
+export type AppNodeData = {
+  decorators?: TopologyDecorator[];
+  clusterName: string;
+  appCount: number;
+
+  isStatic?: boolean;
+  apps?: ProtectedAppInfo[];
+  appStatus?: DRStatus;
+
+  isSource?: boolean;
+  operations?: DROperationInfo[];
+  operation?: DROperationInfo;
+  isGrouped?: boolean;
+  action?: string;
+  phase?: string;
+  progression?: string;
+};
+
+export type FailoverNodeData = {
+  decorators?: TopologyDecorator[];
+  operations: DROperationInfo[];
+  action?: string;
+};
