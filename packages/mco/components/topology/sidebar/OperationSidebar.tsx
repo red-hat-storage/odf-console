@@ -1,11 +1,5 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  ListPageBody,
-  ListPageFilter,
-  useListPageFilter,
-  RowFilter,
-} from '@openshift-console/dynamic-plugin-sdk';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Title,
@@ -29,15 +23,11 @@ import { getClustersFromPairKey } from '../../../hooks/useDRPoliciesByClusterPai
 import { Phase, Progression } from '../../../types';
 import { DROperationInfo, OperationEdgeSidebarData } from '../types';
 import { getAppLink } from '../utils/sidebar-utils';
+import { DRPCFilterToolbar } from './DRPCFilterToolbar';
 import './TopologySidebar.scss';
 
 type OperationSidebarProps = {
   edgeData: OperationEdgeSidebarData;
-};
-
-type OperationResource = DROperationInfo & {
-  metadata: { name: string; namespace: string };
-  status: string;
 };
 
 const OperationsTableView: React.FC<{
@@ -47,58 +37,29 @@ const OperationsTableView: React.FC<{
 }> = ({ operations, cluster1, cluster2 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
+  const [nameFilter, setNameFilter] = React.useState('');
+  const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
 
-  // Transform operations to K8s resource format for ListPageFilter
-  const operationsAsResources: OperationResource[] = React.useMemo(() => {
-    return operations.map((op) => ({
-      ...op,
-      metadata: {
-        name: op.drpcName,
-        namespace: op.applicationNamespace,
-      },
-      status: op.phase || 'Unknown',
-    }));
-  }, [operations]);
-
-  // Get unique statuses from operations
-  const uniqueStatuses = React.useMemo(() => {
-    return Array.from(new Set(operationsAsResources.map((op) => op.status)));
-  }, [operationsAsResources]);
-
-  // Define row filters for the ListPageFilter
-  const rowFilters: RowFilter[] = React.useMemo(
-    () => [
-      {
-        filterGroupName: t('Status'),
-        type: 'dr-status',
-        reducer: (op: OperationResource) => op.status,
-        filter: (input, op: OperationResource) => {
-          if (!input || !input.selected?.length) {
-            return true;
-          }
-          return input.selected.includes(op.status);
-        },
-        items: uniqueStatuses.map((status: string) => ({
-          id: status,
-          title: status,
-        })),
-      },
-    ],
-    [t, uniqueStatuses]
+  const uniqueStatuses = React.useMemo(
+    () => Array.from(new Set(operations.map((op) => op.phase || 'Unknown'))),
+    [operations]
   );
 
-  const [data, filteredOpsAsResources, onFilterChange] = useListPageFilter(
-    operationsAsResources,
-    rowFilters
-  );
-
-  // Transform back to plain operation objects
   const filteredOperations = React.useMemo(() => {
-    return filteredOpsAsResources.map((opResource) => {
-      const { metadata, ...opData } = opResource as OperationResource;
-      return opData;
-    });
-  }, [filteredOpsAsResources]);
+    let results = operations;
+    if (nameFilter) {
+      const lowerFilter = nameFilter.toLowerCase();
+      results = results.filter((op) =>
+        op.applicationName.toLowerCase().includes(lowerFilter)
+      );
+    }
+    if (selectedStatuses.length > 0) {
+      results = results.filter((op) =>
+        selectedStatuses.includes(op.phase || 'Unknown')
+      );
+    }
+    return results;
+  }, [operations, nameFilter, selectedStatuses]);
 
   const operationCount = operations.length;
 
@@ -148,14 +109,15 @@ const OperationsTableView: React.FC<{
             </DescriptionList>
           </div>
 
-          <ListPageBody>
-            <ListPageFilter
-              data={data}
-              loaded={true}
-              onFilterChange={onFilterChange}
-              rowFilters={rowFilters}
-              hideColumnManagement={true}
+          <div className="mco-topology-sidebar__drpc-table">
+            <DRPCFilterToolbar
+              nameFilter={nameFilter}
+              onNameFilterChange={setNameFilter}
+              statusOptions={uniqueStatuses}
+              selectedStatuses={selectedStatuses}
+              onSelectedStatusesChange={setSelectedStatuses}
             />
+
             {filteredOperations.length === 0 ? (
               <EmptyState variant="sm" className="pf-v6-u-mt-lg">
                 <Title headingLevel="h4" size="lg">
@@ -255,7 +217,7 @@ const OperationsTableView: React.FC<{
                 </Tbody>
               </Table>
             )}
-          </ListPageBody>
+          </div>
         </div>
       </div>
     </div>

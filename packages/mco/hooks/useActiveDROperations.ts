@@ -9,6 +9,8 @@ import {
   Progression,
   ProtectedApplicationViewKind,
 } from '../types';
+import { getProtectedCondition } from '../utils';
+import { shouldShowProtectionError } from '../utils/dr-status';
 import {
   getDRPlacementControlResourceObj,
   getProtectedApplicationViewResourceObj,
@@ -29,6 +31,7 @@ export type ActiveDROperation = {
   targetCluster?: string;
   drpcName: string;
   isDiscoveredApp: boolean;
+  hasProtectionError?: boolean;
   pav?: ProtectedApplicationViewKind;
   drpc?: DRPlacementControlKind;
 };
@@ -120,27 +123,35 @@ export const useActiveDROperations = (): [
         let sourceCluster: string;
         let targetCluster: string;
 
-        if (action === DRActionType.FAILOVER && failoverCluster) {
-          // Failover: moving from current to failover cluster
-          sourceCluster =
-            pav?.status?.drInfo?.primaryCluster || preferredCluster;
+        if (
+          action === DRActionType.FAILOVER &&
+          failoverCluster &&
+          preferredCluster
+        ) {
+          // Failover: app moves from preferredCluster to failoverCluster.
+          // Use spec values directly because after failover completes,
+          // PAV.primaryCluster gets updated to failoverCluster which would
+          // make sourceCluster === targetCluster.
+          sourceCluster = preferredCluster;
           targetCluster = failoverCluster;
-        } else if (action === DRActionType.RELOCATE && preferredCluster) {
-          // Relocate: moving back to preferred cluster
-          sourceCluster =
-            pav?.status?.drInfo?.primaryCluster || failoverCluster;
+        } else if (
+          action === DRActionType.RELOCATE &&
+          preferredCluster &&
+          failoverCluster
+        ) {
+          // Relocate: app moves from failoverCluster back to preferredCluster.
+          // Use spec values directly because after relocate completes,
+          // PAV.primaryCluster gets updated to preferredCluster which would
+          // make sourceCluster === targetCluster (same bug as failover).
+          sourceCluster = failoverCluster;
           targetCluster = preferredCluster;
-        } else {
-          // Can't determine cluster pair, skip
-          return;
-        }
-
-        // Only process if we have both source and target
-        if (!sourceCluster || !targetCluster) {
-          return;
         }
 
         const pairKey = createClusterPairKey(sourceCluster, targetCluster);
+
+        const protectedCondition = getProtectedCondition(drpc);
+        const hasProtectionError =
+          shouldShowProtectionError(protectedCondition);
 
         const operation: ActiveDROperation = {
           applicationName,
@@ -153,6 +164,7 @@ export const useActiveDROperations = (): [
           targetCluster,
           drpcName,
           isDiscoveredApp,
+          hasProtectionError,
           pav,
           drpc,
         };

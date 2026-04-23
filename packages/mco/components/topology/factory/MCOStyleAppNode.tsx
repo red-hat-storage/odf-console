@@ -1,21 +1,61 @@
 import * as React from 'react';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
-import { CubeIcon } from '@patternfly/react-icons';
+import { CogIcon } from '@patternfly/react-icons';
 import {
+  DEFAULT_DECORATOR_PADDING,
+  DEFAULT_DECORATOR_RADIUS,
+  Decorator,
   DefaultNode,
   Node,
+  NodeModel,
+  TopologyQuadrant,
+  getDefaultShapeDecoratorCenter,
   observer,
   ScaleDetailsLevel,
   WithSelectionProps,
 } from '@patternfly/react-topology';
+import { getEffectiveDRStatus } from '../../../utils/dr-status';
+import { AppNodeData } from '../types';
 import { renderDecorators } from '../utils/decorator-utils';
+import { getDRNodeStatus } from '../utils/sidebar-utils';
 import './MCOStyleAppNode.scss';
 
 type MCOStyleAppNodeProps = {
-  element: Node;
+  element: Node<NodeModel, AppNodeData>;
 } & Partial<WithSelectionProps & { hover?: boolean }>;
 
-export const ICON_SIZE = 40;
+export const ICON_SIZE = 25;
+
+const renderCountDecorator = (
+  element: Node<NodeModel, AppNodeData>,
+  count: number
+): React.ReactNode => {
+  const { x, y } = getDefaultShapeDecoratorCenter(
+    TopologyQuadrant.upperRight,
+    element
+  );
+
+  return (
+    <Decorator
+      x={x}
+      y={y}
+      radius={DEFAULT_DECORATOR_RADIUS}
+      showBackground
+      icon={
+        <text
+          x={DEFAULT_DECORATOR_RADIUS - DEFAULT_DECORATOR_PADDING}
+          y={DEFAULT_DECORATOR_RADIUS - DEFAULT_DECORATOR_PADDING}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="10"
+          fontWeight="bold"
+        >
+          {count}
+        </text>
+      }
+    />
+  );
+};
 
 const MCOStyleAppNodeComponent: React.FC<MCOStyleAppNodeProps> = ({
   element,
@@ -25,87 +65,50 @@ const MCOStyleAppNodeComponent: React.FC<MCOStyleAppNodeProps> = ({
   const detailsLevel = useDetailsLevel();
   const { width, height } = element.getDimensions();
 
-  const isSource = data?.isSource;
-  const isStatic = data?.isStatic && !data?.operation && !data?.operations;
   const appCount = data?.appCount || 1;
 
-  // DefaultNode handles hover internally
   const showLabel = rest.hover || detailsLevel !== ScaleDetailsLevel.low;
 
-  // Determine opacity - source fades as operation progresses, target becomes solid
-  // For static apps, use full opacity
-  const opacity = isStatic ? 1 : isSource ? 0.6 : 0.9;
+  // For static apps, appStatus is already a computed DRStatus - use it directly
+  // For operation nodes, compute from phase/progression
+  const effectiveStatus =
+    data.isStatic && data.appStatus
+      ? data.appStatus
+      : getEffectiveDRStatus(data?.phase, data?.progression);
+  const nodeStatus = getDRNodeStatus(effectiveStatus);
+  const isOperation = !data?.isStatic && data?.isSource !== undefined;
+  const animationClass = isOperation
+    ? data.isSource
+      ? 'mco-app-node--source'
+      : 'mco-app-node--target'
+    : undefined;
 
-  // Show count badge if grouped (multiple apps with same status or multiple operations)
-  const showCountBadge = appCount > 1;
+  const phaseDecorators = renderDecorators(element, data, true);
 
   return (
-    <g
-      className={`mco-app-node ${isSource ? 'mco-app-node--source' : 'mco-app-node--target'}`}
+    <DefaultNode
+      element={element}
+      className={animationClass}
+      scaleLabel={false}
+      showLabel={showLabel}
+      attachments={
+        <>
+          {renderCountDecorator(element, appCount)}
+          {phaseDecorators}
+        </>
+      }
+      nodeStatus={nodeStatus}
+      badge="DRPC"
+      {...rest}
     >
-      <DefaultNode
-        element={element}
-        scaleLabel={false}
-        showLabel={showLabel}
-        attachments={renderDecorators(element, data, true)}
-        {...rest}
+      <g
+        transform={`translate(${(width - ICON_SIZE) / 2}, ${
+          (height - ICON_SIZE) / 2
+        })`}
       >
-        {/* Background circle with opacity and border */}
-        <circle
-          cx={width / 2}
-          cy={height / 2}
-          r={width / 2}
-          fill={
-            isStatic
-              ? 'var(--pf-v6-global--primary-color--100)'
-              : isSource
-                ? 'var(--pf-v6-global--warning-color--100)'
-                : 'var(--pf-v6-global--primary-color--100)'
-          }
-          opacity={opacity}
-          stroke={
-            isStatic
-              ? 'var(--pf-v6-global--primary-color--200)'
-              : isSource
-                ? 'var(--pf-v6-global--warning-color--200)'
-                : 'var(--pf-v6-global--primary-color--200)'
-          }
-          strokeWidth="2"
-        />
-
-        {/* App icon */}
-        <g
-          transform={`translate(${(width - ICON_SIZE) / 2}, ${
-            (height - ICON_SIZE) / 2
-          })`}
-        >
-          <CubeIcon width={ICON_SIZE} height={ICON_SIZE} color="white" />
-        </g>
-
-        {/* App count badge - show if multiple apps with same status */}
-        {showCountBadge && (
-          <g transform={`translate(${width - 8}, ${height - 8})`}>
-            <circle
-              r="10"
-              fill="var(--pf-v6-global--BackgroundColor--dark--100)"
-              stroke="var(--pf-v6-global--BackgroundColor--100)"
-              strokeWidth="2"
-            />
-            <text
-              x="0"
-              y="0"
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize="10"
-              fontWeight="bold"
-              fill="var(--pf-v6-global--BackgroundColor--100)"
-            >
-              {appCount}
-            </text>
-          </g>
-        )}
-      </DefaultNode>
-    </g>
+        <CogIcon width={ICON_SIZE} height={ICON_SIZE} />
+      </g>
+    </DefaultNode>
   );
 };
 

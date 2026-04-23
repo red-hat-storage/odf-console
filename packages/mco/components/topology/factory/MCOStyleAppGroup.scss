@@ -1,5 +1,5 @@
 .mco-topology__app-group {
-  path.pf-topology__group__background {
+  .pf-topology__group__background {
     fill: var(--pf-t--global--color--nonstatus--gray--100);
     fill-opacity: 0.1;
     stroke: var(--pf-t--global--border--color--default);
@@ -9,9 +9,9 @@
   }
 
   &--cluster {
-    path.pf-topology__group__background {
-      fill: var(--pf-t--global--color--nonstatus--blue--100);
-      fill-opacity: 0.08;
+    .pf-topology__group__background {
+      fill: var(--pf-t--global--color--nonstatus--gray--100);
+      fill-opacity: 0.15;
       stroke: var(--pf-t--global--border--color--default);
       stroke-width: 2px;
       rx: 12px;
@@ -20,13 +20,13 @@
   }
 
   &--single {
-    path.pf-topology__group__background {
+    .pf-topology__group__background {
       stroke-dasharray: 3, 3;
     }
   }
 
   &--stacked {
-    path.pf-topology__group__background {
+    .pf-topology__group__background {
       stroke-width: 2px;
     }
   }

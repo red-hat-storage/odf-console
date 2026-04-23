@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getDRPolicyStatus, isDRPolicyValidated } from '@odf/mco/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Title,
@@ -34,26 +35,26 @@ export const DRPolicySidebar: React.FC<DRPolicySidebarProps> = ({
 
   const [cluster1, cluster2] = getClustersFromPairKey(pairKey);
   const primaryPolicy = policies[0];
+  const isValidated = isDRPolicyValidated(primaryPolicy.policy);
   const isConfiguring = primaryPolicy.isConfiguring;
-  const isAvailable = primaryPolicy.phase === 'Available';
 
   return (
     <div className="mco-topology-sidebar__container">
-      {/* Header with policy name */}
       <div className="mco-topology-sidebar__header">
         <Title
           headingLevel="h2"
           size="xl"
-          className="mco-topology-sidebar__header-title"
+          className="mco-topology-sidebar__header-title pf-v6-u-mr-sm"
         >
           {primaryPolicy.name}
         </Title>
-        {/* Add status badge */}
         <Label
-          color={isConfiguring ? 'orange' : isAvailable ? 'green' : 'grey'}
-          icon={isAvailable ? <CheckCircleIcon /> : undefined}
+          color={isValidated ? 'green' : isConfiguring ? 'orange' : 'red'}
+          icon={isValidated ? <CheckCircleIcon /> : undefined}
         >
-          {primaryPolicy.phase}
+          {!isConfiguring
+            ? getDRPolicyStatus(isValidated, t)
+            : t('Configuring')}
         </Label>
       </div>
 
@@ -77,13 +78,9 @@ export const DRPolicySidebar: React.FC<DRPolicySidebarProps> = ({
                   <DescriptionListDescription>
                     <Label
                       color={
-                        isConfiguring
-                          ? 'orange'
-                          : isAvailable
-                            ? 'green'
-                            : 'grey'
+                        isValidated ? 'green' : isConfiguring ? 'orange' : 'red'
                       }
-                      icon={isAvailable ? <CheckCircleIcon /> : undefined}
+                      icon={isValidated ? <CheckCircleIcon /> : undefined}
                     >
                       {primaryPolicy.phase}
                     </Label>
@@ -125,12 +122,11 @@ export const DRPolicySidebar: React.FC<DRPolicySidebarProps> = ({
                               </div>
                               <div className="mco-topology-sidebar__policy-phase">
                                 <Label
-                                  color={
-                                    policy.isConfiguring
-                                      ? 'orange'
-                                      : policy.phase === 'Available'
-                                        ? 'green'
-                                        : 'grey'
+                                  color={isConfiguring ? 'orange' : 'green'}
+                                  icon={
+                                    !isConfiguring ? (
+                                      <CheckCircleIcon />
+                                    ) : undefined
                                   }
                                   isCompact
                                 >

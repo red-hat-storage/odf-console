@@ -1,217 +1,134 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  ListPageBody,
-  ListPageFilter,
-  useListPageFilter,
-  RowFilter,
-} from '@openshift-console/dynamic-plugin-sdk';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Title,
   Label,
-  DescriptionList,
-  DescriptionListGroup,
-  DescriptionListTerm,
-  DescriptionListDescription,
   Button,
   EmptyState,
   EmptyStateBody,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
+import { DRPlacementControlConditionType } from '../../../types';
+import { getEffectiveDRStatus } from '../../../utils/dr-status';
 import {
   AppSidebarItem,
   StaticAppsSidebarData,
   OperationAppSidebarData,
 } from '../types';
 import { getAppLink, DRStatusIcon } from '../utils/sidebar-utils';
+import { DRPCFilterToolbar } from './DRPCFilterToolbar';
 import './TopologySidebar.scss';
 
 type AppSidebarProps = {
   edgeData: StaticAppsSidebarData | OperationAppSidebarData;
 };
 
-type AppResource = AppSidebarItem & {
-  metadata: { name: string; namespace: string };
+export type DRPCTableProps = {
+  apps: AppSidebarItem[];
 };
 
-const GroupedAppsView: React.FC<{
-  apps: AppSidebarItem[];
-  clusterName: string;
-  appCount: number;
-}> = ({ apps, clusterName, appCount }) => {
+export const DRPCTable: React.FC<DRPCTableProps> = ({ apps }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
-  // Transform apps to K8s resource format for ListPageFilter
-  const appsAsResources: AppResource[] = React.useMemo(() => {
-    return apps.map((app) => ({
-      ...app,
-      metadata: {
-        name: app.name,
-        namespace: app.namespace,
-      },
-    }));
-  }, [apps]);
+  const [nameFilter, setNameFilter] = React.useState('');
+  const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
 
-  // Get unique statuses from apps
-  const uniqueStatuses = React.useMemo(() => {
-    return Array.from(new Set(apps.map((app) => app.status)));
-  }, [apps]);
-
-  // Define row filters for the ListPageFilter
-  const rowFilters: RowFilter[] = React.useMemo(
-    () => [
-      {
-        filterGroupName: t('Status'),
-        type: 'dr-status',
-        reducer: (app: AppResource) => app.status,
-        filter: (input, app: AppResource) => {
-          if (!input || !input.selected?.length) {
-            return true;
-          }
-          return input.selected.includes(app.status);
-        },
-        items: uniqueStatuses.map((status: string) => ({
-          id: status,
-          title: status,
-        })),
-      },
-    ],
-    [t, uniqueStatuses]
+  const uniqueStatuses = React.useMemo(
+    () => Array.from(new Set(apps.map((app) => app.status))),
+    [apps]
   );
 
-  // Use ListPageFilter hook with transformed data
-  const [data, filteredAppsAsResources, onFilterChange] = useListPageFilter(
-    appsAsResources,
-    rowFilters
-  );
-
-  // Transform back to plain app objects
   const filteredApps = React.useMemo(() => {
-    return filteredAppsAsResources.map((appResource) => {
-      const { metadata, ...appData } = appResource as AppResource;
-      return appData;
-    });
-  }, [filteredAppsAsResources]);
+    let results = apps;
+    if (nameFilter) {
+      const lowerFilter = nameFilter.toLowerCase();
+      results = results.filter((app) =>
+        app.name.toLowerCase().includes(lowerFilter)
+      );
+    }
+    if (selectedStatuses.length > 0) {
+      results = results.filter((app) => selectedStatuses.includes(app.status));
+    }
+    return results;
+  }, [apps, nameFilter, selectedStatuses]);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header with app count */}
-      <div className="mco-topology-sidebar__header">
-        <Title headingLevel="h2" size="xl" style={{ marginBottom: 0 }}>
-          {filteredApps.length !== appCount
-            ? t('Applications ({{filtered}} of {{total}})', {
-                filtered: filteredApps.length,
-                total: appCount,
-              })
-            : t('Applications ({{count}})', { count: appCount })}
-        </Title>
-      </div>
+    <div className="mco-topology-sidebar__drpc-table">
+      <DRPCFilterToolbar
+        nameFilter={nameFilter}
+        onNameFilterChange={setNameFilter}
+        statusOptions={uniqueStatuses}
+        selectedStatuses={selectedStatuses}
+        onSelectedStatusesChange={setSelectedStatuses}
+      />
 
-      <div
-        style={{
-          flex: 1,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div style={{ overflowY: 'auto', height: '100%' }}>
-          <div className="pf-v6-u-ml-sm pf-v6-u-mt-sm pf-v6-u-mb-sm">
-            <DescriptionList isCompact>
-              <DescriptionListGroup>
-                <DescriptionListTerm>{t('Cluster')}</DescriptionListTerm>
-                <DescriptionListDescription>
-                  {clusterName}
-                </DescriptionListDescription>
-              </DescriptionListGroup>
-            </DescriptionList>
-          </div>
-
-          <ListPageBody>
-            <ListPageFilter
-              data={data}
-              loaded={true}
-              onFilterChange={onFilterChange}
-              rowFilters={rowFilters}
-              hideColumnManagement={true}
-            />
-            {filteredApps.length === 0 ? (
-              <EmptyState variant="sm" className="pf-v6-u-mt-lg">
-                <Title headingLevel="h4" size="lg">
-                  {t('No applications found')}
-                </Title>
-                <EmptyStateBody>
-                  {t('No applications match the current filters.')}
-                </EmptyStateBody>
-              </EmptyState>
-            ) : (
-              <Table aria-label={t('Applications table')} variant="compact">
-                <Thead>
-                  <Tr>
-                    <Th>{t('Name')}</Th>
-                    <Th>{t('DR Status')}</Th>
-                    <Th>{t('Policy')}</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {filteredApps.map((app, index) => (
-                    <Tr key={`${app.namespace}-${app.name}-${index}`}>
-                      <Td dataLabel={t('Name')}>
-                        <div>
-                          <Label color="green" isCompact>
-                            {t('DRPC')}
-                          </Label>{' '}
-                          <Button
-                            variant="link"
-                            isInline
-                            onClick={() =>
-                              navigate(getAppLink(app.name, app.namespace))
-                            }
-                          >
-                            {app.name}
-                          </Button>
-                        </div>
-                      </Td>
-                      <Td dataLabel={t('DR Status')}>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
-                          <DRStatusIcon status={app.status} />
-                        </div>
-                      </Td>
-                      <Td dataLabel={t('Policy')}>{app.drPolicy}</Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            )}
-          </ListPageBody>
-        </div>
-      </div>
+      {filteredApps.length === 0 ? (
+        <EmptyState variant="sm" className="pf-v6-u-mt-lg">
+          <Title headingLevel="h4" size="lg">
+            {t('No applications found')}
+          </Title>
+          <EmptyStateBody>
+            {t('No applications match the current filters.')}
+          </EmptyStateBody>
+        </EmptyState>
+      ) : (
+        <Table aria-label={t('Applications table')} variant="compact">
+          <Thead>
+            <Tr>
+              <Th>{t('Name')}</Th>
+              <Th>{t('DR Status')}</Th>
+              <Th>{t('Policy')}</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {filteredApps.map((app, index) => (
+              <Tr key={`${app.namespace}-${app.name}-${index}`}>
+                <Td dataLabel={t('Name')}>
+                  <div>
+                    <Label color="green" isCompact>
+                      {t('DRPC')}
+                    </Label>{' '}
+                    <Button
+                      variant="link"
+                      isInline
+                      onClick={() =>
+                        navigate(getAppLink(app.name, app.namespace))
+                      }
+                    >
+                      {app.name}
+                    </Button>
+                  </div>
+                </Td>
+                <Td dataLabel={t('DR Status')}>
+                  <div className="mco-topology-sidebar__app-status">
+                    <DRStatusIcon status={app.status} />
+                  </div>
+                </Td>
+                <Td dataLabel={t('Policy')}>{app.drPolicy}</Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      )}
     </div>
   );
 };
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
+  const { t } = useCustomTranslation();
   if ('isStatic' in edgeData && edgeData.isStatic === true) {
     return (
-      <GroupedAppsView
-        apps={edgeData.apps}
-        clusterName={edgeData.clusterName}
-        appCount={edgeData.apps.length}
-      />
+      <div className="mco-topology-sidebar__container">
+        <div className="mco-topology-sidebar__header">
+          <Title headingLevel="h2" size="xl" style={{ marginBottom: 0 }}>
+            {t('Applications')}
+          </Title>
+        </div>
+        <div className="mco-topology-sidebar__content">
+          <DRPCTable apps={edgeData.apps} />
+        </div>
+      </div>
     );
   }
 
@@ -219,18 +136,35 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
   const operations =
     operationData.operations ||
     (operationData.operation ? [operationData.operation] : []);
-  const appsFromOperations = operations.map((op) => ({
-    name: op.drpcName,
-    namespace: op.applicationNamespace,
-    status: op.phase || 'Unknown',
-    drPolicy: `${op.action}: ${op.sourceCluster} → ${op.targetCluster}`,
-  }));
+  const appsFromOperations = operations.map((op) => {
+    const protectedCondition = op.drpc?.status?.conditions?.find(
+      (c) => c.type === DRPlacementControlConditionType.Protected
+    );
+    const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
+    return {
+      name: op.drpcName,
+      namespace: op.applicationNamespace,
+      status: getEffectiveDRStatus(
+        op.phase,
+        op.progression,
+        op.hasProtectionError,
+        protectedCondition,
+        volumeLastGroupSyncTime
+      ),
+      drPolicy: `${op.action}: ${op.sourceCluster} → ${op.targetCluster}`,
+    };
+  });
 
   return (
-    <GroupedAppsView
-      apps={appsFromOperations}
-      clusterName={operationData.clusterName}
-      appCount={appsFromOperations.length}
-    />
+    <div className="mco-topology-sidebar__container">
+      <div className="mco-topology-sidebar__header">
+        <Title headingLevel="h2" size="xl" style={{ marginBottom: 0 }}>
+          {t('Applications')}
+        </Title>
+      </div>
+      <div className="mco-topology-sidebar__content">
+        <DRPCTable apps={appsFromOperations} />
+      </div>
+    </div>
   );
 };
