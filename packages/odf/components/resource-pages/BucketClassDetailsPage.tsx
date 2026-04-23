@@ -45,13 +45,29 @@ const NamespacePolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
   return <DetailsItem field={t('Policy type')}>{type}</DetailsItem>;
 };
 
+const VectorPolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
+  const { t } = useCustomTranslation();
+  const resourceName = resource.spec.vectorPolicy.resource;
+  const vectorDBType = resource.spec.vectorPolicy.vectorDBType;
+  return (
+    <>
+      <DetailsItem field={t('Resource')}>{resourceName}</DetailsItem>
+      <DetailsItem field={t('Vector DB type')}>{vectorDBType}</DetailsItem>
+    </>
+  );
+};
+
 const BCDetails: React.FC<DetailsProps> = ({ obj }) => {
   const { t } = useCustomTranslation();
-  const isPlacementPolicyType = obj.spec.hasOwnProperty('placementPolicy');
+  const spec = obj.spec;
+  const isPlacementPolicyType = spec.hasOwnProperty('placementPolicy');
+  const isVectorPolicyType = spec.hasOwnProperty('vectorPolicy');
 
   const title = isPlacementPolicyType
     ? t('Placement Policy')
-    : t('Namespace Policy');
+    : isVectorPolicyType
+      ? t('Vector Policy')
+      : t('Namespace Policy');
   return (
     <CommonDetails resource={obj} resourceModel={NooBaaBucketClassModel}>
       <SectionHeading text={title} />
@@ -59,6 +75,8 @@ const BCDetails: React.FC<DetailsProps> = ({ obj }) => {
         <div className="col-sm-6">
           {isPlacementPolicyType ? (
             <PlacementPolicyDetails resource={obj} />
+          ) : isVectorPolicyType ? (
+            <VectorPolicyDetails resource={obj} />
           ) : (
             <NamespacePolicyDetails resource={obj} />
           )}

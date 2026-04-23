@@ -69,8 +69,8 @@ const CreateVectorBucketForm: React.FC = () => {
         namespaceStoreFilesystem: nsfs,
         subpath: subpathValue,
       });
-    } catch (err) {
-      setErrorMessage(err);
+    } catch (error) {
+      setErrorMessage((error as Error)?.message || JSON.stringify(error));
       setInProgress(false);
       return;
     }
@@ -145,7 +145,7 @@ const CreateVectorBucketForm: React.FC = () => {
       <ButtonBar errorMessage={errorMessage} inProgress={inProgress}>
         <ActionGroup className="pf-v6-c-form">
           <Button
-            isDisabled={!isValid || inProgress}
+            isDisabled={!isValid || inProgress || !nsfs}
             id="create-s3-bucket-btn"
             type={ButtonType.submit}
             variant={ButtonVariant.primary}

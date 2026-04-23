@@ -87,13 +87,11 @@ const NoVectorBucketMessage: React.FC = () => {
   return (
     <EmptyPage
       ButtonComponent={() => null}
-      title={t('Create and manage your vector buckets')}
+      title={t('No vector buckets found')}
       isLoaded
       canAccess
     >
-      {t(
-        'Navigate through your buckets effortlessly. View the contents of your S3-managed and Openshift-managed buckets, making it easy to locate and inspect objects.'
-      )}
+      {t('Create a vector bucket to store and manage your vector indexes.')}
     </EmptyPage>
   );
 };
