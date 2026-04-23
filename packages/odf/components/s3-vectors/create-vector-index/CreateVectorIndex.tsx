@@ -41,7 +41,8 @@ enum DistanceMetric {
 }
 
 type FormData = {
-  vectorIndexName: string;
+  /** Must match `useS3BucketFormValidation` schema field (`bucketName`). */
+  bucketName: string;
 };
 
 const CreateVectorIndexForm: React.FC = () => {
@@ -125,7 +126,7 @@ const CreateVectorIndexForm: React.FC = () => {
 
   const save = async (formData: FormData) => {
     setInProgress(true);
-    const { vectorIndexName: indexName } = formData;
+    const { bucketName: indexName } = formData;
     try {
       await s3VectorsClient.createIndex({
         vectorBucketName,
@@ -134,8 +135,8 @@ const CreateVectorIndexForm: React.FC = () => {
         dimension,
         distanceMetric,
       });
-    } catch (err) {
-      setErrorMessage(err);
+    } catch (error) {
+      setErrorMessage((error as Error)?.message || JSON.stringify(error));
       setInProgress(false);
       return;
     }
@@ -174,7 +175,7 @@ const CreateVectorIndexForm: React.FC = () => {
             }}
             textInputProps={{
               id: 'vector-index-name',
-              name: 'vectorIndexName',
+              name: 'bucketName',
               className: 'pf-v6-c-form-control',
               type: 'text',
               placeholder: t('my-vector-index'),
@@ -244,7 +245,7 @@ const CreateVectorIndexForm: React.FC = () => {
               variant={AlertVariant.danger}
               isInline
               title={
-                errors.vectorIndexName?.message ||
+                errors.bucketName?.message ||
                 errors.root?.message ||
                 t('Address form errors to proceed')
               }

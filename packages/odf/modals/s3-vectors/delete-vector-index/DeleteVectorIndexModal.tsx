@@ -79,7 +79,7 @@ const DeleteVectorIndexModal: React.FC<
         <ButtonBar
           key="delete-vector-index-button-bar"
           inProgress={inProgress}
-          errorMessage={deleteError?.message || JSON.stringify(deleteError)}
+          errorMessage={deleteError?.message}
         >
           <span>
             <Button
