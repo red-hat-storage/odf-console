@@ -56,13 +56,21 @@ export const HealthOverviewCard: React.FC = () => {
   const [chartRef, chartWidth] = useRefWidth();
   const basePath = usePrometheusBasePath();
 
-  // Fetch health score metric over time (range query)
+  // Fetch health score metric over time (range query for chart)
   const [healthScoreData, healthScoreError, healthScoreLoading] =
     useCustomPrometheusPoll({
       query: HEALTH_SCORE_QUERY,
       endpoint: PrometheusEndpoint.QUERY_RANGE,
       basePath,
       timespan: TWENTY_FOUR_HOURS,
+    });
+
+  // Fetch current health score (instant query for accurate current value)
+  const [currentScoreData, currentScoreError, currentScoreLoading] =
+    useCustomPrometheusPoll({
+      query: HEALTH_SCORE_QUERY,
+      endpoint: PrometheusEndpoint.QUERY,
+      basePath,
     });
 
   // Fetch alerts for counting active issues by severity
@@ -121,9 +129,13 @@ export const HealthOverviewCard: React.FC = () => {
       .filter((item): item is HealthDataPoint => item !== null);
   }, [healthScoreData]);
 
-  // Get current health score (latest value)
-  const currentHealthScore =
-    chartData.length > 0 ? chartData[chartData.length - 1].y : null;
+  // Get current health score from instant query (more accurate than range query's last value)
+  const currentHealthScore = React.useMemo(() => {
+    const value = currentScoreData?.data?.result?.[0]?.value?.[1];
+    if (value === undefined) return null;
+    const score = parseFloat(value);
+    return Number.isNaN(score) ? null : score;
+  }, [currentScoreData]);
 
   // Calculate fixed 24-hour x-axis domain (now - 24h to now)
   const xDomain = React.useMemo((): [number, number] => {
@@ -133,15 +145,20 @@ export const HealthOverviewCard: React.FC = () => {
 
   // Comprehensive loading and error state management
   const isAlertsLoading = !healthAlertsLoaded || !silencedAlertsLoaded;
-  const isLoading = healthScoreLoading || isAlertsLoading;
+  const isLoading =
+    healthScoreLoading || currentScoreLoading || isAlertsLoading;
 
-  const hasError = healthScoreError || healthAlertsError || silencedAlertsError;
+  const hasError =
+    healthScoreError ||
+    currentScoreError ||
+    healthAlertsError ||
+    silencedAlertsError;
   const hasNoData = chartData.length === 0;
   const showEmptyState = isLoading || hasError || hasNoData;
 
   // Determine specific error message
   const getErrorMessage = () => {
-    if (healthScoreError) {
+    if (healthScoreError || currentScoreError) {
       return t('Unable to retrieve health check data.');
     }
     if (healthAlertsError) {
