@@ -58,8 +58,9 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
   const platform = getInfrastructurePlatform(infrastructure);
   const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
 
-  // Check if Scale cluster or SAN cluster exists
-  const { remoteClusters, sanClusters } = useWatchStorageClusters();
+  // Check if Scale cluster, SAN cluster or FlashSystem cluster exists
+  const { remoteClusters, sanClusters, flashSystemClusters } =
+    useWatchStorageClusters();
   const hasScaleCluster =
     remoteClusters?.loaded &&
     !remoteClusters?.loadError &&
@@ -68,8 +69,13 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     sanClusters?.loaded &&
     !sanClusters?.loadError &&
     sanClusters?.data?.length > 0;
+  const hasFlashSystemCluster =
+    flashSystemClusters?.loaded &&
+    !flashSystemClusters?.loadError &&
+    flashSystemClusters?.data?.length > 0;
   const shouldDisableSAN = hasScaleCluster || hasSANCluster;
   const shouldDisableScale = hasSANCluster;
+  const shouldDisableFlashSystem = hasFlashSystemCluster;
   return (
     <Flex
       direction={{ default: 'column' }}
@@ -118,7 +124,11 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
         </Card>
       </FlexItem>
       <FlexItem>
-        <Card isClickable id="connect-flash-system">
+        <Card
+          id="connect-flash-system"
+          isClickable={!shouldDisableFlashSystem}
+          isDisabled={shouldDisableFlashSystem}
+        >
           <CardHeader
             selectableActions={{
               onClickAction: () =>
@@ -141,6 +151,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               </FlexItem>
               <FlexItem align={{ default: 'alignRight' }}>
                 <Radio
+                  isDisabled={shouldDisableFlashSystem}
                   isChecked={selectedOption === ExternalSystemOption.IBMFlash}
                   onChange={() =>
                     setSelectedOption(ExternalSystemOption.IBMFlash)

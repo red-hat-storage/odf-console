@@ -47,7 +47,8 @@ export const isMCGStandaloneCluster = (storageCluster: StorageClusterKind) =>
   storageCluster?.spec?.multiCloudGateway?.reconcileStrategy === 'standalone';
 
 export const isExternalCluster = (storageCluster: StorageClusterKind) =>
-  !_.isEmpty(storageCluster?.spec?.externalStorage);
+  !_.isEmpty(storageCluster?.spec?.externalStorage) &&
+  storageCluster.spec.externalStorage.enable;
 
 export const isClusterIgnored = (storageCluster: StorageClusterKind) =>
   storageCluster?.status?.phase === 'Ignored';
