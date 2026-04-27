@@ -121,7 +121,7 @@ export type StorageClusterKind = K8sResourceCommon & {
         volumeSnapshotName: string;
       };
     };
-    externalStorage?: {};
+    externalStorage?: { enable?: boolean };
     allowRemoteStorageConsumers?: boolean;
     hostNetwork?: boolean;
     monitoring?: {
