@@ -404,7 +404,9 @@ const DRInformation: React.FC<DRInformationProps> = ({
       </DRInformationGroup>
       {(isAsync || appType === DRApplication.DISCOVERED) && (
         <DRInformationGroup title={t('Replication details')}>
-          {isAsync && replicationStatus(t('Volume:'), lastGroupSyncTime, t)}
+          {isAsync &&
+            schedulingInterval !== '0m' &&
+            replicationStatus(t('Volume:'), lastGroupSyncTime, t)}
           {replicationStatus(
             t('Kubernetes object:'),
             lastKubeObjectProtectionTime,

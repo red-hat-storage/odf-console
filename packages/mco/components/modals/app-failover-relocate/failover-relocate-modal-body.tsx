@@ -302,16 +302,17 @@ export const FailoverRelocateModalBody: React.FC<
             <DRActionReadiness canInitiate={canInitiate} />
           </FlexItem>
         </Flex>
-        {placement?.replicationType === ReplicationType.ASYNC && (
-          <Flex>
-            <FlexItem>
-              <strong>{t('Volume last synced on:')}</strong>
-            </FlexItem>
-            <FlexItem>
-              <DateTimeFormat dateTime={placement?.snapshotTakenTime} />
-            </FlexItem>
-          </Flex>
-        )}
+        {placement?.replicationType === ReplicationType.ASYNC &&
+          placement?.schedulingInterval !== '0m' && (
+            <Flex>
+              <FlexItem>
+                <strong>{t('Volume last synced on:')}</strong>
+              </FlexItem>
+              <FlexItem>
+                <DateTimeFormat dateTime={placement?.snapshotTakenTime} />
+              </FlexItem>
+            </Flex>
+          )}
 
         {
           // ToDo: Enable this once DRPC has kube object last sync time.
