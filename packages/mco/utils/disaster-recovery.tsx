@@ -272,6 +272,11 @@ export const getReplicationHealth = (
   if (replicationType && replicationType === ReplicationType.SYNC) {
     return VolumeReplicationHealth.HEALTHY;
   }
+  // No replication monitoring needed when schedulingInterval is 0m
+  // (e.g. FusionAccess async with no active replication).
+  if (schedulingInterval === '0m') {
+    return VolumeReplicationHealth.HEALTHY;
+  }
   const seconds = !!lastSyncTime
     ? getTimeDifferenceInSeconds(lastSyncTime)
     : LEAST_SECONDS_IN_PROMETHEUS;
@@ -432,6 +437,10 @@ export const getVolumeReplicationHealth = (
   const [syncIntervalInSeconds] = convertSyncIntervalToSeconds(
     scheduledSyncInterval
   );
+  // Guard against division by zero when schedulingInterval is 0m.
+  if (syncIntervalInSeconds === 0) {
+    return [VolumeReplicationHealth.HEALTHY, 0];
+  }
   const slaDiff = slaTakenInSeconds / syncIntervalInSeconds || 0;
   if (slaDiff >= THRESHOLD) return [VolumeReplicationHealth.CRITICAL, slaDiff];
   else if (slaDiff > THRESHOLD - 1 && slaDiff < THRESHOLD)
