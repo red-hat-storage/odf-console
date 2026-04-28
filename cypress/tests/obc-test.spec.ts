@@ -16,7 +16,35 @@ import {
 } from '../utils/consts';
 import { detailsPage } from '../views/details-page';
 import { listPage } from '../views/list-page';
-import { CreateOBCHandler, obcNavigate } from '../views/obcPage';
+import { CreateOBCHandler } from '../views/obcPage';
+
+// ✅ FIX: Bypass sidebar nav entirely — go straight to OBC URL.
+// The sidebar "Data Foundation > Object storage" nav is ODF-plugin-dependent
+// and loads asynchronously, making it unreliable. Direct URL is deterministic.
+const navigateToOBCDirect = () => {
+  cy.visit('/odf/object-storage', { timeout: 3 * MINUTE });
+  // Wait for the OBC tab to be visible before proceeding
+  cy.get('[data-test="horizontal-link-Object Bucket Claims"]', {
+    timeout: 3 * MINUTE,
+  })
+    .should('be.visible')
+    .click();
+};
+
+const loginWithSession = () => {
+  cy.session(
+    'obc-test-session',
+    () => {
+      cy.login();
+      cy.visit('/');
+      // ✅ Wait for the app to fully load before caching session
+      cy.get('[data-test="nav"]', { timeout: 3 * MINUTE }).should('exist');
+    },
+    {
+      cacheAcrossSpecs: true,
+    }
+  );
+};
 
 describe('Test Object Bucket Claim resource', () => {
   const obcHandler = new CreateOBCHandler(
@@ -26,14 +54,20 @@ describe('Test Object Bucket Claim resource', () => {
   );
 
   before(() => {
-    cy.login();
+    loginWithSession();
     cy.visit('/');
     cy.install();
     obcHandler.createBucketClaim();
+    navigateToOBCDirect();
+    projectNameSpace.selectOrCreateProject(testName);
+    listPage.searchInList(OBC_NAME);
+    cy.byTestID(`resource-link-${OBC_NAME}`).should('exist');
+    cy.contains(BOUND, { timeout: 3 * MINUTE });
   });
 
   beforeEach(() => {
-    obcNavigate.navigateToOBC();
+    loginWithSession();
+    navigateToOBCDirect();
     projectNameSpace.selectOrCreateProject(testName);
   });
 
@@ -44,8 +78,13 @@ describe('Test Object Bucket Claim resource', () => {
   it('Test if Object Bucket Claim details page is rendered correctly', () => {
     cy.log('Test if OBC is bound');
     listPage.searchInList(OBC_NAME);
-    cy.byTestID(`resource-link-${OBC_NAME}`).click();
-    cy.byTestID('resource-status').contains(BOUND, { timeout: MINUTE });
+    cy.byTestID(`resource-link-${OBC_NAME}`).should('exist').click();
+
+    cy.url().then((url) => {
+      cy.visit(url);
+    });
+
+    cy.byTestID('resource-status').contains(BOUND, { timeout: 3 * MINUTE });
 
     cy.log('Test if secret data is masked');
     cy.contains('Reveal Values');
@@ -136,8 +175,14 @@ describe('Tests form validations on Object Bucket Claim', () => {
     cy.contains('openshift-storage.noobaa.io').click();
   };
 
+  before(() => {
+    loginWithSession();
+    cy.visit('/');
+  });
+
   beforeEach(() => {
-    obcNavigate.navigateToOBC();
+    loginWithSession();
+    navigateToOBCDirect();
     cy.byTestID('item-create').click();
   });
 

@@ -6,8 +6,8 @@ import {
 } from '../constants/storage-pool-const';
 import { SECOND } from '../consts';
 import { NS } from '../utils/consts';
+import { modal } from '../views/modals';
 import { ODFCommon } from '../views/odf-common';
-import { modal } from './modals';
 
 export const replicaCount: string = '3';
 export const scName: string = 'testing-sc';
@@ -37,37 +37,33 @@ export const navigateToStoragePoolList = () => {
 };
 
 export const showAvailablePoolsInSCForm = (poolType: PoolType) => {
+  cy.clickNavLink(['Storage', 'StorageClasses']);
+  cy.byTestID('item-create').click();
   const provisioner = poolType === PoolType.BLOCK ? 'rbd' : 'cephfs';
-  const provisionerFullName = `openshift-storage.${provisioner}.csi.ceph.com`;
   const defaultPool =
     poolType === PoolType.BLOCK
       ? CEPH_DEFAULT_BLOCK_POOL_NAME
       : CEPH_DEFAULT_FS_POOL_NAME;
-
-  cy.byTestID('storage-class-provisioner-dropdown')
-    .should('be.visible')
-    .click();
+  cy.byTestID('storage-class-provisioner-dropdown').click();
   // eslint-disable-next-line cypress/require-data-selectors
   cy.get('[placeholder="Select Provisioner"]', { timeout: 10000 })
     .should('be.visible')
     .clear();
   // eslint-disable-next-line cypress/require-data-selectors
-  cy.get('[placeholder="Select Provisioner"]').type(provisionerFullName, {
-    delay: 50,
-  });
-  // eslint-disable-next-line cypress/require-data-selectors
-  cy.contains('[role="option"]', provisionerFullName, { timeout: 15000 })
-    .should('be.visible')
-    .click();
-  cy.byTestID('pool-dropdown-toggle', { timeout: 30 * SECOND })
-    .should('be.visible')
-    .click();
-  cy.byTestID('create-new-pool-button', { timeout: 15 * SECOND }).should(
-    'be.visible'
+  cy.get('[placeholder="Select Provisioner"]').type(
+    `openshift-storage.${provisioner}.csi.ceph.com`
   );
-  cy.byTestID(defaultPool, { timeout: 30 * SECOND })
-    .should('exist')
-    .should('be.visible');
+  // eslint-disable-next-line cypress/require-data-selectors
+  cy.contains('[role="option"]', provisionerFullName, {
+    timeout: 15000,
+  })
+    .should('be.visible')
+    .click();
+  cy.byTestID('pool-dropdown-toggle', { timeout: 5 * SECOND })
+    .should('be.visible')
+    .click();
+  cy.byTestID('create-new-pool-button').should('be.visible');
+  cy.byTestID(defaultPool).should('be.visible');
 };
 
 export const fillPoolModalForm = (poolType: PoolType, poolName: string) => {
@@ -84,47 +80,35 @@ export const createStoragePoolInSCForm = (
 ) => {
   fillPoolModalForm(poolType, poolName);
   triggerPoolFormFooterAction('create');
-  cy.get('[data-test="empty-state-body"]').then(($emptyStateBody) => {
-    if ($emptyStateBody.length > 0) {
-      cy.wrap($emptyStateBody).should(
-        'contain',
-        poolMessage(poolName, PoolProgress.CREATED)
-      );
-    }
-  });
+  cy.byTestID('empty-state-body').contains(
+    poolMessage(poolName, PoolProgress.CREATED)
+  );
   triggerPoolFormFooterAction(PoolProgress.CREATED);
-  cy.byTestID('pool-dropdown-toggle').should('contain', poolName);
+  cy.byTestID('pool-dropdown-toggle').contains(poolName);
 };
 
 export const checkStoragePoolIsSelectableInSCForm = (poolName: string) => {
   cy.byTestID('pool-dropdown-toggle').should('be.visible').click();
-  cy.byTestID(poolName, { timeout: 15 * SECOND }).should('be.visible');
+  cy.byTestID(poolName).should('be.visible');
 };
 
 export const fillStoragePoolForm = (poolType: PoolType, poolName: string) => {
-  cy.byTestID('type-' + poolType.toLowerCase(), { timeout: 15000 })
-    .should('be.visible')
-    .click();
-  cy.byTestID('new-pool-name-textbox', { timeout: 15000 }).should(
-    'not.be.disabled'
-  );
-  cy.byTestID('new-pool-name-textbox').click();
+  cy.byTestID(`type-${poolType.toLowerCase()}`).click();
   cy.byTestID('new-pool-name-textbox').clear();
-  cy.byTestID('new-pool-name-textbox').type(poolName, { delay: 50 });
-  cy.byTestID('new-pool-name-textbox').should('have.value', poolName);
+  cy.byTestID('new-pool-name-textbox').type(poolName);
   cy.byTestID('replica-dropdown')
     .should('be.visible')
     .should('not.be.disabled')
     .click();
   cy.byLegacyTestID('replica-dropdown-item')
-    .contains(replicaCount + '-way Replication')
+    .contains(`${replicaCount}-way Replication`)
     .should('be.visible')
     .click();
   cy.byTestID('replica-dropdown').should(
     'contain',
-    replicaCount + '-way Replication'
+    `${replicaCount}-way Replication`
   );
-  cy.byTestID('compression-checkbox').should('be.visible').check();
+  cy.byTestID('compression-checkbox').check();
 };
 
 export const triggerPoolFormFooterAction = (action: string) => {
@@ -200,11 +184,9 @@ export const openStoragePoolKebab = (
   cy.byLegacyTestID('item-filter').clear();
   cy.byLegacyTestID('item-filter').type(targetPoolName);
   cy.byTestID('storage-pool-kebab-button').should('have.length', 1);
-  if (isDefaultPool) {
+  if (isDefaultPool)
     cy.byTestID('storage-pool-kebab-button').should('be.disabled');
-  } else {
-    cy.byTestID('storage-pool-kebab-button').click();
-  }
+  else cy.byTestID('storage-pool-kebab-button').click();
 };
 
 export const deleteStoragePool = (poolName: string) => {

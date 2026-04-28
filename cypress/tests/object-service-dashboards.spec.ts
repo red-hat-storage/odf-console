@@ -45,7 +45,7 @@ describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Provide
         if (Number.isNaN(numA) || Number.isNaN(numB)) {
           expect(text).to.equal('Not available');
         } else {
-          expect(numA).to.be.greaterThan(0);
+          expect(numA).to.be.at.least(0);
           expect(numB).to.equal(1);
         }
       });

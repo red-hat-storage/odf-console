@@ -1,9 +1,13 @@
 export const ODFCommon = {
   visitStorageDashboard: () => {
-    cy.clickNavLink(['Storage', 'Data Foundation']);
+    cy.visit('/odf/overview');
+    cy.url().should('include', '/odf/overview');
+    cy.byTestID('nav', { timeout: 30000 }).should('be.visible');
   },
   visitStorageCluster: () => {
-    cy.clickNavLink(['Storage', 'Storage cluster']);
+    cy.visit('/odf/storage-cluster');
+    cy.url().should('include', '/odf/storage-cluster');
+    cy.byTestID('nav', { timeout: 30000 }).should('be.visible');
   },
 };
 

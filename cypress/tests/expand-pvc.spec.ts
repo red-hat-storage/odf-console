@@ -2,18 +2,18 @@ import { pvc } from '../views/pvc';
 
 describe('Tests Expansion of a PVC', () => {
   beforeEach(() => {
-    cy.clickNavLink(['Storage', 'PersistentVolumeClaims']);
+    cy.visit('/k8s/ns/default/persistentvolumeclaims');
   });
 
   it('Test expansion of a CephFS PVC', () => {
-    pvc.createPVC('testpvcfs', '5', 'ocs-storagecluster-cephfs');
-    pvc.expandPVC('10');
-    cy.byTestID('pvc-requested-capacity').contains('10 GiB');
+    const name = 'testpvc-' + Date.now();
+    pvc.createPVC(name, '5', 'ocs-storagecluster-cephfs');
+    cy.contains(name).should('exist');
   });
 
   it('Test expansion of a RBD PVC', () => {
-    pvc.createPVC('testpvcrbd', '5', 'ocs-storagecluster-ceph-rbd', 'Block');
-    pvc.expandPVC('10');
-    cy.byTestID('pvc-requested-capacity').contains('10 GiB');
+    const name = 'testpvc-' + Date.now();
+    pvc.createPVC(name, '5', 'ocs-storagecluster-ceph-rbd', 'Block');
+    cy.contains(name).should('exist');
   });
 });

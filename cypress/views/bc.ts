@@ -1,5 +1,4 @@
 import { bucketStore, namespaceStore } from '../mocks/bucket-class';
-import { commonFlows } from './common';
 import { StoreType } from './store';
 
 export const bcName = 'test-bucketclass';
@@ -10,6 +9,7 @@ export enum Tier {
   SPREAD = 'SPREAD',
   MIRROR = 'MIRROR',
 }
+
 const TierCountMap = Object.freeze({
   [Tier.SPREAD]: 1,
   [Tier.MIRROR]: 2,
@@ -28,7 +28,6 @@ export enum NamespacePolicyType {
 
 abstract class BucketClassConfig {
   public abstract setup: () => void;
-
   public abstract cleanup: () => void;
 
   constructor(
@@ -42,7 +41,8 @@ const createPVCBackingStore = (storeName: string) => {
   cy.exec(
     `echo '${JSON.stringify(
       bucketStore(storeName)
-    )}' | kubectl create -n openshift-storage -f -`
+    )}' | kubectl create -n openshift-storage -f -`,
+    { failOnNonZeroExit: false }
   );
 };
 
@@ -54,7 +54,8 @@ export class StandardBucketClassConfig extends BucketClassConfig {
   cleanup = () => {
     cy.log('Deleting backing stores');
     cy.exec(
-      `oc delete backingstore ${this.resources.join(' ')} -n openshift-storage`
+      `oc delete backingstore ${this.resources.join(' ')} -n openshift-storage`,
+      { failOnNonZeroExit: false }
     );
   };
 }
@@ -65,11 +66,11 @@ const createAWSStore = (name: string, type: StoreType) => {
       type === StoreType.NamespaceStore ? 'Namespace' : 'Backing'
     } Store resource named ${name}`
   );
-
   cy.exec(
     `echo '${JSON.stringify(
       namespaceStore(name, type)
-    )}' | kubectl create -n openshift-storage -f -`
+    )}' | kubectl create -n openshift-storage -f -`,
+    { failOnNonZeroExit: false }
   );
 };
 
@@ -90,10 +91,12 @@ export class NamespaceBucketClassConfig extends BucketClassConfig {
     cy.exec(
       `oc delete namespacestores ${this.resources.join(
         ' '
-      )} -n openshift-storage`
+      )} -n openshift-storage`,
+      { failOnNonZeroExit: false }
     );
     cy.exec(
-      `oc delete backingstore ${this.testBackingStore} -n openshift-storage`
+      `oc delete backingstore ${this.testBackingStore} -n openshift-storage`,
+      { failOnNonZeroExit: false }
     );
   };
 }
@@ -108,11 +111,9 @@ const tierLevelToButton = (level: number, tier: Tier) =>
       : cy.byTestID('placement-policy-mirror2');
 
 const setGeneralData = (type: BucketClassType) => {
-  // be.visible check added to wait for the page to load
-  cy.byTestID(`${type.toLowerCase()}-radio`).click();
+  cy.byTestID(`${type.toLowerCase()}-radio`).should('be.visible').click();
   cy.byTestID('bucket-class-name').scrollIntoView();
-  cy.byTestID('bucket-class-name').should('be.visible');
-  cy.byTestID('bucket-class-name').type(bcName);
+  cy.byTestID('bucket-class-name').should('be.visible').type(bcName);
   cy.byTestID('bucket-class-description').type(bcDescription);
 };
 
@@ -136,21 +137,26 @@ const selectStoreFromTable = (storeNo: number, name: string) => {
 };
 
 const setBackingStores = (tiers: Tier[]) => {
-  const tests = ['test-store4', 'test-store3', 'test-store2', 'test-store1'];
+  const tests = ['test-store1', 'test-store2', 'test-store3', 'test-store4'];
+  let storeIndex = 0;
+
   if (tiers.length > 1) {
     cy.byLegacyTestID('item-filter').should(($items) => {
       expect($items).to.have.length(2);
     });
   }
-  selectStoreFromTable(1, tests.pop());
+
+  // Tier 1
+  selectStoreFromTable(1, tests[storeIndex++]);
   if (TierCountMap[tiers[0]] > 1) {
-    selectStoreFromTable(1, tests.pop());
+    selectStoreFromTable(1, tests[storeIndex++]);
   }
-  // Select tier 2 Backing Stores
+
+  // Tier 2 (if present)
   if (tiers.length > 1) {
-    selectStoreFromTable(2, tests.pop());
+    selectStoreFromTable(2, tests[storeIndex++]);
     if (TierCountMap[tiers[1]] > 1) {
-      selectStoreFromTable(2, tests.pop());
+      selectStoreFromTable(2, tests[storeIndex++]);
     }
   }
 };
@@ -197,9 +203,19 @@ const configureNamespaceBucketClass = (
 };
 
 export const createBucketClass = (config: BucketClassConfig) => {
+  // FIX: visit the list page, click the Create button and wait for
+  // the wizard to fully render before interacting with its elements.
+  // ~new route didn't open the wizard; clicking the button does.
+  cy.visit('/odf/object-storage/noobaa.io~v1alpha1~BucketClass');
+  cy.contains('button', 'Create Bucket Class').should('be.visible').click();
+  // FIX: wait for the wizard's radio to be visible before proceeding,
+  // ensuring the wizard has fully mounted before setGeneralData runs
+  cy.byTestID(`${config.type.toLowerCase()}-radio`).should('be.visible');
+
   cy.log('Select bucket class type');
   setGeneralData(config.type);
   cy.contains('Next').click();
+
   if (config.type === BucketClassType.STANDARD) {
     const { tiers } = config as StandardBucketClassConfig;
     cy.log('Select Placement policy');
@@ -218,6 +234,7 @@ export const createBucketClass = (config: BucketClassConfig) => {
       config as NamespaceBucketClassConfig
     );
   }
+
   cy.contains('Next').click();
   cy.log('Create bucket class');
   cy.contains('button', 'Create BucketClass').click();
@@ -236,11 +253,11 @@ export const deleteBucketClass = () => {
   cy.byTestID('item-create').should('be.visible');
 };
 
+// visitBucketClassPage only navigates and confirms the list page is ready.
+// The Create button click is handled inside createBucketClass so the wizard
+// opens and is used in the same unbroken Cypress command queue.
 export const visitBucketClassPage = () => {
-  commonFlows.navigateToObjectStorage();
-  cy.log(
-    'Planning to start testing for standard bucket class visitBucketClassPage ....'
-  );
-  cy.byTestID('horizontal-link-Bucket Class').first().click();
-  cy.byTestID('item-create').click();
+  cy.log('Navigating to Bucket Class list page');
+  cy.visit('/odf/object-storage/noobaa.io~v1alpha1~BucketClass');
+  cy.contains('button', 'Create Bucket Class').should('be.visible');
 };

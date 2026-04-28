@@ -46,6 +46,7 @@ export const pvcJSON = {
   },
   spec: {
     accessModes: ['ReadWriteOnce'],
+    storageClassName: 'ocs-storagecluster-ceph-rbd',
     resources: {
       requests: {
         storage: '10Gi',
@@ -251,12 +252,12 @@ export const deploymentJSON = {
             },
             resources: {
               requests: {
-                memory: '256Mi',
-                cpu: '250m',
+                memory: '64i',
+                cpu: '50m',
               },
               limits: {
-                memory: '256Mi',
-                cpu: '250m',
+                memory: '128Mi',
+                cpu: '100m',
               },
             },
             lifecycle: {

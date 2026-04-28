@@ -34,7 +34,7 @@ export const verifyZoneOSDMapping = (
 export const getPodName = (pod) => pod.metadata.name;
 
 export const getPodRestartCount = (pod) =>
-  pod.status.containerStatuses[0].restartCount;
+  pod?.status?.containerStatuses?.[0]?.restartCount ?? 0;
 
 export const getPresentPod = (pods, podName: string) =>
   pods.items.find((pod) => getPodName(pod) === podName);

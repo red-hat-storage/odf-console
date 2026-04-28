@@ -26,7 +26,7 @@
     "cypress-generate": "yarn exec marge -o ./gui-test-screenshots/ -f cypress-report -t 'OpenShift Console Cypress Test Results' -p 'OpenShift Cypress Test Results' --showPassed false --assetsDir ./gui-test-screenshots/cypress/assets ./gui-test-screenshots/cypress.json",
     "cypress-merge": "yarn exec mochawesome-merge ./gui-test-screenshots/cypress_report*.json > ./gui-test-screenshots/cypress.json",
     "cypress-postreport": "yarn cypress-merge && yarn cypress-generate",
-    "dev": "PLUGIN=odf I8N_NS=plugin__odf-console yarn server:plugin",
+    "dev": "PLUGIN=odf I8N_NS=plugin__odf-console OPENSHIFT_CI=true yarn server:plugin",
     "dev-client": "PLUGIN=client I8N_NS=plugin__odf-client-console yarn server:plugin",
     "dev-mco": "PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn server:plugin",
     "dev:c": "yarn ocp-console & PLUGIN=${PLUGIN:-odf} I8N_NS=${I8N_NS} yarn server:plugin & wait",
@@ -151,6 +151,7 @@
     "yup": "^1.7.1"
   },
   "devDependencies": {
+    "@cypress/grep": "^6.0.0",
     "@cypress/webpack-preprocessor": "^7.0.2",
     "@discoveryjs/json-ext": "^1.0.0",
     "@swc/core": "^1.15.18",

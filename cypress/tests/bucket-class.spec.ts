@@ -22,7 +22,14 @@ describe('Tests creation of Standard Bucket Class', () => {
     backingStoreResources,
     BucketClassType.STANDARD
   );
+
   before(() => {
+    backingStoreResources.forEach((store) => {
+      cy.exec(
+        `oc delete backingstore ${store} -n openshift-storage --ignore-not-found`,
+        { failOnNonZeroExit: false }
+      );
+    });
     config.setup();
   });
 
@@ -30,7 +37,8 @@ describe('Tests creation of Standard Bucket Class', () => {
     visitBucketClassPage();
   });
 
-  afterEach(() => {
+  afterEach(function () {
+    if (this.currentTest?.state === 'failed') return;
     verifyBucketClass();
     deleteBucketClass();
   });
@@ -61,11 +69,19 @@ describe('Tests creation of Standard Bucket Class', () => {
 });
 
 describe('Tests creation of Namespace Bucket Class', () => {
+  const namespaceStoreResources = ['ns1', 'ns2', 'ns3', 'ns4'];
   const config = new NamespaceBucketClassConfig(
-    ['ns1', 'ns2', 'ns3', 'ns4'],
+    namespaceStoreResources,
     BucketClassType.NAMESPACE
   );
+
   before(() => {
+    namespaceStoreResources.forEach((store) => {
+      cy.exec(
+        `oc delete namespacestore ${store} -n openshift-storage --ignore-not-found`,
+        { failOnNonZeroExit: false }
+      );
+    });
     config.setup();
   });
 
@@ -73,7 +89,8 @@ describe('Tests creation of Namespace Bucket Class', () => {
     visitBucketClassPage();
   });
 
-  afterEach(() => {
+  afterEach(function () {
+    if (this.currentTest?.state === 'failed') return;
     verifyBucketClass();
     deleteBucketClass();
   });
@@ -102,7 +119,12 @@ describe('Tests form validations on Bucket Class', () => {
   const nameFieldTestId: string = 'bucket-class-name';
 
   beforeEach(() => {
-    visitBucketClassPage();
+    // FIX: open the wizard directly so bucket-class-name field exists in DOM.
+    // visitBucketClassPage() only navigates to the list page — the wizard
+    // must be open for any of these form validation tests to find their elements.
+    cy.visit('/odf/object-storage/noobaa.io~v1alpha1~BucketClass');
+    cy.contains('button', 'Create Bucket Class').should('be.visible').click();
+    cy.byTestID('standard-radio').should('be.visible');
   });
 
   fieldValidationOnWizardFormsTests(nameFieldTestId, 'Next');

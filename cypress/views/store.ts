@@ -11,7 +11,7 @@ export enum StoreType {
   NamespaceStore = 'namespacestore',
 }
 
-export const testName = 'test-bucket';
+export const testName = `test-bucket-${Date.now()}`;
 
 const inputCustomSecrets = (storeType: StoreType) => {
   cy.log('Set custom secrets');
