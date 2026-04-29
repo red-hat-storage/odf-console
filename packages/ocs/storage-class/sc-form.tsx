@@ -99,6 +99,7 @@ import './sc-form.scss';
 import {
   getExistingBlockPoolNames,
   getExistingFsPoolNames,
+  getPoolDataProtectionPolicyLabel,
   getStoragePoolsFromBlockPools,
   getStoragePoolsFromFilesystem,
   isErasureCodedStoragePool,
@@ -153,9 +154,9 @@ const getPoolDropdownItems = (
             id={pool?.metadata?.name}
             data-test={pool?.metadata?.name}
             onClick={handleDropdownChange}
-            description={t('Replica {{poolSize}} {{compressionText}}', {
-              poolSize: pool?.spec?.replicated?.size,
-              compressionText,
+            description={t('{{ label }} {{ value }}', {
+              label: getPoolDataProtectionPolicyLabel(t, pool),
+              value: compressionText,
             })}
           >
             {pool?.metadata?.name}

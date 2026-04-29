@@ -85,6 +85,20 @@ export const isErasureCodedStoragePool = (
   return ec != null && ec.dataChunks > 0 && ec.codingChunks > 0;
 };
 
+export const getPoolDataProtectionPolicyLabel = (
+  t: TFunction,
+  pool: StoragePoolKind
+): string => {
+  if (isErasureCodedStoragePool(pool)) {
+    const ec = pool.spec.erasureCoded;
+    return t('Erasure coding {{dataChunks}}+{{codingChunks}}', {
+      dataChunks: ec.dataChunks,
+      codingChunks: ec.codingChunks,
+    });
+  }
+  return t('Replica {{size}}', { size: pool.spec.replicated?.size });
+};
+
 export const getErrorMessage = (error: string): string =>
   error.replace(ROOK_MODEL, 'Pool');
 
