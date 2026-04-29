@@ -516,7 +516,7 @@ export const getOCSRequestData = ({
       },
     };
   } else if (isTNFEnabled) {
-    requestData.spec = getTNFSpecs(scName, storage);
+    requestData.spec = getTNFSpecs(scName, storage, availablePvsCount);
   } else {
     // for full deployment - ceph + mcg
     requestData.spec = {
