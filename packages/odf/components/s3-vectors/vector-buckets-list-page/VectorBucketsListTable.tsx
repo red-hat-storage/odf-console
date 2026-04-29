@@ -22,7 +22,7 @@ import {
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
-import { Bullseye } from '@patternfly/react-core';
+import { Bullseye, Label } from '@patternfly/react-core';
 import {
   ActionsColumn,
   IAction,
@@ -56,6 +56,7 @@ const getRowActions = (
 const getColumnNames = (t: TFunction<string>) => [
   '', // favorites,
   t('Name'),
+  t('Bucket type'),
   t('Created on'),
   '', // action kebab
 ];
@@ -73,11 +74,17 @@ const getHeaderColumns = (t: TFunction<string>, favorites: string[]) => {
     },
     {
       columnName: columnNames[2],
+      thProps: {
+        className: 'pf-v6-u-w-16-on-lg',
+      },
+    },
+    {
+      columnName: columnNames[3],
       sortFunction: (a, b, c) =>
         sortRows(a, b, c, 'metadata.creationTimestamp'),
     },
     {
-      columnName: columnNames[3],
+      columnName: columnNames[4],
     },
   ];
 };
@@ -149,9 +156,12 @@ const VectorBucketsTableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
         </Link>
       </Td>
       <Td dataLabel={columnNames[2]}>
+        <Label color="green">{t('S3 Vector')}</Label>
+      </Td>
+      <Td dataLabel={columnNames[3]}>
         {<Timestamp timestamp={creationTimestamp} ignoreRelativeTime />}
       </Td>
-      <Td dataLabel={columnNames[3]} isActionCell>
+      <Td dataLabel={columnNames[4]} isActionCell>
         <ActionsColumn
           items={getRowActions(
             t,

@@ -103,15 +103,11 @@ const DeleteVectorIndexModal: React.FC<
     >
       <Content className="text-muted">
         <Content component={ContentVariants.p}>
-          {t('Deleting a vector index cannot be undone.')}
-        </Content>
-        <Content component={ContentVariants.p}>
           {t(
-            'All vectors in the index will be permanently removed. If you delete this index, you can create another index with the same name later.'
+            'This action deletes the vector index within the bucket. This cannot be undone.'
           )}
         </Content>
       </Content>
-
       <FormGroup
         label={
           <Trans t={t}>

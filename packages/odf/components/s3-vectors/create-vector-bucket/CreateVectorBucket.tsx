@@ -12,7 +12,7 @@ const CreateVectorBucket: React.FC<{}> = () => {
     <CreateS3Bucket
       title={t('Create vector bucket')}
       description={t(
-        'A vector bucket stores vector indexes for semantic search and similar workloads. You can create one with an Object Bucket Claim or directly through the S3 Vectors API.'
+        'A vector bucket is a cloud storage container that organizes and manages vector datasets (indexes), allowing users to store, retrieve and control access to data efficiently.'
       )}
       showNamespaceSelector={true}
       bucketType={BucketType.S3Vector}

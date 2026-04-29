@@ -11,6 +11,7 @@ import {
   useYupValidationResolver,
   formSettings,
   useCustomTranslation,
+  FieldLevelHelp,
 } from '@odf/shared';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useForm } from 'react-hook-form';
@@ -30,6 +31,7 @@ import {
   HelperText,
   HelperTextItem,
   NumberInput,
+  PopoverPosition,
   Radio,
 } from '@patternfly/react-core';
 import { useS3BucketFormValidation as useS3VectorIndexFormValidation } from '../../s3-common/hooks/useS3BucketFormValidation';
@@ -152,7 +154,7 @@ const CreateVectorIndexForm: React.FC = () => {
   return (
     <>
       <PageHeading breadcrumbs={breadcrumbs} title={t('Create vector index')}>
-        <Content component={ContentVariants.p} className="text-muted">
+        <Content component={ContentVariants.p}>
           {t(
             'Create a vector index to start storing AI-ready vectors in this bucket.'
           )}
@@ -189,6 +191,13 @@ const CreateVectorIndexForm: React.FC = () => {
             label={t('Dimension')}
             className="pf-v6-u-mb-sm"
             isRequired
+            labelHelp={
+              <FieldLevelHelp position={PopoverPosition.topStart}>
+                {t(
+                  'A dimension is the number of values in a vector. Larger dimensions require more storage.'
+                )}
+              </FieldLevelHelp>
+            }
           >
             <NumberInput
               id="vector-index-dimension-input"
@@ -214,12 +223,19 @@ const CreateVectorIndexForm: React.FC = () => {
             isRequired
             fieldId="distance-metric"
             className="pf-v6-u-mb-md"
+            labelHelp={
+              <FieldLevelHelp position={PopoverPosition.topStart}>
+                {t(
+                  'The distance metric measures the distance between a query vector and stored vector.'
+                )}
+              </FieldLevelHelp>
+            }
           >
             <span className="pf-v6-u-display-flex pf-v6-u-flex-direction-column">
               <Radio
                 label={t('Cosine')}
                 description={t(
-                  'Measures the angle between vectors. Best for normalized vectors.'
+                  'Measures similarity between two vectors based only on direction.'
                 )}
                 name="distance-metric-radio"
                 isChecked={distanceMetric === DistanceMetric.Cosine}
@@ -230,7 +246,7 @@ const CreateVectorIndexForm: React.FC = () => {
               <Radio
                 label={t('Euclidean')}
                 description={t(
-                  'Measures straight-line distance between vectors.'
+                  'Measures straight-line distance between two vectors using both direction and magnitude.'
                 )}
                 name="distance-metric-radio"
                 isChecked={distanceMetric === DistanceMetric.Euclidean}

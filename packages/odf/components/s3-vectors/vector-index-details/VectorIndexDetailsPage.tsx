@@ -6,6 +6,7 @@ import {
 } from '@odf/core/constants/s3-vectors';
 import { S3ProviderType } from '@odf/core/types';
 import { DASH, PageHeading } from '@odf/shared';
+import { Timestamp } from '@odf/shared/details-page/timestamp';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useParams } from 'react-router-dom-v5-compat';
@@ -50,7 +51,7 @@ const VectorIndexDetails: React.FC<{}> = () => {
             <DescriptionListGroup>
               <DescriptionListTerm>{t('Created on')}</DescriptionListTerm>
               <DescriptionListDescription>
-                {createdOn}
+                <Timestamp timestamp={createdOn} ignoreRelativeTime />
               </DescriptionListDescription>
             </DescriptionListGroup>
           </DescriptionList>
