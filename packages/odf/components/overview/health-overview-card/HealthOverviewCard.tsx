@@ -71,32 +71,42 @@ export const HealthOverviewCard: React.FC = () => {
   const { silences, silencedAlertsLoaded, silencedAlertsError } =
     useSilencedAlerts();
 
-  // Filter out silenced alerts and count by severity
+  // Filter out silenced alerts and count unique alert names by severity
   const { criticalCount, moderateCount, minorCount } = React.useMemo(() => {
     // Get active alerts (exclude silenced ones)
     const activeAlerts = filterOutSilencedAlerts(healthAlerts, silences);
 
-    // Count firing alerts by severity in a single pass (O(n) instead of O(4n))
-    return activeAlerts.reduce(
+    // Count unique firing alerts by severity using Sets to deduplicate by alertname
+    const result = activeAlerts.reduce(
       (acc, alert) => {
         // Only count firing alerts
         if (alert.state !== 'firing') {
           return acc;
         }
 
-        // Count by severity
+        // Add alertname to appropriate Set (automatically deduplicates)
         if (alert.severity === AlertSeverity.Critical) {
-          acc.criticalCount++;
+          acc.critical.add(alert.alertname);
         } else if (alert.severity === AlertSeverity.Warning) {
-          acc.moderateCount++;
+          acc.moderate.add(alert.alertname);
         } else if (alert.severity === AlertSeverity.Info) {
-          acc.minorCount++;
+          acc.minor.add(alert.alertname);
         }
 
         return acc;
       },
-      { criticalCount: 0, moderateCount: 0, minorCount: 0 }
+      {
+        critical: new Set<string>(),
+        moderate: new Set<string>(),
+        minor: new Set<string>(),
+      }
     );
+
+    return {
+      criticalCount: result.critical.size,
+      moderateCount: result.moderate.size,
+      minorCount: result.minor.size,
+    };
   }, [healthAlerts, silences]);
 
   // Process health score data for chart
@@ -273,7 +283,7 @@ export const HealthOverviewCard: React.FC = () => {
           {/* Active Issues Section */}
           <GridItem md={12}>
             <Title headingLevel="h3" size="md">
-              {t('Active issues')}
+              {t('Unique active issues')}
             </Title>
           </GridItem>
 
