@@ -1018,7 +1018,6 @@
   "Integrate Data Foundation with an existing storage backend such as external Ceph cluster on IBM FlashSystem.": "IBM FlashSystem의 외부 Ceph 클러스터와 같은 기존 스토리지 백엔드와 Data Foundation을 통합합니다.",
   "Internal": "내부",
   "Internal cluster": "내부 클러스터",
-  "Intiating": "시작 중",
   "Invalid": "유효하지 않음",
   "Invalid file: File size exceeds 4MB limit or incorrect file extension (only .pem files allowed).": "잘못된 파일: 파일 크기가 4MB 제한을 초과하거나 파일 확장자가 잘못되었습니다 (.pem 파일만 허용됨).",
   "Invalid label name": "레이블 이름이 유효하지 않음",

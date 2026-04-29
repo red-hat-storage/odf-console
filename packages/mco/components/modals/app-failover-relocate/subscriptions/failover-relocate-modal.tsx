@@ -39,7 +39,7 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
       onClick: props.close,
     },
     {
-      id: 'modal-intiate-action',
+      id: 'modal-initiate-action',
       label: props.t('Initiate'),
       type: ButtonType.button,
       variant: ButtonVariant.primary,
@@ -56,8 +56,8 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
       onClick: props.close,
     },
     {
-      id: 'modal-intiating-action',
-      label: props.t('Intiating'),
+      id: 'modal-initiating-action',
+      label: props.t('Initiating'),
       type: ButtonType.button,
       variant: ButtonVariant.primary,
       isLoading: true,

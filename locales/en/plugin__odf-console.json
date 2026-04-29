@@ -1275,7 +1275,6 @@
   "Internal": "Internal",
   "Internal mode cluster not available": "Internal mode cluster not available",
   "Internal mode cluster setup path is unavailable because an External mode cluster has already been configured.": "Internal mode cluster setup path is unavailable because an External mode cluster has already been configured.",
-  "Intiating": "Intiating",
   "Invalid": "Invalid",
   "Invalid disk data: missing required fields (WWN: {{wwn}}, path: {{path}}, nodeName: {{nodeName}})": "Invalid disk data: missing required fields (WWN: {{wwn}}, path: {{path}}, nodeName: {{nodeName}})",
   "Invalid DR Policy": "Invalid DR Policy",
