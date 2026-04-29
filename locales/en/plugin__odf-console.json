@@ -587,6 +587,7 @@
   "cluster name search": "cluster name search",
   "cluster name search button": "cluster name search button",
   "Cluster network CIDR": "Cluster network CIDR",
+  "Cluster network CIDR: {{cidr}}": "Cluster network CIDR: {{cidr}}",
   "Cluster network configuration in progress": "Cluster network configuration in progress",
   "Cluster Network Interface": "Cluster Network Interface",
   "Cluster node": "Cluster node",
