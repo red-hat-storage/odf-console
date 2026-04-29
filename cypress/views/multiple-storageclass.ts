@@ -21,34 +21,31 @@ export const fetchStorageClusterJson = () =>
     `kubectl get --ignore-not-found storagecluster ${OCS_INTERNAL_CR_NAME} -n ${NS} -o json`
   );
 
-export const fetchWorkerNodesJson = () =>
-  cy.exec('oc get nodes -l "node-role.kubernetes.io/worker" -o json');
-
-export const addCapacity = (scName: string) => {
+export const openAddCapacityModal = () => {
   cy.byTestID('kebab-button').click();
   cy.contains('Add Capacity').click();
+};
+
+export const addCapacity = (scName: string) => {
+  openAddCapacityModal();
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.byTestID('add-cap-sc-dropdown').wait(1500).click();
   cy.contains(scName).click();
   cy.byLegacyTestID('confirm-action').click();
 };
 
-export const newStorageClassTests = (
-  beforeCapacityAddition: UidAndDeviceSet,
-  iAndD: IndexAndDeviceSet,
-  portability: boolean
+export const assertStorageClassNamesAbsentInAddCapacityDropdown = (
+  scNames: string[]
 ) => {
-  const portabilityStatus = portability ? 'enabled' : 'disabled';
-  cy.log('New device set is created');
-  expect(iAndD.deviceSets.length).to.equal(
-    beforeCapacityAddition.deviceSets.length + 1
-  );
-
-  cy.log('Device count is 1 in the new device set');
-  expect(iAndD.deviceSets[iAndD.index].count).to.equal(1);
-
-  cy.log(`Osd portability is ${portabilityStatus} in the new device set`);
-  expect(iAndD.deviceSets[iAndD.index].portable).to.equal(portability);
+  cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should('be.visible');
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.byTestID('add-cap-sc-dropdown').wait(1500).click();
+  scNames.forEach((name) => {
+    cy.contains('[data-test="dropdown-menu-item-link"]', name).should(
+      'not.exist'
+    );
+  });
+  cy.byLegacyTestID('modal-cancel-action').click();
 };
 
 export const existingStorageClassTests = (
