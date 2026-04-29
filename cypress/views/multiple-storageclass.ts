@@ -33,24 +33,6 @@ export const addCapacity = (scName: string) => {
   cy.byLegacyTestID('confirm-action').click();
 };
 
-export const newStorageClassTests = (
-  beforeCapacityAddition: UidAndDeviceSet,
-  iAndD: IndexAndDeviceSet,
-  portability: boolean
-) => {
-  const portabilityStatus = portability ? 'enabled' : 'disabled';
-  cy.log('New device set is created');
-  expect(iAndD.deviceSets.length).to.equal(
-    beforeCapacityAddition.deviceSets.length + 1
-  );
-
-  cy.log('Device count is 1 in the new device set');
-  expect(iAndD.deviceSets[iAndD.index].count).to.equal(1);
-
-  cy.log(`Osd portability is ${portabilityStatus} in the new device set`);
-  expect(iAndD.deviceSets[iAndD.index].portable).to.equal(portability);
-};
-
 export const existingStorageClassTests = (
   beforeCapacityAddition: UidAndDeviceSet,
   iAndD: IndexAndDeviceSet
