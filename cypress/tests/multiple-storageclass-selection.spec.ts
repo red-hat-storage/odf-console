@@ -9,7 +9,6 @@ import {
   fetchStorageClusterJson,
   fetchWorkerNodesJson,
   addCapacity,
-  newStorageClassTests,
   existingStorageClassTests,
   IndexAndDeviceSet,
   UidAndDeviceSet,
@@ -70,16 +69,6 @@ describe('Add capacity using multiple storage classes', () => {
     });
   });
 
-  it('Add capacity with a new storage class having EBS as provisioner', () => {
-    const { name: scName } = testEbsSC.metadata;
-    const iAndD: IndexAndDeviceSet = { index: 0, deviceSets: [] };
-    addCapacity(scName);
-    fetchStorageClusterJson().then((res) => {
-      withJSONResult(res, scName, iAndD);
-      newStorageClassTests(beforeCapacityAddition, iAndD, true);
-    });
-  });
-
   it('Add capacity with an existing storage class having EBS as provisioner', () => {
     const { name: scName } = testEbsSC.metadata;
     const iAndD: IndexAndDeviceSet = { index: 0, deviceSets: [] };
@@ -92,16 +81,6 @@ describe('Add capacity using multiple storage classes', () => {
     fetchStorageClusterJson().then((res) => {
       withJSONResult(res, scName, iAndD);
       existingStorageClassTests(beforeCapacityAddition, iAndD);
-    });
-  });
-
-  it(`Add capacity with a new storage class having NO-PROVISIONER as provisioner`, () => {
-    const { name: scName } = testNoProvisionerSC.metadata;
-    const iAndD: IndexAndDeviceSet = { index: 0, deviceSets: [] };
-    addCapacity(scName);
-    fetchStorageClusterJson().then((res) => {
-      withJSONResult(res, scName, iAndD);
-      newStorageClassTests(beforeCapacityAddition, iAndD, false);
     });
   });
 });

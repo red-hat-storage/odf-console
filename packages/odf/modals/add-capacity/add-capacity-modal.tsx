@@ -329,6 +329,16 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     [installStorageClass]
   );
 
+  const storageClassesUsedByDeviceSets = React.useMemo(() => {
+    const storageClasses = new Set<string>();
+    for (const ds of deviceSets) {
+      if (ds.dataPVCTemplate?.spec?.storageClassName) {
+        storageClasses.add(ds.dataPVCTemplate.spec.storageClassName);
+      }
+    }
+    return storageClasses;
+  }, [deviceSets]);
+
   const deviceClasses = React.useMemo(
     () => getDeviceClassesForSC(deviceSets, selectedSCName),
     [deviceSets, selectedSCName]
@@ -353,6 +363,9 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   // Stops users from moving from no-prov SC to prov SC. (Bug 2213183)
   const storageClassFilter = React.useCallback(
     (sc: StorageClassResourceKind) => {
+      if (!storageClassesUsedByDeviceSets.has(getName(sc))) {
+        return undefined;
+      }
       if (scResourcesLoaded && !scResourcesLoadError) {
         const initialSC = scResources?.find(
           (item) => getName(item) === installStorageClass
@@ -363,7 +376,13 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
       }
       return sc;
     },
-    [installStorageClass, scResources, scResourcesLoadError, scResourcesLoaded]
+    [
+      storageClassesUsedByDeviceSets,
+      installStorageClass,
+      scResources,
+      scResourcesLoadError,
+      scResourcesLoaded,
+    ]
   );
 
   const validateSC = React.useCallback(() => {
