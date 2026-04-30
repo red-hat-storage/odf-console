@@ -10,9 +10,8 @@ export type SafeFetchProps = {
 };
 
 export const useSafeFetch = () => {
-  const controller = useRef<AbortController>();
+  const controller = useRef<AbortController>(new AbortController());
   useEffect(() => {
-    controller.current = new AbortController();
     return () => controller.current.abort();
   }, []);
 

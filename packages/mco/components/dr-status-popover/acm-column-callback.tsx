@@ -10,6 +10,8 @@ import { ApplicationSetParser, SubscriptionParser } from './parsers';
 import VirtualMachineParser from './parsers/virtualmachine-parser';
 
 const DRStatus: React.FC<DRStatusProps> = ({ resource }) => {
+  if (!resource) return null;
+
   const application =
     'apigroup' in resource ? convertSearchResult(resource as any) : resource;
   const gvk = getGVKFromK8Resource(application);
