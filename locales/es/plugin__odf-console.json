@@ -1018,7 +1018,6 @@
   "Integrate Data Foundation with an existing storage backend such as external Ceph cluster on IBM FlashSystem.": "Integre Data Foundation con un backend de almacenamiento existente, como un clúster Ceph externo en IBM FlashSystem.",
   "Internal": "Interno",
   "Internal cluster": "Clúster interno",
-  "Intiating": "Iniciando",
   "Invalid": "No válido",
   "Invalid file: File size exceeds 4MB limit or incorrect file extension (only .pem files allowed).": "Archivo no válido: el tamaño del archivo excede el límite de 4 MB o la extensión del archivo es incorrecta (solo se permiten archivos .pem).",
   "Invalid label name": "Nombre de etiqueta no válido",

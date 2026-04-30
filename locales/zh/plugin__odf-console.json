@@ -1018,7 +1018,6 @@
   "Integrate Data Foundation with an existing storage backend such as external Ceph cluster on IBM FlashSystem.": "将 Data Foundation 与一个现有的存储后端（如 IBM FlashSystem 上的外部 Ceph 集群）集成。",
   "Internal": "内部",
   "Internal cluster": "内部集群",
-  "Intiating": "启动",
   "Invalid": "无效",
   "Invalid file: File size exceeds 4MB limit or incorrect file extension (only .pem files allowed).": "无效文件：文件大小超过了 4MB 的限制，或有不正确的文件扩展名（只允许 .pem 文件）。",
   "Invalid label name": "无效的标签名称",

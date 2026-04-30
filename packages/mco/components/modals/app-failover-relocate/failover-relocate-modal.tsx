@@ -144,9 +144,9 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
           {t('Cancel')}
         </Button>
         <Button
-          key="modal-intiate-action"
-          id={'modal-intiate-action'}
-          data-test-id={'modal-intiate-action'}
+          key="modal-initiate-action"
+          id={'modal-initiate-action'}
+          data-test-id={'modal-initiate-action'}
           type={ButtonType.button}
           variant={ButtonVariant.primary}
           isDisabled={
