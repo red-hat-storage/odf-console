@@ -136,11 +136,17 @@ const CreateVectorBucketForm: React.FC = () => {
         <TextInput
           id="vector-bucket-subpath-s3"
           type="text"
+          placeholder="Enter a valid unix path"
           value={subpathValue}
           onChange={(_event, value) => setSubpathValue(value)}
           className="pf-v6-c-form-control"
           data-test-id="vector-bucket-subpath-s3"
         />
+        <div className="pf-v6-c-form__helper-text">
+          {t(
+            'An optional path within the bucket used to separate vector storage.'
+          )}
+        </div>
       </FormGroup>
       <ButtonBar errorMessage={errorMessage} inProgress={inProgress}>
         <ActionGroup className="pf-v6-c-form">

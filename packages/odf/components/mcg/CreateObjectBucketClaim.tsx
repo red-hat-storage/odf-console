@@ -345,6 +345,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
           <TextInput
             id="vector-bucket-subpath-obc"
             type="text"
+            placeholder="Enter a valid unix path"
             value={s3VectorSubpath}
             onChange={(_event, value) => setS3VectorSubpath(value)}
             className="pf-v6-c-form-control"

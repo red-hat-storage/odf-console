@@ -133,7 +133,7 @@ const VectorBucketPolicyContent: React.FC<VectorBucketPolicyContentProps> = ({
         setSuccess={setSuccess}
         title={t('Bucket policy')}
         description={t(
-          'Use vector bucket policy to grant public or restricted access to the vector indexes stored in the bucket.'
+          'Use bucket policy to grant public or restricted access to the vectors stored in the bucket.'
         )}
         successAlertTitle={t('Vector bucket policy applied.')}
         successAlertBody={t(
@@ -149,8 +149,6 @@ const VectorBucketPolicyContent: React.FC<VectorBucketPolicyContentProps> = ({
         editTooltip={t(
           'Edit or delete the current vector bucket policy to customize access permissions or remove the existing configuration.'
         )}
-        editButtonLabel={t('Edit vector bucket policy')}
-        emptyStateTitle={t('You do not have an active vector bucket policy.')}
         schemaUri={VECTOR_BUCKET_POLICY_SCHEMA_URI}
       />
       {edit && (
