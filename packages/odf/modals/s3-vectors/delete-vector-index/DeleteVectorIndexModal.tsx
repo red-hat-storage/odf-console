@@ -46,7 +46,7 @@ const DeleteVectorIndexModal: React.FC<
 
   const [inputValue, setInputValue] = React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
-  const [deleteError, setDeleteError] = React.useState<Error>(null);
+  const [deleteError, setDeleteError] = React.useState<Error>();
 
   const onDelete = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -79,7 +79,7 @@ const DeleteVectorIndexModal: React.FC<
         <ButtonBar
           key="delete-vector-index-button-bar"
           inProgress={inProgress}
-          errorMessage={deleteError?.message}
+          errorMessage={deleteError?.message || JSON.stringify(deleteError)}
         >
           <span>
             <Button

@@ -60,7 +60,7 @@ const VectorBucketPolicyContent: React.FC<VectorBucketPolicyContentProps> = ({
         title: t('Confirm delete vector bucket policy?'),
         deletePolicy: async () => {
           await s3VectorsClient.deleteVectorBucketPolicy({
-            vectorBucketName: vectorBucketName,
+            vectorBucketName,
           });
         },
       } as DeleteBucketPolicyModalProps,
@@ -74,7 +74,7 @@ const VectorBucketPolicyContent: React.FC<VectorBucketPolicyContentProps> = ({
         setSuccess,
         savePolicy: async () => {
           await s3VectorsClient.setVectorBucketPolicy({
-            vectorBucketName: vectorBucketName,
+            vectorBucketName,
             policy: code,
           });
         },
@@ -91,12 +91,12 @@ const VectorBucketPolicyContent: React.FC<VectorBucketPolicyContentProps> = ({
     `${providerType}-${vectorBucketName}-${BUCKET_POLICY_CACHE_KEY_SUFFIX}`,
     () =>
       s3VectorsClient.getVectorBucketPolicy({
-        vectorBucketName: vectorBucketName,
+        vectorBucketName,
       })
   );
 
   const noPolicyExists =
-    error?.name === 'NoSuchBucketPolicy' && !policyData?.policy;
+    error?.name === 'NoSuchVectorBucketPolicy' && !policyData?.policy;
 
   React.useEffect(() => {
     trigger().catch((err) => {
