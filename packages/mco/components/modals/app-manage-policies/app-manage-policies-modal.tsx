@@ -25,7 +25,10 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
   // This causes performance issues and unnecessary recalculations.
   // Fix: useMemo ensures parsing only happens when 'resource' changes.
   const application = React.useMemo(
-    () => ('apigroup' in resource ? convertSearchResult(resource) : resource),
+    () =>
+      resource && 'apigroup' in resource
+        ? convertSearchResult(resource)
+        : resource,
     [resource]
   );
 
