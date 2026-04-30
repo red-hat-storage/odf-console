@@ -21,14 +21,8 @@ import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Button,
   ButtonVariant,
-  Card,
-  CardHeader,
-  CardTitle,
-  Content,
-  ContentVariants,
   Flex,
   FlexItem,
-  FormGroup,
   Tab,
   Tabs,
   TabTitleText,
@@ -180,8 +174,11 @@ const StorageEndpoint: React.FC<StorageEndpointProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const onChange = (event: React.FormEvent<HTMLInputElement>) => {
-    setS3Provider(event.currentTarget.id as S3ProviderType);
+  const handleStorageEndpointSelect = (
+    _event: React.MouseEvent,
+    tabIndex: string
+  ) => {
+    setS3Provider(tabIndex as S3ProviderType);
   };
 
   // Only support secure (https) RGW endpoint (no http support)
@@ -193,58 +190,27 @@ const StorageEndpoint: React.FC<StorageEndpointProps> = ({
   );
 
   return (
-    <FormGroup
-      label={
-        <Content className="pf-v6-u-mt-md">
-          <Content component={ContentVariants.h1}>
-            {t('Storage endpoint')}
-          </Content>
-        </Content>
-      }
-      className="pf-v6-u-mx-lg"
+    <Tabs
+      activeKey={s3Provider}
+      onSelect={handleStorageEndpointSelect}
+      aria-label={t('Storage endpoint selection')}
+      id="odf-storage-endpoint-tabs"
+      unmountOnExit
     >
-      <Flex direction={{ default: 'row' }}>
-        <FlexItem>
-          <Card
-            id="mcg-s3"
-            isSelectable
-            isSelected={s3Provider === S3ProviderType.Noobaa}
-          >
-            <CardHeader
-              selectableActions={{
-                selectableActionId: S3ProviderType.Noobaa,
-                selectableActionAriaLabelledby: 'mcg-s3-endpoint-selection',
-                name: 'mcg-s3-endpoint-selection',
-                variant: 'single',
-                onChange,
-              }}
-            >
-              <CardTitle>{t('MultiCloud Object Gateway (MCG)')}</CardTitle>
-            </CardHeader>
-          </Card>
-        </FlexItem>
-        <FlexItem>
-          <Card
-            id="rgw-s3"
-            isSelectable
-            isSelected={s3Provider === S3ProviderType.RgwInt}
-            isDisabled={!isInternalRgw}
-          >
-            <CardHeader
-              selectableActions={{
-                selectableActionId: S3ProviderType.RgwInt,
-                selectableActionAriaLabelledby: 'rgw-s3-endpoint-selection',
-                name: 'rgw-s3-endpoint-selection',
-                variant: 'single',
-                onChange,
-              }}
-            >
-              <CardTitle>{t('RADOS Object Gateway (RGW)')}</CardTitle>
-            </CardHeader>
-          </Card>
-        </FlexItem>
-      </Flex>
-    </FormGroup>
+      <Tab
+        eventKey={S3ProviderType.Noobaa}
+        title={
+          <TabTitleText>{t('MultiCloud Object Gateway (MCG)')}</TabTitleText>
+        }
+        aria-label={t('MCG endpoint')}
+      />
+      <Tab
+        eventKey={S3ProviderType.RgwInt}
+        title={<TabTitleText>{t('RADOS Object Gateway (RGW)')}</TabTitleText>}
+        isDisabled={!isInternalRgw}
+        aria-label={t('RGW endpoint')}
+      />
+    </Tabs>
   );
 };
 
@@ -283,6 +249,7 @@ const BucketsListPage: React.FC = () => {
           onSelect={handleTabSelect}
           unmountOnExit
           aria-label={t('Bucket types')}
+          variant="secondary"
         >
           <Tab
             eventKey={BucketType.General}
