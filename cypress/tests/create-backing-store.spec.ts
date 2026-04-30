@@ -10,7 +10,9 @@ import {
 
 describe('Tests creation of Backing Stores', () => {
   afterEach(() => {
-    cy.exec(`oc delete backingstore test-bucket -n openshift-storage`);
+    cy.exec(`oc delete backingstore test-bucket -n openshift-storage`, {
+      failOnNonZeroExit: false,
+    });
   });
 
   beforeEach(() => {

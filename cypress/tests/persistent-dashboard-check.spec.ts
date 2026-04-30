@@ -3,9 +3,9 @@ import { getPVCJSON } from '../helpers/pvc';
 import { ODFCommon } from '../views/odf-common';
 import { deletePVCFromCLI } from '../views/pvc';
 
-const extractNumbersFromText = (text: string): string => {
+const extractNumbersFromText = (text: string): number => {
   const matches = text.match(/\d+/g);
-  return matches ? matches.join('') : '';
+  return matches ? Number(matches[0]) : 0;
 };
 
 describe('Check Persistent Dashboard', () => {
@@ -55,44 +55,51 @@ describe('Check Persistent Dashboard', () => {
     cy.log(
       'Check that number of PVCs and PVs is updated after successful PVC creation'
     );
+
     let initialPVC: number;
     let initialPV: number;
+
     cy.byTestID('inventory-pvc')
       .find('.skeleton-inventory')
       .should('not.exist');
+    cy.byTestID('inventory-pv').find('.skeleton-inventory').should('not.exist');
+
     cy.byTestID('inventory-pvc')
       .invoke('text')
+      .should('match', /[1-9]\d* PersistentVolumeClaims/)
       .then((pvcText) => {
-        initialPVC = Number(extractNumbersFromText(pvcText));
+        initialPVC = extractNumbersFromText(pvcText);
         cy.log(`Initial number of PVCs: ${initialPVC}`);
+
+        cy.byTestID('inventory-pv')
+          .invoke('text')
+          .should('match', /[1-9]\d* PersistentVolumes/)
+          .then((pvText) => {
+            initialPV = extractNumbersFromText(pvText);
+            cy.log(`Initial number of PVs: ${initialPV}`);
+
+            cy.exec(
+              `echo '${JSON.stringify(
+                getPVCJSON(
+                  'dummy-pvc',
+                  'openshift-storage',
+                  'ocs-storagecluster-ceph-rbd',
+                  '5Gi'
+                )
+              )}' | oc create -f -`
+            ).then(() => {
+              cy.byTestID('inventory-pvc').should(
+                'have.text',
+                `${initialPVC + 1} PersistentVolumeClaims`,
+                { timeout: 30 * SECOND }
+              );
+              cy.byTestID('inventory-pv').should(
+                'have.text',
+                `${initialPV + 1} PersistentVolumes`,
+                { timeout: 30 * SECOND }
+              );
+            });
+          });
       });
-    cy.byTestID('inventory-pv').find('.skeleton-inventory').should('not.exist');
-    cy.byTestID('inventory-pv')
-      .invoke('text')
-      .then((pvText) => {
-        initialPV = Number(extractNumbersFromText(pvText));
-        cy.log(`Initial number of PVs: ${initialPV}`);
-      });
-    cy.exec(
-      ` echo '${JSON.stringify(
-        getPVCJSON(
-          'dummy-pvc',
-          'openshift-storage',
-          'ocs-storagecluster-ceph-rbd',
-          '5Gi'
-        )
-      )}' | oc create -f -`
-    ).then(() => {
-      cy.byTestID('inventory-pvc').should(
-        'have.text',
-        `${initialPVC + 1} PersistentVolumeClaims`,
-        { timeout: 3 * SECOND }
-      );
-      cy.byTestID('inventory-pv').should(
-        'have.text',
-        `${initialPV + 1} PersistentVolumes`,
-        { timeout: 3 * SECOND }
-      );
-    });
   });
 });

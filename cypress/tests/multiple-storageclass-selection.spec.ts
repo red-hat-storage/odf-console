@@ -43,7 +43,19 @@ describe('Add capacity using multiple storage classes', () => {
   });
 
   beforeEach(() => {
+    // Visit the app base URL before each test
+    cy.visit('/');
+
+    // Wait for the app shell to be present before navigating
+    cy.byTestID('nav', { timeout: 30000 }).should('be.visible');
+
     cy.clickNavLink(['Storage', 'Storage cluster']);
+
+    // Wait for the Storage cluster page to load
+    cy.byTestID('horizontal-link-Storage cluster', { timeout: 30000 }).should(
+      'exist'
+    );
+
     fetchStorageClusterJson().then((res) => {
       const json: K8sResourceKind = JSON.parse(res.stdout);
       beforeCapacityAddition.deviceSets = json.spec.storageDeviceSets;
@@ -95,7 +107,7 @@ describe('Add capacity using multiple storage classes', () => {
     });
   });
 
-  it(`Add capacity with a new storage class having NO-PROVISIONER as provisioner`, () => {
+  it('Add capacity with a new storage class having NO-PROVISIONER as provisioner', () => {
     const { name: scName } = testNoProvisionerSC.metadata;
     const iAndD: IndexAndDeviceSet = { index: 0, deviceSets: [] };
     addCapacity(scName);

@@ -16,15 +16,13 @@ describe('Tests creation of Namespace Stores', () => {
     cy.byTestActionID('Delete Namespace Store').click();
     cy.byTestID('delete-action').click();
 
+    // We are deleting above but this command will ensure the resource's complete termination
     cy.exec(
       `oc delete namespacestores ${testName} -n openshift-storage --wait`,
       { timeout: 5 * MIN, failOnNonZeroExit: false }
     );
     cy.log('Deleting secrets');
-    cy.exec(
-      `oc delete secrets ${testName}-secret -n openshift-storage --wait`,
-      { timeout: 2 * MIN, failOnNonZeroExit: false }
-    );
+    cy.exec(`oc delete secrets ${testName}-secret -n openshift-storage --wait`);
   });
 
   beforeEach(() => {
@@ -39,33 +37,24 @@ describe('Tests creation of Namespace Stores', () => {
       log: true,
       timeout: 2 * MIN,
     })
-      .its('exitCode')
+      .its('code')
       .should('eq', 0);
   };
-
-  const assertResourceCreated = () => {
-    cy.url().should('not.include', 'create');
-    cy.url().should('include', testName);
-    cy.reload();
-    // ✅ Use h1 directly — OKD console renders the resource name in h1, not data-test="resource-title"
-    cy.contains('h1', testName, { timeout: 5 * MIN }).should('be.visible');
-  };
-
   it('Test creation of AWS namespace store', () => {
     createStore(Providers.AWS, StoreType.NamespaceStore);
-    assertResourceCreated();
+    cy.byLegacyTestID('resource-title').contains(testName);
     checkSecret(testName);
   });
 
   it('Test creation of Azure namespace store', () => {
     createStore(Providers.AZURE, StoreType.NamespaceStore);
-    assertResourceCreated();
+    cy.byLegacyTestID('resource-title').contains(testName);
     checkSecret(testName);
   });
 
   it('Test creation of S3 Endpoint Type', () => {
     createStore(Providers.S3, StoreType.NamespaceStore);
-    assertResourceCreated();
+    cy.byLegacyTestID('resource-title').contains(testName);
     checkSecret(testName);
   });
 });

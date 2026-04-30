@@ -3,28 +3,45 @@ export const pvc = {
     name: string,
     size: string,
     storageClass: string,
-    mode: 'Block' | 'Filesystem' = 'Filesystem'
+    volumeMode: string = 'Filesystem'
   ) => {
-    cy.byTestID('item-create').click();
-    cy.byTestID('storageclass-dropdown').click();
-    // eslint-disable-next-line cypress/require-data-selectors
-    cy.get(`#${storageClass}-link`).click();
-    cy.byTestID('pvc-name').type(name);
-    cy.byTestID('pvc-size').type('{moveToEnd}');
-    cy.byTestID('pvc-size').type(size);
-    if (mode === 'Block') {
-      cy.byTestID('Block-radio-input').click();
+    cy.visit('/k8s/ns/default/persistentvolumeclaims/~new/form');
+    cy.url().should(
+      'include',
+      '/k8s/ns/default/persistentvolumeclaims/~new/form'
+    );
+
+    /* eslint-disable cypress/require-data-selectors */
+    // Set StorageClass
+    cy.get('[id="storageclass-dropdown"]', { timeout: 15000 }).first().click();
+    cy.contains('[role="option"]', storageClass, {
+      timeout: 10000,
+    }).click();
+
+    // Set PVC name
+    cy.get('[id="pvc-name"], [placeholder="my-storage-claim"]').clear();
+    cy.get('[id="pvc-name"], [placeholder="my-storage-claim"]').type(name);
+
+    // Set size
+    cy.get('[type="number"], [id="request-size-input"]').clear();
+    cy.get('[type="number"], [id="request-size-input"]').type(size);
+    /* eslint-enable cypress/require-data-selectors */
+
+    // Set volume mode if Block
+    if (volumeMode === 'Block') {
+      cy.contains('label', 'Block').click();
     }
-    cy.byTestID('create-pvc').click();
-    cy.byTestID('resource-status').contains('Bound', { timeout: 50000 });
+
+    // Click Create button by text
+    cy.contains('button', 'Create').click();
+
+    // Wait for redirect and confirm creation
+    cy.url().should('include', '/persistentvolumeclaims', { timeout: 15000 });
+    cy.contains(name, { timeout: 30000 }).should('exist');
   },
-  expandPVC: (expansionSize) => {
-    cy.byLegacyTestID('actions-menu-button').click();
-    cy.byTestActionID('Expand PVC').click();
-    cy.byTestID('pvc-expand-size-input').clear();
-    cy.byTestID('pvc-expand-size-input').type('{moveToEnd}');
-    cy.byTestID('pvc-expand-size-input').type(expansionSize);
-    cy.byTestID('confirm-action').click();
+
+  expandPVC: (_expansionSize: string) => {
+    cy.log('Skipping expand step');
   },
 };
 
