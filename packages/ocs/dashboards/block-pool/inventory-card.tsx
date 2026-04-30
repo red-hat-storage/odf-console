@@ -47,7 +47,11 @@ export const InventoryCard: React.FC = () => {
 
   const poolSc: StorageClassResourceKind[] = React.useMemo(
     () =>
-      scMemoized ? scMemoized.filter((sc) => sc.parameters?.pool === name) : [],
+      scMemoized
+        ? scMemoized.filter((sc) =>
+            [sc.parameters?.pool, sc.parameters?.dataPool].includes(name)
+          )
+        : [],
     [scMemoized, name]
   );
   const pvcs: PersistentVolumeClaimKind[] = React.useMemo(() => {

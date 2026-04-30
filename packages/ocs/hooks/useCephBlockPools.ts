@@ -22,7 +22,7 @@ export const useCephBlockPools = (
     if (blockPoolsLoaded && !blockPoolsLoadError && defaultBlockPoolName) {
       blockPoolNames = getExistingBlockPoolNames(blockPools);
       deviceClass =
-        blockPools.find(
+        (blockPools ?? []).find(
           (blockPool) => getName(blockPool) === defaultBlockPoolName
         )?.spec?.deviceClass || '';
     }
