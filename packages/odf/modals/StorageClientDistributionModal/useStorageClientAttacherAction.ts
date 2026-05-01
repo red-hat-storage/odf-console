@@ -4,15 +4,12 @@ import {
   getProvisioner,
   StorageClassModel,
   StorageClassResourceKind,
+  useModalWrapper,
   VolumeSnapshotClassKind,
   VolumeSnapshotClassModel,
 } from '@odf/shared';
 import { isCephDriver, isCephOrNooBaaProvisioner } from '@odf/shared/utils';
-import {
-  Action,
-  K8sModel,
-  useModal,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { Action, K8sModel } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { StorageClientAttacherModal } from './StorageClientAttacherModal';
 
@@ -29,7 +26,7 @@ const isVolumeSnapshotClass = (
 export const useStorageClientAttacherAction = (
   resource: StorageClassResourceKind | VolumeSnapshotClassKind
 ) => {
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   const actions = useMemo(() => {
     const items = [];
     if (

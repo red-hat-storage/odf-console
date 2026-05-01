@@ -2,16 +2,15 @@ import * as React from 'react';
 import { USERS_CREATE_PAGE_PATH } from '@odf/core/constants/s3-iam';
 import { ODF_ADMIN } from '@odf/core/features';
 import { IamUserCrFormat, S3ProviderType } from '@odf/core/types';
+import { ListPageFilterWrapper, useModalWrapper } from '@odf/shared';
 import { useRefresh } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidFilteredData } from '@odf/shared/utils';
 import {
   ListPageBody,
   ListPageCreateLink,
-  ListPageFilter,
   ListPageHeader,
   useFlag,
-  useModal,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
@@ -43,7 +42,7 @@ const UsersListPageBody: React.FC<UsersListPageBodyProps> = ({
       <Flex className="pf-v6-u-mt-md">
         <Flex flex={{ default: 'flex_1' }}>
           <FlexItem className="pf-v6-u-mr-md">
-            <ListPageFilter
+            <ListPageFilterWrapper
               loaded={true}
               hideLabelFilter={true}
               nameFilterPlaceholder={t('Find by accountname')}
@@ -91,7 +90,7 @@ const UsersListPageContent: React.FC = () => {
 
   const isAdmin = useFlag(ODF_ADMIN);
   const { logout, setSecretRef } = React.useContext(IamContext);
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   return (
     <>

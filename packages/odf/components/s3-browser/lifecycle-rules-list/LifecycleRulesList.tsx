@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import { S3ProviderType } from '@odf/core/types';
-import { DASH } from '@odf/shared';
+import { DASH, ListPageFilterWrapper, useModalWrapper } from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { LoadingBox, StatusBox } from '@odf/shared/generic/status-box';
 import { S3Commands } from '@odf/shared/s3';
@@ -16,7 +16,6 @@ import { fuzzyCaseInsensitive } from '@odf/shared/utils';
 import {
   ListPageBody,
   ListPageCreateLink,
-  ListPageFilter,
   ListPageHeader,
   RowProps,
   TableColumn,
@@ -25,7 +24,6 @@ import {
   useListPageFilter,
   VirtualizedTable,
   RowFilter,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { murmur3 } from 'murmurhash-js';
@@ -313,7 +311,7 @@ const LifecycleRulesListContent: React.FC = () => {
 
   const { bucketName } = useParams();
   const navigate = useNavigate();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
   const { s3Client } = React.useContext(S3Context);
 
   const { data, isLoading, error, mutate } = useSWR(
@@ -368,7 +366,7 @@ const LifecycleRulesListContent: React.FC = () => {
           />
         ) : (
           <>
-            <ListPageFilter
+            <ListPageFilterWrapper
               data={unfilteredRules}
               loaded
               hideLabelFilter={true}

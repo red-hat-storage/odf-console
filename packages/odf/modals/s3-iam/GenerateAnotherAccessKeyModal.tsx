@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { useModalWrapper } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { IamCommands } from '@odf/shared/iam';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import {
@@ -49,7 +49,7 @@ export const GenerateAnotherAccessKeyModal: GenerateAnotherAccessKeyModalProps =
       () => validateDescription(description),
       [description]
     );
-    const launchModal = useModal();
+    const launchModal = useModalWrapper();
 
     const onGenerate = React.useCallback(async () => {
       if (descriptionValidationState === ValidatedOptions.error) {

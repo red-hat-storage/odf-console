@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { NamespaceStoreKind } from '@odf/core/types';
+import { useModalWrapper } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Flex,
   FlexItem,
@@ -64,7 +64,7 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
 
   const { t } = useCustomTranslation();
 
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   const [eventLogsEnabled, toggleEventLogs] = React.useState(false);
 

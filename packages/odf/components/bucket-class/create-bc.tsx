@@ -1,14 +1,13 @@
 import * as React from 'react';
 import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { useODFNamespaceSelector } from '@odf/core/redux';
-import { NooBaaBucketClassModel } from '@odf/shared';
+import { NooBaaBucketClassModel, useModalWrapper } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
   k8sCreate,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams, useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -372,7 +371,7 @@ const CreateBucketClass: React.FC = () => {
   const { ns } = useParams();
   const namespace = ns || odfNamespace;
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const launchNamespaceStoreModal = React.useCallback(
     () =>

@@ -2,12 +2,11 @@ import * as React from 'react';
 import { getVectorBucketOverviewBaseRoute } from '@odf/core/constants/s3-vectors';
 import type { VectorIndexesDeleteResponse } from '@odf/core/modals/s3-vectors/delete-vector-index/DeleteVectorIndexModal';
 import { S3ProviderType } from '@odf/core/types';
-import { useCustomTranslation } from '@odf/shared';
+import { ListPageFilterWrapper, useCustomTranslation } from '@odf/shared';
 import { S3VectorsCommands } from '@odf/shared/s3-vectors';
 import { getValidFilteredData } from '@odf/shared/utils';
 import {
   useListPageFilter,
-  ListPageFilter,
   OnFilterChange,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -60,7 +59,7 @@ const TableActions: React.FC<TableActionsProps> = ({
   return (
     <Flex flex={{ default: 'flex_1' }}>
       <FlexItem className="pf-v6-u-mr-md pf-v6-u-display-flex pf-v6-u-align-items-center">
-        <ListPageFilter
+        <ListPageFilterWrapper
           loaded={true}
           hideLabelFilter={true}
           nameFilterPlaceholder={t('Find by name')}

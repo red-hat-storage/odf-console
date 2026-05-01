@@ -1,12 +1,9 @@
 import * as React from 'react';
 import { DiscoveredDevice } from '@odf/core/types/scale';
-import { DASH, useCustomTranslation } from '@odf/shared';
+import { DASH, ListPageFilterWrapper, useCustomTranslation } from '@odf/shared';
 import { TableSkeletonLoader } from '@odf/shared/skeletal-loader/TableSkeleton';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
-import {
-  ListPageFilter,
-  useListPageFilter,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useListPageFilter } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Table,
   Tbody,
@@ -143,7 +140,7 @@ export const LUNsTable: React.FC<LUNsTableProps> = ({
 
   return (
     <div className="odf-luns-table">
-      <ListPageFilter
+      <ListPageFilterWrapper
         data={lunsData}
         loaded={loaded}
         onFilterChange={onLunsFilterChange}

@@ -3,7 +3,6 @@ import {
   K8sResourceCommon,
   ListPageFilterProps,
   ListPageBody,
-  ListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Pagination,
@@ -12,6 +11,7 @@ import {
   Grid,
   GridItem,
 } from '@patternfly/react-core';
+import { ListPageFilterWrapper } from '../sdk-wrapper/ListPageFilterWrapper';
 import { TableProps, ComposableTable } from '../table';
 import { getPageRange, getValidFilteredData } from '../utils';
 
@@ -67,7 +67,7 @@ export const PaginatedListPage: React.FC<PaginatedListPageProps> = ({
             <GridItem md={8} sm={12} className="pf-v6-u-mt-md">
               <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-flex-direction-row-on-md">
                 {!hideFilter && (
-                  <ListPageFilter
+                  <ListPageFilterWrapper
                     {...listPageFilterProps}
                     data={getValidFilteredData(listPageFilterProps.data)}
                   />

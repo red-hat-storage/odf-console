@@ -2,17 +2,20 @@ import * as React from 'react';
 import { getVectorBucketCreatePageRoute } from '@odf/core/constants/s3-vectors';
 import { ODF_ADMIN } from '@odf/core/features';
 import { S3ProviderType } from '@odf/core/types';
-import { useCustomTranslation, useRefresh } from '@odf/shared';
+import {
+  ListPageFilterWrapper,
+  useCustomTranslation,
+  useModalWrapper,
+  useRefresh,
+} from '@odf/shared';
 import { getValidFilteredData } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   ListPageBody,
   ListPageCreateLink,
-  ListPageFilter,
   ListPageHeader,
   useFlag,
   useListPageFilter,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 import { SyncAltIcon } from '@patternfly/react-icons';
@@ -45,7 +48,7 @@ const VectorBucketsListPageBody: React.FC<VectorBucketsListPageBodyProps> = ({
       <Flex className="pf-v6-u-mt-md">
         <Flex flex={{ default: 'flex_1' }}>
           <FlexItem className="pf-v6-u-mr-md">
-            <ListPageFilter
+            <ListPageFilterWrapper
               loaded={true}
               hideLabelFilter={true}
               nameFilterPlaceholder={t('Search a bucket by name')}
@@ -92,7 +95,7 @@ const VectorBucketsListPageContent: React.FC = () => {
   const isAdmin = useFlag(ODF_ADMIN);
   const { s3VectorsClient, logout, setSecretRef } =
     React.useContext(S3VectorsContext);
-  const launcher = useModal();
+  const launcher = useModalWrapper();
   const providerType = s3VectorsClient.providerType as S3ProviderType;
   return (
     <>

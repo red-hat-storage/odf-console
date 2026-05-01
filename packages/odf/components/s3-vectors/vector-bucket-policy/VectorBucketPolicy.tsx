@@ -8,9 +8,9 @@ import { BUCKET_POLICY_CACHE_KEY_SUFFIX } from '@odf/core/constants';
 import DeleteBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/DeleteBucketPolicy';
 import SaveBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/SaveBucketPolicy';
 import { S3ProviderType } from '@odf/core/types';
+import { useModalWrapper } from '@odf/shared';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWRMutation from 'swr/mutation';
 import { S3VectorsContext } from '../s3-vectors-context';
@@ -51,7 +51,7 @@ const VectorBucketPolicyContent: React.FC<VectorBucketPolicyContentProps> = ({
   const { s3VectorsClient } = React.useContext(S3VectorsContext);
   const { vectorBucketName } = useParams();
   const providerType = s3VectorsClient.providerType as S3ProviderType;
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const launchDeleteModal = () =>
     launcher(DeleteBucketPolicyModal, {

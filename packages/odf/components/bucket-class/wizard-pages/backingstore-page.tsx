@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { useModalWrapper } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert, AlertActionCloseButton } from '@patternfly/react-core';
 import { ExternalLink } from '../../mcg-endpoints/gcp-endpoint-type';
 import BackingStoreSelection from '../backingstore-table';
@@ -18,7 +18,7 @@ const BackingStorePage: React.FC<BackingStorePageProps> = React.memo(
       state;
     const [showHelp, setShowHelp] = React.useState(true);
     const { t } = useCustomTranslation();
-    const launcher = useModal();
+    const launcher = useModalWrapper();
 
     const launchModal = () =>
       launcher(CreateBackingStoreModal, { isOpen: true });
