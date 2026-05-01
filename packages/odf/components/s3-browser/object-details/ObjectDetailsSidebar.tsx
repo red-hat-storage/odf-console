@@ -20,10 +20,10 @@ import {
   LoadingBox,
   useCustomTranslation,
 } from '@odf/shared';
+import { useModalWrapper } from '@odf/shared';
 import { PaginatedListPage } from '@odf/shared/list-page';
 import { S3Commands } from '@odf/shared/s3';
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
@@ -177,7 +177,7 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
     closeObjectSidebar,
   } = extraProps;
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const [objectVersions, setObjectVersions] = React.useState<ObjectCrFormat[]>(
     []

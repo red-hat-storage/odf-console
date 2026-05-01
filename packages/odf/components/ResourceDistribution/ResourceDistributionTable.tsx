@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { getName } from '@odf/shared';
+import { getName, ListPageFilterWrapper } from '@odf/shared';
 import { TableSkeletonLoader } from '@odf/shared/skeletal-loader/TableSkeleton';
 import {
   K8sResourceCommon,
-  ListPageFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -102,7 +101,7 @@ export const ResourceDistributionTable: React.FC<
     <TableSkeletonLoader columns={4} rows={8} />
   ) : (
     <>
-      <ListPageFilter
+      <ListPageFilterWrapper
         data={unfilteredData}
         loaded={loaded}
         onFilterChange={onFilterChange}

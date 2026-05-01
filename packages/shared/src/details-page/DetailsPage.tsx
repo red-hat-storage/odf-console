@@ -7,7 +7,6 @@ import {
   NavPage,
   ResourceLink,
   useAccessReview,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classnames from 'classnames';
 import * as _ from 'lodash-es';
@@ -29,6 +28,7 @@ import PageHeading from '../heading/page-heading';
 import { EditLabelModal } from '../modals';
 import AnnotationsModal from '../modals/EditAnnotations';
 import { ResourceIcon } from '../resource-link/resource-link';
+import { useModalWrapper } from '../sdk-wrapper/useModalWrapper';
 import { getName } from '../selectors';
 import { K8sResourceKind } from '../types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
@@ -309,7 +309,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   });
   const canUpdate = canUpdateAccess && canUpdateResource;
 
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   return (
     <DescriptionList data-test-id="resource-summary">

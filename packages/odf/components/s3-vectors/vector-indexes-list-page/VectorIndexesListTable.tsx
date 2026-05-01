@@ -12,14 +12,12 @@ import {
   ComposableTable,
   getName,
   getCreationTimestamp,
+  useModalWrapper,
 } from '@odf/shared';
 import { Timestamp } from '@odf/shared/details-page/timestamp';
 import { S3VectorsCommands } from '@odf/shared/s3-vectors';
 import { sortRows } from '@odf/shared/utils';
-import {
-  K8sResourceCommon,
-  useModal,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
@@ -164,7 +162,7 @@ export const VectorIndexesListTable: React.FC<VectorIndexesListTableProps> = ({
   setDeleteResponse,
 }) => {
   const { t } = useCustomTranslation();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
   const providerType = s3VectorsClient.providerType as S3ProviderType;
 
   return (

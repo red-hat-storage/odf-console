@@ -10,7 +10,7 @@ import {
 import DeleteCorsRuleModal from '@odf/core/modals/s3-browser/delete-corsrules/DeleteCorsRuleModal';
 import { S3ProviderType } from '@odf/core/types';
 import { isAllowAllConfig } from '@odf/core/utils';
-import { DASH } from '@odf/shared';
+import { DASH, ListPageFilterWrapper, useModalWrapper } from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { LoadingBox, StatusBox } from '@odf/shared/generic/status-box';
 import { S3Commands } from '@odf/shared/s3';
@@ -20,7 +20,6 @@ import { fuzzyCaseInsensitive, deepSortObject } from '@odf/shared/utils';
 import {
   ListPageBody,
   ListPageCreateLink,
-  ListPageFilter,
   ListPageHeader,
   RowFilter,
   RowProps,
@@ -28,7 +27,6 @@ import {
   TableData,
   useActiveColumns,
   useListPageFilter,
-  useModal,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
@@ -279,7 +277,7 @@ const CORSRulesListContent: React.FC = () => {
   const { t } = useCustomTranslation();
   const { bucketName } = useParams();
   const navigate = useNavigate();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
   const { s3Client } = React.useContext(S3Context);
 
   const { data, isLoading, error, mutate } = useSWR(
@@ -330,7 +328,7 @@ const CORSRulesListContent: React.FC = () => {
           />
         ) : (
           <>
-            <ListPageFilter
+            <ListPageFilterWrapper
               data={unfilteredCorsRules}
               loaded
               hideLabelFilter={true}
