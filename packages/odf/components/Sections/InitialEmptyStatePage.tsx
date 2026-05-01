@@ -8,9 +8,9 @@ import {
   PageHeading,
   useCustomTranslation,
 } from '@odf/shared';
+import { useModalWrapper } from '@odf/shared';
 import { DOC_VERSION } from '@odf/shared/hooks/use-doc-version';
 import { ViewDocumentation } from '@odf/shared/utils';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { TFunction, Trans } from 'react-i18next';
 import { useLocation } from 'react-router-dom-v5-compat';
@@ -103,7 +103,7 @@ const EmptyStatePageBody: React.FC = () => {
 
 const ExternalSystemsEmptyState: React.FC = () => {
   const { t } = useCustomTranslation();
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   return (
     <EmptyState
       headingLevel="h4"
@@ -140,7 +140,7 @@ const InitialEmptyStatePage: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
   const title = getPageTitle(path, t);
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   const isExternalSystems = path.includes(StartingPoint.EXTERNAL_SYSTEMS);
 
   return (

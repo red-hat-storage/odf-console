@@ -4,9 +4,9 @@ import { MAX_ACCESS_KEYS } from '@odf/core/constants/s3-iam';
 import { GenerateAnotherAccessKeyModal } from '@odf/core/modals/s3-iam/GenerateAnotherAccessKeyModal';
 import { IamUserDetails } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared';
+import { useModalWrapper } from '@odf/shared';
 import { LoadingBox, StatusBox } from '@odf/shared/generic/status-box';
 import { IamCommands } from '@odf/shared/iam';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert,
   AlertVariant,
@@ -38,7 +38,7 @@ const AccessKeysDetailsContent: React.FC<AccessKeysDetailsContentProps> = ({
   triggerRefresh,
 }) => {
   const { t } = useCustomTranslation();
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   // Fetch user details (for tags)
   const {

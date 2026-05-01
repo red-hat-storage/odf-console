@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ObjectDetailsSidebar } from '@odf/core/components/s3-browser/object-details/ObjectDetailsSidebar';
 import { BUCKET_VERSIONING_CACHE_KEY_SUFFIX } from '@odf/core/constants';
 import { ObjectCrFormat } from '@odf/core/types';
+import { useModalWrapper } from '@odf/shared';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { S3Commands } from '@odf/shared/s3';
 import {
@@ -10,7 +11,6 @@ import {
 } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isClientPlugin } from '@odf/shared/utils';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import { Alert, AlertActionLink } from '@patternfly/react-core';
@@ -42,7 +42,7 @@ const ClientCorsAlert: React.FC<ClientCorsAlertProps> = ({
   triggerRefresh,
 }) => {
   const { t } = useCustomTranslation();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   return (
     <Alert

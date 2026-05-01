@@ -8,6 +8,7 @@ import {
 import {
   DRClusterModel,
   DRPolicyModel,
+  ListPageFilterWrapper,
   MirrorPeerModel,
   SecretModel,
 } from '@odf/shared';
@@ -22,7 +23,6 @@ import {
   ListPageCreateLink,
   VirtualizedTable,
   useListPageFilter,
-  ListPageFilter,
   TableData,
   RowProps,
   useActiveColumns,
@@ -317,7 +317,7 @@ export const DRPolicyListPage: React.FC = () => {
       ) : (
         <>
           <div className="mco-drpolicy-list__header">
-            <ListPageFilter
+            <ListPageFilterWrapper
               data={data}
               loaded={!!drPolicies?.length}
               onFilterChange={onFilterChange}

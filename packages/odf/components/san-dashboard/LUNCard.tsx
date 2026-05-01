@@ -5,6 +5,7 @@ import {
   DASH,
   getName,
   getNamespace,
+  ListPageFilterWrapper,
   StorageClassModel,
   StorageClassResourceKind,
 } from '@odf/shared';
@@ -20,7 +21,6 @@ import {
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
   RowFilter,
-  ListPageFilter,
   TableColumn,
   TableData,
   RowProps,
@@ -343,7 +343,7 @@ const LUNGroupsTable: React.FC = () => {
           })}
         </Content>
       </Content>
-      <ListPageFilter
+      <ListPageFilterWrapper
         data={data}
         loaded={fileSystemsLoaded && storageClassesLoaded}
         onFilterChange={onFilterChange}

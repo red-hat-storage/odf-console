@@ -5,7 +5,7 @@ import { ObjectStorageCard } from '@odf/core/components/overview/object-storage-
 import { StorageClusterCard } from '@odf/core/components/overview/storage-cluster-card/StorageClusterCard';
 import { StorageClusterCreateModal } from '@odf/core/modals/ConfigureDF/StorageClusterCreateModal';
 import { PageHeading, useCustomTranslation } from '@odf/shared';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import { useModalWrapper } from '@odf/shared';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router-dom-v5-compat';
 import { Grid, GridItem } from '@patternfly/react-core';
@@ -19,7 +19,7 @@ const Overview: React.FC = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const showWelcomeModal = searchParams.get('show-welcome-modal');
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   React.useEffect(() => {
     if (showWelcomeModal === 'true') {

@@ -4,7 +4,11 @@ import {
   useODFSystemFlagsSelector,
 } from '@odf/core/redux';
 import { getCephBlockPoolResource } from '@odf/core/resources';
-import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
+import {
+  CephBlockPoolModel,
+  CephFileSystemModel,
+  ListPageFilterWrapper,
+} from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -25,7 +29,6 @@ import {
 import {
   ListPageBody,
   ListPageCreateLink,
-  ListPageFilter,
   ListPageHeader,
   RowProps,
   TableColumn,
@@ -695,7 +698,7 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
         )}
       </ListPageHeader>
       <ListPageBody>
-        <ListPageFilter
+        <ListPageFilterWrapper
           data={data}
           loaded={loaded}
           onFilterChange={onFilterChange}

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { getManagedClusterResourceObj } from '@odf/mco/hooks';
 import { useStorageProvisioners } from '@odf/mco/hooks/use-storage-provisioner';
-import { ACMManagedClusterViewModel } from '@odf/shared';
+import { ACMManagedClusterViewModel, ListPageFilterWrapper } from '@odf/shared';
 import { DASH } from '@odf/shared/constants';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName } from '@odf/shared/selectors';
@@ -18,7 +18,6 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange, referenceForModel } from '@odf/shared/utils';
 import {
-  ListPageFilter,
   useK8sWatchResource,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -184,7 +183,7 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
     <>
       <Grid>
         <GridItem md={8} sm={12} className="pf-v6-u-mt-md">
-          <ListPageFilter
+          <ListPageFilterWrapper
             data={data}
             loaded={isLoaded}
             onFilterChange={onFilterChange}

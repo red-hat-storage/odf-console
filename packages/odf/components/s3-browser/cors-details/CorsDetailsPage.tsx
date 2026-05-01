@@ -7,12 +7,12 @@ import {
 } from '@odf/core/components/s3-browser/s3-context';
 import { S3ProviderType } from '@odf/core/types';
 import { DASH } from '@odf/shared';
+import { useModalWrapper } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
@@ -146,7 +146,7 @@ export const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
 const CorsDetails: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
   const navigate = useNavigate();
 
   const { bucketName } = useParams();

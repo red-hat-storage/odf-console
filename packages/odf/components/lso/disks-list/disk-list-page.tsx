@@ -12,6 +12,7 @@ import {
   getLabel,
   getName,
   getNamespace,
+  ListPageFilterWrapper,
   LocalVolumeDiscoveryResult,
   SubscriptionKind,
   SubscriptionModel,
@@ -25,7 +26,6 @@ import {
 } from '@odf/shared/utils';
 import {
   ListPageBody,
-  ListPageFilter,
   ListPageHeader,
   NodeKind,
   RowFilter,
@@ -284,7 +284,7 @@ export const NodesDisksListPage: React.FC<{ obj: NodeKind }> = ({ obj }) => {
     <>
       <ListPageHeader title={t('Disks')} />
       <ListPageBody>
-        <ListPageFilter
+        <ListPageFilterWrapper
           data={data}
           loaded={loaded}
           onFilterChange={onFilterChange}

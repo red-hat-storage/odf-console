@@ -4,6 +4,7 @@ import {
   GetBucketPolicyStatusCommandOutput,
 } from '@aws-sdk/client-s3';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
+import { useModalWrapper } from '@odf/shared';
 import { CheckboxTree } from '@odf/shared/checkbox-tree';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
@@ -13,7 +14,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   ListPageBody,
   ListPageHeader,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
@@ -130,7 +130,7 @@ const PabFooter: React.FC<PabFooterProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const [inProgress, setInProgress] = React.useState<boolean>(false);
   const [error, setError] = React.useState<Error>();

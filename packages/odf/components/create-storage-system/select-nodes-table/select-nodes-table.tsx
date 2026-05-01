@@ -8,6 +8,7 @@ import {
   getNodeCPUCapacity,
   getNodeTotalMemory,
 } from '@odf/core/utils';
+import { ListPageFilterWrapper } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
@@ -28,7 +29,6 @@ import {
 } from '@odf/shared/utils';
 import {
   ListPageBody,
-  ListPageFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
@@ -202,7 +202,7 @@ export const SelectNodesTable: React.FC<SelectNodesTableProps> = ({
   return (
     <div className="odf-capacity-and-nodes__select-nodes">
       <ListPageBody>
-        <ListPageFilter
+        <ListPageFilterWrapper
           data={data}
           loaded={nodesLoaded}
           onFilterChange={onFilterChange}

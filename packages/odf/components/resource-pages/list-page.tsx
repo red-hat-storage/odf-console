@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
+  ListPageFilterWrapper,
   NooBaaBackingStoreModel,
   NooBaaBucketClassModel,
   NooBaaNamespaceStoreModel,
@@ -18,7 +19,6 @@ import {
   K8sResourceCommon,
   ListPageBody,
   ListPageCreateLink,
-  ListPageFilter,
   ListPageHeader,
   RowProps,
   TableColumn,
@@ -204,7 +204,7 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
         </ListPageCreateLink>
       </ListPageHeader>
       <ListPageBody>
-        <ListPageFilter
+        <ListPageFilterWrapper
           data={data}
           loaded={loaded && isODFNsLoaded}
           onFilterChange={onFilterChange}

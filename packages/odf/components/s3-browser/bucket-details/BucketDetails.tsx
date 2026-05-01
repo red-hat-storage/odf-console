@@ -10,7 +10,7 @@ import {
 import SetVersioningModal, {
   SetVersioningModalModalProps,
 } from '@odf/core/modals/s3-browser/set-versioning/SetVersioningModal';
-import { DASH } from '@odf/shared';
+import { DASH, useModalWrapper } from '@odf/shared';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import {
@@ -18,10 +18,7 @@ import {
   getIsVersioningEnabled,
 } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  K8sResourceCommon,
-  useModal,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {
@@ -109,7 +106,7 @@ const S3BucketProperties: React.FC<{}> = ({}) => {
   const versioningStatus = getVersioningStatus(versioningData, t);
   const isVersioningEnabled = getIsVersioningEnabled(versioningData);
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   React.useEffect(
     () => setIsVersioningChecked(isVersioningEnabled),

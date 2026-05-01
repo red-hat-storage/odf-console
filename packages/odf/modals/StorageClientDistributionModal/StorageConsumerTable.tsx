@@ -6,6 +6,7 @@ import {
 import {
   getName,
   getUID,
+  ListPageFilterWrapper,
   StorageConsumerKind,
   ClusterVersionModel,
   ClusterVersionKind,
@@ -14,7 +15,6 @@ import { useK8sGet } from '@odf/shared/hooks';
 import { TableSkeletonLoader } from '@odf/shared/skeletal-loader/TableSkeleton';
 import {
   K8sResourceCommon,
-  ListPageFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -141,7 +141,7 @@ export const StorageConsumerTable: React.FC<ResourceDistributionTableProps> = ({
     <TableSkeletonLoader columns={4} rows={8} />
   ) : (
     <>
-      <ListPageFilter
+      <ListPageFilterWrapper
         data={unfilteredData}
         loaded={loaded && cvLoaded}
         onFilterChange={onFilterChange}
