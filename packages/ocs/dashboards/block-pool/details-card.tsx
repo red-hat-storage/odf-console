@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { PoolType } from '@odf/ocs/constants';
+import { getPoolDataProtectionPolicyLabel } from '@odf/ocs/utils';
 import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -33,8 +34,8 @@ export const DetailsCard: React.FC = () => {
           <DetailItem isLoading={!obj} title={t('Device type')}>
             {deviceType}
           </DetailItem>
-          <DetailItem isLoading={!obj} title={t('Replicas')}>
-            {obj.spec?.replicated?.size}
+          <DetailItem isLoading={!obj} title={t('Data protection policy')}>
+            {getPoolDataProtectionPolicyLabel(t, obj)}
           </DetailItem>
         </DescriptionList>
       </CardBody>
