@@ -434,6 +434,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
                     payload: DataProtectionPolicy.Replication,
                   })
                 }
+                className="pf-v6-u-mb-sm"
               />
               {state.dataProtectionPolicy ===
                 DataProtectionPolicy.Replication && (
