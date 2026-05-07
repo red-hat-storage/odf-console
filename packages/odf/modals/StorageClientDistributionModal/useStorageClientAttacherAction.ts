@@ -7,7 +7,7 @@ import {
   VolumeSnapshotClassKind,
   VolumeSnapshotClassModel,
 } from '@odf/shared';
-import { isCephDriver, isCephProvisioner } from '@odf/shared/utils';
+import { isCephDriver, isCephWithNFSProvisioner } from '@odf/shared/utils';
 import {
   Action,
   K8sModel,
@@ -34,7 +34,7 @@ export const useStorageClientAttacherAction = (
     const items = [];
     if (
       isStorageClass(resource) &&
-      isCephProvisioner(getProvisioner(resource))
+      isCephWithNFSProvisioner(getProvisioner(resource))
     ) {
       items.push(
         AttachResourceToStorageClientModal(
