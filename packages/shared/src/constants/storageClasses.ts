@@ -19,3 +19,5 @@ export const CEPH_PROVISIONERS = [
   'cephfs.csi.ceph.com',
   'rbd.csi.ceph.com',
 ];
+
+export const CEPH_NFS_PROVISIONER = 'nfs.csi.ceph.com';
