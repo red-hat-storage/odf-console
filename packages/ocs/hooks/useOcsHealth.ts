@@ -13,6 +13,7 @@ import { getNamespace } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
+import { isClusterDeleting } from '@odf/shared/utils/storage';
 import {
   HealthState,
   useK8sWatchResource,
@@ -70,6 +71,13 @@ export const useGetOCSHealth: UseGetOCSHealth = (storageCluster) => {
   });
 
   return React.useMemo(() => {
+    if (isClusterDeleting(storageCluster)) {
+      return {
+        healthState: HealthState.PROGRESS,
+        message: t('Deleting'),
+      };
+    }
+
     // Check if any required resources are still loading (not loaded and no error)
     const isLoading =
       (!cephLoaded && !cephLoadError) ||
