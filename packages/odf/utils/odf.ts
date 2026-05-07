@@ -7,6 +7,7 @@ import { K8sResourceKind } from '@odf/shared/types';
 import {
   StorageClassResourceKind,
   StorageClusterKind,
+  StorageClusterPhase,
 } from '@odf/shared/types';
 import { isDefaultClass } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
@@ -52,6 +53,9 @@ export const isExternalCluster = (storageCluster: StorageClusterKind) =>
 
 export const isClusterIgnored = (storageCluster: StorageClusterKind) =>
   storageCluster?.status?.phase === 'Ignored';
+
+export const isClusterDeleting = (storageCluster?: K8sResourceKind) =>
+  storageCluster?.status?.phase === StorageClusterPhase.Deleting;
 
 export const isNFSEnabled = (storageCluster: StorageClusterKind) =>
   storageCluster?.spec?.nfs?.enable === true;
