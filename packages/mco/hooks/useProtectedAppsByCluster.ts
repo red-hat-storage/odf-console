@@ -10,6 +10,7 @@ import {
   getEffectiveDRStatus,
   shouldShowProtectionError,
 } from '../utils/dr-status';
+import { getApplicationName } from '../utils/pav';
 import {
   getDRPlacementControlResourceObj,
   getProtectedApplicationViewResourceObj,
@@ -64,7 +65,7 @@ export const useProtectedAppsByCluster = (): [
           return;
         }
 
-        const appName = pav.metadata?.name;
+        const appName = getApplicationName(pav);
         const appNamespace = pav.metadata?.namespace;
         const phase = pav.status?.drInfo?.status?.phase;
 
