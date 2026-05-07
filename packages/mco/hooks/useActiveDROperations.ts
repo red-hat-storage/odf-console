@@ -11,6 +11,7 @@ import {
 } from '../types';
 import { getProtectedCondition } from '../utils';
 import { shouldShowProtectionError } from '../utils/dr-status';
+import { getApplicationName } from '../utils/pav';
 import {
   getDRPlacementControlResourceObj,
   getProtectedApplicationViewResourceObj,
@@ -115,7 +116,7 @@ export const useActiveDROperations = (): [
 
         // Get associated PAV
         const pav = pavByDRPC.get(drpcName);
-        const applicationName = pav?.metadata?.name || drpcName;
+        const applicationName = pav ? getApplicationName(pav) : drpcName;
         const isDiscoveredApp =
           pav?.status?.applicationInfo?.type === ApplicationType.Discovered;
 

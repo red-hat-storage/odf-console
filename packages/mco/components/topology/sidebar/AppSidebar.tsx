@@ -143,7 +143,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
     );
     const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
     return {
-      name: op.drpcName,
+      name: op.applicationName,
       namespace: op.applicationNamespace,
       status: getEffectiveDRStatus(
         op.phase,
