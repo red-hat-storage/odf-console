@@ -10,11 +10,12 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { ChartDonut, ChartLabel } from '@patternfly/react-charts/victory';
+import { Modal } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Button } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { SelectedNodesTable } from '../capacity-and-nodes-step/selected-nodes-table';
-import { Modal, DiskListModal } from './disk-list-modal';
+import { DiskListModal } from './disk-list-modal';
 import './selected-capacity.scss';
 
 const getTotalCapacity = (disks: DiscoveredDisk[]): number =>
