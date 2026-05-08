@@ -69,7 +69,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     !sanClusters?.loadError &&
     sanClusters?.data?.length > 0;
   const shouldDisableSAN = hasScaleCluster || hasSANCluster;
-  const shouldDisableScale = hasSANCluster;
+  const shouldDisableScale = hasSANCluster && !hasScaleCluster;
   return (
     <Flex
       direction={{ default: 'column' }}
