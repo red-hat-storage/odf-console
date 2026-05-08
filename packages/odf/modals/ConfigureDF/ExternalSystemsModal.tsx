@@ -74,7 +74,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     !flashSystemClusters?.loadError &&
     flashSystemClusters?.data?.length > 0;
   const shouldDisableSAN = hasScaleCluster || hasSANCluster;
-  const shouldDisableScale = hasSANCluster;
+  const shouldDisableScale = hasSANCluster && !hasScaleCluster;
   const shouldDisableFlashSystem = hasFlashSystemCluster;
   return (
     <Flex
