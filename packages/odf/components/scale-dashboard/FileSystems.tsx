@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FileSystemKind } from '@odf/core/types/scale';
-import { getName, getNamespace } from '@odf/shared';
+import { getName } from '@odf/shared';
 import { FileSystemModel } from '@odf/shared/models/scale';
 import { GreenCheckCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -10,7 +10,6 @@ import {
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link, useLocation } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -75,9 +74,6 @@ const FileSystemsTable: React.FC = () => {
   const connectedFileSystems = filteredFileSystems?.filter((fileSystem) =>
     isConnected(fileSystem)
   );
-  const location = useLocation();
-  // odf/external-systems/scale.spectrum.ibm.com~v1beta1~remotecluster/:systemName
-  const externalSystemName = location.pathname.split('/')[3];
   return (
     <div>
       <Content className="pf-v6-u-my-xl">
@@ -108,13 +104,7 @@ const FileSystemsTable: React.FC = () => {
           <Tbody>
             {filteredFileSystems?.map((fileSystem: FileSystemKind) => (
               <Tr key={fileSystem.metadata.uid}>
-                <Td>
-                  <Link
-                    to={`/odf/external-systems/scale.spectrum.ibm.com~v1beta1~cluster/${externalSystemName}/filesystems/ns/${getNamespace(fileSystem)}/${getName(fileSystem)}`}
-                  >
-                    {getName(fileSystem)}
-                  </Link>
-                </Td>
+                <Td>{getName(fileSystem)}</Td>
                 <Td>
                   {isConnected(fileSystem) ? t('Connected') : t('Disconnected')}
                 </Td>
