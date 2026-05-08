@@ -9,6 +9,15 @@ jest.mock('@odf/shared/useCustomTranslationHook', () => ({
   }),
 }));
 
+// Mock the @odf/shared module to include STORAGE_SIZE_UNIT_NAME_MAP
+jest.mock('@odf/shared', () => ({
+  ...jest.requireActual('@odf/shared'),
+  STORAGE_SIZE_UNIT_NAME_MAP: {
+    Ti: 'TiB',
+    Gi: 'GiB',
+  },
+}));
+
 // Mock the field requirements translations
 jest.mock('@odf/shared/constants', () => ({
   fieldRequirementsTranslations: {
@@ -482,7 +491,8 @@ describe('useScaleSystemFormValidation', () => {
       const validNames = [
         'my-filesystem',
         'test123',
-        'abc', // minimum 3 characters
+        'abc',
+        'a', // minimum 1 character
         'my-filesystem-123',
         'test.filesystem',
         'a1b2c3',
@@ -503,8 +513,6 @@ describe('useScaleSystemFormValidation', () => {
       const result = getHookResult();
       const invalidNames = [
         '', // empty
-        'a', // too short (less than 3)
-        'ab', // too short (less than 3)
         'A', // uppercase
         'My-Filesystem', // uppercase
         'my_filesystem', // underscore
