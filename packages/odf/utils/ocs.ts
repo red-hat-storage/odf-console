@@ -288,7 +288,11 @@ export const createDeviceSet = (
   },
 });
 
-export const getTNFSpecs = (scName: string, storage: string) => ({
+export const getTNFSpecs = (
+  scName: string,
+  storage: string,
+  pvCount: number
+) => ({
   flexibleScaling: true,
   managedResources: {
     cephObjectStoreUsers: {
@@ -306,8 +310,8 @@ export const getTNFSpecs = (scName: string, storage: string) => ({
     {
       name: 'ocs-deviceset',
       config: {},
-      count: 1,
-      replica: 2,
+      count: getDeviceSetCount(pvCount, 1),
+      replica: 1,
       portable: false,
       resources: {},
       dataPVCTemplate: {
