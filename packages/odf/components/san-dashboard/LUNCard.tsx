@@ -48,6 +48,10 @@ import {
 } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import { t_color_blue_40 as blueInfoColor } from '@patternfly/react-tokens';
+import {
+  getLUNGroupStatus,
+  isLunGroupConnected,
+} from '../ibm-common/lun-group-health';
 import { filterSANFileSystems } from '../ibm-common/utils';
 import { useScaleGuiLink } from './useScaleGUILink';
 import './LUNCard.scss';
@@ -62,81 +66,6 @@ const storageClassResource = {
   isList: true,
 };
 
-const isTemporaryNSDError = (fileSystem: FileSystemKind): boolean => {
-  const successCondition = fileSystem.status?.conditions?.find(
-    (c) => c.type === 'Success'
-  );
-  return (
-    successCondition?.status === 'False' &&
-    successCondition?.reason === 'Failed' &&
-    successCondition?.message?.includes('NSD')
-  );
-};
-
-const isCreating = (fileSystem: FileSystemKind): boolean => {
-  const conditions = fileSystem.status?.conditions || [];
-  const successCondition = conditions.find((c) => c.type === 'Success');
-  const mountedCondition = conditions.find((c) => c.type === 'Mounted');
-
-  if (!successCondition) {
-    return true;
-  }
-
-  if (isTemporaryNSDError(fileSystem)) {
-    return true;
-  }
-
-  if (successCondition.status === 'False') {
-    const ongoingReasons = [
-      'FilesystemNotEstablished',
-      'LocalDiskNotReady',
-      'LocalDiskWrongType',
-    ];
-    if (ongoingReasons.includes(successCondition.reason)) {
-      return true;
-    }
-  }
-
-  if (
-    successCondition.status === 'True' &&
-    mountedCondition?.status !== 'True'
-  ) {
-    return true;
-  }
-
-  return false;
-};
-
-const isConnected = (fileSystem: FileSystemKind): boolean => {
-  const conditions = fileSystem.status?.conditions || [];
-  const successCondition = conditions.find((c) => c.type === 'Success');
-  const mountedCondition = conditions.find((c) => c.type === 'Mounted');
-
-  return (
-    successCondition?.status === 'True' && mountedCondition?.status === 'True'
-  );
-};
-
-const getLUNGroupStatus = (fileSystem: FileSystemKind): HealthState => {
-  if (isConnected(fileSystem)) {
-    return HealthState.OK;
-  }
-  if (isCreating(fileSystem)) {
-    // Check if creation has been in progress for more than 5 minutes
-    const creationTimestamp = fileSystem.metadata?.creationTimestamp;
-    if (creationTimestamp) {
-      const createdAt = new Date(creationTimestamp).getTime();
-      const now = Date.now();
-      const fiveMinutesInMs = 5 * 60 * 1000;
-      if (now - createdAt > fiveMinutesInMs) {
-        return HealthState.ERROR;
-      }
-    }
-    return HealthState.LOADING;
-  }
-  return HealthState.ERROR;
-};
-
 const LUNGroupStatusIcon: React.FC<{
   fileSystems: FileSystemKind[];
   loading: boolean;
@@ -146,10 +75,10 @@ const LUNGroupStatusIcon: React.FC<{
     return null;
   }
   const areAllLUNGroupsConnected = fileSystems.every((fileSystem) =>
-    isConnected(fileSystem)
+    isLunGroupConnected(fileSystem)
   );
   const isAnyLUNGroupConnected = fileSystems.some((fileSystem) =>
-    isConnected(fileSystem)
+    isLunGroupConnected(fileSystem)
   );
   const isAnyLUNGroupCreating = fileSystems.some(
     (fileSystem) => getLUNGroupStatus(fileSystem) === HealthState.LOADING
@@ -416,7 +345,7 @@ const LUNGroupsTable: React.FC = () => {
     useK8sWatchResource<StorageClassResourceKind[]>(storageClassResource);
   const filteredFileSystems = filterSANFileSystems(fileSystems);
   const connectedLUNGroups = filteredFileSystems?.filter((fileSystem) =>
-    isConnected(fileSystem)
+    isLunGroupConnected(fileSystem)
   );
 
   const rowFilters = React.useMemo(() => [lunGroupStatusFilter(t)], [t]);
