@@ -10,6 +10,7 @@ import {
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -68,9 +69,14 @@ const FileSystemStatusIcon: React.FC<{
 
 const FileSystemsTable: React.FC = () => {
   const { t } = useCustomTranslation();
+  const params = useParams();
+  const externalSystemName = params['systemName'];
   const [fileSystems, fileSystemsLoaded, fileSystemsLoadError] =
     useK8sWatchResource<FileSystemKind[]>(resource);
-  const filteredFileSystems = filterScaleFileSystems(fileSystems);
+  const filteredFileSystems = filterScaleFileSystems(
+    fileSystems,
+    externalSystemName
+  );
   const connectedFileSystems = filteredFileSystems?.filter((fileSystem) =>
     isConnected(fileSystem)
   );
