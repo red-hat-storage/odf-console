@@ -41,8 +41,13 @@ import {
   ContentVariants,
   Tooltip,
 } from '@patternfly/react-core';
-import { InfoCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
+import {
+  InfoCircleIcon,
+  ExternalLinkAltIcon,
+  InProgressIcon,
+} from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
+import { t_color_blue_40 as blueInfoColor } from '@patternfly/react-tokens';
 import { filterSANFileSystems } from '../ibm-common/utils';
 import { useScaleGuiLink } from './useScaleGUILink';
 import './LUNCard.scss';
@@ -57,15 +62,77 @@ const storageClassResource = {
   isList: true,
 };
 
-const isConnected = (fileSystem: FileSystemKind) => {
-  return fileSystem.status?.conditions?.some(
-    (condition) => condition.type === 'Success' && condition.status === 'True'
+const isTemporaryNSDError = (fileSystem: FileSystemKind): boolean => {
+  const successCondition = fileSystem.status?.conditions?.find(
+    (c) => c.type === 'Success'
+  );
+  return (
+    successCondition?.status === 'False' &&
+    successCondition?.reason === 'Failed' &&
+    successCondition?.message?.includes('NSD')
+  );
+};
+
+const isCreating = (fileSystem: FileSystemKind): boolean => {
+  const conditions = fileSystem.status?.conditions || [];
+  const successCondition = conditions.find((c) => c.type === 'Success');
+  const mountedCondition = conditions.find((c) => c.type === 'Mounted');
+
+  if (!successCondition) {
+    return true;
+  }
+
+  if (isTemporaryNSDError(fileSystem)) {
+    return true;
+  }
+
+  if (successCondition.status === 'False') {
+    const ongoingReasons = [
+      'FilesystemNotEstablished',
+      'LocalDiskNotReady',
+      'LocalDiskWrongType',
+    ];
+    if (ongoingReasons.includes(successCondition.reason)) {
+      return true;
+    }
+  }
+
+  if (
+    successCondition.status === 'True' &&
+    mountedCondition?.status !== 'True'
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
+const isConnected = (fileSystem: FileSystemKind): boolean => {
+  const conditions = fileSystem.status?.conditions || [];
+  const successCondition = conditions.find((c) => c.type === 'Success');
+  const mountedCondition = conditions.find((c) => c.type === 'Mounted');
+
+  return (
+    successCondition?.status === 'True' && mountedCondition?.status === 'True'
   );
 };
 
 const getLUNGroupStatus = (fileSystem: FileSystemKind): HealthState => {
   if (isConnected(fileSystem)) {
     return HealthState.OK;
+  }
+  if (isCreating(fileSystem)) {
+    // Check if creation has been in progress for more than 5 minutes
+    const creationTimestamp = fileSystem.metadata?.creationTimestamp;
+    if (creationTimestamp) {
+      const createdAt = new Date(creationTimestamp).getTime();
+      const now = Date.now();
+      const fiveMinutesInMs = 5 * 60 * 1000;
+      if (now - createdAt > fiveMinutesInMs) {
+        return HealthState.ERROR;
+      }
+    }
+    return HealthState.LOADING;
   }
   return HealthState.ERROR;
 };
@@ -84,11 +151,17 @@ const LUNGroupStatusIcon: React.FC<{
   const isAnyLUNGroupConnected = fileSystems.some((fileSystem) =>
     isConnected(fileSystem)
   );
+  const isAnyLUNGroupCreating = fileSystems.some(
+    (fileSystem) => getLUNGroupStatus(fileSystem) === HealthState.LOADING
+  );
   if (areAllLUNGroupsConnected) {
     return <GreenCheckCircleIcon />;
   }
   if (isAnyLUNGroupConnected) {
     return <YellowExclamationTriangleIcon />;
+  }
+  if (isAnyLUNGroupCreating) {
+    return <InProgressIcon color={blueInfoColor.value} />;
   }
   return <RedExclamationCircleIcon />;
 };
@@ -117,6 +190,7 @@ const lunGroupStatusFilter = (t): RowFilter<FileSystemKind> => ({
   reducer: getLUNGroupStatus,
   items: [
     { id: HealthState.OK, title: t('Healthy') },
+    { id: HealthState.LOADING, title: t('Creating') },
     { id: HealthState.ERROR, title: t('Unhealthy') },
   ],
   filter: (statuses, fileSystem) => {
@@ -240,7 +314,6 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
 }) => {
   const { t } = useCustomTranslation();
   const status = getLUNGroupStatus(obj);
-  const isHealthy = status === HealthState.OK;
   const storageClassName = getStorageClassName(obj, storageClasses);
 
   const customKebabItems = React.useMemo(
@@ -258,6 +331,35 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
 
   const consoleLink = getConsoleLink(obj, url);
 
+  const getStatusDisplay = () => {
+    switch (status) {
+      case HealthState.OK:
+        return {
+          icon: <GreenCheckCircleIcon className="pf-v6-u-mr-sm" />,
+          text: t('Connected'),
+        };
+      case HealthState.LOADING:
+        return {
+          icon: (
+            <InProgressIcon
+              className="pf-v6-u-mr-sm"
+              color={blueInfoColor.value}
+            />
+          ),
+          text: t('Creating'),
+        };
+      case HealthState.ERROR:
+        return {
+          icon: <RedExclamationCircleIcon className="pf-v6-u-mr-sm" />,
+          text: t('Unhealthy'),
+        };
+      default:
+        return { icon: null, text: status };
+    }
+  };
+
+  const statusDisplay = getStatusDisplay();
+
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
@@ -269,8 +371,8 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
         <span className="pf-v6-u-display-flex pf-v6-u-align-items-center">
-          {isHealthy && <GreenCheckCircleIcon className="pf-v6-u-mr-sm" />}
-          {status}
+          {statusDisplay.icon}
+          {statusDisplay.text}
         </span>
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
