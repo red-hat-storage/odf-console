@@ -28,8 +28,8 @@ import {
   ModalVariant,
 } from '@patternfly/react-core';
 
-const FILESYSTEM_NAME_MAX_LENGTH = 63;
-const FILESYSTEM_NAME_MIN_LENGTH = 3;
+export const FILESYSTEM_NAME_MAX_LENGTH = 63;
+export const FILESYSTEM_NAME_MIN_LENGTH = 1;
 
 const AddRemoteFileSystemModal: React.FC<
   CommonModalProps<{ resource: RemoteClusterKind }>

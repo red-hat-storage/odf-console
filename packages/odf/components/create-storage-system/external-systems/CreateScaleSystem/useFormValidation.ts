@@ -1,5 +1,9 @@
 import * as React from 'react';
 import { createUniquenessValidator } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
+import {
+  FILESYSTEM_NAME_MAX_LENGTH,
+  FILESYSTEM_NAME_MIN_LENGTH,
+} from '@odf/core/modals/add-remote-fs/AddRemoteFileSystemModal';
 import { formSettings, useYupValidationResolver } from '@odf/shared';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -149,8 +153,8 @@ const useScaleSystemFormValidation = (
 
     // File system name validation (similar to system name)
     const fileSystemNameFieldRequirements = [
-      fieldRequirementsTranslations.maxChars(t, SYSTEM_NAME_MAX_LENGTH),
-      fieldRequirementsTranslations.minChars(t, SYSTEM_NAME_MIN_LENGTH),
+      fieldRequirementsTranslations.maxChars(t, FILESYSTEM_NAME_MAX_LENGTH),
+      fieldRequirementsTranslations.minChars(t, FILESYSTEM_NAME_MIN_LENGTH),
       fieldRequirementsTranslations.startAndEndName(t),
       fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
       t('Name must be unique'),
@@ -256,8 +260,8 @@ const useScaleSystemFormValidation = (
 
       fileSystemName: Yup.string()
         .required(t('File system name is required'))
-        .max(SYSTEM_NAME_MAX_LENGTH, fileSystemNameFieldRequirements[0])
-        .min(SYSTEM_NAME_MIN_LENGTH, fileSystemNameFieldRequirements[1])
+        .max(FILESYSTEM_NAME_MAX_LENGTH, fileSystemNameFieldRequirements[0])
+        .min(FILESYSTEM_NAME_MIN_LENGTH, fileSystemNameFieldRequirements[1])
         .matches(
           validationRegEx.startAndEndsWithAlphanumerics,
           fileSystemNameFieldRequirements[2]
