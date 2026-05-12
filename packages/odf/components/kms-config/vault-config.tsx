@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { useModalWrapper } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
@@ -50,7 +50,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   const vaultState = useDeepCompareMemoize(
     state.kms.providerState,

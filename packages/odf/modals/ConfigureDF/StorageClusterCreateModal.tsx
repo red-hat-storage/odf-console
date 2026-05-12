@@ -2,7 +2,7 @@ import * as React from 'react';
 import { CREATE_SS_PAGE_URL } from '@odf/core/constants';
 import { StartingPoint } from '@odf/core/types/install-ui';
 import { useCustomTranslation } from '@odf/shared';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import { useModalWrapper } from '@odf/shared';
 import { Modal } from '@patternfly/react-core/deprecated';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -28,7 +28,7 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   const location = useLocation();
 
   const shouldShowExternalSystems = location.pathname.includes(

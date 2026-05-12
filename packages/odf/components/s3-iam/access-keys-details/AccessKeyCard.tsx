@@ -4,12 +4,9 @@ import { AccessKeyStatus } from '@odf/core/constants/s3-iam';
 import DeleteAccessKeyModal from '@odf/core/modals/s3-iam/DeleteAccessKeyModal';
 import EditDescriptionTagModal from '@odf/core/modals/s3-iam/EditDescriptonTagModal';
 import UpdateAccessKeyModal from '@odf/core/modals/s3-iam/UpdateAccessKeyModal';
-import { DASH, useCustomTranslation } from '@odf/shared';
+import { DASH, useCustomTranslation, useModalWrapper } from '@odf/shared';
 import { IamCommands } from '@odf/shared/iam';
-import {
-  GreenCheckCircleIcon,
-  useModal,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { GreenCheckCircleIcon } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'react-i18next';
 import {
@@ -178,7 +175,7 @@ const AccessKeyCard: React.FC<AccessKeyCardProps> = ({
   iamClient,
 }) => {
   const { t } = useCustomTranslation();
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   const descriptionTag = React.useMemo(
     () =>

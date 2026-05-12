@@ -2,10 +2,10 @@ import * as React from 'react';
 import { DeleteObjectsCommandOutput } from '@aws-sdk/client-s3';
 import { pluralize } from '@odf/core/components/utils';
 import { FieldLevelHelp } from '@odf/shared';
+import { useModalWrapper } from '@odf/shared';
 import { S3Commands } from '@odf/shared/s3';
 import { SelectableTable } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction, Trans } from 'react-i18next';
 import {
@@ -290,7 +290,7 @@ export const DeletionAlerts: React.FC<DeletionAlertsProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const [errorResponse, setErrorResponse] = React.useState<
     DeleteObjectsCommandOutput['Errors']
@@ -398,7 +398,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
   const { bucketName } = useParams();
   const [searchParams] = useSearchParams();
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   // if non-empty means we are inside particular folder(s) of a bucket, else just inside a bucket (top-level)
   const foldersPath = searchParams.get(PREFIX) || '';

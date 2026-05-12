@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { NooBaaObjectBucketClaimModel } from '@odf/shared';
+import {
+  ListPageFilterWrapper,
+  NooBaaObjectBucketClaimModel,
+} from '@odf/shared';
 import DetailsPage, {
   ResourceSummary,
 } from '@odf/shared/details-page/DetailsPage';
@@ -14,7 +17,6 @@ import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
   K8sResourceCommon,
   ListPageBody,
-  ListPageFilter,
   ResourceLink as ResourceLinkWithKind,
   RowProps,
   TableColumn,
@@ -197,7 +199,7 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
 
   return (
     <ListPageBody>
-      <ListPageFilter
+      <ListPageFilterWrapper
         data={data}
         loaded={loaded}
         onFilterChange={onFilterChange}

@@ -8,9 +8,9 @@ import {
 import { BUCKET_POLICY_CACHE_KEY_SUFFIX } from '@odf/core/constants';
 import DeleteBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/DeleteBucketPolicy';
 import SaveBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/SaveBucketPolicy';
+import { useModalWrapper } from '@odf/shared';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWRMutation from 'swr/mutation';
 import { PreConfiguredPolicies } from './PreConfiguredPolicies';
@@ -49,7 +49,7 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
   const [edit, setEdit] = React.useState(false);
   const { s3Client } = React.useContext(S3Context);
   const { bucketName } = useParams();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const launchDeleteModal = () =>
     launcher(DeleteBucketPolicyModal, {
