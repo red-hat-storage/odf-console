@@ -53,7 +53,7 @@ const DeleteVectorBucketModal: React.FC<
   const { t } = useCustomTranslation();
   const [inputValue, setInputValue] = React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
-  const [deleteError, setDeleteError] = React.useState<Error>(null);
+  const [deleteError, setDeleteError] = React.useState<Error>();
 
   const navigate = useNavigate();
 
@@ -66,7 +66,7 @@ const DeleteVectorBucketModal: React.FC<
       })
   );
 
-  const hasIndexes = data?.indexes?.length > 0;
+  const hasIndexes = (data?.indexes?.length || 0) > 0;
 
   const [, setFavorites] = useUserSettingsLocalStorage<string[]>(
     VECTOR_BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
@@ -155,9 +155,6 @@ const DeleteVectorBucketModal: React.FC<
         )
       )}
       <Content className="text-muted">
-        <Content component={ContentVariants.p}>
-          {t('Deleting a bucket cannot be undone.')}
-        </Content>
         <Content component={ContentVariants.p}>
           {t(
             'Deleting a bucket cannot be undone. Bucket names are unique. If you delete a bucket, another S3 user can use the name.'
