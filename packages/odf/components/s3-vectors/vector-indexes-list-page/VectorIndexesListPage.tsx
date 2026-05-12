@@ -76,7 +76,7 @@ const TableActions: React.FC<TableActionsProps> = ({
             navigate(getVectorIndexCreateRoute(vectorBucketName, providerType))
           }
         >
-          {t('Create index')}
+          {t('Create vector index')}
         </Button>
       </FlexItem>
     </Flex>

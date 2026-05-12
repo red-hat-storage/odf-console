@@ -97,8 +97,8 @@ const VectorBucketsListPageContent: React.FC = () => {
   return (
     <>
       <ListPageHeader
-        title={t('Vector Buckets')}
-        helpText={t('Create and manage your vector buckets')}
+        title={t('Buckets')}
+        helpText={t('View and manage your vector buckets')}
         {...(!isAdmin ? { badge: getAcountBadge(t) } : {})}
       >
         <ListPageCreateLink to={getVectorBucketCreatePageRoute(providerType)}>
