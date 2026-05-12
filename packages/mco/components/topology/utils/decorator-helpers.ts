@@ -28,6 +28,7 @@ export const getDecoratorForStatus = (
     case DRStatus.Healthy:
     case DRStatus.Available:
     case DRStatus.Relocated:
+    case DRStatus.FailedOver:
     case Phase.Deployed:
     case Progression.Completed:
       icon = DecoratorIcon.CheckCircle;
@@ -52,7 +53,6 @@ export const getDecoratorForStatus = (
       tooltip = 'Action required';
       status = NodeStatus.info;
       break;
-    case DRStatus.FailedOver:
     case DRStatus.Warning:
       icon = DecoratorIcon.ExclamationTriangle;
       tooltip = drStatus;
