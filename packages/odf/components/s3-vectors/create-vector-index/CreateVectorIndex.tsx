@@ -3,6 +3,8 @@ import {
   getVectorBucketIndexesListRoute,
   getVectorBucketOverviewBaseRoute,
   getVectorBucketsListRoute,
+  MAX_METADATA_KEYS,
+  METADATA_KEY_MAX_LENGTH,
 } from '@odf/core/constants/s3-vectors';
 import { S3ProviderType } from '@odf/core/types';
 import {
@@ -26,6 +28,8 @@ import {
   Content,
   ContentVariants,
   Form,
+  FormFieldGroupExpandable,
+  FormFieldGroupHeader,
   FormGroup,
   FormHelperText,
   HelperText,
@@ -33,7 +37,9 @@ import {
   NumberInput,
   PopoverPosition,
   Radio,
+  TextInput,
 } from '@patternfly/react-core';
+import { PlusCircleIcon, TrashIcon } from '@patternfly/react-icons';
 import { useS3BucketFormValidation as useS3VectorIndexFormValidation } from '../../s3-common/hooks/useS3BucketFormValidation';
 import { S3VectorsContext, S3VectorsProvider } from '../s3-vectors-context';
 
@@ -58,7 +64,7 @@ const CreateVectorIndexForm: React.FC = () => {
   const [distanceMetric, setDistanceMetric] = React.useState<DistanceMetric>(
     DistanceMetric.Cosine
   );
-
+  const [metadataKeys, setMetadataKeys] = React.useState<string[]>([]);
   const { s3VectorsClient } = React.useContext(S3VectorsContext);
 
   const breadcrumbs = [
@@ -136,6 +142,9 @@ const CreateVectorIndexForm: React.FC = () => {
         dataType: 'float32',
         dimension,
         distanceMetric,
+        metadataConfiguration: {
+          nonFilterableMetadataKeys: metadataKeys,
+        },
       });
     } catch (error) {
       setErrorMessage((error as Error)?.message || JSON.stringify(error));
@@ -150,6 +159,8 @@ const CreateVectorIndexForm: React.FC = () => {
       )
     );
   };
+  const numberOfTagsAdded = metadataKeys.length;
+  const remainingKeys = MAX_METADATA_KEYS - numberOfTagsAdded;
 
   return (
     <>
@@ -256,6 +267,75 @@ const CreateVectorIndexForm: React.FC = () => {
               />
             </span>
           </FormGroup>
+          <FormFieldGroupExpandable
+            toggleAriaLabel={t('Details')}
+            header={
+              <FormFieldGroupHeader
+                titleText={{
+                  id: 'expand-section',
+                  text: t('Non-filterable metadata (optional)'),
+                }}
+                titleDescription={t(
+                  `Non-filterable metadata keys allow you to enrich vectors with additional context during storage and retrieval. Unlike default metadata fields, these keys can't be used as query filters. After creating a vector index, you can't modify any non-filterable metadata keys.`
+                )}
+              />
+            }
+          >
+            <Alert
+              title={t(
+                'You can add filterable metadata keys to each vector when you insert it.'
+              )}
+              variant={AlertVariant.info}
+            >
+              {t(
+                'All metadata is filterable by default, unless you marked it as non-filterable when you created the index.'
+              )}
+            </Alert>
+            <FormGroup className="pf-v6-u-mt-md">
+              {metadataKeys.map((element, index) => (
+                <span
+                  key={`metadata-key-${index}`}
+                  className="pf-v6-u-display-flex pf-v6-u-flex-direction-row pf-v6-u-mb-xs"
+                >
+                  <TextInput
+                    value={element}
+                    onChange={(_e, value) => {
+                      const next = [...metadataKeys];
+                      next[index] = value;
+                      setMetadataKeys(next);
+                    }}
+                    placeholder={t('Key')}
+                    maxLength={METADATA_KEY_MAX_LENGTH}
+                    className="pf-v6-u-mr-sm pf-v6-u-w-50"
+                  />
+                  <Button
+                    icon={<TrashIcon />}
+                    variant={ButtonVariant.plain}
+                    onClick={() =>
+                      setMetadataKeys(
+                        metadataKeys.filter((_, i) => i !== index)
+                      )
+                    }
+                  />
+                </span>
+              ))}
+              <Button
+                icon={<PlusCircleIcon />}
+                variant={ButtonVariant.link}
+                onClick={() => setMetadataKeys([...metadataKeys, ''])}
+                className="pf-v6-u-mt-sm"
+                isDisabled={remainingKeys <= 0}
+              >
+                {metadataKeys.length > 0 ? t('Add another key') : t('Add key')}
+              </Button>
+              <Content
+                component="p"
+                className="pf-v6-u-disabled-color-100 pf-v6-u-mr-sm"
+              >
+                {t(`You can add up to 10 non-filterable metadata keys`)}
+              </Content>
+            </FormGroup>
+          </FormFieldGroupExpandable>
           {isSubmitted && !isValid && (
             <Alert
               variant={AlertVariant.danger}
