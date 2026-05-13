@@ -1,6 +1,9 @@
 import * as React from 'react';
-import { NooBaaObjectBucketClaimModel } from '@odf/shared';
-import { NooBaaObjectBucketModel } from '@odf/shared';
+import {
+  ListPageFilterWrapper,
+  NooBaaObjectBucketClaimModel,
+  NooBaaObjectBucketModel,
+} from '@odf/shared';
 import DetailsPage, {
   ResourceSummary,
 } from '@odf/shared/details-page/DetailsPage';
@@ -16,7 +19,6 @@ import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
   ListPageBody,
   ListPageCreateLink,
-  ListPageFilter,
   ListPageHeader,
   ResourceLink as ResourceLinkWithKind,
   RowProps,
@@ -278,7 +280,7 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
         </ListPageCreateLink>
       </ListPageHeader>
       <ListPageBody>
-        <ListPageFilter
+        <ListPageFilterWrapper
           data={data}
           loaded={loaded}
           onFilterChange={onFilterChange}

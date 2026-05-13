@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
-import { DRPlacementControlModel, getName, getNamespace } from '@odf/shared';
+import {
+  DRPlacementControlModel,
+  getName,
+  getNamespace,
+  useModalWrapper,
+} from '@odf/shared';
 import {
   ActionDropdown,
   ToggleVariant,
@@ -12,10 +17,7 @@ import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
 import { PopoverStatus } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import {
-  useK8sWatchResources,
-  useModal,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
@@ -81,7 +83,7 @@ export const EnrollApplicationButton: React.FC<{
 }> = ({ isNoDataMessage, toggleVariant }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   return (
     <div

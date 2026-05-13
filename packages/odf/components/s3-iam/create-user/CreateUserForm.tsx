@@ -5,9 +5,9 @@ import {
   TextInputWithFieldRequirements,
   useCustomTranslation,
 } from '@odf/shared';
+import { useModalWrapper } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals/common';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { useForm, Resolver } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom-v5-compat';
 import useSWRMutation from 'swr/mutation';
@@ -58,7 +58,7 @@ export const CreateUserFormContent = () => {
   const [tagErrors, setTagErrors] = React.useState('');
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   const {
     trigger: createUser,

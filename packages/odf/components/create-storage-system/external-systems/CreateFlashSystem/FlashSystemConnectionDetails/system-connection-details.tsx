@@ -10,7 +10,7 @@ import {
 } from '@odf/core/redux';
 import { getExternalSubSystemName, hasAnyInternalOCS } from '@odf/core/utils';
 import { CreatePayload } from '@odf/odf-plugin-sdk/extensions';
-import { PageHeading } from '@odf/shared';
+import { PageHeading, useModalWrapper } from '@odf/shared';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { SecretModel } from '@odf/shared/models';
@@ -23,7 +23,6 @@ import {
   k8sCreate,
   K8sModel,
   useFlag,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
@@ -86,7 +85,7 @@ export const FlashSystemConnectionDetails: React.FC = () => {
   const [error, setError] = React.useState(null);
   const { odfNamespace } = useODFNamespaceSelector();
   const navigate = useNavigate();
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   // Internal form state
   const [formState, setFormState] = React.useState<FlashSystemState>({
     endpoint: '',

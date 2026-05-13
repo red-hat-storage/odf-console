@@ -6,15 +6,12 @@ import {
 } from '@odf/core/constants/s3-vectors';
 import { LazyDeleteVectorBucketModal } from '@odf/core/modals/s3-vectors/delete-vector-bucket/lazy-delete-vector-bucket';
 import { S3ProviderType } from '@odf/core/types';
-import { BlueSyncIcon, PageHeading } from '@odf/shared';
+import { BlueSyncIcon, PageHeading, useModalWrapper } from '@odf/shared';
 import { useRefresh } from '@odf/shared/hooks';
 import { S3VectorsCommands } from '@odf/shared/s3-vectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
-import {
-  K8sResourceKind,
-  useModal,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
@@ -53,7 +50,7 @@ const createVectorBucketActions = (
   t: TFunction,
   fresh: boolean,
   triggerRefresh: () => void,
-  launcher: ReturnType<typeof useModal>,
+  launcher: ReturnType<typeof useModalWrapper>,
   vectorBucketName: string,
   s3VectorsClient: S3VectorsCommands
 ) => {
@@ -87,7 +84,7 @@ const VectorBucketOverview: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const [fresh, triggerRefresh] = useRefresh();
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const { vectorBucketName, providerType } = useParams();
 
