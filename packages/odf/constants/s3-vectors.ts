@@ -7,7 +7,8 @@ export const getVectorBucketCreatePageRoute = (s3Provider: string) =>
 export const VECTOR_BUCKET_BOOKMARKS_USER_SETTINGS_KEY =
   'odf-console-vector-bucket-bookmarks';
 
-export const VECTOR_BUCKETS_BASE_ROUTE = '/odf/object-storage/vector-buckets';
+export const VECTOR_BUCKETS_BASE_ROUTE =
+  '/odf/object-storage/buckets/s3-vector';
 
 export const getVectorBucketOverviewBaseRoute = (
   vectorBucketName: string,
