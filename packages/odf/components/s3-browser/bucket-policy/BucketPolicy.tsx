@@ -140,8 +140,6 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
         editTooltip={t(
           'Edit or delete the current bucket policy to customize access permissions or remove the existing configuration.'
         )}
-        editButtonLabel={t('Edit bucket policy')}
-        emptyStateTitle={t('You do not have an active bucket policy.')}
         schemaUri={BUCKET_POLICY_SCHEMA_URI}
       >
         {edit && <PreConfiguredPolicies setCode={setCode} />}
