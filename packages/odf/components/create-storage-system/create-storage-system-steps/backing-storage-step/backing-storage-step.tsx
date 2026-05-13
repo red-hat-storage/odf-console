@@ -45,6 +45,7 @@ const OCS_MULTIPLE_CLUSTER_NS = 'openshift-storage-extended';
 const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
   dispatch,
   selected,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -64,6 +65,14 @@ const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
     [selected.name]
   );
 
+  const filterResource = React.useCallback(
+    (sc: StorageClassResourceKind) => {
+      if (!isTNFEnabled) return true;
+      return sc.provisioner === NO_PROVISIONER;
+    },
+    [isTNFEnabled]
+  );
+
   return (
     <div className="odf-backing-storage__selection--width">
       <ResourceDropdown
@@ -71,6 +80,7 @@ const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
         resourceModel={StorageClassModel}
         onSelect={onStorageClassSelect}
         secondaryTextGenerator={getStorageClassDescription}
+        filterResource={filterResource}
         initialSelection={getInitialSelection}
         data-test="storage-class-dropdown"
       >
@@ -95,6 +105,7 @@ const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
 type StorageClassSelectionProps = {
   dispatch: WizardDispatch;
   selected: WizardState['storageClass'];
+  isTNFEnabled: boolean;
 };
 
 export const BackingStorage: React.FC<BackingStorageProps> = ({
@@ -260,6 +271,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
               <StorageClassSelection
                 dispatch={dispatch}
                 selected={storageClass}
+                isTNFEnabled={isTNFEnabled}
               />
             )
           }
