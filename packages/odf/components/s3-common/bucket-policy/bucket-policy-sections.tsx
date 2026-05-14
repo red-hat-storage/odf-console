@@ -61,8 +61,6 @@ export type PolicyBodyProps = {
   setCode: React.Dispatch<React.SetStateAction<string>>;
   noPolicyExists: boolean;
   editTooltip: string;
-  editButtonLabel: string;
-  emptyStateTitle: string;
   schemaUri: string;
   children?: React.ReactNode;
 };
@@ -74,8 +72,6 @@ export const PolicyBody: React.FC<PolicyBodyProps> = ({
   setEdit,
   noPolicyExists,
   editTooltip,
-  editButtonLabel,
-  emptyStateTitle,
   schemaUri,
   children,
 }) => {
@@ -115,7 +111,7 @@ export const PolicyBody: React.FC<PolicyBodyProps> = ({
             onClick={onEdit}
             className="pf-v6-u-my-sm s3-policy-edit--margin"
           >
-            {editButtonLabel}{' '}
+            {t('Edit bucket policy')}
           </Button>
         </Tooltip>
       )}
@@ -131,7 +127,7 @@ export const PolicyBody: React.FC<PolicyBodyProps> = ({
           setCode(value);
           !edit && onEdit();
         }}
-        emptyStateTitle={emptyStateTitle}
+        emptyStateTitle={t('You do not have an active bucket policy.')}
         emptyStateBody={t(
           'Drag a file here, upload files, or start from scratch.'
         )}
