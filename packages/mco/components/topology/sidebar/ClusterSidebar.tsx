@@ -44,6 +44,7 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
   const navigate = useNavigate();
   const { clusterAppsMap } = React.useContext(TopologyDataContext);
   const [activeTabKey, setActiveTabKey] = React.useState<string | number>(0);
+  const [showAllConditions, setShowAllConditions] = React.useState(false);
 
   const resourceName = getName(resource);
   const protectedApps = React.useMemo(
@@ -140,19 +141,12 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>{t('Labels')}</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <LabelGroup>
-                        {Object.entries(labels)
-                          .slice(0, 5)
-                          .map(([key, value]) => (
-                            <Label key={key} isCompact>
-                              {key}: {value as string}
-                            </Label>
-                          ))}
-                        {Object.keys(labels).length > 5 && (
-                          <Label isCompact color="blue">
-                            +{Object.keys(labels).length - 5} {t('more')}
+                      <LabelGroup numLabels={5}>
+                        {Object.entries(labels).map(([key, value]) => (
+                          <Label key={key} isCompact>
+                            {key}: {value as string}
                           </Label>
-                        )}
+                        ))}
                       </LabelGroup>
                     </DescriptionListDescription>
                   </DescriptionListGroup>
@@ -162,7 +156,10 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
                     <DescriptionListTerm>{t('Conditions')}</DescriptionListTerm>
                     <DescriptionListDescription>
                       <List isPlain>
-                        {conditions.slice(0, 3).map((condition, idx) => (
+                        {(showAllConditions
+                          ? conditions
+                          : conditions.slice(0, 3)
+                        ).map((condition, idx) => (
                           <ListItem key={idx}>
                             <Label
                               color={
@@ -176,8 +173,17 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
                         ))}
                         {conditions.length > 3 && (
                           <ListItem>
-                            <Label isCompact color="blue">
-                              +{conditions.length - 3} {t('more conditions')}
+                            <Label
+                              isCompact
+                              color="blue"
+                              onClick={() =>
+                                setShowAllConditions(!showAllConditions)
+                              }
+                              style={{ cursor: 'pointer' }}
+                            >
+                              {showAllConditions
+                                ? t('Show less')
+                                : `+${conditions.length - 3} ${t('more conditions')}`}
                             </Label>
                           </ListItem>
                         )}
