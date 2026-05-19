@@ -22,7 +22,7 @@ const ThirdPartyStorageWarning: React.FC<ThirdPartyStorageWarningProps> = ({
       <Alert
         className={className}
         variant={AlertVariant.warning}
-        title={t('Before you use Third-party storage')}
+        title={t('Before you use third-party storage')}
         actionLinks={
           <AlertActionLink
             component="a"
@@ -35,7 +35,7 @@ const ThirdPartyStorageWarning: React.FC<ThirdPartyStorageWarningProps> = ({
         }
       >
         {t(
-          `Ensure the third party storage supports Disaster Recovery pre-requisites and enable the required configuration for the same.`
+          `Ensure that it supports disaster recovery requirements, including replication, failover, and recovery. Configure the necessary settings accordingly.`
         )}
       </Alert>
     </AlertGroup>
