@@ -492,7 +492,37 @@ const mapIndefiniteSilencesToRows = (
 };
 
 /**
- * Checks if an alert matches a silence's matchers
+ * Checks if a value matches a silence matcher's criteria.
+ * Handles regex patterns, equality, and negation.
+ */
+const valueMatchesMatcher = (
+  value: string,
+  matcher: { value: string; isRegex: boolean; isEqual: boolean }
+): boolean => {
+  if (matcher.isRegex) {
+    try {
+      const regex = new RegExp(matcher.value);
+      const matches = regex.test(value);
+      return matcher.isEqual ? matches : !matches;
+    } catch {
+      return false;
+    }
+  }
+
+  const matches = value === matcher.value;
+  return matcher.isEqual ? matches : !matches;
+};
+
+/**
+ * Checks if an alert matches a silence's matchers.
+ *
+ * Key considerations:
+ * 1. 'alertstate' matchers are skipped since alertstate is a runtime state
+ *    indicator (firing/pending) that can vary over time.
+ * 2. Infrastructure labels (prometheus, job, etc.) added by the monitoring
+ *    stack may not be present in historical Prometheus alert data. We only
+ *    match on labels that the alert actually has.
+ * 3. The 'alertname' matcher must always be present and match.
  */
 const alertMatchesSilence = (
   alert: AlertRowData,
@@ -502,26 +532,43 @@ const alertMatchesSilence = (
     return false;
   }
 
-  // Check if all matchers match the alert
-  return silence.matchers.every((matcher) => {
+  // Filter out 'alertstate' matchers - alertstate is a runtime state indicator
+  // that shouldn't be used for matching (same logic as getNormalizedAlertKey)
+  const sanitizedMatchers = silence.matchers.filter(
+    (matcher) => matcher.name !== 'alertstate'
+  );
+
+  // Find the alertname matcher - it must exist and match
+  const alertnameMatcher = sanitizedMatchers.find(
+    (matcher) => matcher.name === 'alertname'
+  );
+
+  if (!alertnameMatcher) {
+    return false;
+  }
+
+  // Check alertname matches
+  if (!valueMatchesMatcher(alert.alertname, alertnameMatcher)) {
+    return false;
+  }
+
+  // For other matchers, only check labels that the alert actually has.
+  // This handles infrastructure labels (prometheus, job, etc.) that may
+  // not be present in historical Prometheus alert data.
+  const otherMatchers = sanitizedMatchers.filter(
+    (matcher) => matcher.name !== 'alertname'
+  );
+
+  return otherMatchers.every((matcher) => {
     const alertValue = alert.labels?.[matcher.name];
 
-    if (!alertValue) {
-      return false;
+    // If alert doesn't have this label, skip the matcher (don't fail)
+    // This handles infrastructure labels not present in historical data
+    if (alertValue === undefined) {
+      return true;
     }
 
-    if (matcher.isRegex) {
-      try {
-        const regex = new RegExp(matcher.value);
-        const matches = regex.test(alertValue);
-        return matcher.isEqual ? matches : !matches;
-      } catch {
-        return false;
-      }
-    }
-
-    const matches = alertValue === matcher.value;
-    return matcher.isEqual ? matches : !matches;
+    return valueMatchesMatcher(alertValue, matcher);
   });
 };
 
