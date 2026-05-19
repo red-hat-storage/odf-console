@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getLabels, getName } from '@odf/shared/selectors';
+import { getLabel, getLabels, getName } from '@odf/shared/selectors';
 import { K8sResourceCondition } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -27,6 +27,7 @@ import {
   ExclamationCircleIcon,
 } from '@patternfly/react-icons';
 import {
+  CLUSTER_ID,
   DR_BASE_ROUTE,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
 } from '../../../constants';
@@ -58,8 +59,7 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
     (c) => c.type === MANAGED_CLUSTER_CONDITION_AVAILABLE && c.status === 'True'
   );
   const version = resource.status?.version?.kubernetes || t('N/A');
-  const clusterID =
-    resource.spec?.clusterID || resource.status?.clusterID || t('N/A');
+  const clusterID = getLabel(resource, CLUSTER_ID) || t('N/A');
   const labels = getLabels(resource) || {};
 
   const drpcApps = React.useMemo(
