@@ -5,7 +5,7 @@ export const TOPOLOGY_CONSTANTS = {
   /** Padding inside cluster groups (px) */
   CLUSTER_GROUP_PADDING: 30,
   /** Padding inside pairing boxes (px) */
-  PAIRING_BOX_PADDING: 40,
+  PAIRING_BOX_PADDING: 60,
   /** Default node width (px) */
   NODE_WIDTH: 75,
   /** Default node height (px) */
