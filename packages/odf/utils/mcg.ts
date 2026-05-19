@@ -16,7 +16,6 @@ import {
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
-  AWS_REGIONS,
   StoreProviders,
   BUCKET_LABEL_NOOBAA_MAP,
   NamespacePolicyType,
@@ -207,8 +206,6 @@ const objectStorageProvisioners = (ns: string) => [
 
 export const isObjectSC = (sc: StorageClassResourceKind, ns: string) =>
   objectStorageProvisioners(ns).includes(sc?.provisioner);
-
-export const awsRegionItems = _.zipObject(AWS_REGIONS, AWS_REGIONS);
 
 export const endpointsSupported = [StoreProviders.S3, StoreProviders.IBM];
 

@@ -685,6 +685,7 @@
   "Create new KMS connection": "Create new KMS connection",
   "Create new NamespaceStore": "Create new NamespaceStore",
   "Create new NamespaceStore ": "Create new NamespaceStore ",
+  "Create new option {{filterValue}}": "Create new option {{filterValue}}",
   "Create new storage pool": "Create new storage pool",
   "Create new StorageClass": "Create new StorageClass",
   "Create new volume set instance": "Create new volume set instance",
