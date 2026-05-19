@@ -1,6 +1,6 @@
 import * as React from 'react';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
-import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
+import { TypeaheadDropdown } from '@odf/shared/dropdown/TypeaheadDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -15,7 +15,7 @@ import {
 } from '@patternfly/react-core';
 import { AWS_REGIONS, StoreProviders, StoreType } from '../../constants';
 import './noobaa-provider-endpoints.scss';
-import { awsRegionItems, endpointsSupported } from '../../utils';
+import { endpointsSupported } from '../../utils';
 
 export type ProviderDataState = {
   secretName: string;
@@ -92,19 +92,23 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
             isRequired: true,
           }}
           defaultValue={AWS_REGIONS[0]}
-          render={({ value, onChange, onBlur }) => (
-            <StaticDropdown
+          render={({ value, onChange }) => (
+            <TypeaheadDropdown
               className="nb-endpoints-form-entry__dropdown"
               onSelect={(key) => {
                 onChange(key);
                 dispatch({ type: 'setRegion', value: key });
               }}
-              onBlur={onBlur}
-              dropdownItems={awsRegionItems}
-              defaultSelection={value}
-              aria-label={t('Region Dropdown')}
+              items={AWS_REGIONS.map((region) => ({
+                value: region,
+                children: region,
+              }))}
+              selectedValue={value}
+              ariaLabel={t('Region Dropdown')}
+              id="aws-region-dropdown"
               data-test="aws-region-dropdown"
-              isFullWidth
+              isScrollable
+              isCreatable
             />
           )}
         />
