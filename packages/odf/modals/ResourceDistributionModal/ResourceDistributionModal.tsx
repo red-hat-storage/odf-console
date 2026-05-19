@@ -16,7 +16,7 @@ import { CommonModalProps } from '@odf/shared/modals';
 import {
   isCephDriver,
   isCephProvisioner,
-  isCephOrNooBaaProvisioner,
+  isCephWithNFSOrNooBaaProvisioner,
 } from '@odf/shared/utils';
 import {
   WatchK8sResources,
@@ -122,7 +122,7 @@ export const DistributeResourceModal: React.FC<
 
   const data = useK8sWatchResources<Resources>(resources);
   const filteredStorageClasses = data.storageClasses.data.filter((res) =>
-    isCephOrNooBaaProvisioner(getProvisioner(res))
+    isCephWithNFSOrNooBaaProvisioner(getProvisioner(res))
   );
   const filteredVolumeSnapshotClasses = data.volumeSnapshotClasses.data.filter(
     (res) => isCephProvisioner(res?.driver)
@@ -159,7 +159,7 @@ export const DistributeResourceModal: React.FC<
         volumeSnapshotClass: {},
       };
       newSelectedResources.storageClass = data.storageClasses.data
-        .filter((sc) => isCephOrNooBaaProvisioner(getProvisioner(sc)))
+        .filter((sc) => isCephWithNFSOrNooBaaProvisioner(getProvisioner(sc)))
         .reduce((acc, storageClass) => {
           acc[getName(storageClass)] = preselectedStorageClasses?.includes(
             getName(storageClass)
