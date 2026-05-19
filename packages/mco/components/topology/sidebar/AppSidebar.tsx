@@ -11,6 +11,7 @@ import {
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { DRPlacementControlConditionType } from '../../../types';
 import { getEffectiveDRStatus } from '../../../utils/dr-status';
+import { getPAVDRPolicyName } from '../../../utils/pav';
 import {
   AppSidebarItem,
   StaticAppsSidebarData,
@@ -151,7 +152,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
         protectedCondition,
         volumeLastGroupSyncTime
       ),
-      drPolicy: `${op.action}: ${op.sourceCluster} → ${op.targetCluster}`,
+      drPolicy: op.pav ? getPAVDRPolicyName(op.pav) : '',
     };
   });
 
