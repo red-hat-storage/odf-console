@@ -14,14 +14,17 @@ import { MANAGED_CLUSTER_CONDITION_AVAILABLE } from '../../../constants';
 import { ClusterPairOperationsMap } from '../../../hooks/useActiveDROperations';
 import {
   ClusterPairPoliciesMap,
+  DRPolicyInfo,
   getClustersFromPairKey,
 } from '../../../hooks/useDRPoliciesByClusterPair';
 import { ClusterAppsMap } from '../../../hooks/useProtectedAppsByCluster';
+import { ACMManagedClusterKind, DRPolicyKind, Phase } from '../../../types';
 import {
-  ACMManagedClusterKind,
-  DRPlacementControlConditionType,
-} from '../../../types';
-import { getEffectiveDRStatus } from '../../../utils/dr-status';
+  getReplicationHealth,
+  getReplicationType,
+  getProtectedCondition,
+} from '../../../utils';
+import { getDRStatus, isCleanupRequired } from '../../../utils/dr-status';
 import { TOPOLOGY_CONSTANTS } from '../constants';
 import {
   DecoratorIcon,
@@ -47,10 +50,51 @@ const isClusterHealthy = (cluster: ACMManagedClusterKind): boolean => {
  * Helper function to create grouped operation nodes
  * Reduces duplication in handling source vs target operations
  */
+const computeOperationDRStatus = (
+  drpc: DROperationInfo['drpc'],
+  phase: string,
+  progression: string,
+  drPolicyByName: Map<string, DRPolicyKind>
+) => {
+  const drPolicyName = drpc?.spec?.drPolicyRef?.name;
+  const drPolicy = drPolicyName ? drPolicyByName.get(drPolicyName) : undefined;
+  const schedulingInterval = drPolicy?.spec?.schedulingInterval;
+  const protectedCondition = getProtectedCondition(drpc);
+  const volumeLastGroupSyncTime = drpc?.status?.lastGroupSyncTime;
+
+  const volumeReplicationHealth = getReplicationHealth(
+    volumeLastGroupSyncTime,
+    schedulingInterval,
+    drPolicy ? getReplicationType(drPolicy) : undefined
+  );
+
+  const kubeObjectSchedulingInterval =
+    drpc?.spec?.kubeObjectProtection?.captureInterval;
+  const kubeObjectReplicationHealth = kubeObjectSchedulingInterval
+    ? getReplicationHealth(
+        drpc?.status?.lastKubeObjectProtectionTime,
+        kubeObjectSchedulingInterval
+      )
+    : undefined;
+
+  return getDRStatus({
+    isCleanupRequired: isCleanupRequired(phase, progression),
+    phase: phase as Phase,
+    volumeReplicationHealth,
+    kubeObjectReplicationHealth,
+    progression,
+    volumeLastGroupSyncTime,
+    protectedCondition,
+    schedulingInterval,
+    actionStartTime: drpc?.status?.actionStartTime,
+  });
+};
+
 const createGroupedOperationNodes = (
   opsByPhase: Map<string, DROperationInfo[]>,
   isSource: boolean,
-  clusterName: string
+  clusterName: string,
+  drPolicyByName: Map<string, DRPolicyKind>
 ): NodeModel[] => {
   const nodes: NodeModel[] = [];
 
@@ -59,16 +103,11 @@ const createGroupedOperationNodes = (
     const action = ops[0].action;
     const phase = ops[0].phase || 'Unknown';
     const progression = ops[0].progression;
-    const protectedCondition = ops[0].drpc?.status?.conditions?.find(
-      (c) => c.type === DRPlacementControlConditionType.Protected
-    );
-    const volumeLastGroupSyncTime = ops[0].drpc?.status?.lastGroupSyncTime;
-    const effectiveStatus = getEffectiveDRStatus(
+    const effectiveStatus = computeOperationDRStatus(
+      ops[0].drpc,
       phase,
       progression,
-      ops[0].hasProtectionError,
-      protectedCondition,
-      volumeLastGroupSyncTime
+      drPolicyByName
     );
     const label = effectiveStatus;
     const directionLabel = isSource ? 'source' : 'target';
@@ -117,6 +156,7 @@ const createGroupedOperationNodes = (
 const generateClusterWithApps = (
   cluster: ACMManagedClusterKind,
   apps: ProtectedAppInfo[],
+  drPolicyByName: Map<string, DRPolicyKind>,
   operations?: DROperationInfo[]
 ): NodeModel[] => {
   const clusterName = getName(cluster);
@@ -143,16 +183,11 @@ const generateClusterWithApps = (
       // operations in different progression states (e.g. FailedOver vs WaitOnUserToCleanUp)
       // are shown as separate nodes.
       const phase = op.phase || 'Unknown';
-      const protectedCondition = op.drpc?.status?.conditions?.find(
-        (c) => c.type === DRPlacementControlConditionType.Protected
-      );
-      const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
-      const effectiveStatus = getEffectiveDRStatus(
+      const effectiveStatus = computeOperationDRStatus(
+        op.drpc,
         phase,
         op.progression,
-        op.hasProtectionError,
-        protectedCondition,
-        volumeLastGroupSyncTime
+        drPolicyByName
       );
       const groupKey = `${op.action}-${effectiveStatus}`;
 
@@ -173,12 +208,14 @@ const generateClusterWithApps = (
     const sourceNodes = createGroupedOperationNodes(
       sourceOperationsByActionPhase,
       true,
-      clusterName
+      clusterName,
+      drPolicyByName
     );
     const targetNodes = createGroupedOperationNodes(
       targetOperationsByActionPhase,
       false,
-      clusterName
+      clusterName,
+      drPolicyByName
     );
     appNodes.push(...sourceNodes, ...targetNodes);
   }
@@ -400,14 +437,25 @@ export const generateClusterNodesModel = (
   clusterAppsMap?: ClusterAppsMap | null,
   filters?: FilterOptions
 ): Model => {
-  // Build a set of clusters that are part of DR policies
+  // Build a DRPolicy-by-name map for replication health lookups
+  const drPolicyByName = new Map<string, DRPolicyKind>();
   const clustersInPolicies = new Set<string>();
   if (clusterPairPoliciesMap) {
-    Object.keys(clusterPairPoliciesMap).forEach((pairKey) => {
-      const [cluster1, cluster2] = getClustersFromPairKey(pairKey);
-      clustersInPolicies.add(cluster1);
-      clustersInPolicies.add(cluster2);
-    });
+    Object.entries(clusterPairPoliciesMap).forEach(
+      ([pairKey, policies]: [string, DRPolicyInfo[]]) => {
+        const [cluster1, cluster2] = getClustersFromPairKey(pairKey);
+        clustersInPolicies.add(cluster1);
+        clustersInPolicies.add(cluster2);
+        policies.forEach((policyInfo) => {
+          if (policyInfo.policy?.metadata?.name) {
+            drPolicyByName.set(
+              policyInfo.policy.metadata.name,
+              policyInfo.policy
+            );
+          }
+        });
+      }
+    );
   }
 
   // Build a set of clusters that are in policies matching the current filter
@@ -552,6 +600,7 @@ export const generateClusterNodesModel = (
       return generateClusterWithApps(
         cluster,
         clusterApps || [],
+        drPolicyByName,
         filteredOperations
       );
     } else {
