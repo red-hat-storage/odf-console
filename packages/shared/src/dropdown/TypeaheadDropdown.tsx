@@ -24,6 +24,9 @@ type TypeaheadDropdownProps = {
   placeholder?: string;
   selectedValue?: string | number;
   isDisabled?: boolean;
+  'data-test'?: string;
+  isScrollable?: boolean;
+  isCreatable?: boolean;
 };
 
 export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
@@ -35,6 +38,9 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
   placeholder,
   selectedValue,
   isDisabled,
+  'data-test': dataTest,
+  isScrollable,
+  isCreatable = false,
 }) => {
   const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
@@ -50,30 +56,44 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
     null
   );
   const [activeItemId, setActiveItemId] = React.useState<string | null>(null);
+  const [createdOptions, setCreatedOptions] = React.useState<
+    SelectOptionProps[]
+  >([]);
   const textInputRef = React.useRef<HTMLInputElement>();
 
   const NO_RESULTS = t('no results');
+  const CREATE_NEW = '__create__';
 
-  let selectOptions: SelectOptionProps[] = items;
+  const allItems = isCreatable ? [...items, ...createdOptions] : items;
+  let selectOptions: SelectOptionProps[] = allItems;
+
   // Filter menu items based on the text input value when one exists
   if (filterValue) {
-    selectOptions = items.filter((menuItem) =>
+    selectOptions = allItems.filter((menuItem) =>
       String(menuItem.children)
         .toLowerCase()
         .includes(filterValue.toLowerCase())
     );
 
-    // When no options are found after filtering, display 'No results found'
     if (!selectOptions.length) {
-      selectOptions = [
-        {
-          isAriaDisabled: true,
-          children: t('No results found for {{ filterValue }}', {
-            filterValue,
-          }),
-          value: NO_RESULTS,
-        },
-      ];
+      selectOptions = isCreatable
+        ? [
+            {
+              children: t('Create new option {{filterValue}}', {
+                filterValue,
+              }),
+              value: CREATE_NEW,
+            },
+          ]
+        : [
+            {
+              isAriaDisabled: true,
+              children: t('No results found for {{ filterValue }}', {
+                filterValue,
+              }),
+              value: NO_RESULTS,
+            },
+          ];
     }
 
     // Open the menu when the input value changes and the new value is not empty
@@ -111,9 +131,10 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
 
   const selectOption = (value: string | number) => {
     if (value && value !== NO_RESULTS) {
-      const optionText = selectOptions.find(
-        (option) => option.value === value
-      )?.children;
+      const optionText =
+        value !== filterValue
+          ? selectOptions.find((option) => option.value === value)?.children
+          : filterValue;
       setInputValue(String(optionText));
       setFilterValue('');
       setSelected(String(value));
@@ -126,10 +147,23 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
     _event: React.SyntheticEvent | undefined,
     value: string | undefined
   ) => {
-    const optionValue = value || '';
-    selectOption(optionValue);
-    onSelect(optionValue);
-    setIsUserSelection(true);
+    if (value) {
+      if (isCreatable && value === CREATE_NEW) {
+        const newOption: SelectOptionProps = {
+          value: filterValue,
+          children: filterValue,
+        };
+        setCreatedOptions((prev) => [...prev, newOption]);
+        selectOption(filterValue);
+        onSelect(filterValue);
+        closeMenu();
+      } else if (value !== NO_RESULTS) {
+        const optionValue = value || '';
+        selectOption(optionValue);
+        onSelect(optionValue);
+        setIsUserSelection(true);
+      }
+    }
   };
 
   // We update the preselected value on re-render if the user hasn't interacted yet.
@@ -250,6 +284,7 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
       isExpanded={isOpen}
       isFullWidth
       isDisabled={isDisabled}
+      data-test={dataTest}
     >
       <TextInputGroup isPlain>
         <TextInputGroupMain
@@ -292,6 +327,7 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
         }}
         toggle={toggle}
         shouldFocusFirstItemOnOpen={false}
+        isScrollable={isScrollable}
       >
         <SelectList id={`${id}-listbox`}>
           {selectOptions.map((option, index) => (
@@ -303,6 +339,7 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
               {...option}
               ref={null}
               isSelected={option.value === selected}
+              data-test-dropdown-menu={option.value || option.children}
             />
           ))}
         </SelectList>
