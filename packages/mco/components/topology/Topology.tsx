@@ -126,9 +126,27 @@ const TopologyViewComponent: React.FC = () => {
 
   const controlButtons = useTopologyControls({ controller });
 
-  // Get the selected element's data
+  // Derive sidebar data from the reactive model instead of selectedElement.getData().
+  // getData() reads from the GraphElement which is updated by fromModel() in an
+  // effect — one render behind. The model is computed from context maps and is current.
+  // When the element no longer exists in the model (e.g. operation completed),
+  // return undefined so the sidebar closes rather than showing stale data.
   const selectedElement = React.useContext(TopologyDataContext).selectedElement;
-  const selectedElementData = selectedElement?.getData();
+  const selectedElementId = selectedElement?.getId();
+  const selectedElementData = React.useMemo(() => {
+    if (!selectedElementId) return undefined;
+    const node = model.nodes?.find((n) => n.id === selectedElementId);
+    if (node) return node.data;
+    const edge = model.edges?.find((e) => e.id === selectedElementId);
+    return edge?.data;
+  }, [selectedElementId, model]);
+
+  // Close sidebar when the selected element disappears from the model
+  React.useEffect(() => {
+    if (selectedElementId && selectedElementData === undefined) {
+      onCloseSideBar();
+    }
+  }, [selectedElementId, selectedElementData, onCloseSideBar]);
 
   // Check what type of element is selected
   const isEdgeSelected =
