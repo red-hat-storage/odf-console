@@ -7,10 +7,7 @@ import {
   useActiveColumns,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  Modal as PfModal,
-  ModalProps as PfModalProps,
-} from '@patternfly/react-core/deprecated';
+import { Modal } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
 import { Button } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
@@ -52,25 +49,6 @@ const DiskRow = ({ obj, activeColumnIDs }) => {
     </>
   );
 };
-
-export const Modal: React.FC<ModalProps> = ({
-  isFullScreen = false,
-  className,
-  ...props
-}) => (
-  <PfModal
-    {...props}
-    className={classNames('ocs-modal', className)}
-    appendTo={() =>
-      isFullScreen ? document.body : document.querySelector('#modal-container')
-    }
-  />
-);
-
-type ModalProps = {
-  isFullScreen?: boolean;
-  ref?: React.LegacyRef<PfModal>;
-} & PfModalProps;
 
 export const DiskListModal: React.FC<DiskListModalProps> = ({
   showDiskList,
@@ -130,7 +108,7 @@ export const DiskListModal: React.FC<DiskListModalProps> = ({
       title={t('Selected Disks')}
       isOpen={showDiskList}
       onClose={onCancel}
-      className="ceph-ocs-install__filtered-modal"
+      className={classNames('ocs-modal', 'ceph-ocs-install__filtered-modal')}
       actions={[
         <Button key="confirm" variant="primary" onClick={onCancel}>
           {t('Close')}
