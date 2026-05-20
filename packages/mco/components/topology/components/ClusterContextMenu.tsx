@@ -15,6 +15,7 @@ import {
   ClusterContextMenuState,
   ClusterContextMenuHandlers,
 } from '../hooks/useClusterContextMenu';
+import './ClusterContextMenu.scss';
 
 export interface ClusterContextMenuProps {
   state: ClusterContextMenuState;
@@ -63,9 +64,11 @@ export const ClusterContextMenu: React.FC<ClusterContextMenuProps> = ({
         left: menuPosition.x,
         top: menuPosition.y,
         zIndex: 9999,
+        width: 'max-content',
       }}
     >
       <Menu
+        className="mco-topology__cluster-context-menu"
         id={rootMenuId}
         containsDrilldown
         drilldownItemPath={drilldownPath}
