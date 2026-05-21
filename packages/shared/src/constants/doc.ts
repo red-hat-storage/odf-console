@@ -36,7 +36,7 @@ export const multusSetupDoc = (odfDocVersion: string): string =>
   )}/planning_your_deployment/index#multus-networking-setup_odf`;
 
 export const tpsDoc = (odfDocVersion: string): string =>
-  `${odfDRDocHome(odfDocVersion)}#third-party-storage-prerequisites`;
+  `${odfDRDocHome(odfDocVersion)}#storage-agnostic-disaster-recovery-for-third-party-vendors_common`;
 
 export const externalSystemsDoc = (odfDocVersion: string): string =>
   `${odfDocBasePath(
