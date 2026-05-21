@@ -53,6 +53,7 @@ export const createSteps = (
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
           systemNamespace={systemNamespace}
+          enableNFS={backingStorage.enableNFS}
         />
       ),
     },
