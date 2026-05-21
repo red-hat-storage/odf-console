@@ -36,11 +36,13 @@ type PrometheusRuleCR = K8sResourceCommon & {
 
 const HEALTH_RULES_CR_NAME = 'ocs-prometheus-rules';
 const HEALTH_CHECKS_GROUP_NAME = 'odf_healthchecks.rules';
+const CEPH_RULES_CR_NAME = 'prometheus-ceph-rules';
+const CLUSTER_STATE_GROUP_NAME = 'cluster-state-alert.rules';
 
 const useHealthRules = () => {
   const { odfNamespace } = useODFNamespaceSelector();
 
-  const [prometheusRule, rulesLoaded, rulesError] =
+  const [ocsPrometheusRule, ocsRulesLoaded, ocsRulesError] =
     useK8sWatchResource<PrometheusRuleCR>({
       kind: referenceForModel(PrometheusRuleModel),
       name: HEALTH_RULES_CR_NAME,
@@ -48,19 +50,47 @@ const useHealthRules = () => {
       isList: false,
     });
 
+  const [cephPrometheusRule, cephRulesLoaded, cephRulesError] =
+    useK8sWatchResource<PrometheusRuleCR>({
+      kind: referenceForModel(PrometheusRuleModel),
+      name: CEPH_RULES_CR_NAME,
+      namespace: odfNamespace,
+      isList: false,
+    });
+
   const templateMap = React.useMemo(() => {
-    const allGroups = prometheusRule?.spec?.groups || [];
-    const healthCheckGroups = allGroups.filter(
+    // Extract from ocs-prometheus-rules (odf_healthchecks.rules group)
+    const ocsGroups = ocsPrometheusRule?.spec?.groups || [];
+    const healthCheckGroups = ocsGroups.filter(
       (group) => group.name === HEALTH_CHECKS_GROUP_NAME
     );
-    return extractTemplatesFromRules(healthCheckGroups);
-  }, [prometheusRule]);
+    const ocsTemplateMap = extractTemplatesFromRules(healthCheckGroups);
+
+    // Extract from prometheus-ceph-rules (cluster-state-alert.rules group)
+    const cephGroups = cephPrometheusRule?.spec?.groups || [];
+    const clusterStateGroups = cephGroups.filter(
+      (group) => group.name === CLUSTER_STATE_GROUP_NAME
+    );
+    const cephTemplateMap = extractTemplatesFromRules(clusterStateGroups);
+
+    // Merge templates and ruleNames from both sources
+    const mergedTemplates = new Map([
+      ...ocsTemplateMap.templates,
+      ...cephTemplateMap.templates,
+    ]);
+    const mergedRuleNames = new Set([
+      ...ocsTemplateMap.ruleNames,
+      ...cephTemplateMap.ruleNames,
+    ]);
+
+    return { templates: mergedTemplates, ruleNames: mergedRuleNames };
+  }, [ocsPrometheusRule, cephPrometheusRule]);
 
   return {
     templates: templateMap.templates,
     ruleNames: templateMap.ruleNames,
-    loaded: rulesLoaded,
-    error: rulesError,
+    loaded: ocsRulesLoaded && cephRulesLoaded,
+    error: ocsRulesError || cephRulesError,
   };
 };
 
