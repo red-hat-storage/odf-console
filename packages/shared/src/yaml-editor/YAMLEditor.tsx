@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   K8sModel,
-  ResourceYAMLEditor,
   k8sUpdate,
   OwnerReference,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -19,6 +18,7 @@ import { ClusterServiceVersionKind, ListKind } from '../types/console-types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { groupVersionFor, findOwner } from '../utils';
 import { AsyncLoader } from '../utils/AsyncLoader';
+import { ResourceYAMLEditorWrapped } from './ResourceYAMLEditorWrapped';
 import './YAMLEditor.scss';
 import '../style.scss';
 
@@ -188,7 +188,10 @@ const YAMLEditor: React.FC<YAMLEditorProps> = ({
             <DetailsPageTitle resource={sourceObj} resourceModel={model} />
           }
         />
-        <ResourceYAMLEditor initialResource={sourceObj} onSave={onSave} />
+        <ResourceYAMLEditorWrapped
+          initialResource={sourceObj}
+          onSave={onSave}
+        />
         {state.errors && (
           <Alert
             isInline

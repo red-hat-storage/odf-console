@@ -1,14 +1,17 @@
 import * as React from 'react';
 import { SAN_STORAGE_SYSTEM_NAME } from '@odf/core/constants';
 import { FileSystemKind } from '@odf/core/types/scale';
-import { DetailsPage, FileSystemModel, getName, Kebab } from '@odf/shared';
+import {
+  DetailsPage,
+  FileSystemModel,
+  getName,
+  Kebab,
+  ResourceYAMLEditorWrapped,
+} from '@odf/shared';
 import { ResourceSummary } from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  ResourceYAMLEditor,
-  useK8sWatchResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 
@@ -35,7 +38,7 @@ const FileSystemDetails: React.FC<FileSystemDetailsProps> = (props) => {
 
 const YAMLEditor: React.FC<FileSystemDetailsProps> = (props) => {
   const { obj } = props;
-  return <ResourceYAMLEditor initialResource={obj} />;
+  return <ResourceYAMLEditorWrapped initialResource={obj} />;
 };
 
 export const FileSystemDetailsPage: React.FC = () => {
