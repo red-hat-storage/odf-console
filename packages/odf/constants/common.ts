@@ -84,6 +84,21 @@ export const S390X_CPU_ADJUSTMENTS = {
   },
 };
 
+/**
+ * NFS resource requirements to be added when NFS is enabled
+ */
+export const NFS_RESOURCE_REQUIREMENTS = {
+  minCpu: 6,
+  minMem: 16, // GiB
+};
+
+/**
+ * s390x specific NFS CPU requirements
+ */
+export const NFS_S390X_CPU_REQUIREMENT = {
+  minCpu: 3,
+};
+
 export enum DefaultRequestSize {
   BAREMETAL = '1',
   NON_BAREMETAL = '2Ti',
