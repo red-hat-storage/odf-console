@@ -173,7 +173,8 @@
       "component": { "$codeRef": "mcg.OBCListPage" }
     },
     "flags": {
-      "disallowed": ["ODF_MODEL"]
+      "disallowed": ["ODF_MODEL"],
+      "required": ["OB_OBC_CRD_EXISTS"]
     }
   },
   {
@@ -184,7 +185,8 @@
       "component": { "$codeRef": "mcg.CreateOBCPage" }
     },
     "flags": {
-      "disallowed": ["ODF_MODEL"]
+      "disallowed": ["ODF_MODEL"],
+      "required": ["OB_OBC_CRD_EXISTS"]
     }
   },
   {
@@ -195,7 +197,8 @@
       "component": { "$codeRef": "mcg.OBCDetailsPage" }
     },
     "flags": {
-      "disallowed": ["ODF_MODEL"]
+      "disallowed": ["ODF_MODEL"],
+      "required": ["OB_OBC_CRD_EXISTS"]
     }
   },
   {
@@ -213,6 +216,17 @@
     "properties": {
       "handler": {
         "$codeRef": "features.useODFNamespace"
+      }
+    },
+    "flags": {
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectObObcCrds"
       }
     },
     "flags": {
