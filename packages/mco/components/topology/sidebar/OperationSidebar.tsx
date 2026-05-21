@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getEffectiveDRStatus } from '@odf/mco/utils/dr-status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -14,17 +15,15 @@ import {
   EmptyState,
   EmptyStateBody,
 } from '@patternfly/react-core';
-import {
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-} from '@patternfly/react-icons';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { getClustersFromPairKey } from '../../../hooks/useDRPoliciesByClusterPair';
-import { Phase, Progression } from '../../../types';
 import { DROperationInfo, OperationEdgeSidebarData } from '../types';
-import { getAppLink } from '../utils/sidebar-utils';
+import { DRStatusIcon, getAppLink } from '../utils/sidebar-utils';
 import { DRPCFilterToolbar } from './DRPCFilterToolbar';
 import './TopologySidebar.scss';
+
+const getOperationStatus = (op: DROperationInfo) =>
+  getEffectiveDRStatus(op.phase, op.progression, op.hasProtectionError);
 
 type OperationSidebarProps = {
   edgeData: OperationEdgeSidebarData;
@@ -41,7 +40,7 @@ const OperationsTableView: React.FC<{
   const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
 
   const uniqueStatuses = React.useMemo(
-    () => Array.from(new Set(operations.map((op) => op.phase || 'Unknown'))),
+    () => Array.from(new Set(operations.map((op) => getOperationStatus(op)))),
     [operations]
   );
 
@@ -55,7 +54,7 @@ const OperationsTableView: React.FC<{
     }
     if (selectedStatuses.length > 0) {
       results = results.filter((op) =>
-        selectedStatuses.includes(op.phase || 'Unknown')
+        selectedStatuses.includes(getOperationStatus(op))
       );
     }
     return results;
@@ -161,40 +160,7 @@ const OperationsTableView: React.FC<{
                         </div>
                       </Td>
                       <Td dataLabel={t('DR Status')}>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
-                          {operation.phase && (
-                            <>
-                              {operation.phase === Phase.Deployed ||
-                              operation.phase === Phase.Relocated ? (
-                                <>
-                                  <CheckCircleIcon color="var(--pf-v6-global--success-color--100)" />
-                                  <span>{operation.phase}</span>
-                                </>
-                              ) : operation.progression ===
-                                Progression.WaitOnUserToCleanUp ? (
-                                <>
-                                  <ExclamationCircleIcon color="var(--pf-v6-global--warning-color--100)" />
-                                  <span>{t('Cleanup Required')}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Label color="blue">{operation.phase}</Label>
-                                  {operation.progression && (
-                                    <Label color="orange">
-                                      {operation.progression}
-                                    </Label>
-                                  )}
-                                </>
-                              )}
-                            </>
-                          )}
-                        </div>
+                        <DRStatusIcon status={getOperationStatus(operation)} />
                       </Td>
                       <Td dataLabel={t('Policy')}>
                         <div>
