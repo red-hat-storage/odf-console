@@ -1,18 +1,21 @@
 import * as React from 'react';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  DRPlacementControlConditionType,
   DRPlacementControlKind,
+  DRPolicyKind,
+  Phase,
   ProtectedApplicationViewKind,
 } from '../types';
 import {
-  DRStatus,
-  getEffectiveDRStatus,
-  shouldShowProtectionError,
-} from '../utils/dr-status';
-import { getApplicationName } from '../utils/pav';
+  getReplicationHealth,
+  getReplicationType,
+  getProtectedCondition,
+  getApplicationName,
+} from '../utils';
+import { DRStatus, getDRStatus, isCleanupRequired } from '../utils/dr-status';
 import {
   getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
   getProtectedApplicationViewResourceObj,
 } from './mco-resources';
 
@@ -45,8 +48,11 @@ export const useProtectedAppsByCluster = (): [
     DRPlacementControlKind[]
   >(getDRPlacementControlResourceObj());
 
-  const loaded = pavsLoaded && drpcsLoaded;
-  const loadError = pavsLoadError || drpcsLoadError;
+  const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
+    useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
+
+  const loaded = pavsLoaded && drpcsLoaded && drPoliciesLoaded;
+  const loadError = pavsLoadError || drpcsLoadError || drPoliciesLoadError;
 
   const clusterAppsMap = React.useMemo<ClusterAppsMap>(() => {
     const map: ClusterAppsMap = {};
@@ -58,6 +64,12 @@ export const useProtectedAppsByCluster = (): [
         if (name) drpcByName.set(name, drpc);
       });
 
+      const drPolicyByName = new Map<string, DRPolicyKind>();
+      drPolicies?.forEach((policy) => {
+        const name = policy.metadata?.name;
+        if (name) drPolicyByName.set(name, policy);
+      });
+
       pavs.forEach((pav) => {
         // Only process if it has a DR policy (protected)
         const drPolicyName = pav.status?.drInfo?.drpolicyRef?.name;
@@ -67,26 +79,45 @@ export const useProtectedAppsByCluster = (): [
 
         const appName = getApplicationName(pav);
         const appNamespace = pav.metadata?.namespace;
-        const phase = pav.status?.drInfo?.status?.phase;
+        const phase = pav.status?.drInfo?.status?.phase as Phase;
 
         const drpcName = pav.spec?.drpcRef?.name;
         const drpc = drpcName ? drpcByName.get(drpcName) : undefined;
+        const drPolicy = drPolicyByName.get(drPolicyName);
         const progression = drpc?.status?.progression;
-        const protectedCondition = drpc?.status?.conditions?.find(
-          (c) => c.type === DRPlacementControlConditionType.Protected
-        );
-        const hasProtectionError =
-          shouldShowProtectionError(protectedCondition);
+        const protectedCondition = getProtectedCondition(drpc);
         const volumeLastGroupSyncTime = drpc?.status?.lastGroupSyncTime;
+        const schedulingInterval = drPolicy?.spec?.schedulingInterval;
 
-        // Compute DR status using shared logic
-        const status = getEffectiveDRStatus(
-          phase,
-          progression,
-          hasProtectionError,
-          protectedCondition,
-          volumeLastGroupSyncTime
+        const volumeReplicationHealth = getReplicationHealth(
+          volumeLastGroupSyncTime,
+          schedulingInterval,
+          drPolicy ? getReplicationType(drPolicy) : undefined
         );
+
+        const kubeObjectSchedulingInterval =
+          drpc?.spec?.kubeObjectProtection?.captureInterval;
+        const kubeObjectReplicationHealth = kubeObjectSchedulingInterval
+          ? getReplicationHealth(
+              drpc?.status?.lastKubeObjectProtectionTime,
+              kubeObjectSchedulingInterval
+            )
+          : undefined;
+
+        const status = getDRStatus({
+          isCleanupRequired: isCleanupRequired(
+            drpc?.status?.phase,
+            drpc?.status?.progression
+          ),
+          phase,
+          volumeReplicationHealth,
+          kubeObjectReplicationHealth,
+          progression,
+          volumeLastGroupSyncTime,
+          protectedCondition,
+          schedulingInterval,
+          actionStartTime: drpc?.status?.actionStartTime,
+        });
 
         // Get the list of clusters this app is deployed to
         // Fallback strategy:
@@ -123,7 +154,7 @@ export const useProtectedAppsByCluster = (): [
     }
 
     return map;
-  }, [loaded, loadError, pavs, drpcs]);
+  }, [loaded, loadError, pavs, drpcs, drPolicies]);
 
   return React.useMemo(
     () => [clusterAppsMap, loaded, loadError],
