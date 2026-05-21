@@ -195,7 +195,8 @@ const canJumpToNextStep = (
           resourceProfile,
           getTotalCpu(nodes),
           getTotalMemoryInGiB(nodes),
-          osdAmount
+          osdAmount,
+          backingStorage.enableNFS
         ) &&
         isValidCapacityAutoScalingConfig(
           capacityAndNodes.capacityAutoScaling.enable,
