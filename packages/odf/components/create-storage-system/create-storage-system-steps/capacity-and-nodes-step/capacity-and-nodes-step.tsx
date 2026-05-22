@@ -444,6 +444,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   systemNamespace,
   infraType,
   isTNFEnabled,
+  enableNFS,
 }) => {
   const {
     capacity,
@@ -473,7 +474,13 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
 
   const validations = isTNFEnabled
     ? []
-    : capacityAndNodesValidate(nodes, state, isNoProvisioner, osdAmount);
+    : capacityAndNodesValidate(
+        nodes,
+        state,
+        isNoProvisioner,
+        osdAmount,
+        enableNFS
+      );
   const onProfileChange = React.useCallback(
     (profile) => onResourceProfileChange(dispatch)(profile),
     [dispatch]
@@ -528,6 +535,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
             selectedNodes={nodes}
             osdAmount={osdAmount}
             isTNFEnabled={isTNFEnabled}
+            enableNFS={enableNFS}
           />
           <EnableTaintNodes
             dispatch={dispatch}
@@ -573,4 +581,5 @@ type CapacityAndNodesProps = {
   infraType: InfraProviders;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   isTNFEnabled: boolean;
+  enableNFS: boolean;
 };

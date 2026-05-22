@@ -26,6 +26,8 @@ import {
   HOSTNAME_LABEL_KEY,
   LABEL_OPERATOR,
   MINIMUM_NODES,
+  NFS_RESOURCE_REQUIREMENTS,
+  NFS_S390X_CPU_REQUIREMENT,
   ocsTaint,
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
   S390X_CPU_ADJUSTMENTS,
@@ -131,7 +133,8 @@ export const getNodeArchitectureFromState = (
 export const getResourceProfileRequirements = (
   profile: ResourceProfile,
   osdAmount: number,
-  architecture?: string
+  architecture?: string,
+  enableNFS?: boolean
 ): { minCpu: number; minMem: number } => {
   let { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
 
@@ -148,6 +151,16 @@ export const getResourceProfileRequirements = (
     cpu += Math.ceil(extraOsds * osd.cpu);
     mem += Math.ceil(extraOsds * osd.mem);
   }
+
+  if (enableNFS) {
+    if (architecture === ARCHITECTURE_S390X) {
+      cpu += NFS_S390X_CPU_REQUIREMENT.minCpu;
+    } else {
+      cpu += NFS_RESOURCE_REQUIREMENTS.minCpu;
+    }
+    mem += NFS_RESOURCE_REQUIREMENTS.minMem;
+  }
+
   return { minCpu: cpu, minMem: mem };
 };
 
@@ -158,6 +171,7 @@ export const getResourceProfileRequirements = (
  * @param memory The amount of selected nodes' memory in GiB.
  * @param osdAmount The amount of OSD pods.
  * @param architecture The node architecture.
+ * @param enableNFS Whether NFS is enabled.
  * @returns boolean
  */
 export const isResourceProfileAllowed = (
@@ -165,12 +179,14 @@ export const isResourceProfileAllowed = (
   cpu: number,
   memory: number,
   osdAmount: number,
-  architecture?: string
+  architecture?: string,
+  enableNFS?: boolean
 ): boolean => {
   const { minCpu, minMem } = getResourceProfileRequirements(
     profile,
     osdAmount,
-    architecture
+    architecture,
+    enableNFS
   );
 
   return cpu >= minCpu && memory >= minMem;
