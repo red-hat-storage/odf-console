@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  ResourceYAMLEditor,
-  ResourceEventStream,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { ResourceEventStream } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -12,6 +9,7 @@ import {
   TabTitleText,
 } from '@patternfly/react-core';
 import { K8sResourceKind } from '../types';
+import { ResourceYAMLEditorWrapped } from '../yaml-editor';
 import './tabs.scss';
 
 export type TabPage = {
@@ -159,7 +157,7 @@ type WrappedProps = {
 };
 
 export const YAMLEditorWrapped: React.FC<WrappedProps> = ({ obj }) => (
-  <ResourceYAMLEditor initialResource={obj} />
+  <ResourceYAMLEditorWrapped initialResource={obj} />
 );
 
 export const EventStreamWrapped: React.FC<WrappedProps> = ({ obj }) => (
