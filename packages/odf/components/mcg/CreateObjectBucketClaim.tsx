@@ -277,8 +277,13 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   }, [replicationEnabled, dispatch]);
 
   const filterResource = React.useCallback(
-    (sc: StorageClassResourceKind) => isObjectSC(sc, odfNamespace),
-    [odfNamespace]
+    (sc: StorageClassResourceKind) => {
+      if (bucketType === BucketType.S3Vector) {
+        return sc?.provisioner === `${odfNamespace}.${NOOBAA_PROVISIONER}`;
+      }
+      return isObjectSC(sc, odfNamespace);
+    },
+    [odfNamespace, bucketType]
   );
 
   return (

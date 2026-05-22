@@ -16,7 +16,10 @@ import {
   DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
+  Label,
+  LabelGroup,
 } from '@patternfly/react-core';
+import { TagIcon } from '@patternfly/react-icons';
 import { S3VectorsContext, S3VectorsProvider } from '../s3-vectors-context';
 
 const VectorIndexDetails: React.FC<{}> = () => {
@@ -35,7 +38,19 @@ const VectorIndexDetails: React.FC<{}> = () => {
   );
 
   const createdOn = data?.index?.creationTime?.toString() || DASH;
-
+  const metadatConfiguration =
+    data?.index?.metadataConfiguration?.nonFilterableMetadataKeys?.map(
+      (tag, index) => (
+        <Label
+          key={`metadata-key-${index}`}
+          className="pf-v6-u-mr-xs"
+          color="grey"
+          icon={<TagIcon />}
+        >
+          {tag}
+        </Label>
+      )
+    );
   return (
     <div className="odf-m-pane__body">
       <SectionHeading text={t('Index overview')} />
@@ -45,13 +60,39 @@ const VectorIndexDetails: React.FC<{}> = () => {
             <DescriptionListGroup>
               <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
               <DescriptionListDescription>
-                {indexName}
+                {data?.index?.indexName}
               </DescriptionListDescription>
             </DescriptionListGroup>
             <DescriptionListGroup>
               <DescriptionListTerm>{t('Created on')}</DescriptionListTerm>
               <DescriptionListDescription>
                 <Timestamp timestamp={createdOn} ignoreRelativeTime />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('DataType')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {data?.index?.dataType}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Dimension')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {data?.index?.dimension}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Distance metric')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {data?.index?.distanceMetric}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+              <DescriptionListTerm>
+                {t('Non-filterable metadata')}
+              </DescriptionListTerm>
+              <DescriptionListDescription>
+                <LabelGroup>{metadatConfiguration || DASH}</LabelGroup>
               </DescriptionListDescription>
             </DescriptionListGroup>
           </DescriptionList>
