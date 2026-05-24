@@ -149,7 +149,8 @@ const validateAdvancedSettingsStep = (
   advancedSettings: WizardState['advancedSettings'],
   type: BackingStorageType,
   nodeCount: number,
-  flexibleScaling: boolean
+  flexibleScaling: boolean,
+  isNoProvisioner: boolean
 ) => {
   const {
     useErasureCoding,
@@ -165,7 +166,7 @@ const validateAdvancedSettingsStep = (
 
   // The Next button is disabled only when no VolumeSnapshotClass is selected for MCG Standalone when automatic backup option enabled.
   const hasForcefulDeploymentButNoConfirmation =
-    type === BackingStorageType.LOCAL_DEVICES &&
+    (type === BackingStorageType.LOCAL_DEVICES || isNoProvisioner) &&
     enableForcefulDeployment &&
     !(forcefulDeploymentConfirmation?.trim() === 'CONFIRM');
 
@@ -277,7 +278,8 @@ const canJumpToNextStep = (
         advancedSettings,
         backingStorage.type,
         nodes.length,
-        flexibleScaling
+        flexibleScaling,
+        isNoProvisioner
       );
     case StepsName(t)[Steps.CreateStorageClass]:
       return (
