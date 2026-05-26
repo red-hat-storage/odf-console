@@ -310,7 +310,7 @@ export const useHealthAlerts = (): [AlertRowData[], boolean, any] => {
     const escapeRegex = (name: string) =>
       name.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     const regex = Array.from(allowedAlertNames).map(escapeRegex).join('|');
-    return `ALERTS{alertname=~"${regex}"}`;
+    return `ALERTS{alertname=~"${regex}",alertstate="firing"}`;
   }, [allowedAlertNames]);
 
   const [historicalResponse, historicalError, historicalLoading] =
@@ -327,10 +327,12 @@ export const useHealthAlerts = (): [AlertRowData[], boolean, any] => {
     if (!allowedAlertNames.size) {
       return [];
     }
-    const filteredActiveAlerts = (activeAlerts || []).filter((alert) =>
-      allowedAlertNames.has(
-        alert.labels?.alertname || (alert as any)?.rule?.name
-      )
+    const filteredActiveAlerts = (activeAlerts || []).filter(
+      (alert) =>
+        alert.state === 'firing' &&
+        allowedAlertNames.has(
+          alert.labels?.alertname || (alert as any)?.rule?.name
+        )
     );
     const activeAlertKeys = new Set(
       filteredActiveAlerts.map((alert) =>
