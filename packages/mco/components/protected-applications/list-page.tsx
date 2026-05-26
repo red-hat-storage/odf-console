@@ -6,7 +6,11 @@ import {
   getPAVDRPolicyName,
   getPrimaryCluster,
 } from '@odf/mco/utils';
-import { DRPlacementControlModel, getNamespace } from '@odf/shared';
+import {
+  DRPlacementControlModel,
+  getNamespace,
+  useModalWrapper,
+} from '@odf/shared';
 import { DASH } from '@odf/shared/constants';
 import { PaginatedListPage } from '@odf/shared/list-page';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
@@ -15,7 +19,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   useK8sWatchResource,
   useListPageFilter,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import {
@@ -144,7 +147,7 @@ const ProtectedAppsTableRow: React.FC<
 
 export const ProtectedApplicationsListPage: React.FC = () => {
   const { t } = useCustomTranslation();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
   const navigate = useNavigate();
 
   const [pavs, pavsLoaded, pavsError] = useK8sWatchResource<

@@ -30,7 +30,7 @@ import {
   K8sResourceObj,
 } from '@odf/core/types';
 import { getResourceInNs } from '@odf/core/utils';
-import { CephFileSystemModel } from '@odf/shared';
+import { CephFileSystemModel, useModalWrapper } from '@odf/shared';
 import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
@@ -61,7 +61,6 @@ import { getInfrastructurePlatform, isNotFoundError } from '@odf/shared/utils';
 import {
   ProvisionerProps,
   useK8sWatchResource,
-  useModal,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -313,7 +312,7 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
   // reference of "onParamChange" changes on each re-render, hence storing in a "useRef"
   onParamChangeRef.current = onParamChange;
 
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   const [isOpen, setOpen] = React.useState(false);
 
@@ -447,7 +446,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   // reference of "onParamChange" changes on each re-render, hence storing in a "useRef"
   onParamChangeRef.current = onParamChange;
 
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
 
   const [cephClusters, cephClustersLoaded, cephClustersLoadError] =
     useK8sWatchResource<CephClusterKind[]>(cephClusterResource);

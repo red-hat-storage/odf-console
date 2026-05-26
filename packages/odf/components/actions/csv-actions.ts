@@ -12,6 +12,7 @@ import {
   StorageClusterKind,
   useFetchCsv,
   useK8sGet,
+  useModalWrapper,
 } from '@odf/shared';
 import {
   InfrastructureModel,
@@ -32,7 +33,6 @@ import {
   useFlag,
   useK8sModel,
   useK8sWatchResource,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { PROVIDER_MODE } from '../../features';
@@ -46,7 +46,7 @@ export const useCsvActions = ({
   const [k8sModel, inFlight] = useK8sModel(
     referenceFor(group)(version)(resource.kind)
   );
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   const isProviderMode = useFlag(PROVIDER_MODE);
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,

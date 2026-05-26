@@ -6,9 +6,11 @@ import { storageClusterResource } from '@odf/core/resources';
 import {
   DEFAULT_INFRASTRUCTURE,
   InfrastructureKind,
+  ListPageFilterWrapper,
   StorageClusterKind,
   useFetchCsv,
   useK8sGet,
+  useModalWrapper,
 } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
@@ -45,7 +47,6 @@ import {
 import {
   K8sModel,
   ListPageBody,
-  ListPageFilter,
   ListPageHeader,
   PrometheusEndpoint,
   PrometheusResponse,
@@ -56,7 +57,6 @@ import {
   useFlag,
   useK8sWatchResource,
   useListPageFilter,
-  useModal,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
@@ -521,7 +521,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
 export const StorageSystemListPage: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   const isFDF = useFlag(FDF_FLAG);
 
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
@@ -704,7 +704,7 @@ export const StorageSystemListPage: React.FC = () => {
         )}
       </ListPageHeader>
       <ListPageBody>
-        <ListPageFilter
+        <ListPageFilterWrapper
           data={data}
           loaded={loaded && isODFNsLoaded}
           onFilterChange={onFilterChange}

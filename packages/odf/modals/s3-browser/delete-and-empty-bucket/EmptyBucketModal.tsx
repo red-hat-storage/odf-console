@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { DeleteObjectsCommandOutput } from '@aws-sdk/client-s3';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
+import { useModalWrapper } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { Trans, useTranslation } from 'react-i18next';
@@ -206,7 +206,7 @@ export const EmptyBucketAlerts: React.FC<EmptyBucketAlertProps> = ({
 }) => {
   const { s3Client } = React.useContext(S3Context);
   const { t } = useTranslation();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   if (emptyBucketResponse.response === null) return null;
 

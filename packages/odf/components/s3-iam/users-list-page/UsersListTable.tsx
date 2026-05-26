@@ -5,6 +5,7 @@ import {
 } from '@odf/core/constants/s3-iam';
 import { IamUserCrFormat } from '@odf/core/types';
 import { DASH } from '@odf/shared';
+import { useModalWrapper } from '@odf/shared';
 import { useUserSettingsLocalStorage } from '@odf/shared/hooks/useUserSettingsLocalStorage';
 import { IamCommands } from '@odf/shared/iam';
 import {
@@ -13,7 +14,6 @@ import {
 } from '@odf/shared/table/composable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
@@ -172,7 +172,7 @@ export const UsersListTable: React.FC<UsersListTableProps> = ({
     true,
     []
   );
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   return (
     <ComposableTable

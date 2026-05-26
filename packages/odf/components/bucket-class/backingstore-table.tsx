@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
-import { NooBaaBackingStoreModel } from '@odf/shared';
+import { ListPageFilterWrapper, NooBaaBackingStoreModel } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useSelectList } from '@odf/shared/hooks/select-list';
 import { getName, getNamespace, getUID } from '@odf/shared/selectors';
@@ -9,7 +9,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   ListPageBody,
-  ListPageFilter,
   ResourceLink,
   RowProps,
   TableColumn,
@@ -201,7 +200,7 @@ const BackingStoreListWrapper: React.FC<BackingStoreListWrapperProps> = ({
 
   return (
     <ListPageBody>
-      <ListPageFilter
+      <ListPageFilterWrapper
         data={data}
         loaded={loaded && isODFNsLoaded}
         onFilterChange={onFilterChange}
