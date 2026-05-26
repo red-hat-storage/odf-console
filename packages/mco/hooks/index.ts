@@ -7,3 +7,4 @@ export * from './subscription';
 export * from './useProtectedAppsByCluster';
 export * from './useDRPoliciesByClusterPair';
 export * from './useActiveDROperations';
+export * from './use-ramen-config';

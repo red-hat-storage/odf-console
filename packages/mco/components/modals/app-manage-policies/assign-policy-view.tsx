@@ -115,6 +115,7 @@ export const createSteps = ({
           isSharedVMProtection={
             state.protectionType.protectionType === VMProtectionType.SHARED
           }
+          retainNamespaceSCC={state.replication.retainNamespaceSCC}
         />
       ),
     },

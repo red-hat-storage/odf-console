@@ -196,4 +196,5 @@ export type S3StoreProfile = {
 
 export type RamenConfig = {
   s3StoreProfiles: S3StoreProfile[];
+  retainNamespaceSCCAcrossPeers?: boolean;
 };
