@@ -8,7 +8,9 @@ import {
   ClusterVersionModel,
   getName,
   Kebab,
+  ListPageFilterWrapper,
   StorageConsumerModel,
+  useModalWrapper,
 } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants/common';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
@@ -21,7 +23,6 @@ import { referenceForModel } from '@odf/shared/utils/common';
 import {
   K8sResourceKind,
   ListPageBody,
-  ListPageFilter,
   ListPageHeader,
   RedExclamationCircleIcon,
   RowProps,
@@ -33,7 +34,6 @@ import {
   useActiveColumns,
   useK8sWatchResource,
   useListPageFilter,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import * as _ from 'lodash-es';
@@ -416,7 +416,7 @@ type ClientListPageProps = {
 
 export const ClientListPage: React.FC<ClientListPageProps> = () => {
   const { t } = useCustomTranslation();
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   const [storageClients, loaded, loadError] = useK8sWatchResource<
     StorageConsumerKind[]
   >({
@@ -476,7 +476,7 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
         </Button>
       </ListPageHeader>
       <ListPageBody>
-        <ListPageFilter
+        <ListPageFilterWrapper
           data={data}
           loaded={loaded && csvLoaded && cvLoaded}
           onFilterChange={onFilterChange}

@@ -10,6 +10,7 @@ import {
   queryNamespacesUsingCluster,
   convertSearchResultToK8sResourceCommon,
 } from '@odf/mco/utils';
+import { ListPageFilterWrapper } from '@odf/shared';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { getAnnotations, getName } from '@odf/shared/selectors';
@@ -23,7 +24,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isSystemNamespace, sortRows } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
-  ListPageFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
@@ -189,7 +189,7 @@ export const NamespaceSelectionTable: React.FC<
         </Content>
       </GridItem>
       <GridItem span={10}>
-        <ListPageFilter
+        <ListPageFilterWrapper
           data={data}
           loaded={searchLoaded}
           onFilterChange={onFilterChange}

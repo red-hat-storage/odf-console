@@ -5,17 +5,16 @@ import {
   EmptyBucketResponse,
 } from '@odf/core/modals/s3-browser/delete-and-empty-bucket/EmptyBucketModal';
 import { S3ProviderType } from '@odf/core/types';
+import { ListPageFilterWrapper, useModalWrapper } from '@odf/shared';
 import { useRefresh } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidFilteredData } from '@odf/shared/utils';
 import {
   ListPageBody,
   ListPageCreateLink,
-  ListPageFilter,
   ListPageHeader,
   useListPageFilter,
   useFlag,
-  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'react-i18next';
@@ -119,7 +118,7 @@ const BucketsListPageBody: React.FC<BucketsListPageBodyProps> = ({
       <Flex className="pf-v6-u-mt-md">
         <Flex flex={{ default: 'flex_1' }}>
           <FlexItem className="pf-v6-u-mr-md">
-            <ListPageFilter
+            <ListPageFilterWrapper
               loaded={true}
               hideLabelFilter={true}
               nameFilterPlaceholder={t('Search a bucket by name')}
@@ -167,7 +166,7 @@ const BucketsListPageContent: React.FC = () => {
 
   const isAdmin = useFlag(ODF_ADMIN);
   const { s3Client, logout, setSecretRef } = React.useContext(S3Context);
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const providerType = s3Client.providerType as S3ProviderType;
 

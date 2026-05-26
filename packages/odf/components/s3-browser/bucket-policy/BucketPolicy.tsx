@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import { BUCKET_POLICY_CACHE_KEY_SUFFIX } from '@odf/core/constants';
+import { useModalWrapper } from '@odf/shared';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWRMutation from 'swr/mutation';
 import { CodeEditor, Language } from '@patternfly/react-code-editor';
@@ -207,7 +207,7 @@ const PolicyFooter: React.FC<PolicyFooterProps> = ({
   setSuccess,
 }) => {
   const { t } = useCustomTranslation();
-  const launcher = useModal();
+  const launcher = useModalWrapper();
 
   const launchDeleteModal = () =>
     launcher(DeleteBucketPolicyModal, {

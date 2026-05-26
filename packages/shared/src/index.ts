@@ -36,3 +36,5 @@ export * from './file-handling';
 export * from './text-inputs';
 export * from './label-expression-selector';
 export * from './empty-state-page';
+export * from './error-boundary/ErrorBoundary';
+export * from './sdk-wrapper';

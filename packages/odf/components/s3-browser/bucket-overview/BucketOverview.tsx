@@ -10,6 +10,7 @@ import {
   LazyDeleteBucketModal,
 } from '@odf/core/modals/s3-browser/delete-and-empty-bucket/lazy-delete-and-empty-bucket';
 import { S3ProviderType } from '@odf/core/types';
+import { useModalWrapper } from '@odf/shared';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useRefresh } from '@odf/shared/hooks';
 import { ModalKeys, defaultModalMap } from '@odf/shared/modals/types';
@@ -20,7 +21,6 @@ import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
-  useModal,
   K8sResourceCommon,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -143,7 +143,7 @@ const createBucketActions = (
   fresh: boolean,
   triggerRefresh: () => void,
   foldersPath: string | null,
-  launcher: ReturnType<typeof useModal>,
+  launcher: ReturnType<typeof useModalWrapper>,
   navigate: NavigateFunction,
   bucketName: string,
   allowResourceEditing: boolean,
@@ -189,7 +189,7 @@ const BucketOverview: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const [fresh, triggerRefresh] = useRefresh();
 
-  const launcher = useModal();
+  const launcher = useModalWrapper();
   const navigate = useNavigate();
 
   const { bucketName } = useParams();

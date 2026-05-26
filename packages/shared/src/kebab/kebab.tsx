@@ -1,10 +1,7 @@
 import * as React from 'react';
 import { useCallback, useEffect } from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
-import {
-  K8sResourceCommon,
-  useModal,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
@@ -20,6 +17,7 @@ import {
 import { EllipsisVIcon } from '@patternfly/react-icons';
 import { useAccessReview } from '../hooks/rbac-hook';
 import { ModalKeys, defaultModalMap } from '../modals/types';
+import { useModalWrapper } from '../sdk-wrapper/useModalWrapper';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
 
@@ -147,7 +145,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   'data-test': dataTestId,
 }) => {
   const { t } = useCustomTranslation();
-  const launchModal = useModal();
+  const launchModal = useModalWrapper();
   const eventRef = React.useRef(undefined);
   const dropdownRef = React.useRef();
   const dropdownToggleRef = React.useRef();
