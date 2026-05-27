@@ -21,6 +21,7 @@ export enum EnrollDiscoveredApplicationStateType {
   SET_PVC_LABEL_EXPRESSIONS = 'CONFIGURATION/RESOURCE_LABEL/SET_PVC_LABEL_EXPRESSIONS',
   SET_POLICY = 'REPLICATION/SET_POLICY',
   SET_K8S_RESOURCE_REPLICATION_INTERVAL = 'REPLICATION/SET_K8S_RESOURCE_REPLICATION_INTERVAL',
+  SET_RETAIN_NAMESPACE_SCC = 'REPLICATION/SET_RETAIN_NAMESPACE_SCC',
   SET_NAME = 'NAMESPACE/SET_NAME',
 }
 
@@ -51,6 +52,7 @@ export type EnrollDiscoveredApplicationState = {
   replication: {
     drPolicy: DRPolicyKind;
     k8sResourceReplicationInterval: string;
+    retainNamespaceSCC: boolean;
   };
 };
 
@@ -82,6 +84,7 @@ export const initialState: EnrollDiscoveredApplicationState = {
   replication: {
     drPolicy: {},
     k8sResourceReplicationInterval: '5m',
+    retainNamespaceSCC: false,
   },
 };
 
@@ -122,6 +125,10 @@ export type EnrollDiscoveredApplicationAction =
   | {
       type: EnrollDiscoveredApplicationStateType.SET_K8S_RESOURCE_REPLICATION_INTERVAL;
       payload: string;
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_RETAIN_NAMESPACE_SCC;
+      payload: boolean;
     }
   | {
       type: EnrollDiscoveredApplicationStateType.SET_NAME;
@@ -233,6 +240,15 @@ export const reducer: EnrollReducer = (state, action) => {
         replication: {
           ...state.replication,
           k8sResourceReplicationInterval: action.payload,
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_RETAIN_NAMESPACE_SCC: {
+      return {
+        ...state,
+        replication: {
+          ...state.replication,
+          retainNamespaceSCC: action.payload,
         },
       };
     }

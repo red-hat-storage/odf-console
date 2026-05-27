@@ -26,6 +26,7 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICY_FOR_REPLICATION = 'SET_SELECTED_POLICY_FOR_REPLICATION',
   SET_K8S_SYNC_INTERVAL = 'SET_K8S_SYNC_INTERVAL',
   SET_SHARED_VM_GROUP_INFO = 'SET_SHARED_VM_GROUP_INFO',
+  SET_RETAIN_NAMESPACE_SCC = 'SET_RETAIN_NAMESPACE_SCC',
 }
 
 export type PVCSelectorType = {
@@ -47,6 +48,7 @@ export type AssignPolicyViewState = {
   replication?: {
     policy: DRPolicyType;
     k8sSyncInterval: string;
+    retainNamespaceSCC: boolean;
   };
 };
 
@@ -72,6 +74,7 @@ export const initialPolicyState: ManagePolicyState = {
     replication: {
       policy: undefined,
       k8sSyncInterval: '5m',
+      retainNamespaceSCC: false,
     },
   },
 };
@@ -128,6 +131,11 @@ export type ManagePolicyStateAction =
         k8sSyncInterval: string;
         sharedVMGroup: string[];
       };
+    }
+  | {
+      type: ManagePolicyStateType.SET_RETAIN_NAMESPACE_SCC;
+      context: ModalViewContext;
+      payload: boolean;
     };
 
 export const managePolicyStateReducer = (
@@ -242,6 +250,18 @@ export const managePolicyStateReducer = (
             ...state[action.context]['protectionType'],
             protectionName: protectionName,
             protectedVMNames: sharedVMGroup,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_RETAIN_NAMESPACE_SCC: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          replication: {
+            ...state[action.context]['replication'],
+            retainNamespaceSCC: action.payload,
           },
         },
       };
