@@ -65,7 +65,8 @@ export const getManagedDRPCKindObj = (
   drClusterNames: string[],
   decisionClusters: string[],
   pvcSelectors: string[],
-  annotations?: ObjectMetadata['annotations']
+  annotations?: ObjectMetadata['annotations'],
+  retainNamespaceSCC?: boolean
 ): DRPlacementControlKind => ({
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
   kind: DRPlacementControlModel.kind,
@@ -90,6 +91,7 @@ export const getManagedDRPCKindObj = (
     pvcSelector: {
       matchExpressions: convertLabelToExpression(pvcSelectors),
     },
+    ...(retainNamespaceSCC === true && { retainNamespaceSCC: true }),
   },
 });
 
@@ -323,8 +325,9 @@ export const assignPromisesForManaged = async (
   state: AssignPolicyViewState,
   placements: PlacementType[]
 ): Promise<void> => {
-  const { policy, persistentVolumeClaim } = state;
+  const { policy, persistentVolumeClaim, replication } = state;
   const { pvcSelectors } = persistentVolumeClaim;
+  const { retainNamespaceSCC } = replication;
 
   const promises: Promise<K8sResourceKind>[] = [];
 
@@ -351,7 +354,9 @@ export const assignPromisesForManaged = async (
           getName(policy),
           policy.drClusters,
           placement.deploymentClusters,
-          labels
+          labels,
+          undefined,
+          retainNamespaceSCC
         ),
       })
     );
@@ -469,7 +474,7 @@ export const assignPromisesForDiscovered = async (
 ): Promise<void> => {
   const {
     protectionType: { protectionName, protectionType, protectedVMNames },
-    replication: { k8sSyncInterval, policy },
+    replication: { k8sSyncInterval, policy, retainNamespaceSCC },
   } = state;
   const drpcName = `${protectionName}-drpc`;
   const clusterName = placements[0]?.deploymentClusters?.[0];
@@ -500,6 +505,7 @@ export const assignPromisesForDiscovered = async (
           recipeNamespace: DISCOVERED_APP_NS,
           drPolicyName: getName(policy),
           k8sResourceReplicationInterval: k8sSyncInterval,
+          retainNamespaceSCC,
           placementName,
           pvcLabelExpressions: [],
           recipeParameters: {
