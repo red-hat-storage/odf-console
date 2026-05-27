@@ -75,6 +75,8 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     //  A list of namespaces that are protected by the DRPC.
     //  N/A for the managed  applications.
     protectedNamespaces?: string[];
+    // Whether to retain namespace SCC annotations across peers.
+    retainNamespaceSCC?: boolean;
   };
   status?: {
     // The time of the most recent successful kube object protection
@@ -196,4 +198,5 @@ export type S3StoreProfile = {
 
 export type RamenConfig = {
   s3StoreProfiles: S3StoreProfile[];
+  retainNamespaceSCCAcrossPeers?: boolean;
 };

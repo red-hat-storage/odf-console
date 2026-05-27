@@ -4,3 +4,4 @@ export * from './mco-resources';
 export * from './protected-applications';
 export * from './acm-safe-fetch';
 export * from './subscription';
+export * from './use-ramen-config';
