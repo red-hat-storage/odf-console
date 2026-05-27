@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { NamespaceSCCCheckbox } from '@odf/mco/components/discovered-application-wizard/wizard-steps/replication-step/replication-selection-helper';
 import { ReplicationType } from '@odf/mco/constants';
+import { useRamenConfig } from '@odf/mco/hooks';
 import { getDRPolicyStatus } from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { getName } from '@odf/shared/selectors';
@@ -51,10 +53,28 @@ export const findPolicy = (name: string, dataPolicies: DRPolicyType[]) =>
 
 export const SelectPolicyWizardContent: React.FC<
   SelectPolicyWizardContentProps
-> = ({ policy, matchingPolicies, isValidationEnabled, dispatch }) => {
+> = ({
+  policy,
+  matchingPolicies,
+  isValidationEnabled,
+  retainNamespaceSCC,
+  dispatch,
+}) => {
   const { t } = useCustomTranslation();
   const name = getName(policy);
   const isInvalidPolicy = isValidationEnabled && !name;
+
+  const [ramenConfig] = useRamenConfig();
+  const retainNamespaceSCCAcrossPeers =
+    ramenConfig?.retainNamespaceSCCAcrossPeers;
+
+  const onRetainNamespaceSCCChange = (checked: boolean) =>
+    dispatch({
+      type: ManagePolicyStateType.SET_RETAIN_NAMESPACE_SCC,
+      context: ModalViewContext.ASSIGN_POLICY_VIEW,
+      payload: checked,
+    });
+
   return (
     <Form className="mco-manage-policies__form--width">
       <FormGroup
@@ -95,6 +115,11 @@ export const SelectPolicyWizardContent: React.FC<
           </HelperText>
         </FormHelperText>
       </FormGroup>
+      <NamespaceSCCCheckbox
+        retainNamespaceSCCAcrossPeers={retainNamespaceSCCAcrossPeers}
+        retainNamespaceSCC={retainNamespaceSCC}
+        onRetainNamespaceSCCChange={onRetainNamespaceSCCChange}
+      />
     </Form>
   );
 };
@@ -103,5 +128,6 @@ type SelectPolicyWizardContentProps = {
   policy: DRPolicyType;
   matchingPolicies: DRPolicyType[];
   isValidationEnabled: boolean;
+  retainNamespaceSCC: boolean;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
 };
