@@ -3,6 +3,7 @@ import {
   PolicyInfo,
   ReplicationSelectionHelper,
 } from '@odf/mco/components/discovered-application-wizard/wizard-steps/replication-step/replication-selection-helper';
+import { useRamenConfig } from '@odf/mco/hooks';
 import { getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
 import {
@@ -33,7 +34,12 @@ export const ReplicationTypeWizardContent: React.FC<
   isValidationEnabled,
   dispatch,
   isSharedVMProtection,
+  retainNamespaceSCC,
 }) => {
+  const [ramenConfig] = useRamenConfig();
+  const retainNamespaceSCCAcrossPeers =
+    ramenConfig?.retainNamespaceSCCAcrossPeers;
+
   // Convert all policies to PolicyInfoBase before filtering
   const convertedPolicies = matchingPolicies.map(convertToPolicyInfo);
 
@@ -53,6 +59,14 @@ export const ReplicationTypeWizardContent: React.FC<
     });
   };
 
+  const setRetainNamespaceSCC = (checked: boolean) => {
+    dispatch({
+      type: ManagePolicyStateType.SET_RETAIN_NAMESPACE_SCC,
+      context: ModalViewContext.ASSIGN_POLICY_VIEW,
+      payload: checked,
+    });
+  };
+
   return (
     <ReplicationSelectionHelper
       policy={convertToPolicyInfo(policy)}
@@ -62,6 +76,9 @@ export const ReplicationTypeWizardContent: React.FC<
       onK8sSyncIntervalChange={setK8sSyncInterval}
       onPolicyChange={setSelectedPolicy}
       isDisable={isSharedVMProtection}
+      retainNamespaceSCCAcrossPeers={retainNamespaceSCCAcrossPeers}
+      retainNamespaceSCC={retainNamespaceSCC}
+      onRetainNamespaceSCCChange={setRetainNamespaceSCC}
     />
   );
 };
@@ -73,4 +90,5 @@ type ReplicationTypeWizardContentProps = {
   isValidationEnabled: boolean;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
   isSharedVMProtection: boolean;
+  retainNamespaceSCC: boolean;
 };
