@@ -48,6 +48,7 @@ export const getDRPCKindObj = (props: {
   k8sResourceLabelExpressions?: MatchExpression[];
   pvcLabelExpressions?: MatchExpression[];
   placementName: string;
+  retainNamespaceSCC?: boolean;
   labels?: ObjectMetadata['labels'];
   annotations?: ObjectMetadata['annotations'];
 }): DRPlacementControlKind => ({
@@ -62,6 +63,9 @@ export const getDRPCKindObj = (props: {
   spec: {
     preferredCluster: props.preferredCluster,
     protectedNamespaces: props.namespaces,
+    ...(props.retainNamespaceSCC === true && {
+      retainNamespaceSCC: true,
+    }),
     pvcSelector: !!props.pvcLabelExpressions.length
       ? {
           matchExpressions: props.pvcLabelExpressions,
@@ -123,7 +127,8 @@ export const createPromise = (
   const { protectionMethod, recipe, resourceLabels } = configuration;
   const { recipeName, recipeNamespace, recipeParameters } = recipe;
   const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
-  const { drPolicy, k8sResourceReplicationInterval } = replication;
+  const { drPolicy, k8sResourceReplicationInterval, retainNamespaceSCC } =
+    replication;
   const namespaceList = namespaces.map(getName);
   // Placement naming format is similar to the ACM console.
   // Using the same postfix will prevent the UI from creating multiple placement for the same app.
@@ -152,6 +157,7 @@ export const createPromise = (
         pvcLabelExpressions,
         drPolicyName: getName(drPolicy),
         k8sResourceReplicationInterval,
+        retainNamespaceSCC,
         placementName,
       }),
     })

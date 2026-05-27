@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useRamenConfig } from '@odf/mco/hooks';
 import { DRPolicyKind } from '@odf/mco/types';
 import { isDRPolicyValidated } from '@odf/mco/utils';
 import { DRPolicyModel } from '@odf/shared';
@@ -34,10 +35,15 @@ export const ReplicationSelection: React.FC<ReplicationSelectionProps> = ({
   dispatch,
 }) => {
   const { clusterName } = state.namespace;
-  const { drPolicy, k8sResourceReplicationInterval } = state.replication;
+  const { drPolicy, k8sResourceReplicationInterval, retainNamespaceSCC } =
+    state.replication;
 
   const [drPolicies, loaded, loadError] =
     useK8sList<DRPolicyKind>(DRPolicyModel);
+
+  const [ramenConfig] = useRamenConfig();
+  const retainNamespaceSCCAcrossPeers =
+    ramenConfig?.retainNamespaceSCCAcrossPeers;
 
   // Filtering policies using cluster name
   const eligiblePolicies = React.useMemo(() => {
@@ -66,6 +72,13 @@ export const ReplicationSelection: React.FC<ReplicationSelectionProps> = ({
     });
   };
 
+  const setRetainNamespaceSCC = (checked: boolean) => {
+    dispatch({
+      type: EnrollDiscoveredApplicationStateType.SET_RETAIN_NAMESPACE_SCC,
+      payload: checked,
+    });
+  };
+
   return loaded && !loadError ? (
     <ReplicationSelectionHelper
       policy={convertToPolicyInfo(drPolicy)}
@@ -74,6 +87,9 @@ export const ReplicationSelection: React.FC<ReplicationSelectionProps> = ({
       isValidationEnabled={isValidationEnabled}
       onK8sSyncIntervalChange={setK8sSyncInterval}
       onPolicyChange={setSelectedPolicy}
+      retainNamespaceSCCAcrossPeers={retainNamespaceSCCAcrossPeers}
+      retainNamespaceSCC={retainNamespaceSCC}
+      onRetainNamespaceSCCChange={setRetainNamespaceSCC}
     />
   ) : (
     <StatusBox loaded={loaded} loadError={loadError} />

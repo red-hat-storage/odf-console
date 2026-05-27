@@ -60,6 +60,7 @@ export const createSteps = ({
           matchingPolicies={matchingPolicies}
           policy={state.policy}
           isValidationEnabled={isValidationEnabled}
+          retainNamespaceSCC={state.replication.retainNamespaceSCC}
           dispatch={dispatch}
         />
       ),
@@ -115,6 +116,7 @@ export const createSteps = ({
           isSharedVMProtection={
             state.protectionType.protectionType === VMProtectionType.SHARED
           }
+          retainNamespaceSCC={state.replication.retainNamespaceSCC}
         />
       ),
     },
