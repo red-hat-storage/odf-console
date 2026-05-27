@@ -25,7 +25,52 @@ import {
   Text,
   TextVariants,
   SelectOption,
+  Checkbox,
+  Alert,
+  AlertVariant,
 } from '@patternfly/react-core';
+
+export const NamespaceSCCCheckbox: React.FC<NamespaceSCCCheckboxProps> = ({
+  retainNamespaceSCCAcrossPeers,
+  retainNamespaceSCC,
+  onRetainNamespaceSCCChange,
+}) => {
+  const { t } = useCustomTranslation();
+  return (
+    <>
+      <Checkbox
+        id="namespace-scc"
+        label={t(
+          'Use same Namespace Security Context Constraints (SCC) across peers'
+        )}
+        description={t(
+          'A Namespace with same SELinux/Annotations is automatically created on the destination cluster when the application is enrolled'
+        )}
+        isChecked={retainNamespaceSCC}
+        onChange={(_event, checked) => onRetainNamespaceSCCChange(checked)}
+        isDisabled={!retainNamespaceSCCAcrossPeers}
+      />
+      {!retainNamespaceSCCAcrossPeers && (
+        <Alert
+          className="odf-alert pf-v6-u-mt-sm"
+          title={t('This option requires a configuration flag to be enabled')}
+          variant={AlertVariant.info}
+          isInline
+        >
+          {t(
+            'Enable the `retainNamespaceSCCAcrossPeers` flag in the RamenConfig to automatically create namespaces with matching security context constraints (SCC) across peer clusters.'
+          )}
+        </Alert>
+      )}
+    </>
+  );
+};
+
+type NamespaceSCCCheckboxProps = {
+  retainNamespaceSCCAcrossPeers: boolean;
+  retainNamespaceSCC: boolean;
+  onRetainNamespaceSCCChange: (checked: boolean) => void;
+};
 
 // Get Policy Dropdown Options
 const getPolicyOptions = (policies: PolicyInfo[], t: TFunction) =>
@@ -118,6 +163,9 @@ export const ReplicationSelectionHelper: React.FC<
   onK8sSyncIntervalChange,
   onPolicyChange,
   isDisable,
+  retainNamespaceSCCAcrossPeers,
+  retainNamespaceSCC,
+  onRetainNamespaceSCCChange,
 }) => {
   const { t } = useCustomTranslation();
   const SyncScheduleFormat = SYNC_SCHEDULE_DISPLAY_TEXT(t);
@@ -165,6 +213,11 @@ export const ReplicationSelectionHelper: React.FC<
             isInputDisabled={isDisable}
           />
         </FormGroup>
+        <NamespaceSCCCheckbox
+          retainNamespaceSCCAcrossPeers={retainNamespaceSCCAcrossPeers}
+          retainNamespaceSCC={retainNamespaceSCC}
+          onRetainNamespaceSCCChange={onRetainNamespaceSCCChange}
+        />
       </FormSection>
     </Form>
   );
@@ -187,6 +240,9 @@ type ReplicationSelectionHelperProps = {
   onPolicyChange: (policyName: string) => void;
   onK8sSyncIntervalChange: (syncInterval: string) => void;
   isDisable?: boolean;
+  retainNamespaceSCCAcrossPeers: boolean;
+  retainNamespaceSCC: boolean;
+  onRetainNamespaceSCCChange: (checked: boolean) => void;
 };
 
 type PolicySelectionProps = {
