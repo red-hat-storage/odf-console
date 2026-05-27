@@ -1,6 +1,6 @@
 .mco-manage-policies {
     &__form--width {
-        width: 50%;
+        width: fit-content;
     }
     &__nameValue--weight {
         font-weight: var(--pf-t--global--font--weight--body--bold)
