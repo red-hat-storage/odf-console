@@ -43,7 +43,8 @@ import './configure-performance-modal.scss';
 const getValidation = (
   profile: ResourceProfile,
   nodes: WizardNodeState[],
-  osdAmount: number
+  osdAmount: number,
+  enableNFS?: boolean
 ): ValidationType => {
   if (!profile) {
     return null;
@@ -53,7 +54,8 @@ const getValidation = (
     profile,
     getTotalCpu(nodes),
     getTotalMemoryInGiB(nodes),
-    osdAmount
+    osdAmount,
+    enableNFS
   )
     ? null
     : ValidationType.RESOURCE_PROFILE;
@@ -62,14 +64,16 @@ const getValidation = (
 type ProfileRequirementsModalTextProps = {
   selectedProfile: ResourceProfile;
   osdAmount: number;
+  enableNFS?: boolean;
 };
 
 const ProfileRequirementsModalText: React.FC<ProfileRequirementsModalTextProps> =
-  ({ selectedProfile, osdAmount }) => {
+  ({ selectedProfile, osdAmount, enableNFS }) => {
     const { t } = useCustomTranslation();
     const { minCpu, minMem } = getResourceProfileRequirements(
       selectedProfile,
-      osdAmount
+      osdAmount,
+      enableNFS
     );
     return (
       <TextContent>
@@ -125,20 +129,25 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
     )
     .reduce((accumulator: number, current: number) => accumulator + current);
 
+  const enableNFS = storageCluster?.spec?.nfs?.enable || false;
   const onProfileChange = React.useCallback(
     (newProfile: ResourceProfile): void => {
       setResourceProfile(newProfile);
-      setValidation(getValidation(newProfile, selectedNodes, osdAmount));
+      setValidation(
+        getValidation(newProfile, selectedNodes, osdAmount, enableNFS)
+      );
     },
-    [selectedNodes, osdAmount]
+    [selectedNodes, osdAmount, enableNFS]
   );
   const onRowSelected = React.useCallback(
     (newNodes: NodeData[]) => {
       const nodes = createWizardNodeState(newNodes);
       setSelectedNodes(nodes);
-      setValidation(getValidation(resourceProfile, nodes, osdAmount));
+      setValidation(
+        getValidation(resourceProfile, nodes, osdAmount, enableNFS)
+      );
     },
-    [resourceProfile, osdAmount]
+    [resourceProfile, osdAmount, enableNFS]
   );
 
   const submit = async (event: React.FormEvent<EventTarget>): Promise<void> => {
@@ -189,6 +198,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
           profileRequirementsText={ProfileRequirementsModalText}
           selectedNodes={selectedNodes}
           osdAmount={osdAmount}
+          enableNFS={enableNFS}
         />
         <SelectNodesTable
           nodes={selectedNodes}
@@ -203,6 +213,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
             key={validation}
             validation={validation}
             className="pf-v5-u-mt-md"
+            enableNFS={enableNFS}
           />
         )}
         {errorMessage && (
