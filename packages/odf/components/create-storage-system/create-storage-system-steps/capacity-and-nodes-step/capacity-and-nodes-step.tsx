@@ -421,6 +421,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   nodes,
   systemNamespace,
   deploymentMode,
+  enableNFS,
 }) => {
   const {
     capacity,
@@ -454,7 +455,8 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     resourceProfile,
     osdAmount,
     deploymentMode,
-    volumeValidationType
+    volumeValidationType,
+    enableNFS
   );
   const onProfileChange = React.useCallback(
     (profile) => onResourceProfileChange(dispatch)(profile),
@@ -495,6 +497,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
               profileRequirementsText={ProfileRequirementsText}
               selectedNodes={nodes}
               osdAmount={osdAmount}
+              enableNFS={enableNFS}
             />
           )}
           <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
@@ -509,6 +512,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
             osdAmount={osdAmount}
             key={validation}
             validation={validation}
+            enableNFS={enableNFS}
           />
         ))}
     </Form>
@@ -523,4 +527,5 @@ type CapacityAndNodesProps = {
   dispatch: WizardDispatch;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   deploymentMode: DeploymentType;
+  enableNFS: boolean;
 };
