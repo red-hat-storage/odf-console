@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { CreateStepsSC } from '@odf/core/constants';
+import {
+  CreateStepsSC,
+  TNF_MIN_CPU,
+  TNF_MIN_MEMORY_GIB,
+} from '@odf/core/constants';
 import {
   EncryptionType,
   ResourceProfile,
@@ -74,6 +78,19 @@ export const VALIDATIONS = (
         ),
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),
+      };
+    // IBM Z/s390x is not in scope for TNF
+    case ValidationType.TNF_AGGREGATE_RESOURCES:
+      return {
+        variant: AlertVariant.danger,
+        title: t('Aggregate resource requirement not met'),
+        text: t(
+          'The selected nodes do not meet the aggregate resource requirement of at least {{minCpu}} CPUs and {{minMem}} GiB of memory. Try again by selecting nodes with enough CPU and memory to proceed.',
+          {
+            minCpu: TNF_MIN_CPU,
+            minMem: TNF_MIN_MEMORY_GIB,
+          }
+        ),
       };
     case ValidationType.CAPACITY_AUTOSCALING:
       return {
