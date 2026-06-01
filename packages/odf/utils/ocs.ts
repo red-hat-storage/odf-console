@@ -24,6 +24,7 @@ import {
   HOSTNAME_LABEL_KEY,
   LABEL_OPERATOR,
   MINIMUM_NODES,
+  NFS_RESOURCE_REQUIREMENTS,
   ocsTaint,
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
   OCS_PROVISIONERS,
@@ -118,7 +119,8 @@ export const isFlexibleScaling = (
  */
 export const getResourceProfileRequirements = (
   profile: ResourceProfile,
-  osdAmount: number
+  osdAmount: number,
+  enableNFS?: boolean
 ): { minCpu: number; minMem: number } => {
   const { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
   const extraOsds = osdAmount - 3;
@@ -128,6 +130,10 @@ export const getResourceProfileRequirements = (
     cpu += Math.ceil(extraOsds * osd.cpu);
     mem += Math.ceil(extraOsds * osd.mem);
   }
+  if (enableNFS) {
+    cpu += NFS_RESOURCE_REQUIREMENTS.minCpu;
+    mem += NFS_RESOURCE_REQUIREMENTS.minMem;
+  }
   return { minCpu: cpu, minMem: mem };
 };
 
@@ -136,16 +142,22 @@ export const getResourceProfileRequirements = (
  * @param profile A resource profile.
  * @param cpu The amount CPUs.
  * @param memory The amount of selected nodes' memory in GiB.
- * @param memory The amount of OSD pods.
+ * @param osdAmount The amount of OSD pods.
+ * @param enableNFS Whether NFS is enabled.
  * @returns boolean
  */
 export const isResourceProfileAllowed = (
   profile: ResourceProfile,
   cpu: number,
   memory: number,
-  osdAmount: number
+  osdAmount: number,
+  enableNFS?: boolean
 ): boolean => {
-  const { minCpu, minMem } = getResourceProfileRequirements(profile, osdAmount);
+  const { minCpu, minMem } = getResourceProfileRequirements(
+    profile,
+    osdAmount,
+    enableNFS
+  );
 
   return cpu >= minCpu && memory >= minMem;
 };

@@ -119,7 +119,7 @@ const canJumpToNextStep = (
     connectionDetails,
     nodes,
   } = state;
-  const { type, externalStorage } = backingStorage;
+  const { type, externalStorage, enableNFS } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
   const isRHCS: boolean = externalStorage === OCSStorageClusterModel.kind;
   const { capacity } = capacityAndNodes;
@@ -177,7 +177,8 @@ const canJumpToNextStep = (
               capacityAndNodes.resourceProfile,
               getTotalCpu(nodes),
               getTotalMemoryInGiB(nodes),
-              osdAmount
+              osdAmount,
+              enableNFS
             )
           : true)
       );
