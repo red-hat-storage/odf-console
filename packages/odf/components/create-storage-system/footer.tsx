@@ -5,6 +5,7 @@ import {
   getTotalCpu,
   getTotalMemoryInGiB,
   getRBDVolumeSnapshotClassName,
+  isTNFRunnable,
 } from '@odf/core/components/utils';
 import {
   ERASURE_CODING_MIN_NODES,
@@ -298,7 +299,7 @@ const canJumpToNextStep = (
     case StepsName(t)[Steps.CapacityAndNodes]: {
       const architecture = getNodeArchitectureFromState(nodes);
       if (isTNFEnabled) {
-        return nodes.length === 2;
+        return isTNFRunnable(nodes);
       } else {
         return (
           nodes.length >= MINIMUM_NODES &&

@@ -51,6 +51,8 @@ import { Base64 } from 'js-base64';
 import * as _ from 'lodash-es';
 import {
   MINIMUM_NODES,
+  TNF_MIN_CPU,
+  TNF_MIN_MEMORY_GIB,
   IPFamily,
   NO_PROVISIONER,
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
@@ -85,6 +87,11 @@ export const getTotalMemory = (nodes: WizardNodeState[]): number =>
 
 export const getTotalMemoryInGiB = (nodes: WizardNodeState[]): number =>
   humanizeBinaryBytes(getTotalMemory(nodes), null, 'GiB').value;
+
+export const isTNFRunnable = (nodes: WizardNodeState[]): boolean =>
+  nodes.length === 2 &&
+  getTotalCpu(nodes) >= TNF_MIN_CPU &&
+  getTotalMemoryInGiB(nodes) >= TNF_MIN_MEMORY_GIB;
 
 export const getVendorDashboardLinkFromMetrics = (
   systemKind: string,
@@ -165,8 +172,15 @@ export const capacityAndNodesValidate = (
   state: WizardState['capacityAndNodes'],
   isNoProvSC: boolean,
   osdAmount: number,
-  enableNFS?: boolean
+  enableNFS?: boolean,
+  isTNFEnabled?: boolean
 ): ValidationType[] => {
+  if (isTNFEnabled) {
+    return !isTNFRunnable(nodes)
+      ? [ValidationType.TNF_AGGREGATE_RESOURCES]
+      : [];
+  }
+
   const validations = [];
   const {
     capacityAutoScaling,
