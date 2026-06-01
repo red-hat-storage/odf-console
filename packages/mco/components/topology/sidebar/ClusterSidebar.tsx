@@ -2,17 +2,14 @@ import * as React from 'react';
 import { getLabel, getLabels, getName } from '@odf/shared/selectors';
 import { K8sResourceCondition } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Title,
   Label,
-  Button,
   Tab,
   Tabs,
   TabTitleText,
   EmptyState,
   EmptyStateBody,
-  EmptyStateActions,
   DescriptionList,
   DescriptionListGroup,
   DescriptionListTerm,
@@ -28,7 +25,6 @@ import {
 } from '@patternfly/react-icons';
 import {
   CLUSTER_ID,
-  DR_BASE_ROUTE,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
 } from '../../../constants';
 import { ACMManagedClusterKind } from '../../../types';
@@ -42,7 +38,6 @@ type ClusterSidebarProps = {
 
 export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
   const { t } = useCustomTranslation();
-  const navigate = useNavigate();
   const { clusterAppsMap } = React.useContext(TopologyDataContext);
   const [activeTabKey, setActiveTabKey] = React.useState<string | number>(0);
   const [showAllConditions, setShowAllConditions] = React.useState(false);
@@ -205,7 +200,7 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
                 <EmptyState variant="lg">
                   <PlusCircleIcon className="mco-topology-sidebar__empty-state-icon" />
                   <Title headingLevel="h4" size="lg">
-                    {t('Enroll applications')}
+                    {t('No applications enrolled')}
                   </Title>
                   <EmptyStateBody>
                     {t(
@@ -214,16 +209,6 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
                     <br />
                     {t('Applications will be listed in a data table.')}
                   </EmptyStateBody>
-                  <EmptyStateActions>
-                    <Button
-                      variant="secondary"
-                      onClick={() =>
-                        navigate(`${DR_BASE_ROUTE}/protected-applications`)
-                      }
-                    >
-                      {t('Enroll applications')}
-                    </Button>
-                  </EmptyStateActions>
                 </EmptyState>
               )}
             </div>
