@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ComponentFactory, Visualization } from '@patternfly/react-topology';
+import type { LayoutFactory } from '@patternfly/react-topology';
 import { defaultLayoutFactory } from '../factory';
 
 export type EventListener = {
@@ -9,6 +10,7 @@ export type EventListener = {
 
 export type UseVisualizationSetupOptions = {
   componentFactory: ComponentFactory;
+  layoutFactory?: LayoutFactory;
   eventListeners?: EventListener[];
 };
 
@@ -23,13 +25,14 @@ type HandlerFunction = (...args: any[]) => void;
  */
 export const useVisualizationSetup = ({
   componentFactory,
+  layoutFactory = defaultLayoutFactory,
   eventListeners = [],
 }: UseVisualizationSetupOptions): Visualization => {
   // Create the controller synchronously so VisualizationProvider never falls back to
   // an unconfigured Visualization (child effects run before parent useEffect).
   const [controller] = React.useState<Visualization>(() => {
     const temp = new Visualization();
-    temp.registerLayoutFactory(defaultLayoutFactory);
+    temp.registerLayoutFactory(layoutFactory);
     temp.registerComponentFactory(componentFactory);
     return temp;
   });

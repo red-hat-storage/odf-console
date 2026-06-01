@@ -33,9 +33,7 @@ const TopologyToolbar: React.FC<TopologyToolbarProps> = ({
 
   const filterOptions = React.useMemo(
     () => [
-      { value: FilterType.Namespace, label: t('Namespace') },
       { value: FilterType.Cluster, label: t('Cluster name') },
-      { value: FilterType.Application, label: t('Application name') },
       { value: FilterType.Policy, label: t('Policy') },
     ],
     [t]
@@ -50,7 +48,7 @@ const TopologyToolbar: React.FC<TopologyToolbarProps> = ({
         const filterValue = value as unknown as FilterType;
         const newFilters = selectedFilters.includes(filterValue)
           ? selectedFilters.filter((f) => f !== filterValue)
-          : [...selectedFilters, filterValue];
+          : [filterValue];
         onFilterChange(newFilters);
       }
     },
@@ -58,9 +56,6 @@ const TopologyToolbar: React.FC<TopologyToolbarProps> = ({
   );
 
   const getFilterLabel = React.useCallback(() => {
-    if (selectedFilters.length === 0) {
-      return t('Namespace, Cluster name, Application name or Policy');
-    }
     if (selectedFilters.length === 1) {
       const option = filterOptions.find(
         (opt) => opt.value === selectedFilters[0]
@@ -118,7 +113,6 @@ const TopologyToolbar: React.FC<TopologyToolbarProps> = ({
                   key={option.value}
                   value={option.value}
                   isSelected={selectedFilters.includes(option.value)}
-                  hasCheckbox
                 >
                   {option.label}
                 </SelectOption>

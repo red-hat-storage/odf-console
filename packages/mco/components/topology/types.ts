@@ -30,9 +30,7 @@ export interface TopologyDecorator {
 }
 
 export enum FilterType {
-  Namespace = 'namespace',
   Cluster = 'cluster',
-  Application = 'application',
   Policy = 'policy',
 }
 
