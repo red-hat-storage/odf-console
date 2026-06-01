@@ -472,15 +472,14 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
   const architecture = getNodeArchitectureFromState(nodes);
 
-  const validations = isTNFEnabled
-    ? []
-    : capacityAndNodesValidate(
-        nodes,
-        state,
-        isNoProvisioner,
-        osdAmount,
-        enableNFS
-      );
+  const validations = capacityAndNodesValidate(
+    nodes,
+    state,
+    isNoProvisioner,
+    osdAmount,
+    enableNFS,
+    isTNFEnabled
+  );
   const onProfileChange = React.useCallback(
     (profile) => onResourceProfileChange(dispatch)(profile),
     [dispatch]
@@ -527,16 +526,17 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
       )}
       {(!isNoProvisioner || nodes.length > 0) && (
         <>
-          <ConfigurePerformance
-            onResourceProfileChange={onProfileChange}
-            resourceProfile={resourceProfile}
-            headerText={PerformanceHeaderText}
-            profileRequirementsText={ProfileRequirementsText}
-            selectedNodes={nodes}
-            osdAmount={osdAmount}
-            isTNFEnabled={isTNFEnabled}
-            enableNFS={enableNFS}
-          />
+          {!isTNFEnabled && (
+            <ConfigurePerformance
+              onResourceProfileChange={onProfileChange}
+              resourceProfile={resourceProfile}
+              headerText={PerformanceHeaderText}
+              profileRequirementsText={ProfileRequirementsText}
+              selectedNodes={nodes}
+              osdAmount={osdAmount}
+              enableNFS={enableNFS}
+            />
+          )}
           <EnableTaintNodes
             dispatch={dispatch}
             enableTaint={enableTaint}
