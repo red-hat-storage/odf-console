@@ -153,7 +153,8 @@ export const capacityAndNodesValidate = (
   isNoProvSC: boolean,
   resourceProfile: ResourceProfile,
   osdAmount: number,
-  deploymentType: DeploymentType
+  deploymentType: DeploymentType,
+  enableNFS?: boolean
 ): ValidationType[] => {
   const validations = [];
 
@@ -175,7 +176,8 @@ export const capacityAndNodesValidate = (
         resourceProfile,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        enableNFS
       )
     ) {
       validations.push(ValidationType.RESOURCE_PROFILE);
@@ -185,7 +187,8 @@ export const capacityAndNodesValidate = (
         ResourceProfile.Balanced,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        enableNFS
       )
     ) {
       validations.push(ValidationType.MINIMAL);
