@@ -57,6 +57,14 @@ export const RESOURCE_PROFILE_REQUIREMENTS_MAP: ResourceProfileRequirementsMap =
     },
   };
 
+/**
+ * NFS resource requirements to be added when NFS is enabled
+ */
+export const NFS_RESOURCE_REQUIREMENTS = {
+  minCpu: 6,
+  minMem: 16, // GiB
+};
+
 export enum defaultRequestSize {
   BAREMETAL = '1',
   NON_BAREMETAL = '2Ti',
