@@ -129,7 +129,6 @@ type ConfigurePerformanceProps = {
   profileRequirementsText?: React.FC<ProfileRequirementsTextProps>;
   selectedNodes: WizardNodeState[];
   osdAmount?: number;
-  isTNFEnabled?: boolean;
   enableNFS?: boolean;
 };
 
@@ -140,7 +139,6 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
   profileRequirementsText: ProfileRequirementsTextComponent,
   selectedNodes,
   osdAmount,
-  isTNFEnabled,
   enableNFS,
 }) => {
   const { t } = useCustomTranslation();
@@ -216,7 +214,6 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         )}
         onChange={onResourceProfileChange}
         validated={validated}
-        isDisabled={isTNFEnabled}
       />
       {resourceProfile && ProfileRequirementsTextComponent && (
         <ProfileRequirementsTextComponent
