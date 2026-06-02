@@ -59,11 +59,22 @@ import {
   drPolicyReducer,
   DRPolicyState,
 } from './utils/reducer';
+import {
+  isValidBucketName,
+  isValidEndpoint,
+  isValidS3ProfileName,
+} from './utils/s3-validators';
 
 const isFilled = (v: string) => !!v && v.trim().length > 0;
 
-const areS3DetailsValid = (d: S3Details) =>
-  Object.values(d).every((v) => isFilled(v));
+const areS3DetailsFormatValid = (d: S3Details): boolean =>
+  isValidBucketName(d.bucketName) &&
+  isValidEndpoint(d.endpoint) &&
+  isFilled(d.accessKeyId) &&
+  isFilled(d.secretKey) &&
+  isFilled(d.region) &&
+  isFilled(d.s3ProfileName) &&
+  isValidS3ProfileName(d.s3ProfileName);
 
 export const validateDRPolicyInputs = (state: DRPolicyState): boolean => {
   const {
@@ -86,10 +97,14 @@ export const validateDRPolicyInputs = (state: DRPolicyState): boolean => {
   if (!baseValid) return false;
 
   if (replicationBackend === BackendType.ThirdParty) {
-    const s3Ok =
-      areS3DetailsValid(cluster1S3Details) &&
-      (useSameS3Connection || areS3DetailsValid(cluster2S3Details));
-    return s3Ok;
+    const c2ProfileValid =
+      isFilled(cluster2S3Details.s3ProfileName) &&
+      isValidS3ProfileName(cluster2S3Details.s3ProfileName);
+    return (
+      areS3DetailsFormatValid(cluster1S3Details) &&
+      c2ProfileValid &&
+      (useSameS3Connection || areS3DetailsFormatValid(cluster2S3Details))
+    );
   }
 
   return true;
