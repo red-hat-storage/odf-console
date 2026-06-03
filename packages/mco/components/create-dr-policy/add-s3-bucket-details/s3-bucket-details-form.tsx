@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { MAX_ALLOWED_CLUSTERS } from '@odf/mco/constants';
 import { getName, useCustomTranslation } from '@odf/shared';
 import {
   Button,
@@ -32,7 +33,7 @@ type ClusterS3BucketDetailsFormProps = {
   cluster2Details: S3Details;
   useSameConnection: boolean;
   dispatch: React.Dispatch<any>;
-  areDRClustersAlreadyCreated?: boolean;
+  existingDRClusterNames: Set<string>;
 };
 
 export const ClusterS3BucketDetailsForm: React.FC<
@@ -42,7 +43,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
   cluster1Details,
   cluster2Details,
   useSameConnection,
-  areDRClustersAlreadyCreated,
+  existingDRClusterNames,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
@@ -56,6 +57,10 @@ export const ClusterS3BucketDetailsForm: React.FC<
 
   const name1 = getName(selectedClusters[0]) || 'cluster-1';
   const name2 = getName(selectedClusters[1]) || 'cluster-2';
+
+  const cluster1Exists = existingDRClusterNames.has(name1);
+  const cluster2Exists = existingDRClusterNames.has(name2);
+  const allClustersExist = existingDRClusterNames.size === MAX_ALLOWED_CLUSTERS;
 
   // Track cluster2's s3ProfileName via ref so the sync effect can read it
   // without adding it as a dependency (avoids unnecessary re-runs on typing).
@@ -174,7 +179,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
     <div className="pf-v6-u-p-md">
       <ExpandableSection
         toggleText={
-          areDRClustersAlreadyCreated
+          cluster1Exists
             ? t(`Previously used S3 bucket for {{name}}`, { name: name1 })
             : t(`S3 bucket for {{name}}`, { name: name1 })
         }
@@ -202,6 +207,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
                     })}
                     onChange={(_, v) => update(1, key, v)}
                     validated={errors1[key] ? 'error' : 'default'}
+                    isDisabled={cluster1Exists}
                     onBlur={() => handleBlur(1)}
                   />
                 </FlexItem>
@@ -211,6 +217,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
                     variant="plain"
                     onClick={() => setShow1((s) => !s)}
                     aria-label={t('Toggle secret visibility')}
+                    isDisabled={cluster1Exists}
                   />
                 </FlexItem>
               </Flex>
@@ -223,6 +230,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
                 })}
                 onChange={(_, v) => update(1, key, v)}
                 validated={errors1[key] ? 'error' : 'default'}
+                isDisabled={cluster1Exists}
                 onBlur={() => handleBlur(1)}
               />
             )}
@@ -237,7 +245,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
       <Divider className="pf-v6-u-p-md" />
       <ExpandableSection
         toggleText={
-          areDRClustersAlreadyCreated
+          cluster2Exists
             ? t(`Previously used S3 bucket for {{name}}`, { name: name2 })
             : t(`S3 bucket for {{name}}`, { name: name2 })
         }
@@ -245,12 +253,14 @@ export const ClusterS3BucketDetailsForm: React.FC<
         onToggle={(_, exp) => setExpanded2(exp)}
         isIndented
       >
-        <Checkbox
-          id="use-same-conn"
-          label={t('Use the same S3 connection details as the first cluster')}
-          isChecked={useSameConnection}
-          onChange={onToggleSame}
-        />
+        {!allClustersExist && (
+          <Checkbox
+            id="use-same-conn"
+            label={t('Use the same S3 connection details as the first cluster')}
+            isChecked={useSameConnection}
+            onChange={onToggleSame}
+          />
+        )}
         {fields.map(({ key, label }) => (
           <FormGroup
             key={key}
@@ -271,7 +281,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
                     })}
                     onChange={(_, v) => update(2, key, v)}
                     validated={errors2[key] ? 'error' : 'default'}
-                    isDisabled={useSameConnection}
+                    isDisabled={useSameConnection || cluster2Exists}
                     onBlur={() => handleBlur(2)}
                   />
                 </FlexItem>
@@ -281,7 +291,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
                     variant="plain"
                     onClick={() => setShow2((s) => !s)}
                     aria-label={t('Toggle secret visibility')}
-                    isDisabled={useSameConnection}
+                    isDisabled={useSameConnection || cluster2Exists}
                   />
                 </FlexItem>
               </Flex>
@@ -294,7 +304,10 @@ export const ClusterS3BucketDetailsForm: React.FC<
                 })}
                 onChange={(_, v) => update(2, key, v)}
                 validated={errors2[key] ? 'error' : 'default'}
-                isDisabled={useSameConnection && key !== 's3ProfileName'}
+                isDisabled={
+                  cluster2Exists ||
+                  (useSameConnection && key !== 's3ProfileName')
+                }
                 onBlur={() => handleBlur(2)}
               />
             )}
