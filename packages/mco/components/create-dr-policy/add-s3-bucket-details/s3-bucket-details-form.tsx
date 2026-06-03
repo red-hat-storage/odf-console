@@ -8,13 +8,13 @@ import {
   Flex,
   FlexItem,
   FormGroup,
-  FormHelperText,
   HelperText,
   HelperTextItem,
   TextInput,
 } from '@patternfly/react-core';
 import { EyeIcon, EyeSlashIcon } from '@patternfly/react-icons';
 import { DRPolicyActionType, ManagedClusterInfoType } from '../utils/reducer';
+import { isValidBucketName, isValidEndpoint } from '../utils/s3-validators';
 
 export type S3Details = {
   clusterName: string;
@@ -85,22 +85,19 @@ export const ClusterS3BucketDetailsForm: React.FC<
 
   const validate = (cluster: 1 | 2, details: S3Details) => {
     const errs: Partial<S3Details> = {};
+    const otherDetails = cluster === 1 ? cluster2Details : cluster1Details;
 
     if (!details.bucketName.trim()) {
       errs.bucketName = t('This field is required');
-    } else if (
-      !/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/.test(details.bucketName) ||
-      details.bucketName.length < 3 ||
-      details.bucketName.length > 63
-    ) {
+    } else if (!isValidBucketName(details.bucketName)) {
       errs.bucketName = t(
-        'Bucket name must be 3-63 characters, lowercase letters, numbers, dots, and hyphens'
+        'Bucket name must be 3-63 characters, lowercase letters, numbers, dots, and hyphens. No consecutive dots, dot-hyphen adjacency, or IP address format.'
       );
     }
 
     if (!details.endpoint.trim()) {
       errs.endpoint = t('This field is required');
-    } else if (!/^https?:\/\/.+/.test(details.endpoint)) {
+    } else if (!isValidEndpoint(details.endpoint)) {
       errs.endpoint = t('Endpoint must be a valid URL (http:// or https://)');
     }
 
@@ -122,6 +119,12 @@ export const ClusterS3BucketDetailsForm: React.FC<
       errs.s3ProfileName = t(
         'Profile name can only contain letters, numbers, hyphens, and underscores'
       );
+    } else if (
+      !useSameConnection &&
+      otherDetails.s3ProfileName.trim() &&
+      details.s3ProfileName.trim() === otherDetails.s3ProfileName.trim()
+    ) {
+      errs.s3ProfileName = t('Profile name must be unique per cluster');
     }
 
     cluster === 1 ? setErrors1(errs) : setErrors2(errs);
@@ -257,28 +260,31 @@ export const ClusterS3BucketDetailsForm: React.FC<
             className={inputPadding}
           >
             {key === 'secretKey' ? (
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <TextInput
-                  type={show2 ? 'text' : 'password'}
-                  id={`c2-${key}`}
-                  value={cluster2Details[key]}
-                  placeholder={t('Enter the {{label}}', {
-                    label: label.toLowerCase(),
-                  })}
-                  onChange={(_, v) => update(2, key, v)}
-                  validated={errors2[key] ? 'error' : 'default'}
-                  isDisabled={useSameConnection}
-                  style={{ flex: 1 }}
-                  onBlur={() => handleBlur(2)}
-                />
-                <Button
-                  icon={show2 ? <EyeSlashIcon /> : <EyeIcon />}
-                  variant="plain"
-                  onClick={() => setShow2((s) => !s)}
-                  aria-label={t('Toggle secret visibility')}
-                  isDisabled={useSameConnection}
-                />
-              </div>
+              <Flex alignItems={{ default: 'alignItemsCenter' }}>
+                <FlexItem flex={{ default: 'flex_1' }}>
+                  <TextInput
+                    type={show2 ? 'text' : 'password'}
+                    id={`c2-${key}`}
+                    value={cluster2Details[key]}
+                    placeholder={t('Enter the {{label}}', {
+                      label: label.toLowerCase(),
+                    })}
+                    onChange={(_, v) => update(2, key, v)}
+                    validated={errors2[key] ? 'error' : 'default'}
+                    isDisabled={useSameConnection}
+                    onBlur={() => handleBlur(2)}
+                  />
+                </FlexItem>
+                <FlexItem>
+                  <Button
+                    icon={show2 ? <EyeSlashIcon /> : <EyeIcon />}
+                    variant="plain"
+                    onClick={() => setShow2((s) => !s)}
+                    aria-label={t('Toggle secret visibility')}
+                    isDisabled={useSameConnection}
+                  />
+                </FlexItem>
+              </Flex>
             ) : (
               <TextInput
                 id={`c2-${key}`}
@@ -292,7 +298,11 @@ export const ClusterS3BucketDetailsForm: React.FC<
                 onBlur={() => handleBlur(2)}
               />
             )}
-            {errors2[key] && <FormHelperText>{errors2[key]}</FormHelperText>}
+            {errors2[key] && (
+              <HelperText>
+                <HelperTextItem variant="error">{errors2[key]}</HelperTextItem>
+              </HelperText>
+            )}
           </FormGroup>
         ))}
       </ExpandableSection>
