@@ -7,6 +7,7 @@ import {
   arbiterText,
   LSO_OPERATOR,
   OCS_TOLERATION,
+  lsoInstallationPage,
 } from '@odf/core/constants';
 import { useNodesData, useLSODiskDiscovery } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
@@ -43,11 +44,6 @@ import { LocalVolumeSetBody } from './body';
 import { SelectedCapacity } from './selected-capacity';
 import { useLSODiscoveredDisks } from './useLSODiscoveredDisks';
 import './create-local-volume-set-step.scss';
-
-const goToLSOInstallationPage = (navigate) =>
-  navigate(
-    '/operatorhub/all-namespaces?details-item=local-storage-operator-redhat-operators-openshift-marketplace'
-  );
 
 const makeLocalVolumeSetCall = (
   state: WizardState['createLocalVolumeSet'],
@@ -204,7 +200,7 @@ export const LSOInstallAlert = () => {
           <Button
             type="button"
             variant="primary"
-            onClick={() => goToLSOInstallationPage(navigate)}
+            onClick={() => navigate(lsoInstallationPage)}
           >
             Install
           </Button>
