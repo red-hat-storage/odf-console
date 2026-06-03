@@ -1,5 +1,6 @@
 import {
   BackendType,
+  MAX_ALLOWED_CLUSTERS,
   ODFMCO_OPERATOR_NAMESPACE,
   RBD_IMAGE_FLATTEN_LABEL,
   ReplicationType,
@@ -136,22 +137,13 @@ export const createPolicyPromises = async (
   const peerNames = state.selectedClusters.map(getName);
 
   if (state.replicationBackend === BackendType.DataFoundation) {
-    await prepareOdfPeering(state, mirrorPeers, peerNames);
-    await createDRPolicy(
-      state.policyName,
-      state.replicationType,
-      state.syncIntervalTime,
-      state.enableRBDImageFlatten,
-      peerNames
-    );
-  } else {
-    const created: CreatedResources = {
-      secrets: [],
-      profiles: [],
-      drClusters: [],
-    };
+    let createdMirrorPeer: MirrorPeerKind | undefined;
     try {
-      await prepareThirdPartyPeering(state, selectedDRClusters, created);
+      createdMirrorPeer = await prepareOdfPeering(
+        state,
+        mirrorPeers,
+        peerNames
+      );
       await createDRPolicy(
         state.policyName,
         state.replicationType,
@@ -160,9 +152,48 @@ export const createPolicyPromises = async (
         peerNames
       );
     } catch (error) {
-      // Best-effort rollback of any resources created so far.
-      await rollbackThirdPartyResources(created);
+      if (createdMirrorPeer) {
+        await k8sDelete({
+          model: MirrorPeerModel,
+          resource: createdMirrorPeer,
+        }).catch((e) =>
+          // eslint-disable-next-line no-console
+          console.error('Rollback: failed to delete MirrorPeer', e)
+        );
+      }
       throw error;
+    }
+  } else {
+    const allDRClustersExist =
+      selectedDRClusters?.length === MAX_ALLOWED_CLUSTERS;
+
+    if (allDRClustersExist) {
+      await createDRPolicy(
+        state.policyName,
+        state.replicationType,
+        state.syncIntervalTime,
+        state.enableRBDImageFlatten,
+        peerNames
+      );
+    } else {
+      const created: CreatedResources = {
+        secrets: [],
+        profiles: [],
+        drClusters: [],
+      };
+      try {
+        await prepareThirdPartyPeering(state, selectedDRClusters, created);
+        await createDRPolicy(
+          state.policyName,
+          state.replicationType,
+          state.syncIntervalTime,
+          state.enableRBDImageFlatten,
+          peerNames
+        );
+      } catch (error) {
+        await rollbackThirdPartyResources(created);
+        throw error;
+      }
     }
   }
 };
@@ -171,7 +202,7 @@ const prepareOdfPeering = async (
   state: DRPolicyState,
   mirrorPeers: MirrorPeerKind[],
   peerNames: string[]
-): Promise<void> => {
+): Promise<MirrorPeerKind | undefined> => {
   const odfPeerNames: string[] = state.selectedClusters.map(
     (cluster) => getODFPeers(cluster)[0]
   );
@@ -182,8 +213,9 @@ const prepareOdfPeering = async (
   );
 
   if (!mirrorPeer) {
-    await createMirrorPeer(state.selectedClusters, state.replicationType);
+    return createMirrorPeer(state.selectedClusters, state.replicationType);
   }
+  return undefined;
 };
 
 type CreatedResources = {
