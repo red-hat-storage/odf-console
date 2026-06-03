@@ -76,7 +76,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     //  N/A for the managed  applications.
     protectedNamespaces?: string[];
     // Whether to retain namespace SCC annotations across peers.
-    retainNamespaceSCC?: boolean;
+    retainNamespaceSCCAcrossPeers?: boolean;
   };
   status?: {
     // The time of the most recent successful kube object protection
