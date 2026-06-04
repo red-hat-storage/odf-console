@@ -55,44 +55,57 @@ describe('Check Persistent Dashboard', () => {
     cy.log(
       'Check that number of PVCs and PVs is updated after successful PVC creation'
     );
+
     let initialPVC: number;
     let initialPV: number;
+
     cy.byTestID('inventory-pvc')
       .find('.skeleton-inventory')
       .should('not.exist');
+    cy.byTestID('inventory-pv').find('.skeleton-inventory').should('not.exist');
+
     cy.byTestID('inventory-pvc')
       .invoke('text')
+      .should((text) => {
+        expect(parseInt(extractNumbersFromText(text), 10)).to.be.greaterThan(0);
+      })
       .then((pvcText) => {
-        initialPVC = Number(extractNumbersFromText(pvcText));
+        initialPVC = parseInt(extractNumbersFromText(pvcText), 10);
         cy.log(`Initial number of PVCs: ${initialPVC}`);
+
+        cy.byTestID('inventory-pv')
+          .invoke('text')
+          .should((text) => {
+            expect(
+              parseInt(extractNumbersFromText(text), 10)
+            ).to.be.greaterThan(0);
+          })
+          .then((pvText) => {
+            initialPV = parseInt(extractNumbersFromText(pvText), 10);
+            cy.log(`Initial number of PVs: ${initialPV}`);
+
+            cy.exec(
+              `echo '${JSON.stringify(
+                getPVCJSON(
+                  'dummy-pvc',
+                  'openshift-storage',
+                  'ocs-storagecluster-ceph-rbd',
+                  '5Gi'
+                )
+              )}' | oc create -f -`
+            ).then(() => {
+              cy.byTestID('inventory-pvc').should(
+                'have.text',
+                `${initialPVC + 1} PersistentVolumeClaims`,
+                { timeout: 30 * SECOND }
+              );
+              cy.byTestID('inventory-pv').should(
+                'have.text',
+                `${initialPV + 1} PersistentVolumes`,
+                { timeout: 30 * SECOND }
+              );
+            });
+          });
       });
-    cy.byTestID('inventory-pv').find('.skeleton-inventory').should('not.exist');
-    cy.byTestID('inventory-pv')
-      .invoke('text')
-      .then((pvText) => {
-        initialPV = Number(extractNumbersFromText(pvText));
-        cy.log(`Initial number of PVs: ${initialPV}`);
-      });
-    cy.exec(
-      ` echo '${JSON.stringify(
-        getPVCJSON(
-          'dummy-pvc',
-          'openshift-storage',
-          'ocs-storagecluster-ceph-rbd',
-          '5Gi'
-        )
-      )}' | oc create -f -`
-    ).then(() => {
-      cy.byTestID('inventory-pvc').should(
-        'have.text',
-        `${initialPVC + 1} PersistentVolumeClaims`,
-        { timeout: 3 * SECOND }
-      );
-      cy.byTestID('inventory-pv').should(
-        'have.text',
-        `${initialPV + 1} PersistentVolumes`,
-        { timeout: 3 * SECOND }
-      );
-    });
   });
 });

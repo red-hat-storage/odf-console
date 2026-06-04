@@ -194,7 +194,11 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
         <ResourceLinkWithKind kind="Namespace" name={obj.metadata.namespace} />
       </TableData>
-      <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
+      <TableData
+        {...tableColumnInfo[2]}
+        activeColumnIDs={activeColumnIDs}
+        data-test="resource-status"
+      >
         <OBCStatus obc={obj} />
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
@@ -333,7 +337,7 @@ export const OBCDetails: React.FC<OBCDetailsProps> = ({ obj }) => {
 
               <DescriptionListGroup>
                 <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
-                <DescriptionListDescription>
+                <DescriptionListDescription data-test="resource-status">
                   <OBCStatus obc={obj} />
                 </DescriptionListDescription>
               </DescriptionListGroup>

@@ -7,6 +7,7 @@ import {
 } from '../constants/storage-pool-const';
 import { fieldValidationOnWizardFormsTests } from '../helpers/formValidations';
 import { app } from '../support/pages/app';
+import { modal } from '../views/modals';
 import { pvc } from '../views/pvc';
 import { createStorageClass } from '../views/storage-class';
 import {
@@ -45,7 +46,7 @@ describe('Storage pools', () => {
       openStoragePoolKebab(poolName);
       cy.byTestActionID('Edit Pool').click();
 
-      cy.contains('Edit Storage Pool');
+      modal.modalTitleShouldContain('Edit Storage Pool');
       cy.byTestID('replica-dropdown').click();
       cy.byLegacyTestID('replica-dropdown-item')
         .contains('3-way Replication')
@@ -79,7 +80,7 @@ describe('Storage pools', () => {
       openStoragePoolKebab(poolName);
       cy.byTestActionID('Delete Pool').click();
 
-      cy.contains('Delete Storage Pool');
+      modal.modalTitleShouldContain('Delete Storage Pool');
       cy.byTestID('pool-bound-message').contains(
         poolMessage(poolName, PoolProgress.BOUNDED)
       );
@@ -131,7 +132,7 @@ describe('Storage pools', () => {
       cy.log(`Updating a newly created ${PoolType.FILESYSTEM} pool`);
       openStoragePoolKebab(poolFullName);
       cy.byTestActionID('Edit Pool').click();
-      cy.contains('Edit Storage Pool');
+      modal.modalTitleShouldContain('Edit Storage Pool');
       cy.byTestID('replica-dropdown').click();
       cy.byLegacyTestID('replica-dropdown-item')
         .contains('3-way Replication')
@@ -153,7 +154,7 @@ describe('Storage pools', () => {
     it('actions on the default pool are not allowed', () => {
       cy.log('Kebab action should be disabled');
       openStoragePoolKebab(CEPH_DEFAULT_FS_POOL_NAME, true);
-      cy.log(poolMessage[PoolProgress.NOTALLOWED]);
+      cy.log(poolMessage(poolName, PoolProgress.NOTALLOWED));
     });
   });
 });
