@@ -91,7 +91,7 @@ export const getManagedDRPCKindObj = (
     pvcSelector: {
       matchExpressions: convertLabelToExpression(pvcSelectors),
     },
-    ...(retainNamespaceSCC === true && { retainNamespaceSCC: true }),
+    ...(retainNamespaceSCC === true && { retainNamespaceSCCAcrossPeers: true }),
   },
 });
 
