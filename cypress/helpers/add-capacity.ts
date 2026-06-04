@@ -52,6 +52,39 @@ export const SIZE_MAP = {
   '4Ti': 4,
 };
 
+const ZONE_LABELS = [
+  'topology.kubernetes.io/zone',
+  'failure-domain.beta.kubernetes.io/zone',
+];
+const RACK_LABEL = 'topology.rook.io/rack';
+const MIN_REPLICAS = 3;
+
+/**
+ * Counts unique zones (or racks) from ODF-labeled nodes to determine replica count.
+ * Expects nodes already filtered by the ODF label (cluster.ocs.openshift.io/openshift-storage).
+ */
+export const getReplicaCountFromNodes = (odfNodes: any[]): number => {
+  const zones = new Set(
+    odfNodes
+      .map((n) =>
+        ZONE_LABELS.reduce((z, l) => z || n.metadata?.labels?.[l], '')
+      )
+      .filter(Boolean)
+  );
+
+  let replicaBase = zones.size;
+
+  if (replicaBase === 0) {
+    const racks = new Set(
+      odfNodes.map((n) => n.metadata?.labels?.[RACK_LABEL]).filter(Boolean)
+    );
+    replicaBase = racks.size;
+  }
+
+  if (replicaBase < MIN_REPLICAS) replicaBase = MIN_REPLICAS;
+  return replicaBase;
+};
+
 export const verifyNodeOSDMapping = (
   nodes: number[],
   osds: number[],

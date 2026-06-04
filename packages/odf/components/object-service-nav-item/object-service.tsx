@@ -26,11 +26,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
-import {
-  useParams,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   S3_CREDENTIALS_SESSION_STORE_KEY,
   S3_CREDENTIALS_LOCAL_STORE_KEY,
@@ -197,16 +193,6 @@ const ObjectServicePage: React.FC = () => {
       )}
     </>
   );
-};
-
-export const RerouteResource: React.FC<{}> = () => {
-  const { kind } = useParams();
-  const navigate = useNavigate();
-
-  React.useEffect(() => {
-    navigate(`/odf/object-storage/${kind}`);
-  }, [navigate, kind]);
-  return null;
 };
 
 export default ObjectServicePage;

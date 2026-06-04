@@ -16,7 +16,7 @@ declare global {
       byLegacyTestID(
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
-      ): Chainable<Element>;
+      ): Chainable<JQuery<HTMLElement>>;
       byTestDropDownMenu(selector: string): Chainable<Element>;
       byTestOperandLink(selector: string): Chainable<Element>;
       byTestRows(selector: string): Chainable<Element>;
@@ -92,7 +92,9 @@ Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
       }
     });
   if (path.length > 1) {
-    cy.get('#page-sidebar').contains(path[1]).click(); // eslint-disable-line cypress/require-data-selectors
+    cy.byTestID('nav')
+      .contains(path[1], { timeout: 30 * 1000 })
+      .click();
   }
 });
 
