@@ -3347,22 +3347,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@openshift-console/dynamic-plugin-sdk-internal@npm:4.21.0":
-  version: 4.21.0
-  resolution: "@openshift-console/dynamic-plugin-sdk-internal@npm:4.21.0"
+"@openshift-console/dynamic-plugin-sdk-internal@npm:4.22.0-prerelease.3":
+  version: 4.22.0-prerelease.3
+  resolution: "@openshift-console/dynamic-plugin-sdk-internal@npm:4.22.0-prerelease.3"
   dependencies:
-    "@openshift/dynamic-plugin-sdk": "npm:^5.0.1"
-    "@patternfly/react-topology": "npm:^6.2.0"
+    "@openshift/dynamic-plugin-sdk": "npm:^8.0.0"
     immutable: "npm:3.x"
-    react: "npm:^17.0.1"
-    react-i18next: "npm:^11.12.0"
-    react-redux: "npm:7.2.9"
-    react-router: "npm:5.3.x"
-    react-router-dom: "npm:5.3.x"
-    react-router-dom-v5-compat: "npm:^6.11.2"
-    redux: "npm:^4.0.4"
-    redux-thunk: "npm:2.4.0"
-  checksum: 10/129228fd246e454c490419932c1adf42e13dad99d5a1a1f21a187ca8888db0f0a4a8c8f0ba5426c5693bb67dc6bbc9074a9030a6c77503b0ba42875c546ef2b8
+  checksum: 10/e3ce364d9455e2e3457c8174c2a4a0aed9d303ababe9f37e255caab8b7a46bc54715ed3e8a0cbbb55862d986f7a9c79a365fafd01b19a8de9107cf5061ec5400
   languageName: node
   linkType: hard
 
@@ -3432,6 +3423,20 @@ __metadata:
   peerDependencies:
     react: ^17 || ^18
   checksum: 10/f241ee7ff4afec0c15965c047553d424766c36609e14bc7fe7ed55466ed85efe1dae3df3a93e469672702fc625634ca900a87c211c13410c7f32ea1ec5710d6e
+  languageName: node
+  linkType: hard
+
+"@openshift/dynamic-plugin-sdk@npm:^8.0.0":
+  version: 8.2.0
+  resolution: "@openshift/dynamic-plugin-sdk@npm:8.2.0"
+  dependencies:
+    lodash: "npm:^4.17.23"
+    semver: "npm:^7.7.3"
+    uuid: "npm:^8.3.2"
+    yup: "npm:^1.7.1"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10/a168cbc056d568f037c04ea561137d66b1d56a95d8a129982e6c05ddd661b425c062c254ac8df78dfff61709bad653911c1bcfe78d4b8336b93c36b22199acd7
   languageName: node
   linkType: hard
 
@@ -15401,7 +15406,7 @@ __metadata:
     "@cypress/webpack-preprocessor": "npm:^7.0.2"
     "@discoveryjs/json-ext": "npm:^1.0.0"
     "@openshift-console/dynamic-plugin-sdk": "npm:4.21.0"
-    "@openshift-console/dynamic-plugin-sdk-internal": "npm:4.21.0"
+    "@openshift-console/dynamic-plugin-sdk-internal": "npm:4.22.0-prerelease.3"
     "@openshift-console/dynamic-plugin-sdk-webpack": "npm:4.21.0"
     "@patternfly/patternfly": "npm:6.4.0"
     "@patternfly/react-charts": "npm:8.4.0"
