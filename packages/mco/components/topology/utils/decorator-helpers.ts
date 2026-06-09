@@ -19,10 +19,18 @@ export const getDecoratorForStatus = (
     case DRStatus.Critical:
     case DRStatus.ProtectionError:
     case DRStatus.Unknown:
+    case DRStatus.WaitOnUserToCleanUp:
+    case DRStatus.WaitForUser:
     case Progression.FailedToFailover:
     case Progression.FailedToRelocate:
+    case Progression.WaitForUserAction:
       icon = DecoratorIcon.ExclamationCircle;
-      tooltip = drStatus;
+      tooltip =
+        drStatus === DRStatus.WaitOnUserToCleanUp ||
+        drStatus === DRStatus.WaitForUser ||
+        drStatus === Progression.WaitForUserAction
+          ? 'Action required'
+          : drStatus;
       status = NodeStatus.danger;
       break;
     case DRStatus.Healthy:
@@ -44,13 +52,6 @@ export const getDecoratorForStatus = (
     case Progression.CleaningUp:
       icon = DecoratorIcon.InProgress;
       tooltip = `${drStatus}...`;
-      status = NodeStatus.info;
-      break;
-    case DRStatus.WaitOnUserToCleanUp:
-    case DRStatus.WaitForUser:
-    case Progression.WaitForUserAction:
-      icon = DecoratorIcon.InfoCircle;
-      tooltip = 'Action required';
       status = NodeStatus.info;
       break;
     case DRStatus.Warning:

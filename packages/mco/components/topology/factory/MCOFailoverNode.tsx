@@ -1,6 +1,6 @@
 import * as React from 'react';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
-import { InfoCircleIcon, SyncAltIcon } from '@patternfly/react-icons';
+import { ExclamationCircleIcon, SyncAltIcon } from '@patternfly/react-icons';
 import {
   DEFAULT_DECORATOR_PADDING,
   DEFAULT_DECORATOR_RADIUS,
@@ -162,7 +162,11 @@ const MCOFailoverNodeComponent: React.FC<MCOFailoverNodeProps> = ({
         })`}
       >
         {needsUserAction ? (
-          <InfoCircleIcon width={ICON_SIZE} height={ICON_SIZE} />
+          <ExclamationCircleIcon
+            width={ICON_SIZE}
+            height={ICON_SIZE}
+            style={{ fill: 'var(--pf-t--global--color--status--danger--100)' }}
+          />
         ) : (
           <g className="mco-decorator-icon--spinning">
             <SyncAltIcon width={ICON_SIZE} height={ICON_SIZE} />
