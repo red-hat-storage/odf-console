@@ -175,9 +175,10 @@ const generateClusterWithApps = (
     const targetOperationsByActionPhase = new Map<string, DROperationInfo[]>();
 
     operations.forEach((op) => {
-      // Track by PAV name (same as app.name), not DRPC name
-      const pavName = getName(op.pav) || op.applicationName;
-      appsInOperations.add(pavName);
+      // Track by application name to match with static apps from useProtectedAppsByCluster
+      // op.applicationName contains the actual app name (e.g., "busybox-1")
+      // which matches app.name from ProtectedAppInfo
+      appsInOperations.add(op.applicationName);
 
       // Use action + effective status as the grouping key so that
       // operations in different progression states (e.g. FailedOver vs WaitOnUserToCleanUp)
@@ -307,6 +308,10 @@ const generateClusterWithApps = (
     },
   };
 
+  if (appNodes.length === 0) {
+    return [];
+  }
+
   // Return children first, then parent (ODF pattern)
   return [...appNodes, group];
 };
@@ -317,6 +322,143 @@ const generateClusterWithApps = (
 const matchesSearch = (text: string, searchValue: string): boolean => {
   if (!searchValue) return true;
   return text.toLowerCase().includes(searchValue.toLowerCase());
+};
+
+/**
+ * Helper to check if an operation matches the filter criteria
+ */
+const matchesOperationFilter = (
+  op: DROperationInfo,
+  filters: FilterOptions,
+  clusterName: string
+): boolean => {
+  const { searchValue, filterTypes = [] } = filters;
+
+  if (!searchValue && filterTypes.length === 0) {
+    return true;
+  }
+
+  if (!searchValue && filterTypes.length > 0) {
+    return true;
+  }
+
+  const appName = op.applicationName;
+  const namespace = op.pav?.metadata?.namespace || '';
+
+  if (filterTypes.length === 0 && searchValue) {
+    return (
+      matchesSearch(appName, searchValue) ||
+      matchesSearch(clusterName, searchValue) ||
+      matchesSearch(namespace, searchValue)
+    );
+  }
+  if (
+    filterTypes.includes(FilterType.Cluster) &&
+    matchesSearch(clusterName, searchValue)
+  ) {
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Resolve the graph node id for a cluster from nodes that exist in the model.
+ */
+const resolveClusterNodeId = (
+  clusterName: string,
+  existingNodeIds: Set<string>,
+  clusterNameToUID: Map<string, string>
+): string | undefined => {
+  const groupId = `cluster-group-${clusterName}`;
+  if (existingNodeIds.has(groupId)) {
+    return groupId;
+  }
+  const uid = clusterNameToUID.get(clusterName);
+  if (uid && existingNodeIds.has(uid)) {
+    return uid;
+  }
+  return undefined;
+};
+
+/**
+ * Group nodes need dimensions before Cola layout; bounds may be unset on first pass.
+ */
+const ensureNodeDimensions = (nodes: NodeModel[]): NodeModel[] =>
+  nodes.map((node) => {
+    if (!node.group) {
+      return node;
+    }
+    const width = node.width ?? TOPOLOGY_CONSTANTS.NODE_WIDTH;
+    const height = node.height ?? TOPOLOGY_CONSTANTS.NODE_HEIGHT;
+    if (node.width === width && node.height === height) {
+      return node;
+    }
+    return { ...node, width, height };
+  });
+
+/**
+ * Remove dangling group children and edges so the layout engine never sees undefined nodes.
+ */
+const sanitizeTopologyModel = (
+  nodes: NodeModel[],
+  edges: EdgeModel[]
+): { nodes: NodeModel[]; edges: EdgeModel[] } => {
+  const nodeIdSet = new Set(nodes.map((node) => node.id));
+
+  const sanitizedNodes = nodes
+    .map((node) => {
+      if (!node.children?.length) {
+        return node;
+      }
+      const validChildren = node.children.filter((childId) =>
+        nodeIdSet.has(childId)
+      );
+      if (validChildren.length === node.children.length) {
+        return node;
+      }
+      return { ...node, children: validChildren };
+    })
+    .filter((node) => {
+      if (node.group && node.children) {
+        return node.children.length > 0;
+      }
+      return true;
+    });
+
+  // Each node may only belong to one group's children list (webcola breaks otherwise)
+  const childToParent = new Map<string, string>();
+  sanitizedNodes.forEach((node) => {
+    node.children?.forEach((childId) => {
+      if (!childToParent.has(childId)) {
+        childToParent.set(childId, node.id as string);
+      }
+    });
+  });
+
+  const dedupedNodes = sanitizedNodes.map((node) => {
+    if (!node.children?.length) {
+      return node;
+    }
+    const uniqueChildren = node.children.filter(
+      (childId, index, arr) =>
+        arr.indexOf(childId) === index && childToParent.get(childId) === node.id
+    );
+    if (uniqueChildren.length === node.children.length) {
+      return node;
+    }
+    return { ...node, children: uniqueChildren };
+  });
+
+  const finalIds = new Set(dedupedNodes.map((node) => node.id));
+  const sanitizedEdges = edges.filter(
+    (edge) =>
+      finalIds.has(edge.source as string) && finalIds.has(edge.target as string)
+  );
+
+  return {
+    nodes: ensureNodeDimensions(dedupedNodes),
+    edges: sanitizedEdges,
+  };
 };
 
 /**
@@ -360,27 +502,12 @@ const matchesAppFilter = (
     );
   }
 
-  // Check each selected filter type
-  // At least one field matching the filter type must match the search
-  if (
-    filterTypes.includes(FilterType.Application) &&
-    matchesSearch(app.name, searchValue)
-  ) {
-    return true;
-  }
   if (
     filterTypes.includes(FilterType.Cluster) &&
     matchesSearch(clusterName, searchValue)
   ) {
     return true;
   }
-  if (
-    filterTypes.includes(FilterType.Namespace) &&
-    matchesSearch(app.namespace || '', searchValue)
-  ) {
-    return true;
-  }
-
   return false;
 };
 
@@ -422,8 +549,11 @@ const matchesClusterOnlyFilter = (
     return matchesSearch(clusterName, searchValue);
   }
 
-  // For other filter types (application, namespace), don't filter at cluster level
-  // Let the cluster be shown if it has matching children
+  // When search is active, do not show clusters that only match unrelated filter types
+  if (searchValue) {
+    return false;
+  }
+
   return true;
 };
 
@@ -437,6 +567,8 @@ export const generateClusterNodesModel = (
   clusterAppsMap?: ClusterAppsMap | null,
   filters?: FilterOptions
 ): Model => {
+  const isSearchActive = Boolean(filters?.searchValue?.trim());
+
   // Build a DRPolicy-by-name map for replication health lookups
   const drPolicyByName = new Map<string, DRPolicyKind>();
   const clustersInPolicies = new Set<string>();
@@ -542,53 +674,9 @@ export const generateClusterNodesModel = (
     // Filter operations based on their associated apps
     let filteredOperations = clusterOperations;
     if (filteredOperations && filters) {
-      filteredOperations = filteredOperations.filter((op) => {
-        const { searchValue, filterTypes = [] } = filters;
-
-        // No filters applied - show everything
-        if (!searchValue && filterTypes.length === 0) {
-          return true;
-        }
-
-        // Filter types selected but no search value - show all
-        if (!searchValue && filterTypes.length > 0) {
-          return true;
-        }
-
-        const appName = op.applicationName;
-        const namespace = op.pav?.metadata?.namespace || '';
-
-        // If no filter types are selected, search across all fields
-        if (filterTypes.length === 0 && searchValue) {
-          return (
-            matchesSearch(appName, searchValue) ||
-            matchesSearch(clusterName, searchValue) ||
-            matchesSearch(namespace, searchValue)
-          );
-        }
-
-        // Check each selected filter type
-        if (
-          filterTypes.includes(FilterType.Application) &&
-          matchesSearch(appName, searchValue)
-        ) {
-          return true;
-        }
-        if (
-          filterTypes.includes(FilterType.Cluster) &&
-          matchesSearch(clusterName, searchValue)
-        ) {
-          return true;
-        }
-        if (
-          filterTypes.includes(FilterType.Namespace) &&
-          matchesSearch(namespace, searchValue)
-        ) {
-          return true;
-        }
-
-        return false;
-      });
+      filteredOperations = filteredOperations.filter((op) =>
+        matchesOperationFilter(op, filters, clusterName)
+      );
     }
 
     // Check if cluster has apps or operations after filtering
@@ -662,14 +750,17 @@ export const generateClusterNodesModel = (
 
   // Build cluster name to ID map for edge generation
   const clusterNameToUID = new Map<string, string>();
-  const clustersWithApps = new Set<string>();
   clusters.forEach((cluster) => {
     const name = getName(cluster);
     const id = getUID(cluster);
     clusterNameToUID.set(name, id);
+  });
 
-    if (clusterOperationsMap.has(name) || clusterAppsMap?.[name]?.length > 0) {
-      clustersWithApps.add(name);
+  // Derive from nodes actually in the model (respects search filtering)
+  const clustersWithApps = new Set<string>();
+  nodes.forEach((node) => {
+    if (node.data?.isClusterGroup && node.id?.startsWith('cluster-group-')) {
+      clustersWithApps.add(node.id.replace('cluster-group-', ''));
     }
   });
 
@@ -677,15 +768,24 @@ export const generateClusterNodesModel = (
   const edges: EdgeModel[] = [];
   const failoverNodes: NodeModel[] = [];
 
-  // 1. Create failover nodes and edges for active operations
-  if (clusterPairOperationsMap) {
+  // Operation edges reference cluster groups that may be absent after search filtering,
+  // which breaks Cola layout (undefined node width). Omit edges/failover while searching.
+  if (!isSearchActive && clusterPairOperationsMap) {
     Object.entries(clusterPairOperationsMap).forEach(
       ([pairKey, operations]) => {
-        if (operations.length === 0) return;
+        const filteredPairOperations = filters
+          ? operations.filter(
+              (op) =>
+                matchesOperationFilter(op, filters, op.sourceCluster || '') ||
+                matchesOperationFilter(op, filters, op.targetCluster || '')
+            )
+          : operations;
+
+        if (filteredPairOperations.length === 0) return;
 
         // Group operations by action type
         const operationsByAction = new Map<string, DROperationInfo[]>();
-        operations.forEach((op) => {
+        filteredPairOperations.forEach((op) => {
           if (!operationsByAction.has(op.action)) {
             operationsByAction.set(op.action, []);
           }
@@ -733,8 +833,12 @@ export const generateClusterNodesModel = (
               );
               return;
             }
-            const sourceClusterId = `cluster-group-${sourceCluster}`;
-            if (existingNodeIds.has(sourceClusterId)) {
+            const sourceClusterId = resolveClusterNodeId(
+              sourceCluster,
+              existingNodeIds,
+              clusterNameToUID
+            );
+            if (sourceClusterId) {
               edges.push({
                 id: `edge-source-${pairKey}-${action}-${sourceCluster}`,
                 type: 'app-operation-edge',
@@ -761,8 +865,12 @@ export const generateClusterNodesModel = (
               );
               return;
             }
-            const targetClusterId = `cluster-group-${targetCluster}`;
-            if (existingNodeIds.has(targetClusterId)) {
+            const targetClusterId = resolveClusterNodeId(
+              targetCluster,
+              existingNodeIds,
+              clusterNameToUID
+            );
+            if (targetClusterId) {
               edges.push({
                 id: `edge-target-${pairKey}-${action}-${targetCluster}`,
                 type: 'app-operation-edge',
@@ -781,6 +889,17 @@ export const generateClusterNodesModel = (
       }
     );
   }
+
+  // Filter out failover nodes that have no edges (all their apps were filtered out)
+  // Optimization: Use Set for O(1) lookup instead of O(n) .some() call
+  const nodesWithEdges = new Set<string>();
+  edges.forEach((edge) => {
+    if (edge.source) nodesWithEdges.add(edge.source as string);
+    if (edge.target) nodesWithEdges.add(edge.target as string);
+  });
+  const failoverNodesWithEdges = failoverNodes.filter((failoverNode) =>
+    nodesWithEdges.has(failoverNode.id as string)
+  );
 
   // 2. Create pairing box nodes for DR policies (always show to indicate the underlying DR policy)
   const pairingBoxNodes: NodeModel[] = [];
@@ -830,7 +949,7 @@ export const generateClusterNodesModel = (
           group: true,
           label: policies[0]?.name || '',
           labelPosition: LabelPosition.bottom,
-          children: [cluster1Id, cluster2Id], // Let layout manager handle the grouping
+          children: [cluster1Id, cluster2Id],
           collapsed: false,
           style: {
             padding: TOPOLOGY_CONSTANTS.PAIRING_BOX_PADDING,
@@ -852,13 +971,13 @@ export const generateClusterNodesModel = (
     });
   }
 
-  // Filter out failover nodes that have no edges (all their apps were filtered out)
-  const failoverNodesWithEdges = failoverNodes.filter((failoverNode) => {
-    return edges.some(
-      (edge) =>
-        edge.source === failoverNode.id || edge.target === failoverNode.id
-    );
-  });
+  const combinedNodes = [
+    ...nodes,
+    ...failoverNodesWithEdges,
+    ...pairingBoxNodes,
+  ];
+  const { nodes: sanitizedNodes, edges: sanitizedEdges } =
+    sanitizeTopologyModel(combinedNodes, edges);
 
   return {
     graph: {
@@ -866,7 +985,7 @@ export const generateClusterNodesModel = (
       type: 'graph',
       layout: 'Cola',
     },
-    nodes: [...nodes, ...failoverNodesWithEdges, ...pairingBoxNodes], // Cluster nodes FIRST, then failover nodes, then pairing boxes
-    edges,
+    nodes: sanitizedNodes,
+    edges: sanitizedEdges,
   };
 };

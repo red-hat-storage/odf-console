@@ -1,31 +1,17 @@
 .mco-app-node {
   &--source {
-    // Source app fades/pulses to indicate it's leaving
-    animation: fade-pulse 3s ease-in-out infinite;
+    // Source app maintains full opacity - no fading
+    opacity: 1;
   }
 
   &--target {
-    // Target app gets brighter to indicate it's arriving
-    animation: brighten-pulse 3s ease-in-out infinite;
-  }
-}
-
-@keyframes fade-pulse {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-@keyframes brighten-pulse {
-  0%,
-  100% {
-    opacity: 0.9;
-  }
-  50% {
+    // Target app also maintains full opacity
     opacity: 1;
+
+    // White box background for destination
+    .pf-topology__node__background {
+      fill: var(--pf-t--color--white);
+      stroke: var(--pf-t--global--border--color--default);
+    }
   }
 }

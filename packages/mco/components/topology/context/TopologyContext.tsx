@@ -15,11 +15,6 @@ type DefaultContext = {
   clusterAppsMap?: ClusterAppsMap;
   clusterPairPoliciesMap?: ClusterPairPoliciesMap;
   clusterPairOperationsMap?: ClusterPairOperationsMap;
-  /**
-   * Callback to open the cluster pairing modal
-   * Used by context menu when "Pair cluster" is clicked
-   */
-  onOpenPairModal?: (sourceCluster: string, targetCluster: string) => void;
 };
 
 const defaultContext: DefaultContext = {
@@ -31,7 +26,6 @@ const defaultContext: DefaultContext = {
   clusterAppsMap: {},
   clusterPairPoliciesMap: {},
   clusterPairOperationsMap: {},
-  onOpenPairModal: undefined,
 };
 
 export const TopologyDataContext =
