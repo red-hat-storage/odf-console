@@ -85,19 +85,37 @@ const useSANSystemFormValidation = (
 
     const formSchema = Yup.object({
       lunGroupName: Yup.string()
-        .required(t('LUN group name is required'))
-        .max(LUN_GROUP_NAME_MAX_LENGTH, lunGroupNameFieldRequirements.maxChars)
-        .min(LUN_GROUP_NAME_MIN_LENGTH, lunGroupNameFieldRequirements.minChars)
-        .matches(
-          /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
-          lunGroupNameFieldRequirements.mustBeLowercase
-        )
-        .test(
-          'unique-name',
-          lunGroupNameFieldRequirements.mustBeUnique,
-          createUniquenessValidator(existingNames)
-        )
-        .transform((value: string) => (!!value ? value : '')),
+        .transform((value: string) => (!!value ? value : ''))
+        .when([], {
+          is: () => true,
+          then: (schema) =>
+            schema.test(
+              'lun-group-name-validation',
+              lunGroupNameFieldRequirements.mustBeLowercase,
+              function (value) {
+                if (!value) return true;
+                if (value.length > LUN_GROUP_NAME_MAX_LENGTH)
+                  return this.createError({
+                    message: lunGroupNameFieldRequirements.maxChars,
+                  });
+                if (value.length < LUN_GROUP_NAME_MIN_LENGTH)
+                  return this.createError({
+                    message: lunGroupNameFieldRequirements.minChars,
+                  });
+                if (!/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(value))
+                  return this.createError({
+                    message: lunGroupNameFieldRequirements.mustBeLowercase,
+                  });
+                const uniquenessValidator =
+                  createUniquenessValidator(existingNames);
+                if (!uniquenessValidator(value))
+                  return this.createError({
+                    message: lunGroupNameFieldRequirements.mustBeUnique,
+                  });
+                return true;
+              }
+            ),
+        }),
       imageRegistryUrl: Yup.string()
         .when([], {
           is: () => !!showRegistrySection,
