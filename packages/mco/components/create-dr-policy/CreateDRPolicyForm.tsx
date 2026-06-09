@@ -76,7 +76,10 @@ const areS3DetailsFormatValid = (d: S3Details): boolean =>
   isFilled(d.s3ProfileName) &&
   isValidS3ProfileName(d.s3ProfileName);
 
-export const validateDRPolicyInputs = (state: DRPolicyState): boolean => {
+export const validateDRPolicyInputs = (
+  state: DRPolicyState,
+  allDRClustersExist = false
+): boolean => {
   const {
     policyName,
     replicationType,
@@ -97,6 +100,7 @@ export const validateDRPolicyInputs = (state: DRPolicyState): boolean => {
   if (!baseValid) return false;
 
   if (replicationBackend === BackendType.ThirdParty) {
+    if (allDRClustersExist) return true;
     const c2ProfileValid =
       isFilled(cluster2S3Details.s3ProfileName) &&
       isValidS3ProfileName(cluster2S3Details.s3ProfileName);
@@ -438,8 +442,8 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
                         cluster1Details={state.cluster1S3Details}
                         cluster2Details={state.cluster2S3Details}
                         useSameConnection={state.useSameS3Connection}
-                        areDRClustersAlreadyCreated={
-                          selectedDRClusters.length > 0
+                        existingDRClusterNames={
+                          new Set(selectedDRClusters.map(getName))
                         }
                         dispatch={dispatch}
                       />
@@ -484,7 +488,12 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
           data-test="create-button"
           variant={ButtonVariant.primary}
           onClick={onCreate}
-          isDisabled={!validateDRPolicyInputs(state) || isLoading}
+          isDisabled={
+            !validateDRPolicyInputs(
+              state,
+              selectedDRClusters.length === MAX_ALLOWED_CLUSTERS
+            ) || isLoading
+          }
           isLoading={isLoading}
         >
           {t('Create')}
