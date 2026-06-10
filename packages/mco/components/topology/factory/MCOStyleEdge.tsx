@@ -17,15 +17,14 @@ const MCOStyleEdgeComponent: React.FC<MCOStyleEdgeProps> = ({
   element,
   ...rest
 }) => {
-  // Simple non-directional edges - just connect the nodes naturally
-  // No arrows, no specific anchor points, let layout engine route them
+  // Directional edges with arrows to show operation direction clearly
   return (
     <DefaultEdge
       element={element}
       {...rest}
-      endTerminalType={EdgeTerminalType.none}
+      endTerminalType={EdgeTerminalType.directional}
       startTerminalType={EdgeTerminalType.none}
-      edgeStyle={EdgeStyle.dashed} // Dashed to show it's an operation in progress
+      edgeStyle={EdgeStyle.solid}
       className="mco-topology-edge--active-operation"
     />
   );

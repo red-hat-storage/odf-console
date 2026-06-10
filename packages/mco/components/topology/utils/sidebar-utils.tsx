@@ -4,7 +4,6 @@ import {
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
-  BlueInfoCircleIcon,
 } from '@odf/shared/status/icons';
 import { referenceForModel } from '@odf/shared/utils';
 import { InProgressIcon } from '@patternfly/react-icons';
@@ -44,24 +43,18 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
     return NodeStatus.info;
   }
 
-  // User action required
-  if (
-    status === DRStatus.WaitOnUserToCleanUp ||
-    status === DRStatus.WaitForUser
-  ) {
-    return NodeStatus.info;
-  }
-
   // Warning states
   if (status === DRStatus.Warning) {
     return NodeStatus.warning;
   }
 
-  // Danger states
+  // Danger states (includes user action required — matches protected-applications)
   if (
     status === DRStatus.Critical ||
     status === DRStatus.Unknown ||
-    status === DRStatus.ProtectionError
+    status === DRStatus.ProtectionError ||
+    status === DRStatus.WaitOnUserToCleanUp ||
+    status === DRStatus.WaitForUser
   ) {
     return NodeStatus.danger;
   }
@@ -78,24 +71,13 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
 export const isDRStatusUserActionRequired = isUserActionRequiredUtil;
 
 export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
-  // User action required
-  if (
-    status === DRStatus.WaitOnUserToCleanUp ||
-    status === DRStatus.WaitForUser
-  ) {
-    return (
-      <>
-        <BlueInfoCircleIcon />
-        <span>{status}</span>
-      </>
-    );
-  }
-
-  // Danger states
+  // Danger states (includes user action required — matches protected-applications)
   if (
     status === DRStatus.Critical ||
     status === DRStatus.Unknown ||
-    status === DRStatus.ProtectionError
+    status === DRStatus.ProtectionError ||
+    status === DRStatus.WaitOnUserToCleanUp ||
+    status === DRStatus.WaitForUser
   ) {
     return (
       <>

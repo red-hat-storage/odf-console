@@ -18,7 +18,11 @@ const RecentEvent: React.FC = () => {
     (event) => getNamespace(event) === IBM_SCALE_NAMESPACE
   );
   return (
-    <RecentEventsBody events={{ data: filteredEvents, loaded, loadError }} />
+    <RecentEventsBody
+      eventsData={filteredEvents}
+      eventsLoaded={loaded}
+      eventsLoadError={loadError}
+    />
   );
 };
 const ActivityCard: React.FC<{}> = () => {

@@ -33,9 +33,9 @@ import {
   useActiveDROperations,
 } from '../../hooks';
 import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
-import { CreateDRPolicyModal } from '../create-dr-policy/CreateDRPolicyModal';
 import { getManagedClusterInfoTypes } from '../create-dr-policy/utils/cluster-list-utils';
 import { TopologyDataContext } from './context/TopologyContext';
+import { mcoLayoutFactory } from './factory/MCOLayoutFactory';
 import { mcoTopologyComponentFactory } from './factory/MCOStyleFactory';
 import TopologySideBar from './sidebar/TopologySideBar';
 import TopologyToolbar from './TopologyToolbar';
@@ -46,9 +46,9 @@ import './topology.scss';
 const TopologyViewComponent: React.FC = () => {
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [searchValue, setSearchValue] = React.useState('');
-  const [selectedFilters, setSelectedFilters] = React.useState<FilterType[]>(
-    []
-  );
+  const [selectedFilters, setSelectedFilters] = React.useState<FilterType[]>([
+    FilterType.Cluster,
+  ]);
   const controller = useVisualizationController();
 
   const [isSideBarOpen, setSideBarOpen] = React.useState(false);
@@ -73,6 +73,7 @@ const TopologyViewComponent: React.FC = () => {
   });
 
   const prevStructureKeyRef = React.useRef<string>('');
+  const prevSearchActiveRef = React.useRef(false);
 
   const memoizedClusters = useDeepCompareMemoize(clusters);
   const memoizedPolicies = useDeepCompareMemoize(clusterPairPoliciesMap);
@@ -107,38 +108,68 @@ const TopologyViewComponent: React.FC = () => {
       .join(',');
   }, [model.nodes]);
 
+  const isSearchActive = Boolean(searchValue.trim());
+
   // Initialize and update model when data changes
   React.useEffect(() => {
     if (!controller) return;
 
-    controller.fromModel(model);
+    const searchJustCleared = prevSearchActiveRef.current && !isSearchActive;
+    prevSearchActiveRef.current = isSearchActive;
 
-    if (structureKey !== prevStructureKeyRef.current) {
-      prevStructureKeyRef.current = structureKey;
-      const graph = controller.getGraph();
-      if (!graph) return;
+    controller.fromModel(model, true);
 
-      // Delay fit until after the layout engine finishes positioning nodes
+    const graph = controller.getGraph();
+    if (!graph) return;
+
+    const structureChanged = structureKey !== prevStructureKeyRef.current;
+
+    let cancelled = false;
+
+    if (isSearchActive) {
       requestAnimationFrame(() => {
-        // Check if controller still exists (component may have unmounted)
-        if (!controller) return;
-        graph.layout();
-        requestAnimationFrame(() => {
-          // Check again before calling fit (double RAF delay)
-          if (!controller) return;
-          graph.fit(100);
-        });
+        if (cancelled || !controller) return;
+        graph.fit(100);
       });
+      return () => {
+        cancelled = true;
+      };
     }
-  }, [controller, model, structureKey]);
+
+    if (searchJustCleared) {
+      graph.reset();
+    }
+
+    const shouldLayout = structureChanged || searchJustCleared;
+
+    requestAnimationFrame(() => {
+      if (cancelled || !controller) return;
+      if (shouldLayout) {
+        try {
+          graph.layout();
+        } catch (error) {
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console -- log layout failures for debugging
+            console.warn('Topology layout failed:', error);
+          }
+        }
+      }
+      requestAnimationFrame(() => {
+        if (cancelled || !controller) return;
+        if (shouldLayout) {
+          graph.fit(100);
+          prevStructureKeyRef.current = structureKey;
+        }
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [controller, model, structureKey, isSearchActive]);
 
   const controlButtons = useTopologyControls({ controller });
 
-  // Derive sidebar data from the reactive model instead of selectedElement.getData().
-  // getData() reads from the GraphElement which is updated by fromModel() in an
-  // effect — one render behind. The model is computed from context maps and is current.
-  // When the element no longer exists in the model (e.g. operation completed),
-  // return undefined so the sidebar closes rather than showing stale data.
   const selectedElement = React.useContext(TopologyDataContext).selectedElement;
   const selectedElementId = selectedElement?.getId();
   const selectedElementData = React.useMemo(() => {
@@ -149,14 +180,12 @@ const TopologyViewComponent: React.FC = () => {
     return edge?.data;
   }, [selectedElementId, model]);
 
-  // Close sidebar when the selected element disappears from the model
   React.useEffect(() => {
     if (selectedElementId && selectedElementData === undefined) {
       onCloseSideBar();
     }
   }, [selectedElementId, selectedElementData, onCloseSideBar]);
 
-  // Check what type of element is selected
   const isEdgeSelected =
     selectedElementData?.policies !== undefined ||
     selectedElementData?.isOperation !== undefined;
@@ -224,15 +253,10 @@ const TopologyEmptyState: React.FC = () => {
 const Topology: React.FC = () => {
   const controller = useVisualizationSetup({
     componentFactory: mcoTopologyComponentFactory,
+    layoutFactory: mcoLayoutFactory,
   });
   const [selectedElement, setSelectedElement] =
     React.useState<GraphElement | null>(null);
-
-  // Modal state for cluster pairing
-  const [isPairModalOpen, setIsPairModalOpen] = React.useState(false);
-  const [pairModalClusters, setPairModalClusters] = React.useState<string[]>(
-    []
-  );
 
   const [managedClusters, loaded, loadError] = useK8sWatchResource<
     ACMManagedClusterKind[]
@@ -286,19 +310,6 @@ const Topology: React.FC = () => {
     );
   }, [managedClusters, mcvs, odfMCOVersion, loaded, mcvsLoaded, csvLoaded]);
 
-  const handleOpenPairModal = React.useCallback(
-    (sourceCluster: string, targetCluster: string) => {
-      setPairModalClusters([sourceCluster, targetCluster]);
-      setIsPairModalOpen(true);
-    },
-    []
-  );
-
-  const handleClosePairModal = React.useCallback(() => {
-    setIsPairModalOpen(false);
-    setPairModalClusters([]);
-  }, []);
-
   const topologyDataContextData = React.useMemo(() => {
     return {
       clusters: clustersWithODF || [],
@@ -309,7 +320,6 @@ const Topology: React.FC = () => {
       clusterAppsMap,
       clusterPairPoliciesMap,
       clusterPairOperationsMap,
-      onOpenPairModal: handleOpenPairModal,
     };
   }, [
     clustersWithODF,
@@ -319,7 +329,6 @@ const Topology: React.FC = () => {
     clusterAppsMap,
     clusterPairPoliciesMap,
     clusterPairOperationsMap,
-    handleOpenPairModal,
   ]);
 
   const hasNoClusters =
@@ -356,11 +365,6 @@ const Topology: React.FC = () => {
             </HandleErrorAndLoading>
           )}
         </div>
-        <CreateDRPolicyModal
-          isOpen={isPairModalOpen}
-          onClose={handleClosePairModal}
-          preSelectedClusters={pairModalClusters}
-        />
       </VisualizationProvider>
     </TopologyDataContext.Provider>
   );
