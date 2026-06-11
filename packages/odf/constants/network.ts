@@ -9,6 +9,7 @@ export const NetworkTypeLabels = {
   [NetworkType.DEFAULT]: 'Default (OVN)',
   [NetworkType.MULTUS]: 'Custom (Multus)',
   [NetworkType.HOST]: 'Host',
+  [NetworkType.NIC]: 'Host (Isolated via CIDR)',
 };
 
 export const MON_IP_ANNOTATION = 'network.rook.io/mon-ip';
