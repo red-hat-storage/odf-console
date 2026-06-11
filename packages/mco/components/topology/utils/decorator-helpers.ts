@@ -21,8 +21,6 @@ export const getDecoratorForStatus = (
     case DRStatus.Unknown:
     case DRStatus.WaitOnUserToCleanUp:
     case DRStatus.WaitForUser:
-    case Progression.FailedToFailover:
-    case Progression.FailedToRelocate:
     case Progression.WaitForUserAction:
       icon = DecoratorIcon.ExclamationCircle;
       tooltip =
