@@ -14,7 +14,6 @@ import {
   ScaleDetailsLevel,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import { getEffectiveDRStatus } from '../../../utils/dr-status';
 import { AppNodeData } from '../types';
 import { renderDecorators } from '../utils/decorator-utils';
 import { getDRNodeStatus } from '../utils/sidebar-utils';
@@ -69,12 +68,8 @@ const MCOStyleAppNodeComponent: React.FC<MCOStyleAppNodeProps> = ({
 
   const showLabel = rest.hover || detailsLevel !== ScaleDetailsLevel.low;
 
-  // For static apps, appStatus is already a computed DRStatus - use it directly
-  // For operation nodes, compute from phase/progression
-  const effectiveStatus =
-    data.isStatic && data.appStatus
-      ? data.appStatus
-      : getEffectiveDRStatus(data?.phase, data?.progression);
+  // appStatus is pre-computed by the node-generator (for both static and operation nodes)
+  const effectiveStatus = data.appStatus;
   const nodeStatus = getDRNodeStatus(effectiveStatus);
   const isOperation = !data?.isStatic && data?.isSource !== undefined;
   const animationClass = isOperation

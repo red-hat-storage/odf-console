@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getEffectiveDRStatus } from '@odf/mco/utils/dr-status';
+import { getDRStatus } from '@odf/mco/utils/dr-status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -23,7 +23,11 @@ import { DRPCFilterToolbar } from './DRPCFilterToolbar';
 import './TopologySidebar.scss';
 
 const getOperationStatus = (op: DROperationInfo) =>
-  getEffectiveDRStatus(op.phase, op.progression, op.hasProtectionError);
+  getDRStatus({
+    phase: op.phase,
+    progression: op.progression,
+    action: op.action,
+  });
 
 type OperationSidebarProps = {
   edgeData: OperationEdgeSidebarData;

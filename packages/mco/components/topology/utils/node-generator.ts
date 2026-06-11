@@ -87,6 +87,7 @@ const computeOperationDRStatus = (
     protectedCondition,
     schedulingInterval,
     actionStartTime: drpc?.status?.actionStartTime,
+    action: drpc?.spec?.action,
   });
 };
 
@@ -138,6 +139,7 @@ const createGroupedOperationNodes = (
       clusterName,
       isGrouped: count > 1,
       appCount: count,
+      appStatus: effectiveStatus,
       action,
       phase,
       progression,
