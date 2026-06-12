@@ -199,15 +199,10 @@ describe('ExternalSystemsCard', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders SAN row with LUN group status counts when SAN cluster exists', () => {
+  it('renders SAN row with LUN group status counts when only SAN cluster exists', () => {
     mockWatchClusters({
       sanClusters: {
         data: [{ metadata: { name: 'san-cluster' } }],
-        loaded: true,
-        loadError: null,
-      },
-      remoteClusters: {
-        data: [{ metadata: { name: 'remote-cluster-1' } }],
         loaded: true,
         loadError: null,
       },
@@ -231,6 +226,54 @@ describe('ExternalSystemsCard', () => {
       .closest('dt');
     const description = sanRow?.nextElementSibling as HTMLElement;
     expect(within(description).getAllByText('1')).toHaveLength(2);
+  });
+
+  it('renders SAN row when Cluster exists without RemoteCluster', () => {
+    mockWatchClusters({
+      sanClusters: {
+        data: [{ metadata: { name: 'san-cluster' } }],
+        loaded: true,
+        loadError: null,
+      },
+    });
+    mockFileSystems([]);
+
+    renderCard();
+
+    expect(
+      screen.getByText('Storage Area Network LUN groups')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('IBM Scale (CNSA) file systems')
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders CNSA row when both RemoteCluster and Cluster CRs exist', () => {
+    mockWatchClusters({
+      sanClusters: {
+        data: [{ metadata: { name: 'local-scale-cluster' } }],
+        loaded: true,
+        loadError: null,
+      },
+      remoteClusters: {
+        data: [{ metadata: { name: 'remote-cluster-1' } }],
+        loaded: true,
+        loadError: null,
+      },
+    });
+    mockFileSystems([
+      cnsaFilesystem('fs-healthy', 'connected'),
+      cnsaFilesystem('fs-error', 'error'),
+    ]);
+
+    renderCard();
+
+    expect(
+      screen.getByText('IBM Scale (CNSA) file systems')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Storage Area Network LUN groups')
+    ).not.toBeInTheDocument();
   });
 
   it('renders CNSA row with filesystem status counts when remote cluster exists', () => {

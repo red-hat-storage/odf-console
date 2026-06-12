@@ -5,7 +5,10 @@ import { isClusterIgnored, isExternalCluster } from '@odf/core/utils/odf';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
 import { FileSystemModel } from '@odf/shared/models/scale';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
+import {
+  getValidWatchK8sResourceObj,
+  referenceForModel,
+} from '@odf/shared/utils';
 import {
   K8sResourceKind,
   useFlag,
@@ -95,13 +98,14 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
 
   const [fileSystems, fileSystemsLoaded, fileSystemsLoadError] =
     useK8sWatchResource<FileSystemKind[]>(
-      isFDF
-        ? {
-            kind: referenceForModel(FileSystemModel),
-            isList: true,
-            namespaced: false,
-          }
-        : null
+      getValidWatchK8sResourceObj(
+        {
+          kind: referenceForModel(FileSystemModel),
+          isList: true,
+          namespaced: false,
+        },
+        isFDF
+      )
     );
 
   const externalCephClusters =
@@ -128,9 +132,9 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
       fileSystemsLoaded &&
       !fileSystemsLoadError);
 
-  const isSanConnected = isFDF && sanClustersData.length > 0;
-  const isCnsaConnected =
-    isFDF && !isSanConnected && remoteClustersData.length > 0;
+  const isCnsaConnected = isFDF && remoteClustersData.length > 0;
+  const isSanConnected =
+    isFDF && !isCnsaConnected && sanClustersData.length > 0;
 
   const cnsaFileSystems = filterCnsaFileSystems(fileSystems ?? []);
   const sanLunGroups = filterSANFileSystems(fileSystems ?? []);
@@ -138,17 +142,17 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
   const connectedRows: ExternalSystemRow[] = [];
 
   if (isFDF && scaleResourcesLoaded) {
-    if (isSanConnected) {
-      connectedRows.push({
-        id: 'san',
-        label: t('Storage Area Network LUN groups'),
-        counts: getSanLunGroupStatusCounts(sanLunGroups),
-      });
-    } else if (isCnsaConnected) {
+    if (isCnsaConnected) {
       connectedRows.push({
         id: 'cnsa',
         label: t('IBM Scale (CNSA) file systems'),
         counts: getCnsaFilesystemStatusCounts(cnsaFileSystems),
+      });
+    } else if (isSanConnected) {
+      connectedRows.push({
+        id: 'san',
+        label: t('Storage Area Network LUN groups'),
+        counts: getSanLunGroupStatusCounts(sanLunGroups),
       });
     }
   }
