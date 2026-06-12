@@ -113,11 +113,16 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
       ? !!(imageRegistryUrl && imageRepositoryName)
       : !!secretKey;
 
+  const hasLunGroupName = !!lunGroupName;
+  const hasSelectedLUNs = componentState.selectedLUNs.size > 0;
+  const lunGroupValid =
+    (hasLunGroupName && hasSelectedLUNs) ||
+    (!hasLunGroupName && !hasSelectedLUNs);
+
   const isFormValid = !!(
-    lunGroupName &&
     registryFieldsValid &&
     componentState.selectedNodes.length > 0 &&
-    componentState.selectedLUNs.size > 0
+    lunGroupValid
   );
 
   const filteredSharedDevices = filterUsedDiscoveredDevices(
@@ -170,13 +175,15 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         await createCSIDriver();
         await configureMetricsNamespaceLabels();
       }
-      const localDisks = await createLocalDisks(mappedLuns, t);
-      const fileSystem = await createLocalFileSystem(
-        lunGroupName,
-        localDisks,
-        t
-      );
-      await createStorageClass(fileSystem, t);
+      if (lunGroupName && mappedLuns.length > 0) {
+        const localDisks = await createLocalDisks(mappedLuns, t);
+        const fileSystem = await createLocalFileSystem(
+          lunGroupName,
+          localDisks,
+          t
+        );
+        await createStorageClass(fileSystem, t);
+      }
       navigate('/odf/external-systems');
     } catch (err) {
       setError(
@@ -230,7 +237,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           <HelperText>
             <HelperTextItem>
               {t(
-                'Select one or more of the shared LUNs accessible from all the selected local nodes above.'
+                'Optionally select one or more of the shared LUNs accessible from all the selected local nodes above to create a LUN group.'
               )}
             </HelperTextItem>
           </HelperText>
@@ -245,7 +252,6 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           formGroupProps={{
             label: t('Name'),
             fieldId: 'lunGroupName',
-            isRequired: true,
           }}
           textInputProps={{
             id: 'lunGroupName',
@@ -254,7 +260,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
             'data-test': 'lun-group-name',
           }}
         />
-        <FormGroup label={t('LUNs')} isRequired>
+        <FormGroup label={t('LUNs')}>
           <LUNsTable
             luns={filteredSharedDevices}
             selectedLUNs={componentState.selectedLUNs}
