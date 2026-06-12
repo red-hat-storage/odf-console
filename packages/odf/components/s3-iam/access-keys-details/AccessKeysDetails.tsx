@@ -155,3 +155,5 @@ export const AccessKeysDetails: React.FC<IamAccesskeysDetailsProps> = ({
     <LoadingBox />
   );
 };
+
+export default AccessKeysDetails;
