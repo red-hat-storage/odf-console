@@ -1,3 +1,4 @@
+import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import { FDF_FLAG } from '@odf/core/redux';
 import {
   ClusterKind,
@@ -50,6 +51,7 @@ const resources = (isFDF: boolean): WatchK8sResources<AllClusters> => ({
             kind: RemoteClusterModel.kind,
           },
           isList: true,
+          namespace: IBM_SCALE_NAMESPACE,
         },
         sanClusters: {
           groupVersionKind: {
@@ -58,6 +60,7 @@ const resources = (isFDF: boolean): WatchK8sResources<AllClusters> => ({
             kind: ClusterModel.kind,
           },
           isList: true,
+          namespace: IBM_SCALE_NAMESPACE,
         },
         daemons: {
           groupVersionKind: {
@@ -66,6 +69,7 @@ const resources = (isFDF: boolean): WatchK8sResources<AllClusters> => ({
             kind: DaemonModel.kind,
           },
           isList: true,
+          namespace: IBM_SCALE_NAMESPACE,
         },
       }
     : {}),

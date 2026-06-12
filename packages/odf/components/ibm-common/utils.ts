@@ -18,3 +18,7 @@ export const filterSANFileSystems = (
 ): FileSystemKind[] => {
   return fileSystems.filter((fs) => fs.spec.local && _.isEmpty(fs.spec.remote));
 };
+
+export const filterCnsaFileSystems = (
+  fileSystems: FileSystemKind[] = []
+): FileSystemKind[] => fileSystems.filter((fs) => !_.isEmpty(fs?.spec?.remote));
