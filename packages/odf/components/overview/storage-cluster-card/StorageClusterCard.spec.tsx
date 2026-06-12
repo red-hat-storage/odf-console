@@ -34,6 +34,7 @@ jest.mock('@odf/core/utils', () => ({
       (cluster) => cluster?.metadata?.namespace === namespace
     );
   }),
+  isExternalCluster: jest.fn(() => false),
 }));
 
 jest.mock('@odf/ocs/queries', () => ({
@@ -104,6 +105,9 @@ jest.mock('@odf/shared/useCustomTranslationHook', () => ({
 }));
 
 jest.mock('@odf/shared/utils', () => ({
+  referenceForModel: jest.fn(
+    (model) => `${model?.apiGroup}~${model?.apiVersion}~${model?.kind}`
+  ),
   getOprChannelFromSub: jest.fn((sub) => sub?.spec?.channel || DASH),
   getOprVersionFromCSV: jest.fn((csv) => csv?.spec?.version || DASH),
   getStorageClusterMetric: jest.fn((metric) => {
@@ -146,6 +150,7 @@ jest.mock('@odf/ocs/hooks/useOcsHealth', () => ({
 
 jest.mock('@odf/ocs/utils', () => ({
   getDataResiliencyState: jest.fn(),
+  getNooBaaHealthFromCR: jest.fn(() => ({ state: 'OK' })),
 }));
 
 const mockStorageCluster = {
@@ -232,6 +237,7 @@ describe('StorageClusterCard', () => {
     (useGetOCSHealth as jest.Mock).mockReturnValue({
       healthState: HealthState.OK,
       message: 'Healthy',
+      mcgHealth: { state: HealthState.OK },
     });
 
     (useRawCapacity as jest.Mock).mockReturnValue([
@@ -345,6 +351,7 @@ describe('StorageClusterCard', () => {
       (useGetOCSHealth as jest.Mock).mockReturnValue({
         healthState: HealthState.OK,
         message: 'Healthy',
+        mcgHealth: { state: HealthState.OK },
       });
 
       render(
@@ -362,6 +369,7 @@ describe('StorageClusterCard', () => {
       (useGetOCSHealth as jest.Mock).mockReturnValue({
         healthState: HealthState.WARNING,
         message: 'Warning',
+        mcgHealth: { state: HealthState.WARNING },
       });
 
       render(
@@ -377,6 +385,7 @@ describe('StorageClusterCard', () => {
       (useGetOCSHealth as jest.Mock).mockReturnValue({
         healthState: HealthState.ERROR,
         message: 'Error',
+        mcgHealth: { state: HealthState.ERROR },
       });
 
       render(
@@ -1025,15 +1034,12 @@ describe('StorageClusterCard', () => {
       (useGetOCSHealth as jest.Mock).mockReturnValue({
         healthState: HealthState.WARNING,
         message: 'Warning',
+        mcgHealth: { state: HealthState.OK },
       });
 
-      let callCount = 0;
-      (getDataResiliencyState as jest.Mock).mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          return { state: HealthState.ERROR, message: 'Error' };
-        }
-        return { state: HealthState.OK, message: 'Healthy' };
+      (getDataResiliencyState as jest.Mock).mockReturnValue({
+        state: HealthState.ERROR,
+        message: 'Error',
       });
 
       render(
