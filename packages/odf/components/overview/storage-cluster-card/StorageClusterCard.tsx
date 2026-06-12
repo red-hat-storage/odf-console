@@ -5,16 +5,19 @@ import {
   odfSubscriptionResource,
   storageClusterResource,
 } from '@odf/core/resources';
-import { getStorageClusterInNs } from '@odf/core/utils';
+import { getStorageClusterInNs, isExternalCluster } from '@odf/core/utils';
 import { DANGER_THRESHOLD, WARNING_THRESHOLD } from '@odf/ocs/constants/charts';
 import { useGetOCSHealth } from '@odf/ocs/hooks/useOcsHealth';
-import { resiliencyProgressQuery, StatusCardQueries } from '@odf/ocs/queries';
-import { getDataResiliencyState } from '@odf/ocs/utils';
+import { resiliencyProgressQuery } from '@odf/ocs/queries';
+import { NooBaaKind } from '@odf/ocs/types';
+import { getDataResiliencyState, getNooBaaHealthFromCR } from '@odf/ocs/utils';
 import {
   DASH,
   getName,
+  getNamespace,
   healthStateMapping,
   healthStateMessage,
+  NooBaaSystemModel,
   ODF_OPERATOR,
   StorageClusterKind,
   SubscriptionKind,
@@ -31,10 +34,12 @@ import {
   getOprVersionFromCSV,
   getStorageClusterMetric,
   humanizeBinaryBytes,
+  referenceForModel,
 } from '@odf/shared/utils';
 import {
   HealthState,
   useK8sWatchResource,
+  WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ChartDonut,
@@ -89,11 +94,30 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
   const [subscription, subscriptionLoaded, subscriptionError] =
     useSafeK8sWatchResource<SubscriptionKind>(odfSubscriptionResource);
 
-  const storageCluster = getStorageClusterInNs(storageClusters, odfNamespace);
+  const filteredInternalStorageClusters = storageClusters?.filter(
+    (cluster) => !isExternalCluster(cluster)
+  );
+  const storageCluster = getStorageClusterInNs(
+    filteredInternalStorageClusters,
+    odfNamespace
+  );
   const clusterName = getName(storageCluster);
 
   const { healthState, message: healthMessage } =
     useGetOCSHealth(storageCluster);
+
+  const noobaaResource: WatchK8sResource = React.useMemo(
+    () => ({
+      kind: referenceForModel(NooBaaSystemModel),
+      isList: true,
+      namespaced: true,
+      namespace: odfNamespace,
+    }),
+    [odfNamespace]
+  );
+
+  const [noobaaData, noobaaLoaded, noobaaLoadError] =
+    useK8sWatchResource<NooBaaKind[]>(noobaaResource);
 
   const [totalCapacity, usedCapacity, capacityLoading, capacityLoadError] =
     useRawCapacity(clusterName);
@@ -104,22 +128,24 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
       basePath: usePrometheusBasePath(),
     });
 
-  const [objectResiliencyProgress, objectResiliencyProgressError] =
-    useCustomPrometheusPoll({
-      query: StatusCardQueries.MCG_REBUILD_PROGRESS_QUERY,
-      endpoint: 'api/v1/query' as any,
-      basePath: usePrometheusBasePath(),
-    });
-
-  const objectResiliencyState = getDataResiliencyState(
-    [
-      {
-        response: objectResiliencyProgress,
-        error: objectResiliencyProgressError,
-      },
-    ],
-    t
+  // Get Object Resiliency state from NooBaa CR status.phase instead of Prometheus
+  const systemNamespace = getNamespace(storageCluster);
+  const noobaaCluster: NooBaaKind | undefined = noobaaData?.find(
+    (noobaa) => getNamespace(noobaa) === systemNamespace
   );
+
+  const objectResiliencyState = React.useMemo(() => {
+    if (noobaaLoadError) {
+      return { state: HealthState.NOT_AVAILABLE };
+    }
+    if (!noobaaLoaded) {
+      return { state: HealthState.LOADING };
+    }
+    if (!noobaaCluster) {
+      return { state: HealthState.NOT_AVAILABLE };
+    }
+    return getNooBaaHealthFromCR(noobaaCluster, t);
+  }, [noobaaCluster, noobaaLoaded, noobaaLoadError, t]);
   const cephDataResiliencyState = getDataResiliencyState(
     [{ response: cephResiliencyProgress, error: cephResiliencyProgressError }],
     t
