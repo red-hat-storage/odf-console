@@ -4,10 +4,6 @@ import {
   NooBaaSystemModel,
   StorageClusterKind,
 } from '@odf/shared';
-import {
-  useCustomPrometheusPoll,
-  usePrometheusBasePath,
-} from '@odf/shared/hooks/custom-prometheus-poll';
 import { CephClusterModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -19,10 +15,10 @@ import {
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { Health, HEALTH_QUERY } from '../queries';
+import { NooBaaKind } from '../types';
 import {
   getCephHealthState,
-  getNooBaaState,
+  getNooBaaHealthFromCR,
   getRGWHealthState,
 } from '../utils';
 
@@ -61,13 +57,7 @@ export const useGetOCSHealth: UseGetOCSHealth = (storageCluster) => {
     K8sResourceKind[]
   >(cephObjectStoreResource);
   const [noobaaData, noobaaLoaded, noobaaLoadError] =
-    useK8sWatchResource<K8sResourceKind[]>(noobaaResource);
-
-  const [noobaaHealthStatus, noobaaQueryLoadError] = useCustomPrometheusPoll({
-    query: HEALTH_QUERY[Health.NOOBAA],
-    endpoint: 'api/v1/query' as any,
-    basePath: usePrometheusBasePath(),
-  });
+    useK8sWatchResource<NooBaaKind[]>(noobaaResource);
 
   return React.useMemo(() => {
     // Check if any required resources are still loading (not loaded and no error)
@@ -116,7 +106,7 @@ export const useGetOCSHealth: UseGetOCSHealth = (storageCluster) => {
     const cephObjectStore = cephObjData?.find(
       (cephObj) => getNamespace(cephObj) === systemNamespace
     );
-    const noobaaCluster = noobaaData?.find(
+    const noobaaCluster: NooBaaKind | undefined = noobaaData?.find(
       (noobaa) => getNamespace(noobaa) === systemNamespace
     );
 
@@ -138,21 +128,9 @@ export const useGetOCSHealth: UseGetOCSHealth = (storageCluster) => {
 
     // there will only be single NooBaa instance (even for multiple StorageSystems)
     // and its status should only be linked with the corresponding StorageSystem/StorageCluster.
+    // Use NooBaa CR status.phase field instead of Prometheus metrics for accurate health state
     const interimMCGState = !_.isEmpty(noobaaCluster)
-      ? getNooBaaState(
-          [
-            {
-              response: noobaaHealthStatus,
-              error: noobaaQueryLoadError,
-            },
-          ],
-          t,
-          {
-            loaded: noobaaLoaded,
-            loadError: noobaaLoadError,
-            data: noobaaData,
-          }
-        ).state
+      ? getNooBaaHealthFromCR(noobaaCluster, t).state
       : NA;
 
     const mcgState = AcceptableHealthStates.includes(interimMCGState)
@@ -206,10 +184,8 @@ export const useGetOCSHealth: UseGetOCSHealth = (storageCluster) => {
     cephObjLoadError,
     cephObjLoaded,
     noobaaData,
-    noobaaHealthStatus,
     noobaaLoadError,
     noobaaLoaded,
-    noobaaQueryLoadError,
     storageCluster,
     t,
   ]);
