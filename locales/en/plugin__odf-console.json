@@ -1507,6 +1507,7 @@
   "Maximum disks limit": "Maximum disks limit",
   "Maximum: {{size}} Bytes": "Maximum: {{size}} Bytes",
   "MCG endpoint": "MCG endpoint",
+  "MCG is {{phase}}": "MCG is {{phase}}",
   "Measures similarity between two vectors based only on direction.": "Measures similarity between two vectors based only on direction.",
   "Measures straight-line distance between two vectors using both direction and magnitude.": "Measures straight-line distance between two vectors using both direction and magnitude.",
   "Memory": "Memory",
