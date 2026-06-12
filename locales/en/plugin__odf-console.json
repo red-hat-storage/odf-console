@@ -410,7 +410,7 @@
   "Backup occurs at 12:00 AM on the first Saturday of each month": "Backup occurs at 12:00 AM on the first Saturday of each month",
   "Balanced mode": "Balanced mode",
   "Bandwidth": "Bandwidth",
-  "Before choosing this option, read the section<1>Creating Disaster Recovery Policy on Hub cluster chapter of Regional-DR solution guide</1>to understand the impact and limitations of this feature.": "Before choosing this option, read the section<1>Creating Disaster Recovery Policy on Hub cluster chapter of Regional-DR solution guide</1>to understand the impact and limitations of this feature.",
+  "Before choosing this option, read the section <2>Creating Disaster Recovery Policy on Hub cluster</2> chapter of Regional-DR solution guide to understand the impact and limitations of this feature.": "Before choosing this option, read the section <2>Creating Disaster Recovery Policy on Hub cluster</2> chapter of Regional-DR solution guide to understand the impact and limitations of this feature.",
   "Before we can create a storage system, the Local Storage Operator needs to be installed. When installation is finished come back to Data Foundation to create a storage system.<1><0>Install</0></1>": "Before we can create a storage system, the Local Storage Operator needs to be installed. When installation is finished come back to Data Foundation to create a storage system.<1><0>Install</0></1>",
   "Before you use third-party storage": "Before you use third-party storage",
   "Between clusters": "Between clusters",
