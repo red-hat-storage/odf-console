@@ -685,12 +685,9 @@ const getNetworkField = (
     networkType,
     publicNetwork,
     clusterNetwork,
-    addressRanges: { cluster, public: publicAddressRange },
+    addressRanges: { cluster },
   } = networkConfiguration;
   const normalizedClusterRange = cluster
-    ?.map((cidr) => cidr?.trim())
-    ?.filter(Boolean);
-  const normalizedPublicRange = publicAddressRange
     ?.map((cidr) => cidr?.trim())
     ?.filter(Boolean);
   if (networkType === NetworkType.HOST || networkType === NetworkType.NIC) {
@@ -703,7 +700,6 @@ const getNetworkField = (
         },
         addressRanges: {
           cluster: normalizedClusterRange,
-          public: normalizedPublicRange,
         },
       },
     } as StorageClusterKind['spec']['network'];

@@ -24,14 +24,12 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
     networkType: nwType,
     clusterNetwork,
     publicNetwork,
-    usePublicNetwork,
     useClusterNetwork,
     encryption,
     kms,
     isMultusAcknowledged,
     addressRanges: {
       cluster: [cephClusterCIDR],
-      public: [cephPublicCIDR],
     },
   } = securityAndNetworkState;
 
@@ -62,17 +60,12 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
       payload: resource,
     });
 
-  const setCIDRNetwork = React.useCallback(
-    (clusterCIDR: string, publicCIDR: string) => {
+  const setClusterCIDR = React.useCallback(
+    (clusterCIDR: string) => {
       const normalizedClusterCIDR = clusterCIDR.trim();
-      const normalizedPublicCIDR = publicCIDR.trim();
       dispatch({
         type: 'securityAndNetwork/setCephCIDR',
         payload: normalizedClusterCIDR ? [normalizedClusterCIDR] : [],
-      });
-      dispatch({
-        type: 'securityAndNetwork/setPublicCIDR',
-        payload: normalizedPublicCIDR ? [normalizedPublicCIDR] : [],
       });
     },
     [dispatch]
@@ -83,10 +76,6 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
       type: 'securityAndNetwork/setMultusAcknowledged',
       payload: val,
     });
-  };
-
-  const setUsePublicNetwork = (val: boolean) => {
-    dispatch({ type: 'securityAndNetwork/setUsePublicNetwork', payload: val });
   };
 
   const setUseClusterNetwork = (val: boolean) => {
@@ -108,12 +97,9 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           networkType={nwType}
           setNetworkType={setNetworkType}
           setMultusNetwork={setMultusNetwork}
-          setCIDRNetwork={setCIDRNetwork}
-          cephPublicCIDR={cephPublicCIDR}
+          setClusterCIDR={setClusterCIDR}
           cephClusterCIDR={cephClusterCIDR}
-          usePublicNetwork={usePublicNetwork}
           useClusterNetwork={useClusterNetwork}
-          setUsePublicNetwork={setUsePublicNetwork}
           setUseClusterNetwork={setUseClusterNetwork}
           clusterNetwork={clusterNetwork}
           publicNetwork={publicNetwork}

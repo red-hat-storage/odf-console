@@ -16,12 +16,9 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   setNetworkType,
   networkType,
   setMultusNetwork,
-  setCIDRNetwork,
-  cephPublicCIDR,
+  setClusterCIDR,
   cephClusterCIDR,
-  usePublicNetwork,
   useClusterNetwork,
-  setUsePublicNetwork,
   setUseClusterNetwork,
   clusterNetwork,
   publicNetwork,
@@ -111,18 +108,10 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
         isFDF && (
           <NICSelectComponent
             cephClusterCIDR={cephClusterCIDR ?? ''}
-            cephPublicCIDR={cephPublicCIDR ?? ''}
-            setCephCIDR={(cephCIDR: string) =>
-              setCIDRNetwork(cephCIDR, cephPublicCIDR ?? '')
-            }
-            setPublicCIDR={(publicCIDR: string) =>
-              setCIDRNetwork(cephClusterCIDR ?? '', publicCIDR)
-            }
+            setCephCIDR={setClusterCIDR}
             networkType={networkType}
             setNetworkType={(type: NetworkType) => setNetworkType(type)}
-            usePublicNetwork={usePublicNetwork}
             useClusterNetwork={useClusterNetwork}
-            setUsePublicNetwork={setUsePublicNetwork}
             setUseClusterNetwork={setUseClusterNetwork}
             nodes={nodes}
           />
@@ -135,19 +124,16 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
 type NetworkFormGroupProps = {
   setNetworkType: any;
   networkType: NetworkType;
-  usePublicNetwork: boolean;
   useClusterNetwork: boolean;
-  setUsePublicNetwork: (val: boolean) => void;
   setUseClusterNetwork: (val: boolean) => void;
   setMultusNetwork: (
     type: NADSelectorType,
     resource: K8sResourceCommon
   ) => void;
-  setCIDRNetwork: (clusterCIDR: string, publicCIDR: string) => void;
+  setClusterCIDR: (clusterCIDR: string) => void;
   clusterNetwork: NetworkAttachmentDefinitionKind;
   publicNetwork: NetworkAttachmentDefinitionKind;
   cephClusterCIDR: string;
-  cephPublicCIDR: string;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   isMultusAcknowledged: boolean;
   setIsMultusAcknowledged: (val: boolean) => void;
