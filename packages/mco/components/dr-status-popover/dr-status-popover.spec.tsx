@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import React from 'react';
 import { describe, expect, it } from '@jest/globals';
-import { VolumeReplicationHealth } from '@odf/mco/constants';
+import { DRActionType, VolumeReplicationHealth } from '@odf/mco/constants';
 import { DRPlacementControlConditionReason, Phase } from '@odf/mco/types';
 import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { render, screen } from '@testing-library/react';
@@ -856,6 +856,42 @@ describe('DRStatusPopover Component', () => {
             status: K8sResourceConditionStatus.False,
             reason: DRPlacementControlConditionReason.Error,
           },
+        },
+      },
+      {
+        label: 'Initiating with action=Relocate -> Relocating',
+        expectedStatus: 'Relocating',
+        overrides: {
+          phase: Phase.Initiating,
+          progression: 'Initial',
+          action: DRActionType.RELOCATE,
+        },
+      },
+      {
+        label: 'Initiating with action=Failover -> FailingOver',
+        expectedStatus: 'FailingOver',
+        overrides: {
+          phase: Phase.Initiating,
+          progression: 'Initial',
+          action: DRActionType.FAILOVER,
+        },
+      },
+      {
+        label: 'Deploying with action=Relocate -> Relocating',
+        expectedStatus: 'Relocating',
+        overrides: {
+          phase: Phase.Deploying,
+          progression: 'Deploying',
+          action: DRActionType.RELOCATE,
+        },
+      },
+      {
+        label: 'Deploying with action=Failover -> FailingOver',
+        expectedStatus: 'FailingOver',
+        overrides: {
+          phase: Phase.Deploying,
+          progression: 'Deploying',
+          action: DRActionType.FAILOVER,
         },
       },
       {

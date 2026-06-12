@@ -9,8 +9,8 @@ import {
   EmptyStateBody,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
-import { DRPlacementControlConditionType } from '../../../types';
-import { getEffectiveDRStatus } from '../../../utils/dr-status';
+import { getProtectedCondition } from '../../../utils';
+import { getDRStatus } from '../../../utils/dr-status';
 import { getPAVDRPolicyName } from '../../../utils/pav';
 import {
   AppSidebarItem,
@@ -138,20 +138,17 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
     operationData.operations ||
     (operationData.operation ? [operationData.operation] : []);
   const appsFromOperations = operations.map((op) => {
-    const protectedCondition = op.drpc?.status?.conditions?.find(
-      (c) => c.type === DRPlacementControlConditionType.Protected
-    );
-    const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
+    const protectedCondition = getProtectedCondition(op.drpc);
     return {
       name: op.applicationName,
       namespace: op.applicationNamespace,
-      status: getEffectiveDRStatus(
-        op.phase,
-        op.progression,
-        op.hasProtectionError,
+      status: getDRStatus({
+        phase: op.phase,
+        progression: op.progression,
         protectedCondition,
-        volumeLastGroupSyncTime
-      ),
+        volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
+        action: op.action,
+      }),
       drPolicy: op.pav ? getPAVDRPolicyName(op.pav) : '',
     };
   });
