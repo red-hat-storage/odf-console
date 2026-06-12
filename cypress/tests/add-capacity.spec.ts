@@ -9,14 +9,15 @@ import {
 import {
   createOSDTreeMap,
   getDeviceCount,
+  getReplicaCountFromNodes,
   getIds,
   getNewOSDIds,
   getPodRestartCount,
   isNodeReady,
-  SIZE_MAP,
   verifyNodeOSDMapping,
   getPresentPod,
   getPodName,
+  SIZE_MAP,
 } from '../helpers/add-capacity';
 import { modal } from '../views/modals';
 import { ODFCommon } from '../views/odf-common';
@@ -68,6 +69,12 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
     cy.exec(`oc get po -n ${CLUSTER_NAMESPACE} -o json`).then((res) => {
       const pods = JSON.parse(res.stdout);
       _.set(initialState, 'pods', pods);
+    });
+    cy.exec(
+      `oc get nodes -l cluster.ocs.openshift.io/openshift-storage= -o json`
+    ).then((res) => {
+      const odfNodes = JSON.parse(res.stdout);
+      const replicas = getReplicaCountFromNodes(odfNodes.items);
 
       ODFCommon.visitStorageCluster();
       cy.byTestID('kebab-button').click();
@@ -81,8 +88,6 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
           initialState.storageCluster?.spec?.storageDeviceSets?.[0]
             ?.dataPVCTemplate?.spec?.resources?.requests?.storage
         ];
-      const replicas =
-        initialState.storageCluster?.spec?.storageDeviceSets?.[0]?.replica;
       const provisionedCapacity = initialCapacity * replicas;
       cy.byTestID('requestSize').should('have.value', String(initialCapacity));
       cy.byTestID('provisioned-capacity').contains(
@@ -100,11 +105,12 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
         { timeout: 20 * MINUTE }
       );
     });
+    // Assertion of increment of device count
     cy.exec(
       `oc get storagecluster ${STORAGE_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`
     ).then((res) => {
       const storageCluster = JSON.parse(res.stdout);
-      // Assertion of increment of device count
+
       cy.log('Check cluster device set count has increased');
       expect(getDeviceCount(initialState.storageCluster)).to.equal(
         getDeviceCount(storageCluster) - 1
@@ -150,8 +156,8 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
     });
     cy.exec('oc get nodes -o json').then((res) => {
       const nodes = JSON.parse(res.stdout);
-      const allNodesReady = nodes.items.every(isNodeReady);
       cy.log('No Nodes should go to Not Ready state');
+      const allNodesReady = nodes.items.every(isNodeReady);
       expect(allNodesReady).to.equal(true);
     });
   });

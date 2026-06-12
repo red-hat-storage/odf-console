@@ -36,7 +36,13 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
   children,
   className,
 }) => (
-  <Title headingLevel="h1" size={TitleSizes['2xl']} className={className}>
+  <Title
+    data-test-id="modal-title"
+    data-test="modal-title"
+    headingLevel="h1"
+    size={TitleSizes['2xl']}
+    className={className}
+  >
     {children}
   </Title>
 );

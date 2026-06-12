@@ -164,17 +164,6 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/odf/resource/:kind", "/odf/resource/ns/:namespace/:kind"],
-      "exact": true,
-      "component": { "$codeRef": "objectService.RerouteResource" }
-    },
-    "flags": {
-      "required": ["ODF_MODEL"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
       "exact": true,
       "path": "/odf/resource/objectbucket.io~v1alpha1~ObjectBucketClaim/create/~new",
       "component": {

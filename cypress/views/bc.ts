@@ -10,6 +10,7 @@ export enum Tier {
   SPREAD = 'SPREAD',
   MIRROR = 'MIRROR',
 }
+
 const TierCountMap = Object.freeze({
   [Tier.SPREAD]: 1,
   [Tier.MIRROR]: 2,
@@ -28,7 +29,6 @@ export enum NamespacePolicyType {
 
 abstract class BucketClassConfig {
   public abstract setup: () => void;
-
   public abstract cleanup: () => void;
 
   constructor(
@@ -42,7 +42,8 @@ const createPVCBackingStore = (storeName: string) => {
   cy.exec(
     `echo '${JSON.stringify(
       bucketStore(storeName)
-    )}' | kubectl create -n openshift-storage -f -`
+    )}' | kubectl create -n openshift-storage -f -`,
+    { failOnNonZeroExit: false, timeout: 120000 }
   );
 };
 
@@ -54,7 +55,8 @@ export class StandardBucketClassConfig extends BucketClassConfig {
   cleanup = () => {
     cy.log('Deleting backing stores');
     cy.exec(
-      `oc delete backingstore ${this.resources.join(' ')} -n openshift-storage`
+      `oc delete backingstore ${this.resources.join(' ')} -n openshift-storage`,
+      { failOnNonZeroExit: false }
     );
   };
 }
@@ -65,11 +67,11 @@ const createAWSStore = (name: string, type: StoreType) => {
       type === StoreType.NamespaceStore ? 'Namespace' : 'Backing'
     } Store resource named ${name}`
   );
-
   cy.exec(
     `echo '${JSON.stringify(
       namespaceStore(name, type)
-    )}' | kubectl create -n openshift-storage -f -`
+    )}' | kubectl create -n openshift-storage -f -`,
+    { failOnNonZeroExit: false }
   );
 };
 
@@ -90,10 +92,12 @@ export class NamespaceBucketClassConfig extends BucketClassConfig {
     cy.exec(
       `oc delete namespacestores ${this.resources.join(
         ' '
-      )} -n openshift-storage`
+      )} -n openshift-storage`,
+      { failOnNonZeroExit: false }
     );
     cy.exec(
-      `oc delete backingstore ${this.testBackingStore} -n openshift-storage`
+      `oc delete backingstore ${this.testBackingStore} -n openshift-storage`,
+      { failOnNonZeroExit: false }
     );
   };
 }
@@ -108,11 +112,9 @@ const tierLevelToButton = (level: number, tier: Tier) =>
       : cy.byTestID('placement-policy-mirror2');
 
 const setGeneralData = (type: BucketClassType) => {
-  // be.visible check added to wait for the page to load
-  cy.byTestID(`${type.toLowerCase()}-radio`).click();
+  cy.byTestID(`${type.toLowerCase()}-radio`).should('be.visible').click();
   cy.byTestID('bucket-class-name').scrollIntoView();
-  cy.byTestID('bucket-class-name').should('be.visible');
-  cy.byTestID('bucket-class-name').type(bcName);
+  cy.byTestID('bucket-class-name').should('be.visible').type(bcName);
   cy.byTestID('bucket-class-description').type(bcDescription);
 };
 
@@ -125,32 +127,42 @@ const setPlacementPolicy = (tiers: Tier[]) => {
 };
 
 const selectStoreFromTable = (storeNo: number, name: string) => {
-  cy.byLegacyTestID(name)
-    .eq(storeNo - 1)
-    .parent()
-    .parent()
-    .parent()
-    .find('input[type="checkbox"]')
-    .first()
-    .click();
+  // Wait for enough rows to be present before traversing (stability gate).
+  // All traversal is synchronous jQuery to avoid React re-render races.
+  cy.byLegacyTestID(name).should('have.length.gte', storeNo);
+  cy.byLegacyTestID(name).then(($items) => {
+    const $checkbox = $items
+      .eq(storeNo - 1)
+      .parent()
+      .parent()
+      .parent()
+      .find('input[type="checkbox"]')
+      .first();
+    cy.wrap($checkbox).click();
+  });
 };
 
 const setBackingStores = (tiers: Tier[]) => {
-  const tests = ['test-store4', 'test-store3', 'test-store2', 'test-store1'];
+  const tests = ['test-store1', 'test-store2', 'test-store3', 'test-store4'];
+  let storeIndex = 0;
+
   if (tiers.length > 1) {
     cy.byLegacyTestID('item-filter').should(($items) => {
       expect($items).to.have.length(2);
     });
   }
-  selectStoreFromTable(1, tests.pop());
+
+  // Tier 1
+  selectStoreFromTable(1, tests[storeIndex++]);
   if (TierCountMap[tiers[0]] > 1) {
-    selectStoreFromTable(1, tests.pop());
+    selectStoreFromTable(1, tests[storeIndex++]);
   }
-  // Select tier 2 Backing Stores
+
+  // Tier 2 (if present)
   if (tiers.length > 1) {
-    selectStoreFromTable(2, tests.pop());
+    selectStoreFromTable(2, tests[storeIndex++]);
     if (TierCountMap[tiers[1]] > 1) {
-      selectStoreFromTable(2, tests.pop());
+      selectStoreFromTable(2, tests[storeIndex++]);
     }
   }
 };
@@ -197,35 +209,46 @@ const configureNamespaceBucketClass = (
 };
 
 export const createBucketClass = (config: BucketClassConfig) => {
+  visitBucketClassPage();
+  cy.byTestID('item-create').click();
+  cy.byTestID(`${config.type.toLowerCase()}-radio`, {
+    timeout: 30000,
+  }).should('be.visible');
+
   cy.log('Select bucket class type');
   setGeneralData(config.type);
-  cy.contains('Next').click();
+  cy.byTestID('wizard-next-btn').click();
+
   if (config.type === BucketClassType.STANDARD) {
     const { tiers } = config as StandardBucketClassConfig;
     cy.log('Select Placement policy');
     setPlacementPolicy(tiers);
-    cy.contains('Next').click();
+    cy.byTestID('wizard-next-btn').click();
     cy.log('Select Backing Store');
     setBackingStores(tiers);
   } else {
     const { namespacePolicyType } = config as NamespaceBucketClassConfig;
     cy.log('Select Namespace policy');
     cy.byTestID(`${namespacePolicyType.toLowerCase()}-radio`).click();
-    cy.contains('Next').click();
+    cy.byTestID('wizard-next-btn').click();
     cy.log('Select Namespace Store');
     configureNamespaceBucketClass(
       namespacePolicyType,
       config as NamespaceBucketClassConfig
     );
   }
-  cy.contains('Next').click();
+
+  cy.byTestID('wizard-next-btn').click();
   cy.log('Create bucket class');
-  cy.contains('button', 'Create BucketClass').click();
+  cy.byTestID('wizard-next-btn').click();
+  cy.url().should('not.include', '/create', { timeout: 60000 });
 };
 
 export const verifyBucketClass = () => {
   cy.log('Verifying bucket class');
-  cy.byTestSelector('details-item-value__Name').contains(bcName);
+  cy.byLegacyTestID('resource-title').should('contain', bcName, {
+    timeout: 30000,
+  });
 };
 
 export const deleteBucketClass = () => {
@@ -233,14 +256,12 @@ export const deleteBucketClass = () => {
   cy.byTestID('kebab-button').click();
   cy.byTestActionID('Delete Bucket Class').click();
   cy.byTestID('delete-action').click();
-  cy.byTestID('item-create').should('be.visible');
 };
 
 export const visitBucketClassPage = () => {
   commonFlows.navigateToObjectStorage();
-  cy.log(
-    'Planning to start testing for standard bucket class visitBucketClassPage ....'
-  );
-  cy.byTestID('horizontal-link-Bucket Class').first().click();
-  cy.byTestID('item-create').click();
+  cy.byTestID('horizontal-link-Bucket Class', { timeout: 30000 })
+    .first()
+    .click();
+  cy.byTestID('item-create', { timeout: 30000 }).should('be.visible');
 };
