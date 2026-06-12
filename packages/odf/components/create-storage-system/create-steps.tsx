@@ -38,6 +38,7 @@ export const createSteps = (
     nodes,
     createLocalVolumeSet,
     connectionDetails,
+    advancedSettings,
   } = state;
   const { systemNamespace, externalStorage, deployment } = backingStorage;
   const { encryption, kms } = securityAndNetwork;
@@ -56,6 +57,7 @@ export const createSteps = (
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
           systemNamespace={systemNamespace}
+          enableNFS={advancedSettings.enableNFS}
         />
       ),
     },

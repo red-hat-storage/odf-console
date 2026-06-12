@@ -28,7 +28,8 @@ const selectOptions = (
   t: TFunction,
   forceLean: boolean,
   osdAmount: number,
-  architecture?: string
+  architecture?: string,
+  enableNFS?: boolean
 ) =>
   Object.entries(ResourceProfile).map((value: [string, ResourceProfile]) => {
     const displayName = t('{{mode}} mode', { mode: value[0] });
@@ -36,7 +37,8 @@ const selectOptions = (
     const { minCpu, minMem } = getResourceProfileRequirements(
       profile,
       osdAmount,
-      architecture
+      architecture,
+      enableNFS
     );
     const description = `CPUs required: ${minCpu}, Memory required: ${minMem} GiB`;
     const isDisabled =
@@ -69,16 +71,18 @@ type ProfileRequirementsTextProps = {
   selectedProfile: ResourceProfile;
   osdAmount: number;
   architecture?: string;
+  enableNFS?: boolean;
 };
 
 export const ProfileRequirementsText: React.FC<
   ProfileRequirementsTextProps
-> = ({ selectedProfile, osdAmount, architecture }) => {
+> = ({ selectedProfile, osdAmount, architecture, enableNFS }) => {
   const { t } = useCustomTranslation();
   const { minCpu, minMem } = getResourceProfileRequirements(
     selectedProfile,
     osdAmount,
-    architecture
+    architecture,
+    enableNFS
   );
   return (
     <Content>
@@ -125,6 +129,7 @@ type ConfigurePerformanceProps = {
   profileRequirementsText?: React.FC<ProfileRequirementsTextProps>;
   selectedNodes: WizardNodeState[];
   osdAmount?: number;
+  enableNFS?: boolean;
 };
 
 const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
@@ -134,6 +139,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
   profileRequirementsText: ProfileRequirementsTextComponent,
   selectedNodes,
   osdAmount,
+  enableNFS,
 }) => {
   const { t } = useCustomTranslation();
   const [availableNodes, availableNodesLoaded, availableNodesLoadError] =
@@ -154,7 +160,8 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         allCpu,
         allMem,
         osdAmount,
-        architecture
+        architecture,
+        enableNFS
       )
     ) {
       forceLean = true;
@@ -172,7 +179,8 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         getTotalCpu(selectedNodes),
         getTotalMemoryInGiB(selectedNodes),
         osdAmount,
-        architecture
+        architecture,
+        enableNFS
       )
     : true;
   const validated =
@@ -197,7 +205,13 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         selectedKey={resourceProfile}
         id="resource-profile"
         className="odf-configure-performance__selector pf-v6-u-mb-md"
-        selectOptions={selectOptions(t, forceLean, osdAmount, architecture)}
+        selectOptions={selectOptions(
+          t,
+          forceLean,
+          osdAmount,
+          architecture,
+          enableNFS
+        )}
         onChange={onResourceProfileChange}
         validated={validated}
       />
@@ -206,6 +220,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
           selectedProfile={resourceProfile}
           osdAmount={osdAmount}
           architecture={architecture}
+          enableNFS={enableNFS}
         />
       )}
     </div>
