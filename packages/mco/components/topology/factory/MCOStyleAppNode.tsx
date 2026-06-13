@@ -14,7 +14,6 @@ import {
   ScaleDetailsLevel,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import { getEffectiveDRStatus } from '../../../utils/dr-status';
 import { AppNodeData } from '../types';
 import { renderDecorators } from '../utils/decorator-utils';
 import { getDRNodeStatus } from '../utils/sidebar-utils';
@@ -69,12 +68,8 @@ const MCOStyleAppNodeComponent: React.FC<MCOStyleAppNodeProps> = ({
 
   const showLabel = rest.hover || detailsLevel !== ScaleDetailsLevel.low;
 
-  // For static apps, appStatus is already a computed DRStatus - use it directly
-  // For operation nodes, compute from phase/progression
-  const effectiveStatus =
-    data.isStatic && data.appStatus
-      ? data.appStatus
-      : getEffectiveDRStatus(data?.phase, data?.progression);
+  // appStatus is pre-computed by the node-generator (for both static and operation nodes)
+  const effectiveStatus = data.appStatus;
   const nodeStatus = getDRNodeStatus(effectiveStatus);
   const isOperation = !data?.isStatic && data?.isSource !== undefined;
   const animationClass = isOperation
@@ -84,6 +79,8 @@ const MCOStyleAppNodeComponent: React.FC<MCOStyleAppNodeProps> = ({
     : undefined;
 
   const phaseDecorators = renderDecorators(element, data, true);
+
+  const isTarget = isOperation && !data.isSource;
 
   return (
     <DefaultNode
@@ -101,13 +98,27 @@ const MCOStyleAppNodeComponent: React.FC<MCOStyleAppNodeProps> = ({
       badge="DRPC"
       {...rest}
     >
-      <g
-        transform={`translate(${(width - ICON_SIZE) / 2}, ${
-          (height - ICON_SIZE) / 2
-        })`}
-      >
-        <CogIcon width={ICON_SIZE} height={ICON_SIZE} />
-      </g>
+      {!isTarget ? (
+        <g
+          transform={`translate(${(width - ICON_SIZE) / 2}, ${
+            (height - ICON_SIZE) / 2
+          })`}
+        >
+          <CogIcon width={ICON_SIZE} height={ICON_SIZE} />
+        </g>
+      ) : (
+        // White box for destination - no icon
+        <g>
+          <rect
+            x={width * 0.25}
+            y={height * 0.25}
+            width={width * 0.5}
+            height={height * 0.5}
+            fill="#fff"
+            rx="4"
+          />
+        </g>
+      )}
     </DefaultNode>
   );
 };

@@ -76,7 +76,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     //  N/A for the managed  applications.
     protectedNamespaces?: string[];
     // Whether to retain namespace SCC annotations across peers.
-    retainNamespaceSCC?: boolean;
+    retainNamespaceSCCAcrossPeers?: boolean;
   };
   status?: {
     // The time of the most recent successful kube object protection
@@ -145,10 +145,8 @@ export enum Progression {
   FailingOver = 'FailingOver',
   Relocating = 'Relocating',
   FailedOver = 'FailedOver',
-  FailedToFailover = 'FailedToFailover',
   WaitOnUserToCleanUp = 'WaitOnUserToCleanUp',
   CleaningUp = 'CleaningUp',
-  FailedToRelocate = 'FailedToRelocate',
   WaitForUserAction = 'WaitForUserAction',
 }
 
@@ -160,9 +158,7 @@ export enum Phase {
   FailingOver = 'FailingOver',
   Relocating = 'Relocating',
   FailedOver = 'FailedOver',
-  FailedToFailover = 'FailedToFailover',
   Relocated = 'Relocated',
-  FailedToRelocate = 'FailedToRelocate',
   Deleting = 'Deleting',
   WaitForUser = 'WaitForUser',
 }
@@ -178,6 +174,7 @@ export enum DRPlacementControlConditionReason {
   Progressing = 'Progressing',
   Error = 'Error',
   Unknown = 'Unknown',
+  Success = 'Success',
 }
 
 // VRG condition reasons (for resourceConditions)

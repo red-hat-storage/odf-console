@@ -1,6 +1,6 @@
 import * as React from 'react';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
-import { InfoCircleIcon, SyncAltIcon } from '@patternfly/react-icons';
+import { ExclamationCircleIcon, SyncAltIcon } from '@patternfly/react-icons';
 import {
   DEFAULT_DECORATOR_PADDING,
   DEFAULT_DECORATOR_RADIUS,
@@ -15,11 +15,8 @@ import {
   ScaleDetailsLevel,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import { DRPlacementControlConditionType } from '../../../types';
-import {
-  getEffectiveDRStatus,
-  isUserActionRequired,
-} from '../../../utils/dr-status';
+import { getProtectedCondition } from '../../../utils';
+import { getDRStatus, isUserActionRequired } from '../../../utils/dr-status';
 import { FailoverNodeData } from '../types';
 import { getDRNodeStatus } from '../utils/sidebar-utils';
 import '../utils/decorator-utils.scss';
@@ -43,17 +40,14 @@ const getFailoverNodeStatus = (data: FailoverNodeData): NodeStatus => {
   let allSuccess = true;
 
   for (const op of operations) {
-    const protectedCondition = op.drpc?.status?.conditions?.find(
-      (c) => c.type === DRPlacementControlConditionType.Protected
-    );
-    const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
-    const effectiveStatus = getEffectiveDRStatus(
-      op.phase,
-      op.progression,
-      op.hasProtectionError,
+    const protectedCondition = getProtectedCondition(op.drpc);
+    const effectiveStatus = getDRStatus({
+      phase: op.phase,
+      progression: op.progression,
       protectedCondition,
-      volumeLastGroupSyncTime
-    );
+      volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
+      action: op.action,
+    });
     const nodeStatus = getDRNodeStatus(effectiveStatus);
 
     // Priority: danger > info > success
@@ -122,18 +116,15 @@ const MCOFailoverNodeComponent: React.FC<MCOFailoverNodeProps> = ({
   const nodeStatus = getFailoverNodeStatus(data);
   const action = data.action || 'Failover';
   const needsUserAction = operations.some((op) => {
-    const protectedCondition = op.drpc?.status?.conditions?.find(
-      (c) => c.type === DRPlacementControlConditionType.Protected
-    );
-    const volumeLastGroupSyncTime = op.drpc?.status?.lastGroupSyncTime;
+    const protectedCondition = getProtectedCondition(op.drpc);
     return isUserActionRequired(
-      getEffectiveDRStatus(
-        op.phase,
-        op.progression,
-        op.hasProtectionError,
+      getDRStatus({
+        phase: op.phase,
+        progression: op.progression,
         protectedCondition,
-        volumeLastGroupSyncTime
-      )
+        volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
+        action: op.action,
+      })
     );
   });
   const label = needsUserAction ? 'Action required' : action;
@@ -162,7 +153,11 @@ const MCOFailoverNodeComponent: React.FC<MCOFailoverNodeProps> = ({
         })`}
       >
         {needsUserAction ? (
-          <InfoCircleIcon width={ICON_SIZE} height={ICON_SIZE} />
+          <ExclamationCircleIcon
+            width={ICON_SIZE}
+            height={ICON_SIZE}
+            style={{ fill: 'var(--pf-t--global--color--status--danger--100)' }}
+          />
         ) : (
           <g className="mco-decorator-icon--spinning">
             <SyncAltIcon width={ICON_SIZE} height={ICON_SIZE} />

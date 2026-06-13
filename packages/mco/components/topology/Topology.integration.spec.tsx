@@ -38,6 +38,25 @@ jest.mock('../../hooks', () => ({
   useActiveDROperations: jest.fn(() => [{}, true, null]),
 }));
 
+jest.mock('../create-dr-policy/utils/cluster-list-utils', () => ({
+  getManagedClusterInfoTypes: jest.fn((clusters) => {
+    // Mock implementation that marks all clusters as having valid ODF
+    return clusters.map((cluster: any) => ({
+      ...cluster,
+      odfInfo: {
+        odfVersion: '4.18',
+        isValidODFVersion: true,
+        storageClusterCount: 1,
+        storageClusterInfo: {
+          storageClusterNamespacedName: '',
+          cephFSID: '',
+          deploymentType: '',
+        },
+      },
+    }));
+  }),
+}));
+
 jest.mock('@patternfly/react-topology', () => ({
   ...jest.requireActual('@patternfly/react-topology'),
   VisualizationProvider: ({ children }: { children: React.ReactNode }) => (
@@ -106,7 +125,10 @@ describe('Topology Integration Tests', () => {
 
   describe('Loading States', () => {
     it('should show loading state initially', () => {
-      mockUseK8sWatchResource.mockReturnValue([[], false, null]);
+      // First call: managedClusters
+      mockUseK8sWatchResource.mockReturnValueOnce([[], false, null]);
+      // Second call: MCVs
+      mockUseK8sWatchResource.mockReturnValueOnce([[], false, null]);
 
       const { container } = render(<Topology />);
 
@@ -124,7 +146,10 @@ describe('Topology Integration Tests', () => {
         },
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([mockClusters, true, null]);
+      // First call: managedClusters
+      mockUseK8sWatchResource.mockReturnValueOnce([mockClusters, true, null]);
+      // Second call: MCVs (empty but loaded)
+      mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { container } = render(<Topology />);
 
@@ -138,7 +163,10 @@ describe('Topology Integration Tests', () => {
 
   describe('Empty State', () => {
     it('should show empty state when no clusters exist', () => {
-      mockUseK8sWatchResource.mockReturnValue([[], true, null]);
+      // First call: managedClusters (empty)
+      mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
+      // Second call: MCVs (empty)
+      mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { getByText } = render(<Topology />);
 
@@ -152,7 +180,10 @@ describe('Topology Integration Tests', () => {
   describe('Error Handling', () => {
     it('should show error when cluster fetch fails', () => {
       const mockError = new Error('Failed to fetch clusters');
-      mockUseK8sWatchResource.mockReturnValue([[], false, mockError]);
+      // First call: managedClusters (error)
+      mockUseK8sWatchResource.mockReturnValueOnce([[], false, mockError]);
+      // Second call: MCVs (loaded)
+      mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { container } = render(<Topology />);
 
@@ -176,7 +207,10 @@ describe('Topology Integration Tests', () => {
         },
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([mockClusters, true, null]);
+      // First call: managedClusters
+      mockUseK8sWatchResource.mockReturnValueOnce([mockClusters, true, null]);
+      // Second call: MCVs
+      mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { container } = render(<Topology />);
 
@@ -198,7 +232,10 @@ describe('Topology Integration Tests', () => {
         },
       ];
 
-      mockUseK8sWatchResource.mockReturnValue([mockClusters, true, null]);
+      // First call: managedClusters
+      mockUseK8sWatchResource.mockReturnValueOnce([mockClusters, true, null]);
+      // Second call: MCVs
+      mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { container } = render(<Topology />);
 
@@ -222,7 +259,10 @@ describe('Topology With Error Handler', () => {
       },
     ];
 
-    mockUseK8sWatchResource.mockReturnValue([mockClusters, true, null]);
+    // First call: managedClusters
+    mockUseK8sWatchResource.mockReturnValueOnce([mockClusters, true, null]);
+    // Second call: MCVs
+    mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
     const { queryByText } = render(<Topology />);
 

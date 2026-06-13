@@ -6,6 +6,7 @@ import {
 import {
   VolumeReplicationHealth,
   DRProtectionStatus,
+  DRActionType,
   THRESHOLD,
 } from '../constants';
 import {
@@ -177,19 +178,24 @@ export const getDRStatus = ({
   protectedCondition,
   schedulingInterval,
   actionStartTime,
+  action,
 }: {
-  isCleanupRequired: boolean;
+  isCleanupRequired?: boolean;
   phase: Phase;
-  volumeReplicationHealth: VolumeReplicationHealth;
+  volumeReplicationHealth?: VolumeReplicationHealth;
   kubeObjectReplicationHealth?: VolumeReplicationHealth;
   progression?: string;
   volumeLastGroupSyncTime?: string;
   protectedCondition?: K8sResourceCondition;
   schedulingInterval?: string;
   actionStartTime?: string;
+  action?: DRActionType;
 }): DRStatus => {
-  // Check if cleanup is required — this has the highest priority
-  if (isCleanupRequired) return DRStatus.WaitOnUserToCleanUp;
+  // Check if cleanup is required — this has the highest priority.
+  // If not explicitly provided, derive from progression.
+  const cleanupRequired =
+    isCleanupRequired ?? progression === Progression.WaitOnUserToCleanUp;
+  if (cleanupRequired) return DRStatus.WaitOnUserToCleanUp;
 
   // WaitForUser is always treated as action required
   if (phase === Phase.WaitForUser) return DRStatus.WaitForUser;
@@ -201,9 +207,16 @@ export const getDRStatus = ({
   if (phase === Phase.FailingOver) return DRStatus.FailingOver;
   if (phase === Phase.Relocating) return DRStatus.Relocating;
 
+  // Map transitional phases to action-specific status when action is known.
+  // During initial enrollment (no action), fall through to Protecting/health logic.
+  if ((phase === Phase.Initiating || phase === Phase.Deploying) && action) {
+    if (action === DRActionType.FAILOVER) return DRStatus.FailingOver;
+    if (action === DRActionType.RELOCATE) return DRStatus.Relocating;
+  }
+
   // Combine health statuses into an array for easier checks (filter out undefined)
-  const replicationHealths = [
-    volumeReplicationHealth,
+  const replicationHealths: VolumeReplicationHealth[] = [
+    ...(volumeReplicationHealth ? [volumeReplicationHealth] : []),
     ...(kubeObjectReplicationHealth ? [kubeObjectReplicationHealth] : []),
   ];
   const isProgressionCompleted = !isProgressionActive(progression);
@@ -238,7 +251,7 @@ export const getDRStatus = ({
   }
 
   const shouldProtect = shouldShowProtecting(
-    isCleanupRequired,
+    cleanupRequired,
     phase,
     protectedCondition,
     volumeLastGroupSyncTime,
@@ -276,85 +289,11 @@ export const getDRStatus = ({
   if (replicationHealths.includes(VolumeReplicationHealth.HEALTHY))
     return DRStatus.Healthy;
 
+  // No health data available — cannot determine status
+  if (replicationHealths.length === 0) return DRStatus.Unknown;
+
   // Fallback — assume Critical if no health statuses matched
   return DRStatus.Critical;
-};
-
-/**
- * Simplified DR status for topology view.
- * Returns effective status based on phase, progression, and protection state.
- * Enhanced to detect "Protecting" status without requiring volume health data.
- */
-export const getEffectiveDRStatus = (
-  phase?: string,
-  progression?: string,
-  hasProtectionError?: boolean,
-  protectedCondition?: K8sResourceCondition,
-  volumeLastGroupSyncTime?: string
-): DRStatus => {
-  if (progression === Progression.WaitOnUserToCleanUp) {
-    return DRStatus.WaitOnUserToCleanUp;
-  }
-
-  if (progression === Progression.WaitForUserAction) {
-    return DRStatus.WaitForUser;
-  }
-
-  if (progression === Progression.CleaningUp && phase !== Phase.Deployed) {
-    return DRStatus.Deleting;
-  }
-
-  if (
-    progression === Progression.FailedToFailover ||
-    progression === Progression.FailedToRelocate
-  ) {
-    return DRStatus.Critical;
-  }
-
-  if (hasProtectionError) {
-    return DRStatus.ProtectionError;
-  }
-
-  // Check if protection is in progress (before sync has started)
-  // This detects the initial protection setup phase
-  if (
-    phase === Phase.Deployed &&
-    protectedCondition &&
-    !volumeLastGroupSyncTime
-  ) {
-    const { status, reason } = protectedCondition;
-    // Show "Protecting" during initial setup before sync starts
-    const isStatusUnknown = status === K8sResourceConditionStatus.Unknown;
-    const isReasonUnknown =
-      reason === DRPlacementControlConditionReason.Unknown;
-    const isProgressingWithoutSync =
-      status === K8sResourceConditionStatus.False &&
-      reason === DRPlacementControlConditionReason.Progressing;
-
-    if (isStatusUnknown || isReasonUnknown || isProgressingWithoutSync) {
-      return DRStatus.Protecting;
-    }
-  }
-
-  // Map phase to DRStatus
-  switch (phase) {
-    case Phase.WaitForUser:
-      return DRStatus.WaitForUser;
-    case Phase.Deleting:
-      return DRStatus.Deleting;
-    case Phase.FailingOver:
-      return DRStatus.FailingOver;
-    case Phase.Relocating:
-      return DRStatus.Relocating;
-    case Phase.FailedOver:
-      return DRStatus.FailedOver;
-    case Phase.Relocated:
-      return DRStatus.Relocated;
-    case Phase.Deployed:
-      return DRStatus.Healthy;
-    default:
-      return DRStatus.Unknown;
-  }
 };
 
 /**

@@ -48,7 +48,7 @@ import {
   VolumeTypeValidation,
 } from '../../types';
 import { createClusterKmsResources } from '../kms-config/utils';
-import { isIpInCidr, isValidCIDRFormat, getMonIp } from '../utils/cidr-utils';
+import { isValidCIDRFormat } from '../utils/cidr-utils';
 import './create-storage-system.scss';
 import {
   createNoobaaExternalPostgresResources,
@@ -217,18 +217,16 @@ const canJumpToNextStep = (
     publicNetwork,
     clusterNetwork,
     addressRanges,
-    usePublicNetwork,
     useClusterNetwork,
   } = securityAndNetwork;
   const { canGoToNextStep } =
     getExternalStorage(externalStorage, supportedExternalStorage) || {};
 
-  const publicCidr = addressRanges?.public?.[0]?.trim() ?? '';
   const clusterCidr = addressRanges?.cluster?.[0]?.trim() ?? '';
   const hasValidNICNetwork =
     networkType === NetworkType.NIC &&
-    ((usePublicNetwork && isValidCIDRFormat(publicCidr)) ||
-      (useClusterNetwork && isValidCIDRFormat(clusterCidr)));
+    useClusterNetwork &&
+    isValidCIDRFormat(clusterCidr);
 
   const hasConfiguredNetwork =
     networkType === NetworkType.MULTUS
@@ -236,25 +234,6 @@ const canJumpToNextStep = (
       : networkType === NetworkType.NIC
         ? hasValidNICNetwork
         : true;
-
-  const hasDedicatedStorageWithCidr =
-    networkType === NetworkType.NIC &&
-    ((usePublicNetwork && publicCidr) || (useClusterNetwork && clusterCidr));
-  /** mon-ip applies to public network (mons); cluster network CIDR does not use mon-ip checks. */
-  const needsMonIpAnnotation =
-    networkType === NetworkType.NIC && usePublicNetwork && !!publicCidr;
-  const allNodesHaveMonIpAnnotation =
-    !hasDedicatedStorageWithCidr ||
-    !needsMonIpAnnotation ||
-    nodes.every((node) => (getMonIp(node)?.length ?? 0) > 0);
-  const allMonIpsInCidr =
-    !hasDedicatedStorageWithCidr ||
-    nodes.every((node) => {
-      if (!usePublicNetwork || !publicCidr) return true;
-      const ip = getMonIp(node);
-      if (!ip) return false;
-      return isIpInCidr(ip, publicCidr);
-    });
 
   const deviceSetReplica: number = getDeviceSetReplica(
     enableArbiter,
@@ -329,9 +308,7 @@ const canJumpToNextStep = (
       return (
         encryption.hasHandled &&
         kms.providerState.hasHandled &&
-        hasConfiguredNetwork &&
-        allNodesHaveMonIpAnnotation &&
-        allMonIpsInCidr
+        hasConfiguredNetwork
       );
     case StepsName(t)[Steps.Security]:
       return encryption.hasHandled && kms.providerState.hasHandled;

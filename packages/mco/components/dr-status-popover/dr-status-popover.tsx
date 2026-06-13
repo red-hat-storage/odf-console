@@ -388,6 +388,7 @@ type GetDRStatusDetailsParams = {
   availableCondition?: K8sResourceCondition;
   schedulingInterval?: string;
   actionStartTime?: string;
+  action?: DRActionType;
 };
 
 const getDRStatusDetails = ({
@@ -404,6 +405,7 @@ const getDRStatusDetails = ({
   availableCondition,
   schedulingInterval,
   actionStartTime,
+  action,
 }: GetDRStatusDetailsParams): StatusContent => {
   const drStatus = getDRStatus({
     isCleanupRequired,
@@ -415,6 +417,7 @@ const getDRStatusDetails = ({
     protectedCondition,
     schedulingInterval,
     actionStartTime,
+    action,
   });
 
   switch (drStatus) {
@@ -733,6 +736,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         availableCondition: disasterRecoveryStatus.availableCondition,
         schedulingInterval: disasterRecoveryStatus.schedulingInterval,
         actionStartTime: disasterRecoveryStatus.actionStartTime,
+        action: disasterRecoveryStatus.action,
       }),
     [disasterRecoveryStatus, t]
   );
