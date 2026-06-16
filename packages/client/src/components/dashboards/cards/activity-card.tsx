@@ -69,15 +69,13 @@ const RecentEvent: React.FC = () => {
     [memoizedPVCNames, odfNamespace]
   );
 
-  const eventObject = {
-    data: events,
-    loaded: eventsLoaded && pvcLoaded,
-    kind: 'Event',
-    loadError: pvcLoadError || eventsLoadError,
-  };
-
   return (
-    <RecentEventsBody events={eventObject} filter={clientEventsFilter()} />
+    <RecentEventsBody
+      eventsData={events}
+      eventsLoaded={eventsLoaded && pvcLoaded}
+      eventsLoadError={pvcLoadError || eventsLoadError}
+      filter={clientEventsFilter()}
+    />
   );
 };
 
