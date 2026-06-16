@@ -101,14 +101,13 @@ const RecentEvent: React.FC = () => {
     [memoizedPVCNames, clusterNs]
   );
 
-  const eventObject = {
-    data: events,
-    loaded: eventsLoaded && pvcLoaded,
-    kind: 'Event',
-    loadError: null,
-  };
-
-  return <RecentEventsBody events={eventObject} filter={ocsEventsFilter()} />;
+  return (
+    <RecentEventsBody
+      eventsData={events}
+      eventsLoaded={eventsLoaded && pvcLoaded}
+      filter={ocsEventsFilter()}
+    />
+  );
 };
 
 export const storageClusterResource = {
