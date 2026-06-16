@@ -269,7 +269,8 @@ const canJumpToNextStep = (
           getTotalCpu(nodes),
           getTotalMemoryInGiB(nodes),
           osdAmount,
-          architecture
+          architecture,
+          advancedSettings.enableNFS
         ) &&
         isValidCapacityAutoScalingConfig(
           capacityAndNodes.capacityAutoScaling.enable,
