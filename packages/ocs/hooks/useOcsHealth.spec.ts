@@ -28,7 +28,7 @@ jest.mock('@odf/shared/useCustomTranslationHook', () => ({
 jest.mock('../utils', () => ({
   getCephHealthState: jest.fn(),
   getRGWHealthState: jest.fn(),
-  getNooBaaState: jest.fn(),
+  getNooBaaHealthFromCR: jest.fn(),
 }));
 
 const mockStorageCluster = {
@@ -118,7 +118,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -149,7 +149,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -180,7 +180,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.NOT_AVAILABLE,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -211,7 +211,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.UPDATING,
       });
 
@@ -244,7 +244,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -275,7 +275,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.ERROR,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -306,7 +306,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.ERROR,
       });
 
@@ -337,7 +337,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.ERROR,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.ERROR,
       });
 
@@ -368,7 +368,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.ERROR,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.ERROR,
       });
 
@@ -399,7 +399,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -430,7 +430,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.WARNING,
       });
 
@@ -472,7 +472,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -519,7 +519,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -559,18 +559,15 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
       renderHook(() => useGetOCSHealth(mockStorageCluster as any));
 
-      expect(utils.getNooBaaState).toHaveBeenCalledWith(
-        expect.any(Array),
-        expect.any(Function),
-        expect.objectContaining({
-          data: [mockNoobaaSystem, otherNamespaceNoobaa],
-        })
+      expect(utils.getNooBaaHealthFromCR).toHaveBeenCalledWith(
+        mockNoobaaSystem,
+        expect.any(Function)
       );
     });
   });
@@ -595,7 +592,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.NOT_AVAILABLE,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -632,7 +629,7 @@ describe('useGetOCSHealth', () => {
 
       expect(result.current.healthState).toBe(HealthState.OK);
       expect(result.current.message).toBe('Healthy');
-      expect(utils.getNooBaaState).not.toHaveBeenCalled();
+      expect(utils.getNooBaaHealthFromCR).not.toHaveBeenCalled();
     });
 
     it('handles CephObjectStore not found in namespace (undefined)', () => {
@@ -666,7 +663,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.NOT_AVAILABLE,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -713,7 +710,7 @@ describe('useGetOCSHealth', () => {
         useGetOCSHealth(mockStorageCluster as any)
       );
 
-      expect(utils.getNooBaaState).not.toHaveBeenCalled();
+      expect(utils.getNooBaaHealthFromCR).not.toHaveBeenCalled();
       expect(result.current.healthState).toBe(HealthState.OK);
     });
   });
@@ -738,7 +735,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -764,7 +761,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -795,7 +792,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.NOT_AVAILABLE,
       });
 
@@ -825,7 +822,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.NOT_AVAILABLE,
       });
 
@@ -855,7 +852,7 @@ describe('useGetOCSHealth', () => {
       expect(result.current.message).toBe('Unknown');
       expect(utils.getCephHealthState).not.toHaveBeenCalled();
       expect(utils.getRGWHealthState).not.toHaveBeenCalled();
-      expect(utils.getNooBaaState).not.toHaveBeenCalled();
+      expect(utils.getNooBaaHealthFromCR).not.toHaveBeenCalled();
     });
 
     it('returns UNKNOWN when some resources have network errors and others not loaded', () => {
@@ -937,7 +934,7 @@ describe('useGetOCSHealth', () => {
 
       expect(result.current.healthState).toBe(HealthState.LOADING);
       expect(result.current.message).toBe('Loading');
-      expect(utils.getNooBaaState).not.toHaveBeenCalled();
+      expect(utils.getNooBaaHealthFromCR).not.toHaveBeenCalled();
     });
 
     it('returns LOADING when all resources are not loaded yet', () => {
@@ -959,7 +956,7 @@ describe('useGetOCSHealth', () => {
       expect(result.current.message).toBe('Loading');
       expect(utils.getCephHealthState).not.toHaveBeenCalled();
       expect(utils.getRGWHealthState).not.toHaveBeenCalled();
-      expect(utils.getNooBaaState).not.toHaveBeenCalled();
+      expect(utils.getNooBaaHealthFromCR).not.toHaveBeenCalled();
     });
   });
 
@@ -983,7 +980,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -1018,7 +1015,7 @@ describe('useGetOCSHealth', () => {
       );
 
       expect(result.current.healthState).toBe(HealthState.OK);
-      expect(utils.getNooBaaState).not.toHaveBeenCalled();
+      expect(utils.getNooBaaHealthFromCR).not.toHaveBeenCalled();
     });
 
     it('handles undefined CephCluster in namespace', () => {
@@ -1040,7 +1037,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -1073,7 +1070,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.ERROR,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.ERROR,
       });
 
@@ -1104,7 +1101,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -1135,7 +1132,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.PROGRESS,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -1166,7 +1163,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.UNKNOWN,
       });
 
@@ -1199,7 +1196,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -1230,7 +1227,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -1249,19 +1246,9 @@ describe('useGetOCSHealth', () => {
 
       expect(utils.getRGWHealthState).toHaveBeenCalledWith(mockCephObjectStore);
 
-      expect(utils.getNooBaaState).toHaveBeenCalledWith(
-        [
-          {
-            response: promResponse,
-            error: promError,
-          },
-        ],
-        expect.any(Function),
-        {
-          loaded: true,
-          loadError: null,
-          data: [mockNoobaaSystem],
-        }
+      expect(utils.getNooBaaHealthFromCR).toHaveBeenCalledWith(
+        mockNoobaaSystem,
+        expect.any(Function)
       );
     });
   });
@@ -1302,7 +1289,7 @@ describe('useGetOCSHealth', () => {
         state: HealthState.OK,
       });
 
-      (utils.getNooBaaState as jest.Mock).mockReturnValue({
+      (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
         state: HealthState.OK,
       });
 
@@ -1347,7 +1334,7 @@ describe('useGetOCSHealth', () => {
           state,
         });
 
-        (utils.getNooBaaState as jest.Mock).mockReturnValue({
+        (utils.getNooBaaHealthFromCR as jest.Mock).mockReturnValue({
           state,
         });
 
