@@ -8,7 +8,7 @@ import {
   VolumeSnapshotClassKind,
   VolumeSnapshotClassModel,
 } from '@odf/shared';
-import { isCephDriver, isCephProvisioner } from '@odf/shared/utils';
+import { isCephDriver, isCephWithNFSProvisioner } from '@odf/shared/utils';
 import { Action, K8sModel } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { StorageClientAttacherModal } from './StorageClientAttacherModal';
@@ -31,7 +31,7 @@ export const useStorageClientAttacherAction = (
     const items = [];
     if (
       isStorageClass(resource) &&
-      isCephProvisioner(getProvisioner(resource))
+      isCephWithNFSProvisioner(getProvisioner(resource))
     ) {
       items.push(
         AttachResourceToStorageClientModal(
