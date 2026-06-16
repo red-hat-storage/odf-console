@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { getDRStatus } from '@odf/mco/utils/dr-status';
+import { DASH } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -17,6 +18,7 @@ import {
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { getClustersFromPairKey } from '../../../hooks/useDRPoliciesByClusterPair';
+import { getPAVDRPolicyName } from '../../../utils/pav';
 import { DROperationInfo, OperationEdgeSidebarData } from '../types';
 import { DRStatusIcon, getAppLink } from '../utils/sidebar-utils';
 import { DRPCFilterToolbar } from './DRPCFilterToolbar';
@@ -167,20 +169,9 @@ const OperationsTableView: React.FC<{
                         <DRStatusIcon status={getOperationStatus(operation)} />
                       </Td>
                       <Td dataLabel={t('Policy')}>
-                        <div>
-                          <Label color="purple" isCompact>
-                            {operation.action}
-                          </Label>{' '}
-                          <span
-                            style={{
-                              fontSize: '0.875rem',
-                              color: 'var(--pf-v6-global--Color--200)',
-                            }}
-                          >
-                            {operation.sourceCluster} →{' '}
-                            {operation.targetCluster}
-                          </span>
-                        </div>
+                        {operation.pav
+                          ? getPAVDRPolicyName(operation.pav)
+                          : DASH}
                       </Td>
                     </Tr>
                   ))}
