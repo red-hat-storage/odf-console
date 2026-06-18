@@ -46,7 +46,6 @@ describe('Tests creation of Namespace Stores', () => {
   const assertResourceCreated = () => {
     cy.url().should('not.include', 'create');
     cy.url().should('include', testName);
-    cy.reload();
     cy.contains('h1', testName, { timeout: 5 * MIN }).should('be.visible');
   };
 
