@@ -24,13 +24,19 @@ import { TFunction } from 'react-i18next';
 import { Text, TextVariants, TextContent } from '@patternfly/react-core';
 import './configure-performance.scss';
 
-const selectOptions = (t: TFunction, forceLean: boolean, osdAmount: number) =>
+const selectOptions = (
+  t: TFunction,
+  forceLean: boolean,
+  osdAmount: number,
+  enableNFS?: boolean
+) =>
   Object.entries(ResourceProfile).map((value: [string, ResourceProfile]) => {
     const displayName = t(`${value[0]} mode`);
     let profile = value[1];
     const { minCpu, minMem } = getResourceProfileRequirements(
       profile,
-      osdAmount
+      osdAmount,
+      enableNFS
     );
     const description = `CPUs required: ${minCpu}, Memory required: ${minMem} GiB`;
     const isDisabled =
@@ -61,15 +67,17 @@ export const PerformanceHeaderText: React.FC = () => {
 type ProfileRequirementsTextProps = {
   selectedProfile: ResourceProfile;
   osdAmount: number;
+  enableNFS?: boolean;
 };
 
 export const ProfileRequirementsText: React.FC<
   ProfileRequirementsTextProps
-> = ({ selectedProfile, osdAmount }) => {
+> = ({ selectedProfile, osdAmount, enableNFS }) => {
   const { t } = useCustomTranslation();
   const { minCpu, minMem } = getResourceProfileRequirements(
     selectedProfile,
-    osdAmount
+    osdAmount,
+    enableNFS
   );
   return (
     <TextContent>
@@ -112,6 +120,7 @@ type ConfigurePerformanceProps = {
   profileRequirementsText?: React.FC<ProfileRequirementsTextProps>;
   selectedNodes: WizardNodeState[];
   osdAmount?: number;
+  enableNFS?: boolean;
 };
 
 const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
@@ -121,6 +130,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
   profileRequirementsText: ProfileRequirementsTextComponent,
   selectedNodes,
   osdAmount,
+  enableNFS,
 }) => {
   const { t } = useCustomTranslation();
   const [availableNodes, availableNodesLoaded, availableNodesLoadError] =
@@ -139,7 +149,8 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         ResourceProfile.Balanced,
         allCpu,
         allMem,
-        osdAmount
+        osdAmount,
+        enableNFS
       )
     ) {
       forceLean = true;
@@ -155,7 +166,8 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         resourceProfile,
         getTotalCpu(selectedNodes),
         getTotalMemoryInGiB(selectedNodes),
-        osdAmount
+        osdAmount,
+        enableNFS
       )
     : true;
   const validated =
@@ -179,7 +191,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         selectedKey={resourceProfile}
         id="resource-profile"
         className="odf-configure-performance__selector pf-v5-u-mb-md"
-        selectOptions={selectOptions(t, forceLean, osdAmount)}
+        selectOptions={selectOptions(t, forceLean, osdAmount, enableNFS)}
         onChange={onResourceProfileChange}
         validated={validated}
       />
@@ -187,6 +199,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         <ProfileRequirementsTextComponent
           selectedProfile={resourceProfile}
           osdAmount={osdAmount}
+          enableNFS={enableNFS}
         />
       )}
     </div>
