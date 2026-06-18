@@ -146,7 +146,8 @@ export const capacityAndNodesValidate = (
   nodes: WizardNodeState[],
   state: WizardState['capacityAndNodes'],
   isNoProvSC: boolean,
-  osdAmount: number
+  osdAmount: number,
+  enableNFS?: boolean
 ): ValidationType[] => {
   const validations = [];
   const {
@@ -169,7 +170,8 @@ export const capacityAndNodesValidate = (
         resourceProfile,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        enableNFS
       )
     ) {
       validations.push(ValidationType.RESOURCE_PROFILE);
@@ -179,7 +181,8 @@ export const capacityAndNodesValidate = (
         ResourceProfile.Balanced,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        enableNFS
       )
     ) {
       validations.push(ValidationType.MINIMAL);
