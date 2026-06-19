@@ -53,6 +53,7 @@ export const createSteps = (
           nodes={nodes}
           systemNamespace={systemNamespace}
           deploymentMode={backingStorage.deployment}
+          enableNFS={backingStorage.enableNFS}
         />
       ),
     },
