@@ -331,8 +331,15 @@ const Topology: React.FC = () => {
     clusterPairOperationsMap,
   ]);
 
+  const allLoaded =
+    loaded &&
+    mcvsLoaded &&
+    csvLoaded &&
+    appsLoaded &&
+    policiesLoaded &&
+    operationsLoaded;
   const hasNoClusters =
-    loaded && mcvsLoaded && (!clustersWithODF || clustersWithODF.length === 0);
+    allLoaded && (!clustersWithODF || clustersWithODF.length === 0);
 
   return (
     <TopologyDataContext.Provider value={topologyDataContextData}>
