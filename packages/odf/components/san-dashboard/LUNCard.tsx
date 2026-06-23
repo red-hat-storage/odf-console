@@ -248,6 +248,13 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
   const customKebabItems = React.useMemo(
     () => [
       {
+        key: 'EXPAND_LUN_GROUP',
+        value: t('Add disks'),
+        component: React.lazy(
+          () => import('../../modals/lun-group/AddLunGroupModal')
+        ),
+      },
+      {
         key: ModalKeys.DELETE,
         value: t('Delete LUN group'),
         component: React.lazy(

@@ -11,7 +11,11 @@ import {
   StorageClassResourceKind,
 } from '@odf/shared';
 import { FileSystemModel, LocalDiskModel } from '@odf/shared/models/scale';
-import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  k8sCreate,
+  k8sPatch,
+  Patch,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 
 const generateLocalDiskName = (wwn: string) => `localdisk-${wwn}`;
@@ -69,6 +73,35 @@ export const createLocalDisks = async (
   }
 };
 
+export const updateLocalFileSystem = async (
+  fileSystem: FileSystemKind,
+  localDisks: LocalDiskKind[],
+  t: TFunction
+): Promise<FileSystemKind> => {
+  if (!fileSystem || !localDisks || localDisks.length === 0) {
+    throw new Error(t('Filesystem and Localdisks are required for update'));
+  }
+  const patches: Patch[] = localDisks.map((disk) => ({
+    op: 'add',
+    path: '/spec/local/pools/0/disks/-',
+    value: getName(disk),
+  }));
+
+  try {
+    return await k8sPatch({
+      model: FileSystemModel,
+      resource: fileSystem,
+      data: patches,
+    });
+  } catch (error) {
+    throw new Error(
+      t('Failed to update Filesystem: {{error}}', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
+    );
+  }
+};
+
 export const createLocalFileSystem = async (
   fsName: string,
   localDisks: LocalDiskKind[],
@@ -79,7 +112,7 @@ export const createLocalFileSystem = async (
   }
   if (!localDisks || localDisks.length === 0) {
     throw new Error(
-      t('At least one LocalDisk is required for FileSystem creation')
+      t('At least one Localdisk is required for Filesystem creation')
     );
   }
 
@@ -109,7 +142,7 @@ export const createLocalFileSystem = async (
     return await k8sCreate({ model: FileSystemModel, data: fileSystemPayload });
   } catch (error) {
     throw new Error(
-      t('Failed to create FileSystem: {{error}}', {
+      t('Failed to create Filesystem: {{error}}', {
         error: error instanceof Error ? error.message : 'Unknown error',
       })
     );
@@ -121,12 +154,12 @@ export const createStorageClass = async (
   t: TFunction
 ): Promise<StorageClassResourceKind[]> => {
   if (!fileSystem) {
-    throw new Error(t('FileSystem is required for StorageClass creation'));
+    throw new Error(t('Filesystem is required for Storageclass creation'));
   }
 
   const fileSystemName = getName(fileSystem);
   if (!fileSystemName) {
-    throw new Error(t('FileSystem name is required'));
+    throw new Error(t('Filesystem name is required'));
   }
 
   // StorageClass for containers
@@ -176,7 +209,7 @@ export const createStorageClass = async (
     ]);
   } catch (error) {
     throw new Error(
-      t('Failed to create StorageClasses: {{error}}', {
+      t('Failed to create Storageclasses: {{error}}', {
         error: error instanceof Error ? error.message : 'Unknown error',
       })
     );
