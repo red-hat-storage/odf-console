@@ -1,7 +1,9 @@
 import * as React from 'react';
+import { FDF_FLAG } from '@odf/core/redux';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { TechPreviewBadge } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Form, FormGroup, Checkbox } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from '../backing-storage-step/enable-nfs';
@@ -9,6 +11,7 @@ import { PostgresConnectionDetails } from '../backing-storage-step/noobaa-extern
 import { SetCephRBDStorageClassDefault } from '../backing-storage-step/set-rbd-sc-default';
 import SetVirtualizeSCDefault from '../backing-storage-step/set-virtualize-sc-default';
 import { AutomaticBackup } from './automatic-backup/automatic-backup';
+import { EnableNVMEOF } from './enable-nvmeof/enable-nvmeof';
 
 export const OptionalSettings: React.FC<OptionalSettingsProps> = ({
   state,
@@ -22,6 +25,7 @@ export const OptionalSettings: React.FC<OptionalSettingsProps> = ({
   const { t } = useCustomTranslation();
   const {
     enableNFS,
+    enableNVMEOF,
     isRBDStorageClassDefault,
     isVirtualizeStorageClassDefault,
     externalPostgres,
@@ -32,6 +36,7 @@ export const OptionalSettings: React.FC<OptionalSettingsProps> = ({
 
   const isFullDeployment = deployment === DeploymentType.FULL;
   const isMCG = deployment === DeploymentType.MCG;
+  const isFDF = useFlag(FDF_FLAG);
 
   return (
     <Form>
@@ -44,6 +49,9 @@ export const OptionalSettings: React.FC<OptionalSettingsProps> = ({
               backingStorageType={backingStorageType}
               isTNFEnabled={isTNFEnabled}
             />
+            {isFDF && (
+              <EnableNVMEOF dispatch={dispatch} nvmeofEnabled={enableNVMEOF} />
+            )}
             <SetCephRBDStorageClassDefault
               dispatch={dispatch}
               isRBDStorageClassDefault={isRBDStorageClassDefault}

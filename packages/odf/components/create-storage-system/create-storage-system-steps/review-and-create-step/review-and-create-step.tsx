@@ -5,6 +5,7 @@ import {
   getTotalMemory,
 } from '@odf/core/components/utils';
 import { NetworkTypeLabels, NO_PROVISIONER } from '@odf/core/constants';
+import { FDF_FLAG } from '@odf/core/redux';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getAllZone } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
@@ -15,6 +16,7 @@ import {
   getStorageSizeInTiBWithoutUnit,
   humanizeBinaryBytes,
 } from '@odf/shared/utils';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   Content,
@@ -65,6 +67,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const {
     isDbBackup,
     enableNFS,
+    enableNVMEOF,
     isRBDStorageClassDefault,
     useExternalPostgres,
   } = optionalSettings;
@@ -73,6 +76,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
+  const isFDF = useFlag(FDF_FLAG);
   const includeAdvancedSettingsStep =
     !isMCG &&
     (backingStorage.type === BackingStorageType.LOCAL_DEVICES ||
@@ -100,6 +104,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const encryptionStatus = hasEncryption ? t('Enabled') : t('Disabled');
   const ocsTaintsStatus = enableTaint ? t('Enabled') : t('Disabled');
   const nfsStatus = enableNFS ? t('Enabled') : t('Disabled');
+  const nvmeofStatus = enableNVMEOF ? t('Enabled') : t('Disabled');
   const isCephRBDSetAsDefault = isRBDStorageClassDefault
     ? t('Enabled')
     : t('Disabled');
@@ -157,6 +162,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
               })}
             </ListItem>
           )}
+        {deployment === DeploymentType.FULL && isFDF && (
+          <ListItem>
+            {t('NVMe-over-Fabrics: {{nvmeofStatus}}', { nvmeofStatus })}
+          </ListItem>
+        )}
         {deployment === DeploymentType.FULL && !hasMultipleClusters && (
           <>
             <ListItem>
