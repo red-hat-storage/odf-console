@@ -8,8 +8,6 @@ import {
   Pagination,
   PaginationVariant,
   PaginationProps,
-  Grid,
-  GridItem,
 } from '@patternfly/react-core';
 import { ListPageFilterWrapper } from '../sdk-wrapper/ListPageFilterWrapper';
 import { TableProps, ComposableTable } from '../table';
@@ -22,6 +20,7 @@ export type PaginatedListPageProps = {
   countPerPage?: number;
   filteredData: K8sResourceCommon[] | unknown[];
   CreateButton?: React.FC<unknown>;
+  toolbarActions?: React.ReactNode;
   Alerts?: React.FC<unknown>;
   noData?: boolean;
   hideFilter?: boolean;
@@ -36,18 +35,21 @@ export type PaginatedListPageProps = {
     | 'onSetPage'
     | 'onPerPageSelect'
   >;
+  onPaginatedDataChange?: (paginatedData: K8sResourceCommon[]) => void;
 };
 
 export const PaginatedListPage: React.FC<PaginatedListPageProps> = ({
   countPerPage,
   filteredData,
   CreateButton,
+  toolbarActions,
   Alerts,
   noData,
   hideFilter,
   listPageFilterProps,
   composableTableProps,
   paginationProps,
+  onPaginatedDataChange,
 }) => {
   const [page, setPage] = React.useState(INITIAL_PAGE_NUMBER);
   const [perPage, setPerPage] = React.useState(
@@ -59,42 +61,49 @@ export const PaginatedListPage: React.FC<PaginatedListPageProps> = ({
     return filteredData.slice(start, end) || [];
   }, [filteredData, page, perPage]);
 
+  React.useEffect(() => {
+    onPaginatedDataChange?.(paginatedData as K8sResourceCommon[]);
+  }, [paginatedData, onPaginatedDataChange]);
+
   return (
     <ListPageBody>
       {!noData && (
         <>
-          <Grid>
-            <GridItem md={8} sm={12} className="pf-v6-u-mt-md">
-              <div className="pf-v6-u-display-flex pf-v6-u-flex-direction-column pf-v6-u-flex-direction-row-on-md">
-                {!hideFilter && (
-                  <ListPageFilterWrapper
-                    {...listPageFilterProps}
-                    data={getValidFilteredData(listPageFilterProps.data)}
-                  />
-                )}
-                {!!CreateButton && <CreateButton />}
-              </div>
-            </GridItem>
-            <GridItem md={4} sm={12}>
-              <Pagination
-                variant={PaginationVariant.bottom}
-                dropDirection="up"
-                perPageOptions={[]}
-                isStatic
-                className="pf-v6-u-mt-md"
-                {...(!!paginationProps ? paginationProps : {})}
-                itemCount={filteredData.length || 0}
-                widgetId="paginated-list-page"
-                perPage={perPage}
-                page={page}
-                onSetPage={(_event, newPage) => setPage(newPage)}
-                onPerPageSelect={(_event, newPerPage, newPage) => {
-                  setPerPage(newPerPage);
-                  setPage(newPage);
-                }}
-              />
-            </GridItem>
-          </Grid>
+          <div className="pf-v6-u-display-flex pf-v6-u-justify-content-space-between pf-v6-u-align-items-center pf-v6-u-flex-wrap pf-v6-u-mt-md">
+            <div
+              className="pf-v6-u-display-flex pf-v6-u-align-items-flex-start pf-v6-u-flex-wrap"
+              style={{
+                flex: '1 1 0',
+                minWidth: 0,
+                gap: 'var(--pf-t--global--spacer--md)',
+              }}
+            >
+              {toolbarActions}
+              {!hideFilter && (
+                <ListPageFilterWrapper
+                  {...listPageFilterProps}
+                  data={getValidFilteredData(listPageFilterProps.data)}
+                />
+              )}
+              {!!CreateButton && <CreateButton />}
+            </div>
+            <Pagination
+              variant={PaginationVariant.bottom}
+              dropDirection="up"
+              perPageOptions={[]}
+              isStatic
+              {...(!!paginationProps ? paginationProps : {})}
+              itemCount={filteredData.length || 0}
+              widgetId="paginated-list-page"
+              perPage={perPage}
+              page={page}
+              onSetPage={(_event, newPage) => setPage(newPage)}
+              onPerPageSelect={(_event, newPerPage, newPage) => {
+                setPerPage(newPerPage);
+                setPage(newPage);
+              }}
+            />
+          </div>
           {!!Alerts && <Alerts />}
         </>
       )}

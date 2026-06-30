@@ -13,4 +13,12 @@
   &__popover {
     word-break: break-all;
   }
+
+  &__toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--pf-t--global--spacer--sm);
+    flex-shrink: 0;
+  }
+
 }
