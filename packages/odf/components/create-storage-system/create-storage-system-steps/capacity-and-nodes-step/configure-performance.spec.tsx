@@ -141,7 +141,7 @@ describe('Configure Performance', () => {
       />
     );
 
-    expect(screen.getByText(/15 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/12 CPUs/i)).toBeInTheDocument();
     expect(screen.getByText(/72 GiB/i)).toBeInTheDocument();
   });
 
@@ -164,7 +164,7 @@ describe('Configure Performance', () => {
       />
     );
 
-    expect(screen.getByText(/21 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/18 CPUs/i)).toBeInTheDocument();
     expect(screen.getByText(/72 GiB/i)).toBeInTheDocument();
   });
 
@@ -187,7 +187,7 @@ describe('Configure Performance', () => {
       />
     );
 
-    expect(screen.getByText(/30 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/24 CPUs/i)).toBeInTheDocument();
     expect(screen.getByText(/96 GiB/i)).toBeInTheDocument();
   });
 
@@ -211,7 +211,7 @@ describe('Configure Performance', () => {
       />
     );
 
-    expect(screen.getByText(/27 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/24 CPUs/i)).toBeInTheDocument();
     expect(screen.getByText(/102 GiB/i)).toBeInTheDocument();
   });
 });

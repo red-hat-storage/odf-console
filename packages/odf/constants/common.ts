@@ -73,15 +73,15 @@ export const ARCHITECTURE_S390X = 's390x';
  */
 export const S390X_CPU_ADJUSTMENTS = {
   [ResourceProfile.Lean]: {
-    minCpu: 15,
+    minCpu: 12,
     osdCpu: 0.75,
   },
   [ResourceProfile.Balanced]: {
-    minCpu: 21,
+    minCpu: 18,
     osdCpu: 1,
   },
   [ResourceProfile.Performance]: {
-    minCpu: 30,
+    minCpu: 24,
     osdCpu: 2,
   },
 };
