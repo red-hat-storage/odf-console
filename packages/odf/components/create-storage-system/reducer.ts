@@ -55,6 +55,7 @@ export const initialState: CreateStorageSystemState = {
   },
   optionalSettings: {
     enableNFS: false,
+    enableNVMEOF: false,
     // using equality check on "null", do not make it "false" as default
     isRBDStorageClassDefault: null,
     isVirtualizeStorageClassDefault: null,
@@ -153,6 +154,7 @@ type CreateStorageSystemState = {
   };
   optionalSettings: {
     enableNFS: boolean;
+    enableNVMEOF: boolean;
     isRBDStorageClassDefault: boolean | null;
     useExternalPostgres: boolean;
     isVirtualizeStorageClassDefault: boolean | null;
@@ -277,6 +279,8 @@ const setDeployment = (state: WizardState, deploymentType: DeploymentType) => {
     initialState.optionalSettings.isRBDStorageClassDefault;
   state.optionalSettings.isVirtualizeStorageClassDefault =
     initialState.optionalSettings.isVirtualizeStorageClassDefault;
+  state.optionalSettings.enableNVMEOF =
+    initialState.optionalSettings.enableNVMEOF;
   return state;
 };
 
@@ -376,6 +380,9 @@ export const reducer: WizardReducer = (prevState, action) => {
       break;
     case 'optionalSettings/enableNFS':
       newState.optionalSettings.enableNFS = action.payload;
+      break;
+    case 'optionalSettings/enableNVMEOF':
+      newState.optionalSettings.enableNVMEOF = action.payload;
       break;
     case 'optionalSettings/setIsRBDStorageClassDefault':
       newState.optionalSettings.isRBDStorageClassDefault = action.payload;
@@ -581,6 +588,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'optionalSettings/enableNFS';
       payload: WizardState['optionalSettings']['enableNFS'];
+    }
+  | {
+      type: 'optionalSettings/enableNVMEOF';
+      payload: WizardState['optionalSettings']['enableNVMEOF'];
     }
   | {
       type: 'optionalSettings/setIsRBDStorageClassDefault';

@@ -451,6 +451,7 @@ export type OCSRequestData = {
   availablePvsCount?: number;
   isMCG?: boolean;
   isNFSEnabled?: boolean;
+  isNVMEOFEnabled?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
   shouldSetVirtualizeSCAsDefault?: boolean;
   storageClusterNamespace: string;
@@ -481,6 +482,7 @@ export const getOCSRequestData = ({
   availablePvsCount,
   isMCG,
   isNFSEnabled,
+  isNVMEOFEnabled,
   shouldSetCephRBDAsDefault,
   shouldSetVirtualizeSCAsDefault,
   storageClusterNamespace,
@@ -626,6 +628,12 @@ export const getOCSRequestData = ({
   if (!isTNFEnabled && isNFSEnabled) {
     // for NFS, supported only for full deployment and non-external mode
     requestData.spec.nfs = {
+      enable: true,
+    };
+  }
+
+  if (!isTNFEnabled && isNVMEOFEnabled) {
+    requestData.spec.nvmeof = {
       enable: true,
     };
   }
