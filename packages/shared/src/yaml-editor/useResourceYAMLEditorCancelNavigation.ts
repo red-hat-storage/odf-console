@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 
 /**
  * Intercepts clicks on the core console YAML editor cancel button (#cancel)

@@ -7,12 +7,9 @@ import { S3Commands } from '@odf/shared/s3';
 import { SelectableTable } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction, Trans } from 'react-i18next';
-import {
-  useParams,
-  useSearchParams,
-  useNavigate,
-} from 'react-router-dom-v5-compat';
+import { TFunction } from 'i18next';
+import { Trans } from 'react-i18next';
+import { useParams, useSearchParams, useNavigate } from 'react-router';
 import {
   Button,
   ButtonVariant,

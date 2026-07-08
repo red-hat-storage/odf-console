@@ -3,7 +3,7 @@ import { resourceStatus as getDefaultResourceStatus } from '@odf/shared/status/R
 import { ResourceStatus } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -55,6 +55,7 @@ type PageHeadingProps = {
   getResourceStatus?: (resource: K8sResourceKind) => string;
   centerText?: boolean;
   hasUnderline?: boolean;
+  children?: React.ReactNode;
 };
 
 const PageHeading: React.FC<PageHeadingProps> = (props) => {

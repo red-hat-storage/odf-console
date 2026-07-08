@@ -22,7 +22,7 @@ import { K8sResourceCondition } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ViewDocumentation } from '@odf/shared/utils';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 import {
   Button,
   ButtonVariant,

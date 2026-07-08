@@ -11,7 +11,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom-v5-compat';
+import { BrowserRouter } from 'react-router';
 import { StorageClusterCard } from './StorageClusterCard';
 
 // Mock resources before other imports
@@ -210,8 +210,8 @@ describe('StorageClusterCard', () => {
     jest.clearAllMocks();
 
     // Mock react-router
-    jest.mock('react-router-dom-v5-compat', () => ({
-      ...jest.requireActual('react-router-dom-v5-compat'),
+    jest.mock('react-router', () => ({
+      ...jest.requireActual('react-router'),
       useNavigate: () => mockNavigate,
     }));
 

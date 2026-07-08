@@ -3,6 +3,7 @@ import { ListItem } from '@patternfly/react-core';
 
 type DetailPropertyListItemProps = {
   title?: string;
+  children?: React.ReactNode;
 };
 
 const DetailPropertyListItem: React.FC<DetailPropertyListItemProps> = ({

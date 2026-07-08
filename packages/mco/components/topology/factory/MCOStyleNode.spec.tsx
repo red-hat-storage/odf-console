@@ -37,7 +37,7 @@ jest.mock('@patternfly/react-topology', () => ({
 
 // Mock navigate
 const mockNavigate = jest.fn();
-jest.mock('react-router-dom-v5-compat', () => ({
+jest.mock('react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 

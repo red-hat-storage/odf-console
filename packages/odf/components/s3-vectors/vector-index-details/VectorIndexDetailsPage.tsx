@@ -9,7 +9,7 @@ import { DASH, PageHeading } from '@odf/shared';
 import { Timestamp } from '@odf/shared/details-page/timestamp';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import useSWR from 'swr';
 import {
   DescriptionList,

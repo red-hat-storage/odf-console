@@ -62,5 +62,5 @@ type WizardStepProps = {
   loaded: boolean;
   error: any;
   loadingMessage?: string;
-  errorMessage?: React.ReactElement;
+  errorMessage?: React.ReactNode;
 };

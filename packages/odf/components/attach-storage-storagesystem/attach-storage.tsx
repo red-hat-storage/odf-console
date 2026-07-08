@@ -26,11 +26,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-} from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { Content, ContentVariants } from '@patternfly/react-core';
 import { createWizardNodeState, getDeviceSetReplica } from '../utils';
 import { AttachStorageFormFooter } from './attach-storage-footer';

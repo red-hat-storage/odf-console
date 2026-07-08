@@ -78,7 +78,7 @@ export type PairElementProps = {
   isDragging?: () => void;
   onMove: any;
   rowSourceId?: any;
-  toolTip: {};
+  toolTip: React.ReactNode;
   alwaysAllowRemove?: {};
   onRemove?: any;
   isEmpty: boolean;

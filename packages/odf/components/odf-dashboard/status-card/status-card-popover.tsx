@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import {
   CheckCircleIcon,

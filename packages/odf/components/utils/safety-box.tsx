@@ -6,12 +6,14 @@ type SafetyBoxWrapperProps = {
   areResourcesLoaded?: boolean;
   resourcesError?: unknown;
   allowFallback?: boolean;
+  children?: React.ReactNode;
 };
 
 type SafetyBoxProps = {
   isAllSafe: boolean;
   isAllLoaded: boolean;
   anyError: unknown;
+  children?: React.ReactNode;
 };
 
 const SafetyBox: React.FC<SafetyBoxProps> = ({

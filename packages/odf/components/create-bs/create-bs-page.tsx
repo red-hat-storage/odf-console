@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useParams, useNavigate } from 'react-router-dom-v5-compat';
+import { useParams, useNavigate } from 'react-router';
 import { Alert, AlertActionCloseButton, Title } from '@patternfly/react-core';
 import CreateBackingStoreForm from './create-bs';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';

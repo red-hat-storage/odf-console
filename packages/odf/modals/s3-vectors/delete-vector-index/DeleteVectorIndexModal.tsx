@@ -110,9 +110,9 @@ const DeleteVectorIndexModal: React.FC<
       </Content>
       <FormGroup
         label={
-          <Trans t={t}>
+          <Trans t={t} values={{ indexName }}>
             <b>
-              To confirm deletion, type <i>{{ indexName }}</i>:
+              To confirm deletion, type <i>{'{{indexName}}'}</i>:
             </b>
           </Trans>
         }

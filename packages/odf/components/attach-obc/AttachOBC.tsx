@@ -18,7 +18,7 @@ import {
   k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useForm } from 'react-hook-form';
-import { useParams, useNavigate } from 'react-router-dom-v5-compat';
+import { useParams, useNavigate } from 'react-router';
 import * as Yup from 'yup';
 import {
   Alert,

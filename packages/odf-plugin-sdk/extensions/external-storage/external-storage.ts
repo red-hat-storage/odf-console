@@ -1,9 +1,6 @@
 import { K8sResourceKind } from '@odf/shared/types';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import {
-  Extension,
-  ExtensionDeclaration,
-} from '@openshift-console/dynamic-plugin-sdk/lib/types';
+import { Extension } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import { Control } from 'react-hook-form';
 import { ObjectSchema } from 'yup';
 
@@ -103,10 +100,10 @@ export type ExternalStateValues = string | number | Object | Array<any>;
 
 export type ExternalState = { [key: string]: ExternalStateValues };
 
-export type StorageClassWizardStep = ExtensionDeclaration<
-  'odf.wizard/storageclass',
-  StorageClassWizardStepExtensionProps
->;
+export type StorageClassWizardStep = Extension & {
+  type: 'odf.wizard/storageclass';
+  properties: StorageClassWizardStepExtensionProps;
+};
 
 export const isStorageClassWizardStep = (
   e: Extension

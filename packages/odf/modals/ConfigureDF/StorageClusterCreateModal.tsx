@@ -4,7 +4,7 @@ import { StartingPoint } from '@odf/core/types/install-ui';
 import { useCustomTranslation } from '@odf/shared';
 import { useModalWrapper } from '@odf/shared';
 import { Modal } from '@patternfly/react-core/deprecated';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import {
   Flex,
   FlexItem,

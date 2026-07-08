@@ -24,7 +24,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
 import { ActionGroup, Alert, Button, Form } from '@patternfly/react-core';
 import {
