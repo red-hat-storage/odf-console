@@ -45,3 +45,8 @@ export const externalSystemsDoc = (odfDocVersion: string): string =>
 
 export const tnfHomePage = (odfDocVersion: string): string =>
   `${ocpDocHome(odfDocVersion)}/installing_a_two_node_openshift_cluster/two-node-with-fencing`;
+
+export const cephFSSubvolumeMetricsDoc = (odfDocVersion: string): string =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/managing_and_allocating_storage_resources/managing-container-storage-interface-component-resources_rhodf#monitoring-cephfs-subvolume-metrics_rhodf`;
