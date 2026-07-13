@@ -42,6 +42,14 @@ export const getNodeRoles = (node: NodeKind): string[] => {
   );
 };
 
+export const isControlPlaneNode = (node: NodeKind): boolean => {
+  const roles = getNodeRoles(node);
+  return roles.includes('control-plane') || roles.includes('master');
+};
+
+export const isWorkerNode = (node: NodeKind): boolean =>
+  getNodeRoles(node).includes('worker') && !isControlPlaneNode(node);
+
 export const getNodeZone = (node: NodeKind): string =>
   node.metadata.labels?.['topology.kubernetes.io/zone'];
 
