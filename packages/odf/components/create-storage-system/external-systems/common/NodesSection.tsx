@@ -24,135 +24,156 @@ type NodesSectionProps = {
   selectNodesDescription?: string;
 };
 
-export const NodesSection: React.FC<NodesSectionProps> = React.memo(
-  ({
-    isDisabled,
-    selectedNodes,
-    setSelectedNodes,
-    allNodesDescription,
-    selectNodesDescription,
-  }) => {
-    const { t } = useCustomTranslation();
-    const [isUseAllNodes, setIsUseAllNodes] = React.useState(true);
-    const [allNodes, allNodesLoaded] = useNodesData(true);
+type NodesSectionContentProps = NodesSectionProps & {
+  allNodes: NodeData[];
+  allNodesLoaded: boolean;
+};
 
-    const onNodeSelect = React.useCallback(
-      (nodes: NodeData[]) => {
-        const nodesData = createWizardNodeState(nodes);
-        setSelectedNodes(nodesData);
-      },
-      [setSelectedNodes]
-    );
-
-    // Initialize selected nodes when component mounts and "All nodes" is selected by default
-    React.useEffect(() => {
-      if (
-        isUseAllNodes &&
-        allNodesLoaded &&
-        allNodes.length > 0 &&
-        selectedNodes.length === 0
-      ) {
-        onNodeSelect(allNodes);
-      }
-    }, [
-      isUseAllNodes,
-      allNodesLoaded,
+export const NodesSectionContent: React.FC<NodesSectionContentProps> =
+  React.memo(
+    ({
+      isDisabled,
+      selectedNodes,
+      setSelectedNodes,
+      allNodesDescription,
+      selectNodesDescription,
       allNodes,
-      selectedNodes.length,
-      onNodeSelect,
-    ]);
+      allNodesLoaded,
+    }) => {
+      const { t } = useCustomTranslation();
+      const [isUseAllNodes, setIsUseAllNodes] = React.useState(true);
 
-    // Handle "All nodes" selection directly in the click handler
-    const handleAllNodesClick = React.useCallback(() => {
-      setIsUseAllNodes(true);
-      if (allNodesLoaded && allNodes.length > 0) {
-        onNodeSelect(allNodes);
-      }
-    }, [allNodesLoaded, allNodes, onNodeSelect]);
+      const onNodeSelect = React.useCallback(
+        (nodes: NodeData[]) => {
+          const nodesData = createWizardNodeState(nodes);
+          setSelectedNodes(nodesData);
+        },
+        [setSelectedNodes]
+      );
 
-    // Handle "Select Nodes" selection - clear previous selection
-    const handleSelectNodesClick = React.useCallback(() => {
-      setIsUseAllNodes(false);
-      setSelectedNodes([]);
-    }, [setSelectedNodes]);
+      // Initialize selected nodes when component mounts and "All nodes" is selected by default
+      React.useEffect(() => {
+        if (
+          isUseAllNodes &&
+          allNodesLoaded &&
+          allNodes.length > 0 &&
+          selectedNodes.length === 0
+        ) {
+          onNodeSelect(allNodes);
+        }
+      }, [
+        isUseAllNodes,
+        allNodesLoaded,
+        allNodes,
+        selectedNodes.length,
+        onNodeSelect,
+      ]);
 
-    const defaultAllNodesDescription = t(
-      'All non control plane nodes are selected to handle requests to IBM Scale'
-    );
-    const defaultSelectNodesDescription = t(
-      'Select a minimum of 3 nodes to handle requests to IBM scale'
-    );
+      // Handle "All nodes" selection directly in the click handler
+      const handleAllNodesClick = React.useCallback(() => {
+        if (isDisabled) return;
+        setIsUseAllNodes(true);
+        if (allNodesLoaded && allNodes.length > 0) {
+          onNodeSelect(allNodes);
+        }
+      }, [isDisabled, allNodesLoaded, allNodes, onNodeSelect]);
 
-    return (
-      <>
-        <Flex direction={{ default: 'row' }}>
-          <FlexItem>
-            <Card
-              className="odf-nodes-section__card"
-              isSelected={isUseAllNodes}
-              isSelectable
-              id="all-nodes"
-              isDisabled={isDisabled}
-            >
-              <CardHeader
-                selectableActions={{
-                  onChange: handleAllNodesClick,
-                  selectableActionId: 'use-all-nodes',
-                  variant: 'single',
-                  name: 'node-selector',
-                  selectableActionAriaLabelledby: 'all-nodes',
-                }}
+      // Handle "Select Nodes" selection - clear previous selection
+      const handleSelectNodesClick = React.useCallback(() => {
+        if (isDisabled) return;
+        setIsUseAllNodes(false);
+        setSelectedNodes([]);
+      }, [isDisabled, setSelectedNodes]);
+
+      const defaultAllNodesDescription = t(
+        'All non control plane nodes are selected to handle requests to IBM Scale'
+      );
+      const defaultSelectNodesDescription = t(
+        'Select a minimum of 3 nodes to handle requests to IBM scale'
+      );
+
+      return (
+        <>
+          <Flex direction={{ default: 'row' }}>
+            <FlexItem>
+              <Card
+                className="odf-nodes-section__card"
+                isSelected={isUseAllNodes}
+                isSelectable
+                id="all-nodes"
+                isDisabled={isDisabled}
               >
-                <CardTitle>{t('All Nodes (Default)')}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                {allNodesDescription || defaultAllNodesDescription}
-              </CardBody>
-            </Card>
-          </FlexItem>
-          <FlexItem>
-            <Card
-              className="odf-nodes-section__card"
-              isSelected={!isUseAllNodes}
-              isSelectable
-              id="selected-nodes"
-              isDisabled={isDisabled}
-            >
-              <CardHeader
-                selectableActions={{
-                  onChange: handleSelectNodesClick,
-                  selectableActionId: 'use-selected-nodes',
-                  variant: 'single',
-                  name: 'node-selector',
-                  selectableActionAriaLabelledby: 'selected-nodes',
-                }}
+                <CardHeader
+                  selectableActions={{
+                    onChange: handleAllNodesClick,
+                    selectableActionId: 'use-all-nodes',
+                    variant: 'single',
+                    name: 'node-selector',
+                    selectableActionAriaLabelledby: 'all-nodes',
+                  }}
+                >
+                  <CardTitle>{t('All Nodes (Default)')}</CardTitle>
+                </CardHeader>
+                <CardBody>
+                  {allNodesDescription || defaultAllNodesDescription}
+                </CardBody>
+              </Card>
+            </FlexItem>
+            <FlexItem>
+              <Card
+                className="odf-nodes-section__card"
+                isSelected={!isUseAllNodes}
+                isSelectable
+                id="selected-nodes"
+                isDisabled={isDisabled}
               >
-                <CardTitle>{t('Select Nodes')}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                {selectNodesDescription || defaultSelectNodesDescription}
-              </CardBody>
-            </Card>
-          </FlexItem>
-        </Flex>
-        {!isUseAllNodes && (
-          <SelectNodesTable
-            nodes={selectedNodes}
-            onRowSelected={onNodeSelect}
-            systemNamespace={''}
-          />
-        )}
-        {isDisabled && (
-          <Alert
-            variant="info"
-            title={t('Nodes are disabled')}
-            isInline
-            className="pf-v6-u-mt-md"
-          >
-            {t('Nodes are disabled because the local cluster is configured')}
-          </Alert>
-        )}
-      </>
-    );
-  }
-);
+                <CardHeader
+                  selectableActions={{
+                    onChange: handleSelectNodesClick,
+                    selectableActionId: 'use-selected-nodes',
+                    variant: 'single',
+                    name: 'node-selector',
+                    selectableActionAriaLabelledby: 'selected-nodes',
+                  }}
+                >
+                  <CardTitle>{t('Select Nodes')}</CardTitle>
+                </CardHeader>
+                <CardBody>
+                  {selectNodesDescription || defaultSelectNodesDescription}
+                </CardBody>
+              </Card>
+            </FlexItem>
+          </Flex>
+          {!isUseAllNodes && (
+            <SelectNodesTable
+              nodes={selectedNodes}
+              onRowSelected={onNodeSelect}
+              systemNamespace={''}
+            />
+          )}
+          {isDisabled && (
+            <Alert
+              variant="info"
+              title={t('Nodes are disabled')}
+              isInline
+              className="pf-v6-u-mt-md"
+            >
+              {t('Nodes are disabled because the local cluster is configured')}
+            </Alert>
+          )}
+        </>
+      );
+    }
+  );
+
+export const NodesSection: React.FC<NodesSectionProps> = React.memo((props) => {
+  const [allNodes, allNodesLoaded] = useNodesData(true);
+
+  return (
+    <NodesSectionContent
+      {...props}
+      allNodes={allNodes}
+      allNodesLoaded={allNodesLoaded}
+    />
+  );
+});

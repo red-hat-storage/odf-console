@@ -1,14 +1,22 @@
 import * as React from 'react';
 import { useExistingFileSystemNames } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
+import { createWizardNodeState } from '@odf/core/components/utils';
+import {
+  IBM_SCALE_LOCAL_CLUSTER_NAME,
+  IBM_SCALE_NAMESPACE,
+} from '@odf/core/constants';
+import { useNodesData } from '@odf/core/hooks';
 import {
   PageHeading,
   useCustomTranslation,
   TextInputWithFieldRequirements,
   ButtonBar,
+  FieldLevelHelp,
 } from '@odf/shared';
+import { ClusterModel } from '@odf/shared/models/scale';
 import { ValidatedPasswordInput } from '@odf/shared/text-inputs/password-input';
-import * as _ from 'lodash-es';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { resourcePathFromModel } from '@odf/shared/utils';
+import { Link, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Form,
   FormGroup,
@@ -27,8 +35,11 @@ import {
   ButtonType,
   ButtonVariant,
 } from '@patternfly/react-core';
-import { useIsLocalClusterConfigured } from '../common/hooks';
-import { NodesSection } from '../common/NodesSection';
+import {
+  LocalScaleClusterStatus,
+  useLocalScaleClusterState,
+} from '../common/hooks';
+import { NodesSectionContent } from '../common/NodesSection';
 import {
   configureMetricsNamespaceLabels,
   createScaleLocalClusterPayload,
@@ -64,8 +75,41 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const navigate = useNavigate();
   const [error, setError] = React.useState<string>('');
   const [loading, setLoading] = React.useState(false);
-  const localCluster = useIsLocalClusterConfigured();
-  const isLocalClusterConfigured = !_.isEmpty(localCluster);
+  const localClusterState = useLocalScaleClusterState();
+  const isLocalClusterConfigured =
+    localClusterState.status === LocalScaleClusterStatus.PRESENT;
+  const isLocalClusterLoading =
+    localClusterState.status === LocalScaleClusterStatus.LOADING;
+  const isLocalClusterError =
+    localClusterState.status === LocalScaleClusterStatus.ERROR;
+  const [eligibleNodes, eligibleNodesLoaded, eligibleNodesError] =
+    useNodesData(true);
+  const configuredNodes = React.useMemo(
+    () =>
+      createWizardNodeState(
+        eligibleNodes.filter((node) =>
+          Object.prototype.hasOwnProperty.call(
+            node.metadata?.labels || {},
+            'scale.spectrum.ibm.com/daemon-selector'
+          )
+        )
+      ),
+    [eligibleNodes]
+  );
+  const configuredNodesLoading =
+    isLocalClusterConfigured && !eligibleNodesLoaded;
+  const hasConfiguredNodesError =
+    isLocalClusterConfigured &&
+    (!!eligibleNodesError ||
+      (eligibleNodesLoaded && configuredNodes.length === 0));
+  const isConfigurationLoading =
+    isLocalClusterLoading || configuredNodesLoading;
+  const isConfigurationError = isLocalClusterError || hasConfiguredNodesError;
+  const configurationErrorTitle = isLocalClusterError
+    ? t('Local Scale cluster configuration could not be loaded')
+    : t('Local Scale cluster nodes could not be resolved');
+  const existingSelectionMode =
+    configuredNodes.length === eligibleNodes.length ? 'all' : 'selected';
 
   const existingFileSystemNames = useExistingFileSystemNames();
 
@@ -100,7 +144,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     userName &&
     password &&
     fileSystemName &&
-    componentState.selectedNodes.length > 0
+    (isLocalClusterConfigured || componentState.selectedNodes.length > 0)
   );
 
   const encryptionFieldsValid =
@@ -159,12 +203,11 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
 
     try {
       const formData = getValues();
-      const patchNodes = labelNodes(componentState.selectedNodes);
-      const { cpuRequest, memoryRequest } = getOptimalResourceRequests(
-        componentState.selectedNodes
-      );
       if (!isLocalClusterConfigured) {
-        await patchNodes();
+        await labelNodes(componentState.selectedNodes)();
+        const { cpuRequest, memoryRequest } = getOptimalResourceRequests(
+          componentState.selectedNodes
+        );
         const localClusterPromise = createScaleLocalClusterPayload(
           undefined,
           undefined,
@@ -248,9 +291,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         await encryptionSecretPromise();
         await encryptionConfigPromise();
       }
-      navigate(
-        `/odf/external-systems/scale.spectrum.ibm.com~v1beta1~remotecluster/${formData.name}`
-      );
+      navigate('/odf/external-systems');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -267,7 +308,11 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   ]);
 
   return (
-    <Form onSubmit={handleSubmit(onCreate)} isWidthLimited>
+    <Form
+      onSubmit={handleSubmit(onCreate)}
+      isWidthLimited
+      aria-busy={isConfigurationLoading}
+    >
       <FormSection title={t('General configuration')}>
         <TextInputWithFieldRequirements
           control={control}
@@ -292,14 +337,69 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
             'A unique connection name to identify this external system in Data Foundation.'
           )}
         />
-        <FormGroup label={t('Select local cluster nodes')} isRequired>
-          <NodesSection
-            isDisabled={isLocalClusterConfigured}
-            selectedNodes={componentState.selectedNodes}
-            setSelectedNodes={(nodes) =>
-              setComponentState((prev) => ({ ...prev, selectedNodes: nodes }))
-            }
-          />
+        <FormGroup
+          label={
+            isLocalClusterConfigured
+              ? t('Local cluster nodes')
+              : t('Select local cluster nodes')
+          }
+          isRequired={!isLocalClusterConfigured}
+          labelHelp={
+            <FieldLevelHelp testId="local-scale-cluster-nodes-help">
+              {t(
+                'Local cluster nodes are used to create a IBM Scale (CNSA) file system that handles requests to other external CNSA remote clusters and SAN storage.'
+              )}
+            </FieldLevelHelp>
+          }
+        >
+          {isConfigurationLoading ? (
+            <div>{t('Loading local Scale cluster configuration')}</div>
+          ) : isConfigurationError ? (
+            <Alert
+              variant={AlertVariant.danger}
+              isInline
+              title={configurationErrorTitle}
+            />
+          ) : isLocalClusterConfigured ? (
+            <div>
+              {existingSelectionMode === 'all'
+                ? t('All non-control plane Nodes (Default)')
+                : configuredNodes.map((node) => node.name).join(', ')}
+            </div>
+          ) : (
+            <NodesSectionContent
+              selectedNodes={componentState.selectedNodes}
+              setSelectedNodes={(nodes) =>
+                setComponentState((prev) => ({ ...prev, selectedNodes: nodes }))
+              }
+              allNodes={eligibleNodes}
+              allNodesLoaded={eligibleNodesLoaded}
+            />
+          )}
+          {isLocalClusterConfigured &&
+            !isConfigurationLoading &&
+            !isConfigurationError && (
+              <Alert
+                variant={AlertVariant.info}
+                isInline
+                title={
+                  <span className="pf-v6-u-font-weight-normal">
+                    {t(
+                      'The local cluster nodes have already been configured. The nodes that make up the local cluster for external systems is only configured the first time a Storage Area Network or IBM Scale (CNSA) system is connected.'
+                    )}{' '}
+                    <Link
+                      to={resourcePathFromModel(
+                        ClusterModel,
+                        IBM_SCALE_LOCAL_CLUSTER_NAME,
+                        IBM_SCALE_NAMESPACE
+                      )}
+                    >
+                      {t('View the StorageCluster')}
+                    </Link>
+                  </span>
+                }
+              />
+            )}
         </FormGroup>
       </FormSection>
       <FormSection title={t('Connection details')}>
@@ -725,7 +825,12 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           <Button
             type={ButtonType.submit}
             variant={ButtonVariant.primary}
-            isDisabled={loading || !isFormValid}
+            isDisabled={
+              loading ||
+              isConfigurationLoading ||
+              isConfigurationError ||
+              !isFormValid
+            }
             isLoading={loading}
             data-test="connect-scale-system"
           >

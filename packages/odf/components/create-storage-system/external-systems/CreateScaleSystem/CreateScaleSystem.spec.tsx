@@ -1,12 +1,21 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { useNodesData } from '@odf/core/hooks';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { useLocalScaleClusterState } from '../common/hooks';
+import { createScaleLocalClusterPayload, labelNodes } from '../common/payload';
 import { CreateScaleSystem } from './CreateScaleSystem';
+import { createFileSystem, createScaleRemoteClusterPayload } from './payload';
+
+const mockNavigate = jest.fn();
+const mockCreationOrder: string[] = [];
+let mockScaleFormValues: Record<string, string> = {};
 
 // Mock all external dependencies
 jest.mock('react-router-dom-v5-compat', () => ({
-  useNavigate: jest.fn(() => jest.fn()),
+  useNavigate: jest.fn(() => mockNavigate),
   Link: ({
     children,
     to,
@@ -71,10 +80,9 @@ jest.mock('./useFormValidation', () => {
         handleSubmit: form.handleSubmit,
         formState: form.formState,
         watch: jest.fn((_fieldName) => {
-          // Return empty string by default, but allow tests to override this
-          return '';
+          return mockScaleFormValues[_fieldName] || '';
         }),
-        getValues: form.getValues,
+        getValues: jest.fn(() => mockScaleFormValues),
       };
     }),
   };
@@ -94,6 +102,7 @@ jest.mock('@odf/core/hooks', () => ({
 }));
 
 jest.mock('@odf/core/components/utils', () => ({
+  ...jest.requireActual('@odf/core/components/utils'),
   createWizardNodeState: jest.fn((nodes: any[]) => nodes),
 }));
 
@@ -121,25 +130,55 @@ jest.mock('../../select-nodes-table/select-nodes-table', () => ({
 // Mock @openshift-console/dynamic-plugin-sdk to provide useK8sWatchResource
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
+  TableData: ({ children }: { children: React.ReactNode }) => (
+    <td>{children}</td>
+  ),
+  useActiveColumns: jest.fn(({ columns }) => [columns]),
   useK8sWatchResource: jest.fn(() => [null, true, null]),
+  VirtualizedTable: ({
+    'aria-label': ariaLabel,
+    data,
+    Row,
+  }: {
+    'aria-label': string;
+    data: any[];
+    Row: React.ComponentType<any>;
+  }) => (
+    <table aria-label={ariaLabel}>
+      <tbody>
+        {data.map((obj) => (
+          <tr key={obj.name}>
+            <Row obj={obj} activeColumnIDs={[]} />
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ),
 }));
 
-// Mock the common hooks
 jest.mock('../common/hooks', () => ({
-  useIsLocalClusterConfigured: jest.fn(() => null),
+  ...jest.requireActual('../common/hooks'),
+  useLocalScaleClusterState: jest.fn(() => ({ status: 'absent' })),
 }));
 
 jest.mock('./payload', () => ({
-  createScaleCaCertSecretPayload: jest.fn(() => Promise.resolve({})),
-  createScaleRemoteClusterPayload: jest.fn(() => Promise.resolve({})),
-  createFileSystem: jest.fn(() => Promise.resolve({})),
-  createConfigMapPayload: jest.fn(() => Promise.resolve({})),
-  createEncryptionConfigPayload: jest.fn(() => Promise.resolve({})),
-  createUserDetailsSecretPayload: jest.fn(() => Promise.resolve({})),
+  createScaleCaCertSecretPayload: jest.fn(() => () => Promise.resolve({})),
+  createScaleRemoteClusterPayload: jest.fn(() => () => {
+    mockCreationOrder.push('remote-cluster');
+    return Promise.resolve({});
+  }),
+  createFileSystem: jest.fn(() => () => Promise.resolve({})),
+  createConfigMapPayload: jest.fn(() => () => Promise.resolve({})),
+  createEncryptionConfigPayload: jest.fn(() => () => Promise.resolve({})),
+  createUserDetailsSecretPayload: jest.fn(() => () => Promise.resolve({})),
 }));
 
 jest.mock('../common/payload', () => ({
-  createScaleLocalClusterPayload: jest.fn(() => () => Promise.resolve({})),
+  configureMetricsNamespaceLabels: jest.fn(() => Promise.resolve()),
+  createScaleLocalClusterPayload: jest.fn(() => () => {
+    mockCreationOrder.push('local-cluster');
+    return Promise.resolve({});
+  }),
   labelNodes: jest.fn(() => () => Promise.resolve({})),
 }));
 
@@ -183,8 +222,62 @@ jest.mock('@odf/shared', () => {
 });
 
 describe('CreateScaleSystem', () => {
+  const eligibleNodes = [
+    {
+      name: 'node1',
+      uid: 'node1-uid',
+      roles: ['worker'],
+      cpu: '8',
+      memory: '32Gi',
+      zone: 'zone-a',
+      metadata: {
+        name: 'node1',
+        labels: {
+          'node-role.kubernetes.io/worker': '',
+        },
+      },
+    },
+    {
+      name: 'node2',
+      uid: 'node2-uid',
+      roles: ['worker'],
+      cpu: '8',
+      memory: '32Gi',
+      zone: 'zone-b',
+      metadata: {
+        name: 'node2',
+        labels: {
+          'node-role.kubernetes.io/worker': '',
+        },
+      },
+    },
+    {
+      name: 'node3',
+      uid: 'node3-uid',
+      roles: ['worker'],
+      cpu: '8',
+      memory: '32Gi',
+      zone: 'zone-c',
+      metadata: {
+        name: 'node3',
+        labels: {
+          'node-role.kubernetes.io/worker': '',
+        },
+      },
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCreationOrder.length = 0;
+    jest.mocked(useK8sWatchResource).mockReturnValue([null, true, null]);
+    jest
+      .mocked(useNodesData)
+      .mockReturnValue([eligibleNodes as any, true, null]);
+    jest
+      .mocked(useLocalScaleClusterState)
+      .mockReturnValue({ status: 'absent' });
+    mockScaleFormValues = {};
   });
 
   describe('Component Rendering', () => {
@@ -314,6 +407,168 @@ describe('CreateScaleSystem', () => {
   });
 
   describe('Node Selection', () => {
+    it('shows local cluster loading state before enabling the form', () => {
+      jest
+        .mocked(useLocalScaleClusterState)
+        .mockReturnValue({ status: 'loading' });
+
+      render(<CreateScaleSystem />);
+
+      expect(
+        screen.getByText('Loading local Scale cluster configuration')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('Enter a name for the external system')
+      ).toBeEnabled();
+      expect(screen.getByRole('button', { name: /connect/i })).toBeDisabled();
+      expect(createScaleRemoteClusterPayload).not.toHaveBeenCalled();
+    });
+
+    it('blocks the form when local cluster configuration cannot be loaded', () => {
+      jest
+        .mocked(useLocalScaleClusterState)
+        .mockReturnValue({ status: 'error', error: new Error('forbidden') });
+
+      render(<CreateScaleSystem />);
+
+      expect(
+        screen.getByText(
+          'Local Scale cluster configuration could not be loaded'
+        )
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /connect/i })).toBeDisabled();
+      expect(screen.queryByText('All Nodes (Default)')).not.toBeInTheDocument();
+      expect(createScaleRemoteClusterPayload).not.toHaveBeenCalled();
+    });
+
+    it('shows the existing all-node configuration as read-only UX text', async () => {
+      const user = userEvent.setup();
+      const configuredNodes = eligibleNodes.map((node) => ({
+        ...node,
+        metadata: {
+          ...node.metadata,
+          labels: {
+            ...node.metadata.labels,
+            'scale.spectrum.ibm.com/daemon-selector': '',
+          },
+        },
+      }));
+      jest
+        .mocked(useNodesData)
+        .mockReturnValue([configuredNodes as any, true, null]);
+      jest.mocked(useLocalScaleClusterState).mockReturnValue({
+        status: 'present',
+        cluster: {
+          metadata: { name: 'ibm-spectrum-scale' },
+          spec: {},
+        } as any,
+      });
+
+      const { container } = render(<CreateScaleSystem />);
+
+      expect(
+        screen.getByText('All non-control plane Nodes (Default)')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Local cluster nodes').closest('label')
+      ).not.toHaveTextContent('*');
+      expect(screen.queryByText('All Nodes (Default)')).not.toBeInTheDocument();
+      expect(screen.queryByText('Select Nodes')).not.toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'The local cluster nodes have already been configured. The nodes that make up the local cluster for external systems is only configured the first time a Storage Area Network or IBM Scale (CNSA) system is connected.'
+        )
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('link', { name: 'View the StorageCluster' })
+      ).toHaveAttribute(
+        'href',
+        '/k8s/ns/ibm-spectrum-scale/scale.spectrum.ibm.com~v1beta1~Cluster/ibm-spectrum-scale'
+      );
+      expect(screen.queryByText('Nodes are disabled')).not.toBeInTheDocument();
+
+      await user.click(
+        container.querySelector(
+          '[data-test-id="local-scale-cluster-nodes-help"]'
+        )
+      );
+      expect(
+        await screen.findByText(
+          'Local cluster nodes are used to create a IBM Scale (CNSA) file system that handles requests to other external CNSA remote clusters and SAN storage.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('blocks the form when existing local cluster nodes cannot be resolved', () => {
+      jest.mocked(useNodesData).mockReturnValue([[], true, null]);
+      jest.mocked(useLocalScaleClusterState).mockReturnValue({
+        status: 'present',
+        cluster: {
+          metadata: { name: 'ibm-spectrum-scale' },
+          spec: {},
+        } as any,
+      });
+
+      render(<CreateScaleSystem />);
+
+      expect(
+        screen.getByText('Local Scale cluster nodes could not be resolved')
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /connect/i })).toBeDisabled();
+      expect(screen.queryByText('All Nodes (Default)')).not.toBeInTheDocument();
+    });
+
+    it('submits with an existing individual-node configuration read-only', async () => {
+      const user = userEvent.setup();
+      const configuredNodes = eligibleNodes.map((node, index) => ({
+        ...node,
+        metadata: {
+          ...node.metadata,
+          labels: {
+            ...node.metadata.labels,
+            ...(index < 2 && {
+              'scale.spectrum.ibm.com/daemon-selector': '',
+            }),
+          },
+        },
+      }));
+      jest
+        .mocked(useNodesData)
+        .mockReturnValue([configuredNodes as any, true, null]);
+      jest.mocked(useLocalScaleClusterState).mockReturnValue({
+        status: 'present',
+        cluster: {
+          metadata: { name: 'ibm-spectrum-scale' },
+          spec: {},
+        } as any,
+      });
+      mockScaleFormValues = {
+        name: 'remote-selected-nodes',
+        'mandatory-endpoint-host': 'scale-selected.example.com',
+        'mandatory-endpoint-port': '8843',
+        userName: 'admin',
+        password: 'secret',
+        fileSystemName: 'selected-fs',
+      };
+
+      render(<CreateScaleSystem />);
+
+      expect(screen.getByText('node1, node2')).toBeInTheDocument();
+      expect(screen.queryByText('All Nodes (Default)')).not.toBeInTheDocument();
+      expect(screen.queryByText('Select Nodes')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('select-nodes-table')
+      ).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Connect' }));
+
+      await waitFor(() =>
+        expect(createScaleRemoteClusterPayload).toHaveBeenCalled()
+      );
+      expect(labelNodes).not.toHaveBeenCalled();
+      expect(createScaleLocalClusterPayload).not.toHaveBeenCalled();
+    });
+
     it('should render node selection cards', () => {
       render(<CreateScaleSystem />);
 
@@ -328,6 +583,80 @@ describe('CreateScaleSystem', () => {
       expect(
         screen.queryByTestId('select-nodes-table')
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Remote cluster creation', () => {
+    it('creates the local cluster before the first remote cluster', async () => {
+      const user = userEvent.setup();
+      mockScaleFormValues = {
+        name: 'remote-east',
+        'mandatory-endpoint-host': 'scale-east.example.com',
+        'mandatory-endpoint-port': '8843',
+        userName: 'admin',
+        password: 'secret',
+        fileSystemName: 'remote-east-fs',
+      };
+
+      render(<CreateScaleSystem />);
+
+      const connectButton = screen.getByRole('button', { name: 'Connect' });
+      await waitFor(() => expect(connectButton).toBeEnabled());
+      await user.click(connectButton);
+
+      await waitFor(() =>
+        expect(createScaleRemoteClusterPayload).toHaveBeenCalled()
+      );
+      expect(labelNodes).toHaveBeenCalled();
+      expect(createScaleLocalClusterPayload).toHaveBeenCalled();
+      expect(mockCreationOrder).toEqual(['local-cluster', 'remote-cluster']);
+      expect(mockNavigate).toHaveBeenCalledWith('/odf/external-systems');
+    });
+
+    it('adds a remote cluster without changing an existing local cluster', async () => {
+      const user = userEvent.setup();
+      const configuredNodes = eligibleNodes.map((node) => ({
+        ...node,
+        metadata: {
+          ...node.metadata,
+          labels: {
+            ...node.metadata.labels,
+            'scale.spectrum.ibm.com/daemon-selector': '',
+          },
+        },
+      }));
+      jest
+        .mocked(useNodesData)
+        .mockReturnValue([configuredNodes as any, true, null]);
+      jest.mocked(useLocalScaleClusterState).mockReturnValue({
+        status: 'present',
+        cluster: {
+          metadata: { name: 'ibm-spectrum-scale' },
+          spec: {},
+        } as any,
+      });
+      mockScaleFormValues = {
+        name: 'remote-west',
+        'mandatory-endpoint-host': 'scale.example.com',
+        'mandatory-endpoint-port': '8843',
+        userName: 'admin',
+        password: 'secret',
+        fileSystemName: 'remote-fs',
+      };
+
+      render(<CreateScaleSystem />);
+
+      const connectButton = screen.getByRole('button', { name: 'Connect' });
+      await waitFor(() => expect(connectButton).toBeEnabled());
+      await user.click(connectButton);
+
+      await waitFor(() =>
+        expect(createScaleRemoteClusterPayload).toHaveBeenCalled()
+      );
+      expect(createFileSystem).toHaveBeenCalledWith('remote-west', 'remote-fs');
+      expect(labelNodes).not.toHaveBeenCalled();
+      expect(createScaleLocalClusterPayload).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/odf/external-systems');
     });
   });
 
