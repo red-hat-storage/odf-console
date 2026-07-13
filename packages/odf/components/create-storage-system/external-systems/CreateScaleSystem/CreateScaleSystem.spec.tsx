@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { CreateScaleSystem } from './CreateScaleSystem';
+import { useKernelDevelEligibility } from './hooks/useKernelDevelEligibility';
 
 // Mock all external dependencies
 jest.mock('react-router-dom-v5-compat', () => ({
@@ -97,6 +98,45 @@ jest.mock('@odf/core/components/utils', () => ({
   createWizardNodeState: jest.fn((nodes: any[]) => nodes),
 }));
 
+// Capture setSelectedNodes so tests can directly control node selection
+let capturedSetSelectedNodes: ((nodes: any[]) => void) | null = null;
+
+jest.mock('../common/NodesSection', () => ({
+  NodesSection: jest.fn(
+    ({
+      setSelectedNodes,
+      statusContent,
+      showNodesTable,
+    }: {
+      selectedNodes: any[];
+      setSelectedNodes: (nodes: any[]) => void;
+      statusContent: React.ReactNode;
+      showNodesTable?: boolean;
+    }) => {
+      capturedSetSelectedNodes = setSelectedNodes;
+      return (
+        <div data-testid="mock-nodes-section">
+          {showNodesTable ? (
+            <>
+              <label htmlFor="include-control-plane-nodes">
+                Include control plane nodes
+              </label>
+              <input id="include-control-plane-nodes" type="checkbox" />
+              <div data-test-id="select-nodes-table" />
+            </>
+          ) : (
+            <>
+              <div>All Nodes (Default)</div>
+              <div>Select Nodes</div>
+            </>
+          )}
+          {statusContent}
+        </div>
+      );
+    }
+  ),
+}));
+
 jest.mock('../../select-nodes-table/select-nodes-table', () => ({
   SelectNodesTable: ({
     nodes,
@@ -112,7 +152,7 @@ jest.mock('../../select-nodes-table/select-nodes-table', () => ({
         onClick={() => onRowSelected([{ name: 'node1' }, { name: 'node2' }])}
         data-testid="select-nodes-button"
       >
-        Select Nodes
+        Select Nodes (minimum 3)
       </button>
     </div>
   ),
@@ -141,6 +181,10 @@ jest.mock('./payload', () => ({
 jest.mock('../common/payload', () => ({
   createScaleLocalClusterPayload: jest.fn(() => () => Promise.resolve({})),
   labelNodes: jest.fn(() => () => Promise.resolve({})),
+}));
+
+jest.mock('./hooks/useKernelDevelEligibility', () => ({
+  useKernelDevelEligibility: jest.fn(),
 }));
 
 // Mock only the specific hooks and components that require connectivity or SDK dependencies
@@ -185,6 +229,12 @@ jest.mock('@odf/shared', () => {
 describe('CreateScaleSystem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+      areSelectedNodesEligible: true,
+      isLoading: false,
+      error: '',
+      nodesWithoutKernelDevel: [],
+    });
   });
 
   describe('Component Rendering', () => {
@@ -224,18 +274,20 @@ describe('CreateScaleSystem', () => {
       expect(screen.getByText('File system name')).toBeInTheDocument();
     });
 
-    it('should render node selection cards', () => {
+    it('should render the node selection table', () => {
       render(<CreateScaleSystem />);
 
-      expect(screen.getByText('All Nodes (Default)')).toBeInTheDocument();
-      expect(screen.getByText('Select Nodes')).toBeInTheDocument();
+      expect(
+        screen.getByRole('checkbox', { name: 'Include control plane nodes' })
+      ).toBeInTheDocument();
+      expect(screen.getByTestId('select-nodes-table')).toBeInTheDocument();
     });
 
     it('should render form buttons', () => {
       render(<CreateScaleSystem />);
 
       expect(
-        screen.getByRole('button', { name: /connect/i })
+        screen.getByRole('button', { name: /connect and create/i })
       ).toBeInTheDocument();
       expect(screen.getByText('Cancel')).toBeInTheDocument();
     });
@@ -247,7 +299,7 @@ describe('CreateScaleSystem', () => {
 
       expect(container.querySelector('form')).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: 'Connect' })
+        screen.getByRole('button', { name: 'Connect and create' })
       ).toBeInTheDocument();
     });
 
@@ -314,20 +366,103 @@ describe('CreateScaleSystem', () => {
   });
 
   describe('Node Selection', () => {
-    it('should render node selection cards', () => {
+    it('renders the node selection table', () => {
       render(<CreateScaleSystem />);
 
-      expect(screen.getByText('All Nodes (Default)')).toBeInTheDocument();
-      expect(screen.getByText('Select Nodes')).toBeInTheDocument();
+      expect(
+        screen.getByRole('checkbox', { name: 'Include control plane nodes' })
+      ).toBeInTheDocument();
+      expect(screen.getByTestId('select-nodes-table')).toBeInTheDocument();
     });
 
-    it('should render node selection table when select nodes is chosen', () => {
-      render(<CreateScaleSystem />);
+    it('does not show kernel-devel status when no nodes are selected', () => {
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: false,
+        isLoading: false,
+        error: '',
+        nodesWithoutKernelDevel: [],
+      });
 
-      // Initially the table should not be visible
+      const { container } = render(<CreateScaleSystem />);
+
       expect(
-        screen.queryByTestId('select-nodes-table')
+        container.querySelector('[data-test^="kernel-devel-status"]')
       ).not.toBeInTheDocument();
+    });
+
+    it('shows the kernel-devel warning when hook reports nodes without kernel-devel', async () => {
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: false,
+        isLoading: false,
+        error: '',
+        nodesWithoutKernelDevel: ['node1', 'node2'],
+      });
+
+      const { container } = render(<CreateScaleSystem />);
+      act(() => {
+        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
+      });
+
+      await waitFor(() => {
+        expect(
+          container.querySelector('[data-test="kernel-devel-status-warning"]')
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('shows success when kernel-devel is verified on all selected nodes', async () => {
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: true,
+        isLoading: false,
+        error: '',
+        nodesWithoutKernelDevel: [],
+      });
+
+      const { container } = render(<CreateScaleSystem />);
+      act(() => {
+        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
+      });
+
+      await waitFor(() => {
+        expect(
+          container.querySelector('[data-test="kernel-devel-status-success"]')
+        ).toHaveTextContent('Kernel-devel packages verified');
+      });
+    });
+
+    it('shows checking status while loading and hides it when done', async () => {
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: false,
+        isLoading: true,
+        error: '',
+        nodesWithoutKernelDevel: [],
+      });
+
+      const { container, rerender } = render(<CreateScaleSystem />);
+      act(() => {
+        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
+      });
+
+      await waitFor(() => {
+        expect(
+          container.querySelector('[data-test="kernel-devel-status-pending"]')
+        ).toBeInTheDocument();
+      });
+
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: true,
+        isLoading: false,
+        error: '',
+        nodesWithoutKernelDevel: [],
+      });
+
+      rerender(<CreateScaleSystem />);
+
+      await waitFor(() => {
+        expect(
+          container.querySelector('[data-test="kernel-devel-status-pending"]')
+        ).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -395,7 +530,7 @@ describe('CreateScaleSystem', () => {
         screen.getByPlaceholderText('Enter the file system name')
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: /connect/i })
+        screen.getByRole('button', { name: /connect and create/i })
       ).toBeInTheDocument();
     });
   });
@@ -444,7 +579,9 @@ describe('CreateScaleSystem', () => {
     it('should disable submit button when password field is empty', () => {
       render(<CreateScaleSystem />);
 
-      const submitButton = screen.getByRole('button', { name: /connect/i });
+      const submitButton = screen.getByRole('button', {
+        name: /connect and create/i,
+      });
 
       // Initially, submit button should be disabled because required fields are empty
       expect(submitButton).toBeDisabled();
@@ -638,36 +775,13 @@ describe('CreateScaleSystem', () => {
       expect(duration).toBeLessThan(250);
     });
 
-    it('should automatically select all nodes when "All nodes" is selected by default', async () => {
+    it('should render the node selection options', () => {
       render(<CreateScaleSystem />);
 
-      // Check that "All Nodes (Default)" card is selected by default
-      const allNodesCard = screen
-        .getByText('All Nodes (Default)')
-        .closest('[id="all-nodes"]');
-      expect(allNodesCard).toHaveClass('pf-m-selected');
-
-      // Check that the "Select Nodes" card is not selected
-      const selectNodesCard = screen
-        .getByText('Select Nodes')
-        .closest('[id="selected-nodes"]');
-      expect(selectNodesCard).not.toHaveClass('pf-m-selected');
-
-      // Check that the node selection table is not visible (since "All Nodes (Default)" is selected)
       expect(
-        screen.queryByTestId('select-nodes-table')
-      ).not.toBeInTheDocument();
-
-      // Wait for the useEffect to initialize selected nodes
-      await new Promise((resolve) => {
-        setTimeout(resolve, 100);
-      });
-
-      // The key test: verify that the useEffect properly initialized the selectedNodes
-      // We can't directly access the state, but we can verify the behavior by checking
-      // that the component doesn't show any errors about missing node selection
-      // and that the "All Nodes (Default)" card remains selected
-      expect(allNodesCard).toHaveClass('pf-m-selected');
+        screen.getByRole('checkbox', { name: 'Include control plane nodes' })
+      ).toBeInTheDocument();
+      expect(screen.getByTestId('select-nodes-table')).toBeInTheDocument();
     });
   });
 });

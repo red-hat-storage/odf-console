@@ -8,6 +8,7 @@ import {
 } from '@odf/shared';
 import { ValidatedPasswordInput } from '@odf/shared/text-inputs/password-input';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Form,
@@ -26,6 +27,7 @@ import {
   AlertVariant,
   ButtonType,
   ButtonVariant,
+  Spinner,
 } from '@patternfly/react-core';
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
@@ -35,6 +37,7 @@ import {
   labelNodes,
 } from '../common/payload';
 import { getOptimalResourceRequests } from '../common/utils';
+import { useKernelDevelEligibility } from './hooks/useKernelDevelEligibility';
 import {
   createScaleCaCertSecretPayload,
   createScaleRemoteClusterPayload,
@@ -43,9 +46,51 @@ import {
   createEncryptionConfigPayload,
   createUserDetailsSecretPayload,
 } from './payload';
-import { ScaleSystemComponentState, initialComponentState } from './types';
+import {
+  KernelDevelEligibility,
+  ScaleSystemComponentState,
+  initialComponentState,
+} from './types';
 import useScaleSystemFormValidation from './useFormValidation';
 import './CreateScaleSystem.scss';
+
+const getKernelDevelStatus = (
+  kernelDevelEligibility: KernelDevelEligibility,
+  t: TFunction
+) => {
+  if (kernelDevelEligibility.error) {
+    return {
+      kind: 'danger' as const,
+      variant: 'error' as const,
+      message: t('Unable to verify kernel-devel package status'),
+      details: kernelDevelEligibility.error,
+    };
+  }
+
+  if (kernelDevelEligibility.isLoading) {
+    return {
+      kind: 'pending' as const,
+      variant: 'default' as const,
+      message: t('Checking kernel-devel packages on selected nodes'),
+    };
+  }
+
+  if (kernelDevelEligibility.nodesWithoutKernelDevel.length > 0) {
+    return {
+      kind: 'warning' as const,
+      variant: 'warning' as const,
+      message: t(
+        'Use the Machine Config Operator to install kernel-devel packages on all selected nodes before creating the connection to CNSA'
+      ),
+    };
+  }
+
+  return {
+    kind: 'success' as const,
+    variant: 'success' as const,
+    message: t('Kernel-devel packages verified'),
+  };
+};
 
 type CreateScaleSystemFormProps = {
   componentState: ScaleSystemComponentState;
@@ -66,6 +111,9 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const [loading, setLoading] = React.useState(false);
   const localCluster = useIsLocalClusterConfigured();
   const isLocalClusterConfigured = !_.isEmpty(localCluster);
+  const kernelDevelEligibility = useKernelDevelEligibility(
+    componentState.selectedNodes
+  );
 
   const existingFileSystemNames = useExistingFileSystemNames();
 
@@ -93,6 +141,11 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const serverInformation = watch('serverInformation');
   const tenantId = watch('tenantId');
 
+  const hasSelectedNodes = componentState.selectedNodes.length > 0;
+  const kernelDevelStatus = hasSelectedNodes
+    ? getKernelDevelStatus(kernelDevelEligibility, t)
+    : null;
+
   const mandatoryFieldsValid = !!(
     name &&
     mandatoryHost &&
@@ -100,7 +153,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     userName &&
     password &&
     fileSystemName &&
-    componentState.selectedNodes.length > 0
+    kernelDevelEligibility.areSelectedNodesEligible
   );
 
   const encryptionFieldsValid =
@@ -295,9 +348,30 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         <FormGroup label={t('Select local cluster nodes')} isRequired>
           <NodesSection
             isDisabled={isLocalClusterConfigured}
+            showNodesTable
             selectedNodes={componentState.selectedNodes}
             setSelectedNodes={(nodes) =>
               setComponentState((prev) => ({ ...prev, selectedNodes: nodes }))
+            }
+            statusContent={
+              kernelDevelStatus ? (
+                <HelperText className="pf-v6-u-mt-md">
+                  <HelperTextItem
+                    data-test={`kernel-devel-status-${kernelDevelStatus.kind}`}
+                    variant={kernelDevelStatus.variant}
+                    icon={
+                      kernelDevelStatus.kind === 'pending' ? (
+                        <Spinner size="sm" />
+                      ) : undefined
+                    }
+                  >
+                    {kernelDevelStatus.message}
+                    {kernelDevelStatus.details
+                      ? ` ${kernelDevelStatus.details}`
+                      : ''}
+                  </HelperTextItem>
+                </HelperText>
+              ) : null
             }
           />
         </FormGroup>
@@ -729,7 +803,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
             isLoading={loading}
             data-test="connect-scale-system"
           >
-            {t('Connect')}
+            {t('Connect and create')}
           </Button>
           <Button
             onClick={() => navigate(-1)}
