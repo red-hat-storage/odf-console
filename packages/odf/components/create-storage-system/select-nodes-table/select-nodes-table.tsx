@@ -88,11 +88,14 @@ const nameSort = (a: NodeData, b: NodeData, direction: SortByDirection) => {
   return negation ? -sortVal : sortVal;
 };
 
-const InternalNodeTable: React.FC<NodeTableProps> = ({
+export const NodesTable: React.FC<NodeTableProps> = ({
   onRowSelected,
   nodesData,
+  selectedNodes,
   disableLabeledNodes,
   systemNamespace,
+  isDisabled = false,
+  nameColumnTitle,
 }) => {
   const { t } = useCustomTranslation();
   const storageLabel = cephStorageLabel(systemNamespace);
@@ -100,7 +103,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
   const getColumns = React.useMemo(
     (): TableColumnProps[] => [
       {
-        columnName: t('Name'),
+        columnName: nameColumnTitle || t('Name'),
         sortFunction: nameSort as <T>(a: T, b: T, c: SortByDirection) => number,
         thProps: { className: tableColumnClasses.name },
       },
@@ -121,7 +124,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
         thProps: { className: tableColumnClasses.zone },
       },
     ],
-    [t]
+    [nameColumnTitle, t]
   );
 
   const filteredData = React.useMemo(
@@ -129,40 +132,18 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     [nodesData]
   );
 
-  // Initialize with labeled nodes selected (only once on first load, not when user deselects all)
-  const [selectedNodes, setSelectedNodes] = React.useState<NodeData[]>([]);
-  const hasInitializedSelection = React.useRef(false);
-
-  React.useEffect(() => {
-    if (hasInitializedSelection.current || !filteredData.length) return;
-    if (selectedNodes.length > 0) return;
-    const preSelected = filteredData.filter((node) =>
-      hasLabel(node, storageLabel)
-    );
-    if (preSelected.length) {
-      setSelectedNodes(preSelected);
-      onRowSelected(preSelected);
-    }
-    hasInitializedSelection.current = true;
-  }, [filteredData, selectedNodes.length, storageLabel, onRowSelected]);
-
-  const handleRowSelection = React.useCallback(
-    (selected: NodeData[]) => {
-      setSelectedNodes(selected);
-      onRowSelected(selected);
-    },
-    [onRowSelected]
-  );
-
   const isRowSelectable = React.useCallback(
     (node: NodeData) => {
+      if (isDisabled) {
+        return false;
+      }
       // If disableLabeledNodes is true, nodes with storage label cannot be deselected
       if (disableLabeledNodes && hasLabel(node as NodeKind, storageLabel)) {
         return false;
       }
       return true;
     },
-    [disableLabeledNodes, storageLabel]
+    [disableLabeledNodes, isDisabled, storageLabel]
   ) as (row: any) => boolean;
 
   return (
@@ -172,7 +153,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
         rows={filteredData}
         RowComponent={NodeRow}
         selectedRows={selectedNodes}
-        setSelectedRows={handleRowSelection}
+        setSelectedRows={onRowSelected}
         loaded={true}
         variant={TableVariant.COMPACT}
         initialSortColumnIndex={0}
@@ -184,10 +165,13 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
 };
 
 type NodeTableProps = {
-  onRowSelected: (selectedNodes: NodeKind[]) => void;
+  onRowSelected: (selectedNodes: NodeData[]) => void;
   nodesData: NodeData[];
+  selectedNodes: NodeData[];
   disableLabeledNodes: boolean;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isDisabled?: boolean;
+  nameColumnTitle?: string;
 };
 
 export const SelectNodesTable: React.FC<SelectNodesTableProps> = ({
@@ -198,6 +182,29 @@ export const SelectNodesTable: React.FC<SelectNodesTableProps> = ({
 }) => {
   const [nodesData, nodesLoaded, nodesLoadError] = useNodesData();
   const [data, filteredData, onFilterChange] = useListPageFilter(nodesData);
+  const storageLabel = cephStorageLabel(systemNamespace);
+  const [selectedNodes, setSelectedNodes] = React.useState<NodeData[]>([]);
+  const hasInitializedSelection = React.useRef(false);
+
+  React.useEffect(() => {
+    if (hasInitializedSelection.current || !filteredData.length) return;
+    const preSelected = nodesWithoutTaints(filteredData).filter((node) =>
+      hasLabel(node, storageLabel)
+    );
+    if (preSelected.length) {
+      setSelectedNodes(preSelected);
+      onRowSelected(preSelected);
+    }
+    hasInitializedSelection.current = true;
+  }, [filteredData, storageLabel, onRowSelected]);
+
+  const handleRowSelection = React.useCallback(
+    (selected: NodeData[]) => {
+      setSelectedNodes(selected);
+      onRowSelected(selected);
+    },
+    [onRowSelected]
+  );
 
   return (
     <div className="odf-capacity-and-nodes__select-nodes">
@@ -214,9 +221,10 @@ export const SelectNodesTable: React.FC<SelectNodesTableProps> = ({
           loaded={nodesLoaded}
           loadError={nodesLoadError}
         >
-          <InternalNodeTable
-            onRowSelected={onRowSelected}
+          <NodesTable
+            onRowSelected={handleRowSelection}
             nodesData={filteredData}
+            selectedNodes={selectedNodes}
             disableLabeledNodes={disableLabeledNodes}
             systemNamespace={systemNamespace}
           />

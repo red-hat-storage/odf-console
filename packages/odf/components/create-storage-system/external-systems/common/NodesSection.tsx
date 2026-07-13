@@ -3,7 +3,8 @@ import { createWizardNodeState } from '@odf/core/components/utils';
 import { NodeType } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
-import { useCustomTranslation } from '@odf/shared';
+import { nodesWithoutTaints } from '@odf/core/utils';
+import { getName, useCustomTranslation } from '@odf/shared';
 import {
   Card,
   CardHeader,
@@ -12,11 +13,27 @@ import {
   CardBody,
   FlexItem,
   Alert,
+  Checkbox,
 } from '@patternfly/react-core';
 import { WizardNodeState } from '../../reducer';
 import { SelectLocalClusterNodesTable } from '../../select-nodes-table/select-local-cluster-nodes-table';
-import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
+import {
+  NodesTable,
+  SelectNodesTable,
+} from '../../select-nodes-table/select-nodes-table';
 import './NodesSection.scss';
+
+const hasNodeRole = (node: NodeData, role: string): boolean =>
+  Object.prototype.hasOwnProperty.call(
+    node.metadata?.labels || {},
+    `node-role.kubernetes.io/${role}`
+  );
+
+const isControlPlaneNode = (node: NodeData): boolean =>
+  hasNodeRole(node, 'control-plane') || hasNodeRole(node, 'master');
+
+const isWorkerNode = (node: NodeData): boolean =>
+  hasNodeRole(node, 'worker') && !isControlPlaneNode(node);
 
 type NodesSectionProps = {
   isDisabled?: boolean;
@@ -27,6 +44,8 @@ type NodesSectionProps = {
   includeControlPlane?: boolean;
   enableStretchCluster?: boolean;
   hideAllNodesSelection?: boolean;
+  statusContent?: React.ReactNode;
+  showNodesTable?: boolean;
 };
 
 export const NodesSection: React.FC<NodesSectionProps> = React.memo(
@@ -39,12 +58,35 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
     includeControlPlane,
     enableStretchCluster,
     hideAllNodesSelection,
+    statusContent,
+    showNodesTable = false,
   }) => {
     const { t } = useCustomTranslation();
     const [isUseAllNodes, setIsUseAllNodes] = React.useState(true);
+    const [includeControlPlaneNodes, setIncludeControlPlaneNodes] =
+      React.useState(false);
     const [allNodes, allNodesLoaded] = useNodesData(
-      true,
+      !showNodesTable,
       includeControlPlane || enableStretchCluster
+    );
+    const hasInitializedSelection = React.useRef(false);
+
+    const workerNodes = React.useMemo(
+      () => allNodes.filter(isWorkerNode),
+      [allNodes]
+    );
+    const controlPlaneNodes = React.useMemo(
+      () => allNodes.filter(isControlPlaneNode),
+      [allNodes]
+    );
+    const tableNodes = React.useMemo(
+      () =>
+        nodesWithoutTaints(
+          includeControlPlaneNodes
+            ? [...workerNodes, ...controlPlaneNodes]
+            : workerNodes
+        ),
+      [controlPlaneNodes, includeControlPlaneNodes, workerNodes]
     );
 
     const onNodeSelect = React.useCallback(
@@ -71,25 +113,53 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
       [setSelectedNodes, selectedNodes]
     );
 
-    // Initialize selected nodes when component mounts and "All nodes" is selected by default
+    // Initialize once so an intentional deselect-all action is preserved.
     React.useEffect(() => {
-      if (
-        !hideAllNodesSelection &&
-        isUseAllNodes &&
-        allNodesLoaded &&
-        allNodes.length > 0 &&
-        selectedNodes.length === 0
-      ) {
-        onNodeSelect(allNodes);
+      if (hideAllNodesSelection) return;
+      if (!allNodesLoaded || hasInitializedSelection.current) {
+        return;
       }
+
+      const defaultNodes = showNodesTable ? tableNodes : allNodes;
+      if (isUseAllNodes && defaultNodes.length > 0 && !selectedNodes.length) {
+        onNodeSelect(defaultNodes);
+      }
+      hasInitializedSelection.current = true;
     }, [
       hideAllNodesSelection,
       isUseAllNodes,
       allNodesLoaded,
       allNodes,
-      selectedNodes.length,
       onNodeSelect,
+      selectedNodes.length,
+      showNodesTable,
+      tableNodes,
     ]);
+
+    const selectedNodeNames = React.useMemo(
+      () => new Set(selectedNodes.map((node) => node.name)),
+      [selectedNodes]
+    );
+    const selectedNodeData = React.useMemo(
+      () => tableNodes.filter((node) => selectedNodeNames.has(getName(node))),
+      [selectedNodeNames, tableNodes]
+    );
+
+    const handleIncludeControlPlaneNodes = React.useCallback(
+      (_event: React.FormEvent<HTMLInputElement>, isChecked: boolean) => {
+        const nextTableNodes = nodesWithoutTaints(
+          isChecked ? [...workerNodes, ...controlPlaneNodes] : workerNodes
+        );
+        const nextSelectedNodes = nextTableNodes.filter(
+          (node) =>
+            selectedNodeNames.has(getName(node)) || isControlPlaneNode(node)
+        );
+
+        setIncludeControlPlaneNodes(isChecked);
+        onNodeSelect(nextSelectedNodes);
+      },
+      [controlPlaneNodes, onNodeSelect, selectedNodeNames, workerNodes]
+    );
 
     // Handle "All nodes" selection directly in the click handler
     const handleAllNodesClick = React.useCallback(() => {
@@ -137,63 +207,88 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
 
     return (
       <>
-        <Flex direction={{ default: 'row' }}>
-          <FlexItem>
-            <Card
-              className="odf-nodes-section__card"
-              isSelected={isUseAllNodes}
-              isSelectable
-              id="all-nodes"
+        {showNodesTable ? (
+          <>
+            <Checkbox
+              id="include-control-plane-nodes"
+              label={t('Include control plane nodes')}
+              isChecked={includeControlPlaneNodes}
               isDisabled={isDisabled}
-            >
-              <CardHeader
-                selectableActions={{
-                  onChange: handleAllNodesClick,
-                  selectableActionId: 'use-all-nodes',
-                  variant: 'single',
-                  name: 'node-selector',
-                  selectableActionAriaLabelledby: 'all-nodes',
-                }}
-              >
-                <CardTitle>{t('All Nodes (Default)')}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                {allNodesDescription || defaultAllNodesDescription}
-              </CardBody>
-            </Card>
-          </FlexItem>
-          <FlexItem>
-            <Card
-              className="odf-nodes-section__card"
-              isSelected={!isUseAllNodes}
-              isSelectable
-              id="selected-nodes"
+              onChange={handleIncludeControlPlaneNodes}
+              className="pf-v6-u-mb-sm"
+            />
+            <NodesTable
+              nodesData={tableNodes}
+              selectedNodes={selectedNodeData}
+              onRowSelected={onNodeSelect}
+              disableLabeledNodes={false}
+              systemNamespace=""
               isDisabled={isDisabled}
-            >
-              <CardHeader
-                selectableActions={{
-                  onChange: handleSelectNodesClick,
-                  selectableActionId: 'use-selected-nodes',
-                  variant: 'single',
-                  name: 'node-selector',
-                  selectableActionAriaLabelledby: 'selected-nodes',
-                }}
-              >
-                <CardTitle>{t('Select Nodes')}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                {selectNodesDescription || defaultSelectNodesDescription}
-              </CardBody>
-            </Card>
-          </FlexItem>
-        </Flex>
-        {!isUseAllNodes && (
-          <SelectNodesTable
-            nodes={selectedNodes}
-            onRowSelected={onNodeSelect}
-            systemNamespace={''}
-          />
+              nameColumnTitle={t('Node')}
+            />
+          </>
+        ) : (
+          <>
+            <Flex direction={{ default: 'row' }}>
+              <FlexItem>
+                <Card
+                  className="odf-nodes-section__card"
+                  isSelected={isUseAllNodes}
+                  isSelectable
+                  id="all-nodes"
+                  isDisabled={isDisabled}
+                >
+                  <CardHeader
+                    selectableActions={{
+                      onChange: handleAllNodesClick,
+                      selectableActionId: 'use-all-nodes',
+                      variant: 'single',
+                      name: 'node-selector',
+                      selectableActionAriaLabelledby: 'all-nodes',
+                    }}
+                  >
+                    <CardTitle>{t('All Nodes (Default)')}</CardTitle>
+                  </CardHeader>
+                  <CardBody>
+                    {allNodesDescription || defaultAllNodesDescription}
+                  </CardBody>
+                </Card>
+              </FlexItem>
+              <FlexItem>
+                <Card
+                  className="odf-nodes-section__card"
+                  isSelected={!isUseAllNodes}
+                  isSelectable
+                  id="selected-nodes"
+                  isDisabled={isDisabled}
+                >
+                  <CardHeader
+                    selectableActions={{
+                      onChange: handleSelectNodesClick,
+                      selectableActionId: 'use-selected-nodes',
+                      variant: 'single',
+                      name: 'node-selector',
+                      selectableActionAriaLabelledby: 'selected-nodes',
+                    }}
+                  >
+                    <CardTitle>{t('Select Nodes')}</CardTitle>
+                  </CardHeader>
+                  <CardBody>
+                    {selectNodesDescription || defaultSelectNodesDescription}
+                  </CardBody>
+                </Card>
+              </FlexItem>
+            </Flex>
+            {!isUseAllNodes && (
+              <SelectNodesTable
+                nodes={selectedNodes}
+                onRowSelected={onNodeSelect}
+                systemNamespace={''}
+              />
+            )}
+          </>
         )}
+        {statusContent}
         {isDisabled && (
           <Alert
             variant="info"

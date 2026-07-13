@@ -1143,3 +1143,17 @@ export type DiscoveredDevice = {
   WWN: string;
   nodeName: string;
 };
+
+export type MachineConfigNodeKind = K8sResourceCommon & {
+  status?: {
+    configVersion?: {
+      current?: string;
+    };
+  };
+};
+
+export type MachineConfigKind = K8sResourceCommon & {
+  spec?: {
+    extensions?: string[];
+  };
+};
