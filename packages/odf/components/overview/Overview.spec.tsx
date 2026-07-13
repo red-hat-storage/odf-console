@@ -45,6 +45,8 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
     storageClusters: { data: [], loaded: true, loadError: null },
     flashSystemClusters: { data: [], loaded: true, loadError: null },
     remoteClusters: { data: [], loaded: true, loadError: null },
+    sanClusters: { data: [], loaded: true, loadError: null },
+    daemons: { data: [], loaded: true, loadError: null },
   })),
   useActivePerspective: jest.fn(() => ''),
 }));

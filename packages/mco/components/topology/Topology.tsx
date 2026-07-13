@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
+import { ACMManagedClusterViewModel } from '@odf/shared';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
+import { getName } from '@odf/shared/selectors';
 import {
   BaseTopologyView,
   useSelectionHandler,
@@ -10,6 +12,7 @@ import {
   useVisualizationSetup,
 } from '@odf/shared/topology';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { EmptyState, EmptyStateBody, Title } from '@patternfly/react-core';
 import { TopologyIcon } from '@patternfly/react-icons';
@@ -18,16 +21,21 @@ import {
   useVisualizationController,
   VisualizationProvider,
 } from '@patternfly/react-topology';
-import { ODFMCO_OPERATOR } from '../../constants';
+import {
+  MCO_CREATED_BY_LABEL_KEY,
+  MCO_CREATED_BY_MC_CONTROLLER,
+  ODFMCO_OPERATOR,
+} from '../../constants';
 import {
   getManagedClusterResourceObj,
   useProtectedAppsByCluster,
   useDRPoliciesByClusterPair,
   useActiveDROperations,
 } from '../../hooks';
-import { ACMManagedClusterKind } from '../../types';
-import { CreateDRPolicyModal } from '../create-dr-policy/CreateDRPolicyModal';
+import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
+import { getManagedClusterInfoTypes } from '../create-dr-policy/utils/cluster-list-utils';
 import { TopologyDataContext } from './context/TopologyContext';
+import { mcoLayoutFactory } from './factory/MCOLayoutFactory';
 import { mcoTopologyComponentFactory } from './factory/MCOStyleFactory';
 import TopologySideBar from './sidebar/TopologySideBar';
 import TopologyToolbar from './TopologyToolbar';
@@ -38,9 +46,9 @@ import './topology.scss';
 const TopologyViewComponent: React.FC = () => {
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [searchValue, setSearchValue] = React.useState('');
-  const [selectedFilters, setSelectedFilters] = React.useState<FilterType[]>(
-    []
-  );
+  const [selectedFilters, setSelectedFilters] = React.useState<FilterType[]>([
+    FilterType.Cluster,
+  ]);
   const controller = useVisualizationController();
 
   const [isSideBarOpen, setSideBarOpen] = React.useState(false);
@@ -65,6 +73,7 @@ const TopologyViewComponent: React.FC = () => {
   });
 
   const prevStructureKeyRef = React.useRef<string>('');
+  const prevSearchActiveRef = React.useRef(false);
 
   const memoizedClusters = useDeepCompareMemoize(clusters);
   const memoizedPolicies = useDeepCompareMemoize(clusterPairPoliciesMap);
@@ -99,38 +108,68 @@ const TopologyViewComponent: React.FC = () => {
       .join(',');
   }, [model.nodes]);
 
+  const isSearchActive = Boolean(searchValue.trim());
+
   // Initialize and update model when data changes
   React.useEffect(() => {
     if (!controller) return;
 
-    controller.fromModel(model);
+    const searchJustCleared = prevSearchActiveRef.current && !isSearchActive;
+    prevSearchActiveRef.current = isSearchActive;
 
-    if (structureKey !== prevStructureKeyRef.current) {
-      prevStructureKeyRef.current = structureKey;
-      const graph = controller.getGraph();
-      if (!graph) return;
+    controller.fromModel(model, true);
 
-      // Delay fit until after the layout engine finishes positioning nodes
+    const graph = controller.getGraph();
+    if (!graph) return;
+
+    const structureChanged = structureKey !== prevStructureKeyRef.current;
+
+    let cancelled = false;
+
+    if (isSearchActive) {
       requestAnimationFrame(() => {
-        // Check if controller still exists (component may have unmounted)
-        if (!controller) return;
-        graph.layout();
-        requestAnimationFrame(() => {
-          // Check again before calling fit (double RAF delay)
-          if (!controller) return;
-          graph.fit(100);
-        });
+        if (cancelled || !controller) return;
+        graph.fit(100);
       });
+      return () => {
+        cancelled = true;
+      };
     }
-  }, [controller, model, structureKey]);
+
+    if (searchJustCleared) {
+      graph.reset();
+    }
+
+    const shouldLayout = structureChanged || searchJustCleared;
+
+    requestAnimationFrame(() => {
+      if (cancelled || !controller) return;
+      if (shouldLayout) {
+        try {
+          graph.layout();
+        } catch (error) {
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console -- log layout failures for debugging
+            console.warn('Topology layout failed:', error);
+          }
+        }
+      }
+      requestAnimationFrame(() => {
+        if (cancelled || !controller) return;
+        if (shouldLayout) {
+          graph.fit(100);
+          prevStructureKeyRef.current = structureKey;
+        }
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [controller, model, structureKey, isSearchActive]);
 
   const controlButtons = useTopologyControls({ controller });
 
-  // Derive sidebar data from the reactive model instead of selectedElement.getData().
-  // getData() reads from the GraphElement which is updated by fromModel() in an
-  // effect — one render behind. The model is computed from context maps and is current.
-  // When the element no longer exists in the model (e.g. operation completed),
-  // return undefined so the sidebar closes rather than showing stale data.
   const selectedElement = React.useContext(TopologyDataContext).selectedElement;
   const selectedElementId = selectedElement?.getId();
   const selectedElementData = React.useMemo(() => {
@@ -141,14 +180,12 @@ const TopologyViewComponent: React.FC = () => {
     return edge?.data;
   }, [selectedElementId, model]);
 
-  // Close sidebar when the selected element disappears from the model
   React.useEffect(() => {
     if (selectedElementId && selectedElementData === undefined) {
       onCloseSideBar();
     }
   }, [selectedElementId, selectedElementData, onCloseSideBar]);
 
-  // Check what type of element is selected
   const isEdgeSelected =
     selectedElementData?.policies !== undefined ||
     selectedElementData?.isOperation !== undefined;
@@ -216,19 +253,24 @@ const TopologyEmptyState: React.FC = () => {
 const Topology: React.FC = () => {
   const controller = useVisualizationSetup({
     componentFactory: mcoTopologyComponentFactory,
+    layoutFactory: mcoLayoutFactory,
   });
   const [selectedElement, setSelectedElement] =
     React.useState<GraphElement | null>(null);
 
-  // Modal state for cluster pairing
-  const [isPairModalOpen, setIsPairModalOpen] = React.useState(false);
-  const [pairModalClusters, setPairModalClusters] = React.useState<string[]>(
-    []
-  );
-
   const [managedClusters, loaded, loadError] = useK8sWatchResource<
     ACMManagedClusterKind[]
   >(getManagedClusterResourceObj());
+
+  const [mcvs, mcvsLoaded, mcvsLoadError] = useK8sWatchResource<
+    ACMManagedClusterViewKind[]
+  >({
+    kind: referenceForModel(ACMManagedClusterViewModel),
+    selector: {
+      matchLabels: { [MCO_CREATED_BY_LABEL_KEY]: MCO_CREATED_BY_MC_CONTROLLER },
+    },
+    isList: true,
+  });
 
   const [clusterAppsMap, appsLoaded, appsLoadError] =
     useProtectedAppsByCluster();
@@ -239,27 +281,38 @@ const Topology: React.FC = () => {
   const [clusterPairOperationsMap, operationsLoaded, operationsLoadError] =
     useActiveDROperations();
 
-  const [csv] = useFetchCsv({
+  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
-  const handleOpenPairModal = React.useCallback(
-    (sourceCluster: string, targetCluster: string) => {
-      setPairModalClusters([sourceCluster, targetCluster]);
-      setIsPairModalOpen(true);
-    },
-    []
-  );
+  // Filter clusters to only include those with valid ODF installed
+  const clustersWithODF = React.useMemo(() => {
+    if (!loaded || !mcvsLoaded || !odfMCOVersion || !csvLoaded) {
+      return [];
+    }
 
-  const handleClosePairModal = React.useCallback(() => {
-    setIsPairModalOpen(false);
-    setPairModalClusters([]);
-  }, []);
+    const allClusters = getManagedClusterInfoTypes(
+      managedClusters,
+      mcvs,
+      odfMCOVersion,
+      undefined // We don't need provisioners for this filtering
+    );
+
+    // Filter to only include clusters with valid ODF version
+    const validClusters = allClusters.filter(
+      (cluster) => cluster?.odfInfo?.isValidODFVersion
+    );
+
+    // Return the original ACMManagedClusterKind objects
+    return managedClusters.filter((cluster) =>
+      validClusters.some((valid) => getName(valid) === getName(cluster))
+    );
+  }, [managedClusters, mcvs, odfMCOVersion, loaded, mcvsLoaded, csvLoaded]);
 
   const topologyDataContextData = React.useMemo(() => {
     return {
-      clusters: managedClusters || [],
+      clusters: clustersWithODF || [],
       selectedElement,
       setSelectedElement,
       visualizationLevel: TopologyViewLevel.CLUSTERS,
@@ -267,21 +320,26 @@ const Topology: React.FC = () => {
       clusterAppsMap,
       clusterPairPoliciesMap,
       clusterPairOperationsMap,
-      onOpenPairModal: handleOpenPairModal,
     };
   }, [
-    managedClusters,
+    clustersWithODF,
     selectedElement,
     setSelectedElement,
     odfMCOVersion,
     clusterAppsMap,
     clusterPairPoliciesMap,
     clusterPairOperationsMap,
-    handleOpenPairModal,
   ]);
 
+  const allLoaded =
+    loaded &&
+    mcvsLoaded &&
+    csvLoaded &&
+    appsLoaded &&
+    policiesLoaded &&
+    operationsLoaded;
   const hasNoClusters =
-    loaded && (!managedClusters || managedClusters.length === 0);
+    allLoaded && (!clustersWithODF || clustersWithODF.length === 0);
 
   return (
     <TopologyDataContext.Provider value={topologyDataContextData}>
@@ -293,6 +351,7 @@ const Topology: React.FC = () => {
             <HandleErrorAndLoading
               loading={
                 !loaded ||
+                !mcvsLoaded ||
                 !appsLoaded ||
                 !policiesLoaded ||
                 !operationsLoaded ||
@@ -301,9 +360,11 @@ const Topology: React.FC = () => {
               error={(() => {
                 const err =
                   loadError ||
+                  mcvsLoadError ||
                   appsLoadError ||
                   policiesLoadError ||
-                  operationsLoadError;
+                  operationsLoadError ||
+                  csvLoadError;
                 return (err instanceof Error ? err.message : err) || '';
               })()}
             >
@@ -311,11 +372,6 @@ const Topology: React.FC = () => {
             </HandleErrorAndLoading>
           )}
         </div>
-        <CreateDRPolicyModal
-          isOpen={isPairModalOpen}
-          onClose={handleClosePairModal}
-          preSelectedClusters={pairModalClusters}
-        />
       </VisualizationProvider>
     </TopologyDataContext.Provider>
   );

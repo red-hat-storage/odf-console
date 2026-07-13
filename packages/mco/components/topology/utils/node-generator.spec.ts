@@ -1,12 +1,14 @@
 import { DRActionType } from '../../../constants';
 import { ClusterPairOperationsMap } from '../../../hooks/useActiveDROperations';
 import { ClusterPairPoliciesMap } from '../../../hooks/useDRPoliciesByClusterPair';
+import { ClusterAppsMap } from '../../../hooks/useProtectedAppsByCluster';
 import {
   ACMManagedClusterKind,
   DRPolicyKind,
   Phase,
   Progression,
 } from '../../../types';
+import { FilterType } from '../types';
 import { generateClusterNodesModel } from './node-generator';
 
 // Mock data helpers
@@ -776,6 +778,248 @@ describe('generateClusterNodesModel', () => {
       expect(model.graph!.id).toBe('mco-topology');
       expect(model.graph!.type).toBe('graph');
       expect(model.graph!.layout).toBe('Cola');
+    });
+  });
+
+  describe('Search filtering', () => {
+    const clusters: ACMManagedClusterKind[] = [
+      createMockCluster('east-cluster', 'uid-east'),
+      createMockCluster('west-cluster', 'uid-west'),
+    ];
+
+    const operations: ClusterPairOperationsMap = {
+      'east-cluster::west-cluster': [
+        {
+          drpcName: 'drpc-app1',
+          applicationName: 'payments-app',
+          applicationNamespace: 'finance',
+          action: DRActionType.FAILOVER,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+          sourceCluster: 'east-cluster',
+          targetCluster: 'west-cluster',
+          isDiscoveredApp: false,
+        },
+      ],
+    };
+
+    const clusterAppsMap: ClusterAppsMap = {
+      'east-cluster': [
+        {
+          name: 'payments-app',
+          namespace: 'finance',
+          status: 'Protected',
+          pav: { metadata: { name: 'payments-app', namespace: 'finance' } },
+        } as any,
+      ],
+      'west-cluster': [
+        {
+          name: 'inventory-app',
+          namespace: 'warehouse',
+          status: 'Protected',
+          pav: {
+            metadata: { name: 'inventory-app', namespace: 'warehouse' },
+          },
+        } as any,
+      ],
+    };
+
+    const assertModelIntegrity = (
+      model: ReturnType<typeof generateClusterNodesModel>
+    ) => {
+      const nodeIds = new Set(model.nodes?.map((n) => n.id));
+      model.nodes?.forEach((node) => {
+        node.children?.forEach((childId) => {
+          expect(nodeIds.has(childId)).toBe(true);
+        });
+        if (node.group && node.children) {
+          expect(node.children.length).toBeGreaterThan(0);
+        }
+      });
+      model.edges?.forEach((edge) => {
+        expect(nodeIds.has(edge.source as string)).toBe(true);
+        expect(nodeIds.has(edge.target as string)).toBe(true);
+      });
+    };
+
+    it('should keep only matching clusters and valid edge endpoints when searching by cluster', () => {
+      const model = generateClusterNodesModel(
+        clusters,
+        null,
+        operations,
+        clusterAppsMap,
+        { searchValue: 'east', filterTypes: [FilterType.Cluster] }
+      );
+
+      assertModelIntegrity(model);
+
+      expect(
+        model.nodes?.find((n) => n.id === 'cluster-group-east-cluster')
+      ).toBeDefined();
+      expect(
+        model.nodes?.find((n) => n.id === 'cluster-group-west-cluster')
+      ).toBeUndefined();
+      expect(model.nodes?.find((n) => n.id === 'uid-west')).toBeUndefined();
+    });
+
+    it('should omit pairing boxes when searching by cluster name only', () => {
+      const testClusters: ACMManagedClusterKind[] = [
+        createMockCluster('cluster1', 'uid-1'),
+        createMockCluster('cluster2', 'uid-2'),
+      ];
+
+      const policies: ClusterPairPoliciesMap = {
+        'cluster1::cluster2': [
+          {
+            name: 'dr-policy-1',
+            phase: 'Validated',
+            isConfiguring: false,
+            schedulingInterval: '5m',
+            policy: createMockDRPolicy('dr-policy-1'),
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(
+        testClusters,
+        policies,
+        null,
+        null,
+        {
+          searchValue: 'cluster1',
+          filterTypes: [FilterType.Cluster],
+        }
+      );
+
+      expect(
+        model.nodes?.find((n) => n.type === 'pairing-box')
+      ).toBeUndefined();
+    });
+
+    it('should show pairing box when searching by policy name', () => {
+      const testClusters: ACMManagedClusterKind[] = [
+        createMockCluster('cluster1', 'uid-1'),
+        createMockCluster('cluster2', 'uid-2'),
+      ];
+
+      const policies: ClusterPairPoliciesMap = {
+        'cluster1::cluster2': [
+          {
+            name: 'dr-policy-prod',
+            phase: 'Validated',
+            isConfiguring: false,
+            schedulingInterval: '5m',
+            policy: createMockDRPolicy('dr-policy-prod'),
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(
+        testClusters,
+        policies,
+        null,
+        null,
+        {
+          searchValue: 'dr-policy',
+          filterTypes: [FilterType.Policy],
+        }
+      );
+
+      assertModelIntegrity(model);
+
+      const pairingBox = model.nodes?.find((n) => n.type === 'pairing-box');
+      expect(pairingBox).toBeDefined();
+      expect(pairingBox!.label).toBe('dr-policy-prod');
+      expect(pairingBox!.children).toEqual(['uid-1', 'uid-2']);
+      expect(model.nodes?.find((n) => n.id === 'uid-1')).toBeDefined();
+      expect(model.nodes?.find((n) => n.id === 'uid-2')).toBeDefined();
+    });
+
+    it('should omit operation edges and failover nodes while search is active', () => {
+      const testClusters: ACMManagedClusterKind[] = [
+        createMockCluster('east-cluster', 'uid-east'),
+        createMockCluster('west-cluster', 'uid-west'),
+      ];
+
+      const testOperations: ClusterPairOperationsMap = {
+        'east-cluster::west-cluster': [
+          {
+            drpcName: 'drpc-app1',
+            applicationName: 'payments-app',
+            applicationNamespace: 'finance',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailingOver,
+            progression: Progression.FailingOver,
+            sourceCluster: 'east-cluster',
+            targetCluster: 'west-cluster',
+            isDiscoveredApp: false,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(
+        testClusters,
+        null,
+        testOperations,
+        null,
+        { searchValue: 'east', filterTypes: [FilterType.Cluster] }
+      );
+
+      expect(
+        model.nodes?.filter((n) => n.type === 'failover-node') || []
+      ).toHaveLength(0);
+      expect(
+        model.edges?.filter((e) => e.type === 'app-operation-edge') || []
+      ).toHaveLength(0);
+    });
+
+    it('should not leave failover nodes or edges for filtered-out operations', () => {
+      const model = generateClusterNodesModel(
+        clusters,
+        null,
+        operations,
+        clusterAppsMap,
+        { searchValue: 'inventory', filterTypes: [] }
+      );
+
+      assertModelIntegrity(model);
+
+      const failoverNodes =
+        model.nodes?.filter((n) => n.type === 'failover-node') || [];
+      const operationEdges =
+        model.edges?.filter((e) => e.type === 'app-operation-edge') || [];
+
+      expect(failoverNodes).toHaveLength(0);
+      expect(operationEdges).toHaveLength(0);
+    });
+
+    it('should create pairing boxes only when both endpoint clusters exist after search', () => {
+      const policies: ClusterPairPoliciesMap = {
+        'east-cluster::west-cluster': [
+          {
+            name: 'dr-policy-east-west',
+            phase: 'Validated',
+            isConfiguring: false,
+            schedulingInterval: '5m',
+            policy: createMockDRPolicy('dr-policy-east-west'),
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(
+        clusters,
+        policies,
+        operations,
+        clusterAppsMap,
+        { searchValue: 'east', filterTypes: [FilterType.Cluster] }
+      );
+
+      assertModelIntegrity(model);
+
+      // west-cluster is filtered out, so no pairing box with a missing child
+      expect(
+        model.nodes?.find((n) => n.type === 'pairing-box')
+      ).toBeUndefined();
     });
   });
 });

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { KMM_OPERATOR_NAME, KMM_OPERATOR_NAMESPACE } from '@odf/core/constants';
 import { FDF_FLAG } from '@odf/core/redux';
 import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
 import {
@@ -7,14 +8,16 @@ import {
   InfrastructureModel,
   RHCS_SUPPORTED_INFRA,
   useCustomTranslation,
+  useFetchCsv,
   useK8sGet,
 } from '@odf/shared';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
-import { getInfrastructurePlatform } from '@odf/shared/utils';
+import { getInfrastructurePlatform, isCSVSucceeded } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal } from '@patternfly/react-core/deprecated';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import * as _ from 'lodash-es';
+import { Link, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Flex,
   FlexItem,
@@ -27,7 +30,10 @@ import {
   Button,
   Radio,
   ButtonVariant,
+  Icon,
 } from '@patternfly/react-core';
+import { InfoCircleIcon } from '@patternfly/react-icons';
+import { t_color_blue_40 } from '@patternfly/react-tokens';
 
 type ConfigureDFSelectionsProps = {
   selectedOption: ExternalSystemOption;
@@ -58,6 +64,17 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
   const platform = getInfrastructurePlatform(infrastructure);
   const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
 
+  const [kmmImageRegistry, kmmImageRegistryLoaded, kmmImageRegistryError] =
+    useFetchCsv({
+      specName: KMM_OPERATOR_NAME,
+      namespace: KMM_OPERATOR_NAMESPACE,
+    });
+
+  const isKMMInstalled =
+    kmmImageRegistryLoaded &&
+    !kmmImageRegistryError &&
+    isCSVSucceeded(kmmImageRegistry);
+
   // Check if Scale cluster, SAN cluster or FlashSystem cluster exists
   const { remoteClusters, sanClusters, flashSystemClusters } =
     useWatchStorageClusters();
@@ -73,7 +90,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     flashSystemClusters?.loaded &&
     !flashSystemClusters?.loadError &&
     flashSystemClusters?.data?.length > 0;
-  const shouldDisableSAN = hasScaleCluster || hasSANCluster;
+  const shouldDisableSAN = hasScaleCluster || hasSANCluster || !isKMMInstalled;
   const shouldDisableScale = hasSANCluster && !hasScaleCluster;
   const shouldDisableFlashSystem = hasFlashSystemCluster;
   return (
@@ -248,6 +265,21 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               </CardBody>
             </Card>
           </FlexItem>
+          {!isKMMInstalled && (
+            <FlexItem>
+              <Content component="small">
+                <Icon className="pf-v6-u-mr-xs">
+                  <InfoCircleIcon color={t_color_blue_40.value} />
+                </Icon>
+                {t(
+                  'The Kernel Module Management (KMM) operator is required to connect to a Storage Area Network (SAN). Install the operator from '
+                )}
+                <Link to="/catalog" reloadDocument>
+                  Software Catalog
+                </Link>
+              </Content>
+            </FlexItem>
+          )}
         </>
       )}
     </Flex>

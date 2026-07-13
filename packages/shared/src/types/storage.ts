@@ -56,6 +56,9 @@ export type StorageClusterKind = K8sResourceCommon & {
     nfs?: {
       enable?: boolean;
     };
+    nvmeof?: {
+      enable?: boolean;
+    };
     managedResources?: {
       cephCluster?: ManagedResourcesCephClusterKind;
       cephBlockPools?: {

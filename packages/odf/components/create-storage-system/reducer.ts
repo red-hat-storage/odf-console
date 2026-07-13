@@ -55,6 +55,7 @@ export const initialState: CreateStorageSystemState = {
   },
   optionalSettings: {
     enableNFS: false,
+    enableNVMEOF: false,
     // using equality check on "null", do not make it "false" as default
     isRBDStorageClassDefault: null,
     isVirtualizeStorageClassDefault: null,
@@ -116,7 +117,6 @@ export const initialState: CreateStorageSystemState = {
     chartNodes: new Set(),
   },
   securityAndNetwork: {
-    usePublicNetwork: false,
     useClusterNetwork: false,
     encryption: {
       inTransit: false,
@@ -129,7 +129,6 @@ export const initialState: CreateStorageSystemState = {
     publicNetwork: null,
     clusterNetwork: null,
     addressRanges: {
-      public: [],
       cluster: [],
     },
     networkType: NetworkType.DEFAULT,
@@ -155,6 +154,7 @@ type CreateStorageSystemState = {
   };
   optionalSettings: {
     enableNFS: boolean;
+    enableNVMEOF: boolean;
     isRBDStorageClassDefault: boolean | null;
     useExternalPostgres: boolean;
     isVirtualizeStorageClassDefault: boolean | null;
@@ -198,7 +198,6 @@ type CreateStorageSystemState = {
     volumeValidationType: VolumeTypeValidation;
   };
   securityAndNetwork: {
-    usePublicNetwork: boolean;
     useClusterNetwork: boolean;
     encryption: EncryptionType;
     kms: KMSConfig;
@@ -212,7 +211,6 @@ type CreateStorageSystemState = {
 };
 
 type AddressRanges = {
-  public: string[];
   cluster: string[];
 };
 
@@ -281,6 +279,8 @@ const setDeployment = (state: WizardState, deploymentType: DeploymentType) => {
     initialState.optionalSettings.isRBDStorageClassDefault;
   state.optionalSettings.isVirtualizeStorageClassDefault =
     initialState.optionalSettings.isVirtualizeStorageClassDefault;
+  state.optionalSettings.enableNVMEOF =
+    initialState.optionalSettings.enableNVMEOF;
   return state;
 };
 
@@ -380,6 +380,9 @@ export const reducer: WizardReducer = (prevState, action) => {
       break;
     case 'optionalSettings/enableNFS':
       newState.optionalSettings.enableNFS = action.payload;
+      break;
+    case 'optionalSettings/enableNVMEOF':
+      newState.optionalSettings.enableNVMEOF = action.payload;
       break;
     case 'optionalSettings/setIsRBDStorageClassDefault':
       newState.optionalSettings.isRBDStorageClassDefault = action.payload;
@@ -505,17 +508,11 @@ export const reducer: WizardReducer = (prevState, action) => {
       break;
     case 'securityAndNetwork/setNetworkType':
       newState.securityAndNetwork.networkType = action.payload;
-      if (action.payload !== NetworkType.NIC) {
-        newState.securityAndNetwork.usePublicNetwork = false;
+      if (action.payload === NetworkType.NIC) {
+        newState.securityAndNetwork.useClusterNetwork = true;
+      } else {
         newState.securityAndNetwork.useClusterNetwork = false;
-        newState.securityAndNetwork.addressRanges.public = [];
         newState.securityAndNetwork.addressRanges.cluster = [];
-      }
-      break;
-    case 'securityAndNetwork/setUsePublicNetwork':
-      newState.securityAndNetwork.usePublicNetwork = action.payload;
-      if (!action.payload) {
-        newState.securityAndNetwork.addressRanges.public = [];
       }
       break;
     case 'securityAndNetwork/setUseClusterNetwork':
@@ -523,9 +520,6 @@ export const reducer: WizardReducer = (prevState, action) => {
       if (!action.payload) {
         newState.securityAndNetwork.addressRanges.cluster = [];
       }
-      break;
-    case 'securityAndNetwork/setPublicCIDR':
-      newState.securityAndNetwork.addressRanges.public = action.payload;
       break;
     case 'securityAndNetwork/setCephCIDR':
       newState.securityAndNetwork.addressRanges.cluster = action.payload;
@@ -596,6 +590,10 @@ export type CreateStorageSystemAction =
       payload: WizardState['optionalSettings']['enableNFS'];
     }
   | {
+      type: 'optionalSettings/enableNVMEOF';
+      payload: WizardState['optionalSettings']['enableNVMEOF'];
+    }
+  | {
       type: 'optionalSettings/setIsRBDStorageClassDefault';
       payload: WizardState['optionalSettings']['isRBDStorageClassDefault'];
     }
@@ -661,20 +659,12 @@ export type CreateStorageSystemAction =
       payload: WizardState['securityAndNetwork']['clusterNetwork'];
     }
   | {
-      type: 'securityAndNetwork/setPublicCIDR';
-      payload: WizardState['securityAndNetwork']['addressRanges']['public'];
-    }
-  | {
       type: 'securityAndNetwork/setCephCIDR';
       payload: WizardState['securityAndNetwork']['addressRanges']['cluster'];
     }
   | {
       type: 'securityAndNetwork/setNetworkType';
       payload: WizardState['securityAndNetwork']['networkType'];
-    }
-  | {
-      type: 'securityAndNetwork/setUsePublicNetwork';
-      payload: boolean;
     }
   | {
       type: 'securityAndNetwork/setUseClusterNetwork';

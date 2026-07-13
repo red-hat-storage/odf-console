@@ -149,6 +149,7 @@ export const createStorageCluster = async (
   const { type, deployment } = backingStorage;
   const {
     enableNFS,
+    enableNVMEOF,
     isRBDStorageClassDefault,
     isVirtualizeStorageClassDefault,
     useExternalPostgres,
@@ -175,6 +176,8 @@ export const createStorageCluster = async (
     enableNFS &&
     deployment === DeploymentType.FULL &&
     type !== BackingStorageType.EXTERNAL;
+
+  const isNVMEOFEnabled = enableNVMEOF && deployment === DeploymentType.FULL;
 
   const shouldSetCephRBDAsDefault = setCephRBDAsDefault(
     isRBDStorageClassDefault,
@@ -203,6 +206,7 @@ export const createStorageCluster = async (
     availablePvsCount: pvCount,
     isMCG,
     isNFSEnabled,
+    isNVMEOFEnabled,
     shouldSetCephRBDAsDefault,
     shouldSetVirtualizeSCAsDefault,
     storageClusterNamespace,

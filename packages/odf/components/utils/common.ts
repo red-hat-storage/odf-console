@@ -451,6 +451,7 @@ export type OCSRequestData = {
   availablePvsCount?: number;
   isMCG?: boolean;
   isNFSEnabled?: boolean;
+  isNVMEOFEnabled?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
   shouldSetVirtualizeSCAsDefault?: boolean;
   storageClusterNamespace: string;
@@ -481,6 +482,7 @@ export const getOCSRequestData = ({
   availablePvsCount,
   isMCG,
   isNFSEnabled,
+  isNVMEOFEnabled,
   shouldSetCephRBDAsDefault,
   shouldSetVirtualizeSCAsDefault,
   storageClusterNamespace,
@@ -630,6 +632,12 @@ export const getOCSRequestData = ({
     };
   }
 
+  if (!isTNFEnabled && isNVMEOFEnabled) {
+    requestData.spec.nvmeof = {
+      enable: true,
+    };
+  }
+
   if (!isTNFEnabled && useExternalPostgres) {
     requestData.spec.multiCloudGateway = {
       ...requestData.spec.multiCloudGateway,
@@ -685,12 +693,9 @@ const getNetworkField = (
     networkType,
     publicNetwork,
     clusterNetwork,
-    addressRanges: { cluster, public: publicAddressRange },
+    addressRanges: { cluster },
   } = networkConfiguration;
   const normalizedClusterRange = cluster
-    ?.map((cidr) => cidr?.trim())
-    ?.filter(Boolean);
-  const normalizedPublicRange = publicAddressRange
     ?.map((cidr) => cidr?.trim())
     ?.filter(Boolean);
   if (networkType === NetworkType.HOST || networkType === NetworkType.NIC) {
@@ -703,7 +708,6 @@ const getNetworkField = (
         },
         addressRanges: {
           cluster: normalizedClusterRange,
-          public: normalizedPublicRange,
         },
       },
     } as StorageClusterKind['spec']['network'];
