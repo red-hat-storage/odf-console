@@ -37,6 +37,7 @@ import {
   labelNodes,
 } from '../common/payload';
 import { getOptimalResourceRequests } from '../common/utils';
+import { EncryptionConfigForm } from './EncryptionConfigForm';
 import { useKernelDevelEligibility } from './hooks/useKernelDevelEligibility';
 import {
   createScaleCaCertSecretPayload,
@@ -135,7 +136,6 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const fileSystemName = watch('fileSystemName');
   const encryptionUserName = watch('encryptionUserName');
   const encryptionPassword = watch('encryptionPassword');
-  const encryptionPort = watch('encryptionPort');
   const client = watch('client');
   const remoteRKM = watch('remoteRKM');
   const serverInformation = watch('serverInformation');
@@ -161,7 +161,6 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     !!(
       encryptionUserName &&
       encryptionPassword &&
-      encryptionPort &&
       client &&
       remoteRKM &&
       serverInformation &&
@@ -279,8 +278,10 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         formData.serverInformation,
         formData.tenantId,
         formData.client,
-        formData.encryptionPassword,
-        encryptionConfigMapName
+        encryptionSecretName,
+        componentState.encryptionCert ? encryptionConfigMapName : undefined,
+        formData.encryptionPort,
+        formData.remoteRKM
       );
       const fileSystemPromise = createFileSystem(
         formData.name,
@@ -297,8 +298,10 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
       await remoteClusterPromise();
       await fileSystemPromise();
       if (componentState.encryptionEnabled) {
-        await encryptionConfigMapPromise();
         await encryptionSecretPromise();
+        if (componentState.encryptionCert) {
+          await encryptionConfigMapPromise();
+        }
         await encryptionConfigPromise();
       }
       navigate(
@@ -622,164 +625,20 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           />
         </FormGroup>
         {componentState.encryptionEnabled && (
-          <>
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.username}
-              popoverProps={{
-                headerContent: t('Encryption username requirements'),
-                footerContent: `${t('Example')}: encryption-user`,
-              }}
-              formGroupProps={{
-                label: t('Username'),
-                fieldId: 'encryptionUserName',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'encryptionUserName',
-                name: 'encryptionUserName',
-                type: 'text',
-                placeholder: t('Enter username'),
-                'data-test': 'encryption-username',
-              }}
-            />
-            <ValidatedPasswordInput
-              control={control}
-              fieldRequirements={fieldRequirements.password}
-              popoverProps={{
-                headerContent: t('Encryption password requirements'),
-                footerContent: `${t('Example')}: mypassword123`,
-              }}
-              formGroupProps={{
-                label: t('Password'),
-                fieldId: 'encryptionPassword',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'encryptionPassword',
-                name: 'encryptionPassword',
-                placeholder: t('Enter password'),
-                'data-test': 'encryption-password',
-              }}
-              helperText={t('Password is required')}
-            />
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.port}
-              popoverProps={{
-                headerContent: t('Port requirements'),
-                footerContent: `${t('Example')}: 443`,
-              }}
-              formGroupProps={{
-                label: t('Port'),
-                fieldId: 'encryptionPort',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'encryptionPort',
-                name: 'encryptionPort',
-                type: 'text',
-                placeholder: t('Enter port'),
-                'data-test': 'encryption-port',
-              }}
-            />
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.client}
-              popoverProps={{
-                headerContent: t('Client requirements'),
-                footerContent: `${t('Example')}: my-client`,
-              }}
-              formGroupProps={{
-                label: t('Client'),
-                fieldId: 'client',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'client',
-                name: 'client',
-                type: 'text',
-                placeholder: t('Enter client'),
-                'data-test': 'client',
-              }}
-            />
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.hostname}
-              popoverProps={{
-                headerContent: t('Remote RKM requirements'),
-                footerContent: `${t('Example')}: rkm.example.com`,
-              }}
-              formGroupProps={{
-                label: t('Remote RKM'),
-                fieldId: 'remoteRKM',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'remoteRKM',
-                name: 'remoteRKM',
-                type: 'text',
-                placeholder: t('Enter remote RKM'),
-                'data-test': 'remote-rkm',
-              }}
-            />
-            <FormGroup label={t('Encryption CA certificate')} isRequired>
-              <FileUpload
-                placeholder={t('Upload encryption CA certificate')}
-                id="file-upload"
-                value={componentState.encryptionCert}
-                filename={encryptionCAFileName}
-                onFileInputChange={handleEncryptionCAFileInputChange}
-                onClearClick={() => {
-                  setEncryptionCAFileName('');
-                  setComponentState((prev) => ({
-                    ...prev,
-                    encryptionCert: '',
-                  }));
-                }}
-              />
-            </FormGroup>
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.serverInfo}
-              popoverProps={{
-                headerContent: t('Server information requirements'),
-                footerContent: `${t('Example')}: server.example.com:443`,
-              }}
-              formGroupProps={{
-                label: t('Server information'),
-                fieldId: 'serverInformation',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'serverInformation',
-                name: 'serverInformation',
-                type: 'text',
-                placeholder: t('Enter server information'),
-                'data-test': 'server-information',
-              }}
-            />
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.tenantId}
-              popoverProps={{
-                headerContent: t('Tenant ID requirements'),
-                footerContent: `${t('Example')}: tenant-123`,
-              }}
-              formGroupProps={{
-                label: t('Tenant ID'),
-                fieldId: 'tenantId',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'tenantId',
-                name: 'tenantId',
-                type: 'text',
-                placeholder: t('Enter tenant ID'),
-                'data-test': 'tenant-id',
-              }}
-            />
-          </>
+          <EncryptionConfigForm
+            certificate={componentState.encryptionCert}
+            certificateFileName={encryptionCAFileName}
+            control={control}
+            fieldRequirements={fieldRequirements}
+            onCertificateInputChange={handleEncryptionCAFileInputChange}
+            onCertificateClear={() => {
+              setEncryptionCAFileName('');
+              setComponentState((prev) => ({
+                ...prev,
+                encryptionCert: '',
+              }));
+            }}
+          />
         )}
       </FormSection>
       {!isFormValid && isSubmitted && (

@@ -79,13 +79,19 @@ export type ScaleSystemFormValidation = {
   };
   control: any;
   handleSubmit: any;
-  formState: { isSubmitted: boolean };
+  formState: { isSubmitted: boolean; isValid: boolean };
   watch: any;
   getValues: any;
 };
 
+type UseScaleSystemFormValidationOptions = {
+  encryptionOnly?: boolean;
+  defaultValues?: Partial<ScaleSystemFormData>;
+};
+
 const useScaleSystemFormValidation = (
-  existingFileSystemNames?: Set<string>
+  existingFileSystemNames?: Set<string>,
+  options: UseScaleSystemFormValidationOptions = {}
 ): ScaleSystemFormValidation => {
   const { t } = useCustomTranslation();
 
@@ -339,16 +345,40 @@ const useScaleSystemFormValidation = (
     };
   }, [t, existingFileSystemNames]);
 
-  const resolver = useYupValidationResolver(formSchema) as any;
+  const activeFormSchema = React.useMemo(() => {
+    if (!options.encryptionOnly) return formSchema;
+
+    const fields = formSchema.fields;
+    const stringField = (name: keyof typeof fields) =>
+      fields[name] as unknown as Yup.StringSchema;
+    return Yup.object({
+      encryptionUserName: stringField('encryptionUserName').required(
+        t('Username is required')
+      ),
+      encryptionPassword: stringField('encryptionPassword').required(
+        t('Password is required')
+      ),
+      encryptionPort: stringField('encryptionPort'),
+      client: stringField('client').required(t('Client is required')),
+      remoteRKM: stringField('remoteRKM').required(t('Remote RKM is required')),
+      serverInformation: stringField('serverInformation').required(
+        t('Server information is required')
+      ),
+      tenantId: stringField('tenantId').required(t('Tenant ID is required')),
+    });
+  }, [formSchema, options.encryptionOnly, t]);
+
+  const resolver = useYupValidationResolver(activeFormSchema) as any;
 
   const {
     control,
     handleSubmit,
-    formState: { isSubmitted },
+    formState: { isSubmitted, isValid },
     watch,
     getValues,
   } = useForm({
     ...formSettings,
+    ...(options.encryptionOnly && { mode: 'onChange' as const }),
     resolver,
     defaultValues: {
       name: '',
@@ -368,6 +398,7 @@ const useScaleSystemFormValidation = (
       remoteRKM: '',
       serverInformation: '',
       tenantId: '',
+      ...options.defaultValues,
     },
   });
 
@@ -376,7 +407,7 @@ const useScaleSystemFormValidation = (
     fieldRequirements,
     control,
     handleSubmit,
-    formState: { isSubmitted },
+    formState: { isSubmitted, isValid },
     watch,
     getValues,
   };

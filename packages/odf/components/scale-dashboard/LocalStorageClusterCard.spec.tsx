@@ -8,8 +8,11 @@ import { ClusterKind, EncryptionConfigKind } from '@odf/core/types/scale';
 import { NodeKind } from '@odf/shared/types';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom-v5-compat';
 import LocalStorageClusterCard from './LocalStorageClusterCard';
+
+const launchModal = jest.fn();
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
@@ -42,6 +45,10 @@ jest.mock('@odf/shared/useCustomTranslationHook', () => ({
       return key;
     },
   }),
+}));
+
+jest.mock('@odf/shared/sdk-wrapper/useModalWrapper', () => ({
+  useModalWrapper: () => launchModal,
 }));
 
 const makeNode = (name: string, labels: Record<string, string>): NodeKind =>
@@ -192,6 +199,20 @@ describe('LocalStorageClusterCard', () => {
   });
 
   describe('Node inventory', () => {
+    it('should open node expansion for the local Scale cluster', async () => {
+      setupMocks();
+      renderCard();
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Edit node inventory' })
+      );
+
+      expect(launchModal).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ systemName })
+      );
+    });
+
     it('should watch only nodes selected for the local cluster', () => {
       setupMocks();
       renderCard();
@@ -211,12 +232,16 @@ describe('LocalStorageClusterCard', () => {
       );
     });
 
-    it('should display the count of nodes returned by the label-selector watch', () => {
+    it('should count assigned labels without waiting for Scale pod readiness', () => {
       setupMocks({
         nodes: [scaleNode('node-1'), scaleNode('node-2'), scaleNode('node-3')],
       });
       renderCard();
+
       expect(screen.getByText('3 Nodes')).toBeInTheDocument();
+      expect(
+        (useK8sWatchResources as jest.Mock).mock.calls[0][0]
+      ).not.toHaveProperty('corePods');
     });
 
     it('should show 0 nodes when the watch returns an empty list', () => {
@@ -249,6 +274,23 @@ describe('LocalStorageClusterCard', () => {
   });
 
   describe('Encryption field', () => {
+    it('should open encryption configuration for the viewed Scale system', async () => {
+      const encryptionConfig = makeEncryptionConfig(
+        `${systemName}-encryption-config`
+      );
+      setupMocks({ encryptionConfig });
+      renderCard();
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Edit encryption' })
+      );
+
+      expect(launchModal).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ systemName, encryptionConfig })
+      );
+    });
+
     it('should watch the single remote cluster encryption config', () => {
       setupMocks();
       renderCard();
