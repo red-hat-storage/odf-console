@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useExistingFileSystemNames } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
 import { filterUsedDiscoveredDevices } from '@odf/core/components/utils';
+import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
 import {
   PageHeading,
@@ -46,7 +47,10 @@ import {
 import { SANSystemComponentState, initialComponentState } from './types';
 import { useDeviceFinder } from './useDeviceFinder';
 import useSANSystemFormValidation from './useFormValidation';
-import { usePersistentRegistryCheck } from './usePersistentRegistryCheck';
+import {
+  testRegistryConnection,
+  usePersistentRegistryCheck,
+} from './usePersistentRegistryCheck';
 
 type CreateSANSystemFormProps = {
   componentState: SANSystemComponentState;
@@ -133,7 +137,22 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
   const onCreate = React.useCallback(async () => {
     setLoading(true);
     setError('');
-
+    const values = getValues();
+    const hasImageRegistry =
+      !!values.imageRegistryUrl && !!values.imageRepositoryName;
+    if (showRegistrySection) {
+      const registryConnectionResult = await testRegistryConnection(
+        values.imageRegistryUrl,
+        values.imageRepositoryName,
+        values.secretKey,
+        IBM_SCALE_NAMESPACE
+      );
+      if (!registryConnectionResult.ok) {
+        setError(registryConnectionResult.error);
+        setLoading(false);
+        return;
+      }
+    }
     const mappedLuns: DiscoveredDevice[] = sharedDevices.filter((lun) =>
       componentState.selectedLUNs.has(lun.WWN)
     );
@@ -143,9 +162,6 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     try {
       if (!isLocalClusterConfigured) {
         await labelNodes(componentState.selectedNodes)();
-        const values = getValues();
-        const hasImageRegistry =
-          !!values.imageRegistryUrl && !!values.imageRepositoryName;
         const buildExternalKmmRegistry = ():
           | ExternalKMMRegistryConfig
           | undefined => {
@@ -195,11 +211,12 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
       setLoading(false);
     }
   }, [
-    sharedDevices,
-    componentState.selectedLUNs,
-    componentState.selectedNodes,
-    isLocalClusterConfigured,
     getValues,
+    showRegistrySection,
+    sharedDevices,
+    componentState.selectedNodes,
+    componentState.selectedLUNs,
+    isLocalClusterConfigured,
     lunGroupName,
     navigate,
     t,
