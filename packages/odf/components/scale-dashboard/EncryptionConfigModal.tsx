@@ -17,6 +17,7 @@ import {
   Alert,
   Button,
   Checkbox,
+  Form,
   FormGroup,
   Modal,
   ModalBody,
@@ -216,28 +217,30 @@ const EncryptionConfigModal: React.FC<EncryptionConfigModalProps> = ({
             'Opting in encryption requires username, password, port, backup server information. This change applies to the local cluster and will affect all IBM Scale CNSA remote cluster connections.'
           )}
         </p>
-        <FormGroup className="pf-v6-u-mt-md">
-          <Checkbox
-            id="encryption-enabled"
-            label={t('Enable data encryption')}
-            isChecked={isEnabled}
-            onChange={(_event, checked) => setIsEnabled(checked)}
-          />
-        </FormGroup>
-        {isEnabled && (
-          <EncryptionConfigForm
-            certificate={certificate}
-            certificateFileName={certificateFileName}
-            control={control}
-            fieldRequirements={fieldRequirements}
-            isDisabled={isCurrentlyEnabled}
-            onCertificateClear={() => {
-              setCertificate('');
-              setCertificateFileName('');
-            }}
-            onCertificateInputChange={onCertificateInputChange}
-          />
-        )}
+        <Form>
+          <FormGroup>
+            <Checkbox
+              id="encryption-enabled"
+              label={t('Enable data encryption')}
+              isChecked={isEnabled}
+              onChange={(_event, checked) => setIsEnabled(checked)}
+            />
+          </FormGroup>
+          {isEnabled && (
+            <EncryptionConfigForm
+              certificate={certificate}
+              certificateFileName={certificateFileName}
+              control={control}
+              fieldRequirements={fieldRequirements}
+              isDisabled={isCurrentlyEnabled}
+              onCertificateClear={() => {
+                setCertificate('');
+                setCertificateFileName('');
+              }}
+              onCertificateInputChange={onCertificateInputChange}
+            />
+          )}
+        </Form>
         {error && (
           <Alert
             isInline
