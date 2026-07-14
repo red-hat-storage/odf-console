@@ -4,12 +4,18 @@ import { LUNsTable } from '@odf/core/components/create-storage-system/external-s
 import {
   createLocalDisks,
   createLocalFileSystem,
+  updateLocalFileSystem,
   createStorageClass,
 } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/payload';
 import { useDeviceFinder } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useDeviceFinder';
 import useSANSystemFormValidation from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useFormValidation';
 import { filterUsedDiscoveredDevices } from '@odf/core/components/utils';
-import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
+import {
+  DiscoveredDevice,
+  FileSystemKind,
+  LocalDiskKind,
+} from '@odf/core/types/scale';
+import { getName } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { LocalDiskModel } from '@odf/shared/models/scale';
@@ -25,11 +31,15 @@ type AddLunGroupModalProps = {
   onSubmit: () => void;
   inProgress: boolean;
   error: string;
+  extraProps: {
+    resource?: FileSystemKind;
+  };
 };
 
 const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   isOpen,
   closeModal: onClose,
+  extraProps: { resource: existingLUNGroup },
 }) => {
   const { t } = useCustomTranslation();
   const [selectedLUNs, setSelectedLUNs] = React.useState<Set<string>>(
@@ -38,6 +48,8 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   const [inProgress, setInProgress] = React.useState(false);
   const [error, setError] = React.useState<Error>(undefined);
   const { deviceFinderLoading, sharedDevices } = useDeviceFinder();
+
+  const isUpdateOperation = !_.isEmpty(existingLUNGroup);
 
   const [disks] = useK8sWatchResource<LocalDiskKind[]>({
     groupVersionKind: {
@@ -61,6 +73,24 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
     () => filterUsedDiscoveredDevices(sharedDevices, disks),
     [sharedDevices, disks]
   );
+
+  const updateExistingLunGroup = async () => {
+    setInProgress(true);
+    setError(undefined);
+    const selectedLUNsWWNArray = Array.from(selectedLUNs);
+    const selectedLUNsData: DiscoveredDevice[] = filteredDevices.filter(
+      (device) => selectedLUNsWWNArray.includes(device.WWN)
+    );
+    try {
+      const localDisks = await createLocalDisks(selectedLUNsData, t);
+      await updateLocalFileSystem(existingLUNGroup, localDisks, t);
+      setInProgress(false);
+      onClose();
+    } catch (err) {
+      setError(err);
+      setInProgress(false);
+    }
+  };
 
   const createLunGroup = async () => {
     setInProgress(true);
@@ -87,10 +117,20 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
 
   return (
     <Modal
-      title={t('Create LUN group')}
-      description={t(
-        'Enter a name for the group and select one or more of the available LUNs.'
-      )}
+      title={
+        isUpdateOperation
+          ? t('Add disks to {{lunGroupName}}', {
+              lunGroupName: getName(existingLUNGroup),
+            })
+          : t('Create LUN group')
+      }
+      description={
+        isUpdateOperation
+          ? undefined
+          : t(
+              'Enter a name for the group and select one or more of the available LUNs.'
+            )
+      }
       isOpen={isOpen}
       onClose={onClose}
       variant={ModalVariant.medium}
@@ -102,13 +142,17 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
           <span>
             <Button
               variant={ButtonVariant.primary}
-              onClick={createLunGroup}
+              onClick={
+                isUpdateOperation ? updateExistingLunGroup : createLunGroup
+              }
               isDisabled={
-                inProgress || _.isEmpty(selectedLUNs) || !lunGroupName
+                inProgress ||
+                _.isEmpty(selectedLUNs) ||
+                (isUpdateOperation ? false : !lunGroupName)
               }
               isLoading={inProgress}
             >
-              {t('Connect and create')}
+              {isUpdateOperation ? t('Add') : t('Connect and create')}
             </Button>
             <Button variant={ButtonVariant.link} onClick={onClose}>
               {t('Cancel')}
@@ -118,25 +162,27 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
       ]}
     >
       <Form>
-        <TextInputWithFieldRequirements
-          control={control}
-          fieldRequirements={fieldRequirements.lunGroupName}
-          popoverProps={{
-            headerContent: t('LUN group name requirements'),
-            footerContent: `${t('Example')}: lun-group-a`,
-          }}
-          formGroupProps={{
-            label: t('LUN group name'),
-            fieldId: 'lun-group-name',
-            isRequired: true,
-          }}
-          textInputProps={{
-            id: 'lunGroupName',
-            name: 'lunGroupName',
-            type: 'text',
-            'data-test': 'lun-group-name',
-          }}
-        />
+        {!isUpdateOperation && (
+          <TextInputWithFieldRequirements
+            control={control}
+            fieldRequirements={fieldRequirements.lunGroupName}
+            popoverProps={{
+              headerContent: t('LUN group name requirements'),
+              footerContent: `${t('Example')}: lun-group-a`,
+            }}
+            formGroupProps={{
+              label: t('LUN group name'),
+              fieldId: 'lun-group-name',
+              isRequired: true,
+            }}
+            textInputProps={{
+              id: 'lunGroupName',
+              name: 'lunGroupName',
+              type: 'text',
+              'data-test': 'lun-group-name',
+            }}
+          />
+        )}
         <FormGroup label={t('Disks')} fieldId="disks">
           <LUNsTable
             luns={filteredDevices}
