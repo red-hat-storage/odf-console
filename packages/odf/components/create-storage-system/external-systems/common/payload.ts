@@ -1,6 +1,7 @@
 import {
   IBM_SCALE_LOCAL_CLUSTER_NAME,
   IBM_SCALE_NAMESPACE,
+  SCALE_DAEMON_NODE_LABEL,
 } from '@odf/core/constants';
 import { ClusterKind } from '@odf/core/types/scale';
 import {
@@ -28,7 +29,7 @@ export type ExternalKMMRegistryConfig = {
 };
 
 export const labelNodes = (nodes: WizardNodeState[]) => {
-  const labelPath = `/metadata/labels/scale.spectrum.ibm.com~1daemon-selector`;
+  const labelPath = `/metadata/labels/${SCALE_DAEMON_NODE_LABEL.replace('/', '~1')}`;
   const requests: Promise<K8sKind>[] = [];
   nodes.forEach((node) => {
     const patch: Patch[] = [];
@@ -44,7 +45,7 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
       path: labelPath,
       value: '',
     });
-    if (!node.labels?.['scale.spectrum.ibm.com/daemon-selector/']) {
+    if (!node.labels?.[SCALE_DAEMON_NODE_LABEL]) {
       requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
     }
   });
@@ -61,7 +62,7 @@ export const createScaleLocalClusterPayload = (
   const spec: ClusterKind['spec'] = {
     daemon: {
       nodeSelector: {
-        'scale.spectrum.ibm.com/daemon-selector': '',
+        [SCALE_DAEMON_NODE_LABEL]: '',
       },
       roles: [],
       clusterProfile: {

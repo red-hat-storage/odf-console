@@ -1360,6 +1360,7 @@
   "Loading...": "Loading...",
   "Local storage is also present in the cluster.": "Local storage is also present in the cluster.",
   "Local Storage Operator not installed": "Local Storage Operator not installed",
+  "Local StorageCluster": "Local StorageCluster",
   "Local Volume Discovery": "Local Volume Discovery",
   "Local Volume Set": "Local Volume Set",
   "LocalVolumeSet name": "LocalVolumeSet name",
