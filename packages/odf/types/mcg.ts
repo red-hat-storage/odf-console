@@ -41,6 +41,8 @@ export type NamespaceStoreKind = K8sResourceCommon & {
     };
   } & {
     type: NsSpecType;
+    /** Marks the store for cold-storage archive use (e.g., IBM Deep Archive) */
+    archive?: boolean;
   };
   status: {
     conditions: K8sResourceCondition[];
