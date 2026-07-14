@@ -10,6 +10,8 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useParams } from 'react-router';
+import { Label } from '@patternfly/react-core';
+import { InfoCircleIcon } from '@patternfly/react-icons';
 import { NamespaceStoreKind } from '../../types';
 import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';
@@ -75,6 +77,22 @@ const NamespaceStoreDetailsPage: React.FC<{}> = () => {
     );
   }, [memoizedResource]);
 
+  const isArchive = memoizedResource?.spec?.archive === true;
+
+  const archiveBadge = React.useMemo(
+    () =>
+      isArchive ? (
+        <Label
+          color="green"
+          icon={<InfoCircleIcon />}
+          className="pf-v5-u-ml-sm"
+        >
+          {t('IBM Deep archive')}
+        </Label>
+      ) : null,
+    [isArchive, t]
+  );
+
   return (
     <DetailsPage
       loaded={loaded && isODFNsLoaded}
@@ -83,6 +101,7 @@ const NamespaceStoreDetailsPage: React.FC<{}> = () => {
       actions={actions}
       resourceModel={NooBaaNamespaceStoreModel}
       resource={resource}
+      titleBadge={archiveBadge}
       pages={[
         {
           href: '',

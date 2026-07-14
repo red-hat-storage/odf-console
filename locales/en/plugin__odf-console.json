@@ -1245,6 +1245,7 @@
   "IAM user has {{count}} access keys_one": "IAM user has {{count}} access keys",
   "IAM user has {{count}} access keys_other": "IAM user has {{count}} access keys",
   "IBM base URL": "IBM base URL",
+  "IBM Deep archive": "IBM Deep archive",
   "IBM FlashSystem": "IBM FlashSystem",
   "IBM FlashSystem clusters": "IBM FlashSystem clusters",
   "IBM SAN": "IBM SAN",
