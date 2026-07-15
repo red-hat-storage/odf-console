@@ -1,8 +1,10 @@
 import * as React from 'react';
-import { LSO_OPERATOR } from '@odf/core/constants';
+import { IBM_SCALE_NAMESPACE, LSO_OPERATOR } from '@odf/core/constants';
+import useIsSANSystemDeletable from '@odf/core/hooks/useIsSANSystemDeletable';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
 import { FDF_FLAG } from '@odf/core/redux';
 import { storageClusterResource } from '@odf/core/resources';
+import { ClusterKind } from '@odf/core/types/scale';
 import {
   DEFAULT_INFRASTRUCTURE,
   InfrastructureKind,
@@ -21,6 +23,7 @@ import {
   useWatchStorageSystems,
 } from '@odf/shared/hooks/useWatchStorageSystems';
 import { Kebab } from '@odf/shared/kebab/kebab';
+import { ModalKeys } from '@odf/shared/modals';
 import {
   IBMFlashSystemModel,
   InfrastructureModel,
@@ -43,6 +46,7 @@ import {
   referenceForModel,
   getGVK,
   isCSVSucceeded,
+  getValidWatchK8sResourceObj,
 } from '@odf/shared/utils';
 import {
   K8sModel,
@@ -305,6 +309,8 @@ type CustomData = {
   isLSOInstalled: boolean;
   normalizedMetrics: ReturnType<typeof normalizeMetrics>;
   storageClusters: StorageClusterKind[];
+  isSANSystemDeletable: boolean;
+  sanClustersByName: Record<string, ClusterKind>;
 };
 
 type StorageSystemNewPageProps = {
@@ -454,17 +460,32 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = getName(obj);
   const systemNamespace = getNamespace(obj);
-  const { normalizedMetrics } = rowData;
-  const { customActions, hiddenActions } = getActions(obj, t);
+  const { normalizedMetrics, isSANSystemDeletable, sanClustersByName } =
+    rowData;
+  const isSANSystem = kind === ClusterModel.kind.toLowerCase();
+  const isRemoteCluster = kind === RemoteClusterModel.kind.toLowerCase();
+  const sanCluster = isSANSystem ? sanClustersByName[obj.spec.name] : undefined;
+  const { customActions, hiddenActions } = getActions(
+    obj,
+    t,
+    isSANSystemDeletable
+  );
+  const resolvedActions = isSANSystem
+    ? customActions.map((action) =>
+        action.key === ModalKeys.DELETE
+          ? {
+              ...action,
+              isDisabled: action.isDisabled || !sanCluster,
+            }
+          : action
+      )
+    : customActions;
 
   const metrics =
     normalizedMetrics?.normalizedMetrics?.[`${systemName}${systemNamespace}`];
 
   const { rawCapacity, usedCapacity, iops, throughput, latency, healthStatus } =
     metrics || {};
-
-  const isSANSystem = kind === ClusterModel.kind.toLowerCase();
-  const isRemoteCluster = kind === RemoteClusterModel.kind.toLowerCase();
 
   const getStatusComponent = (): React.ReactNode => {
     if (obj?.metadata?.deletionTimestamp) {
@@ -505,10 +526,11 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <Kebab
-          customKebabItems={customActions}
+          customKebabItems={resolvedActions}
           hideItems={hiddenActions}
           extraProps={{
-            resource: obj,
+            // SAN rows pass the real Cluster; the synthetic StorageSystem is display-only
+            resource: isSANSystem ? sanCluster : obj,
             resourceModel: getModelOfExternalSystem(obj),
           }}
           customLabel={ODFStorageSystem.label}
@@ -523,11 +545,33 @@ export const StorageSystemListPage: React.FC = () => {
 
   const launchModal = useModalWrapper();
   const isFDF = useFlag(FDF_FLAG);
+  const isSANSystemDeletable = useIsSANSystemDeletable();
 
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
 
   const [storageSystems, loaded, loadError] = useWatchStorageSystems(true);
+  const [sanClusters] = useK8sWatchResource<ClusterKind[]>(
+    getValidWatchK8sResourceObj(
+      {
+        kind: referenceForModel(ClusterModel),
+        isList: true,
+        namespace: IBM_SCALE_NAMESPACE,
+      },
+      isFDF
+    )
+  );
+  const sanClustersByName = React.useMemo(
+    () =>
+      (sanClusters ?? []).reduce<Record<string, ClusterKind>>(
+        (acc, cluster) => {
+          acc[getName(cluster)] = cluster;
+          return acc;
+        },
+        {}
+      ),
+    [sanClusters]
+  );
   const [data, filteredData, onFilterChange] =
     useListPageFilter(storageSystems);
 
@@ -613,16 +657,17 @@ export const StorageSystemListPage: React.FC = () => {
     storageClusterResource
   );
 
-  const filesystemResource = isFDF
-    ? {
-        kind: referenceForModel(FileSystemModel),
-        isList: true,
-        namespaced: false,
-      }
-    : null;
+  const fsResource = getValidWatchK8sResourceObj(
+    {
+      kind: referenceForModel(FileSystemModel),
+      isList: true,
+      namespaced: false,
+    },
+    isFDF
+  );
 
   const [filesystems, filesystemsLoaded] =
-    useK8sWatchResource<FileSystemKind[]>(filesystemResource);
+    useK8sWatchResource<FileSystemKind[]>(fsResource);
 
   const filesystemsByRemoteCluster = React.useMemo(() => {
     if (!isFDF || !filesystemsLoaded || !filesystems) {
@@ -720,6 +765,8 @@ export const StorageSystemListPage: React.FC = () => {
             isLSOInstalled,
             normalizedMetrics,
             storageClusters,
+            isSANSystemDeletable,
+            sanClustersByName,
           }}
         />
       </ListPageBody>
