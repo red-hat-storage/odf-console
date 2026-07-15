@@ -24,6 +24,7 @@ import { NamespacePolicyType } from '../../constants';
 import { BucketClassType, PlacementPolicy } from '../../types';
 import { validateBucketClassName, validateDuration } from '../../utils';
 import { Action, initialState, reducer, State } from './state';
+import ArchivePolicyPage from './wizard-pages/archive-policy-page';
 import BackingStorePage from './wizard-pages/backingstore-page';
 import GeneralPage from './wizard-pages/general-page';
 import { NamespacePolicyPage } from './wizard-pages/namespace-policy-page';
@@ -38,6 +39,7 @@ import '../../style.scss';
 enum CreateStepsBC {
   GENERAL = 'GENERAL',
   PLACEMENT = 'PLACEMENT',
+  ARCHIVE = 'ARCHIVE',
   RESOURCES = 'RESOURCES',
   REVIEW = 'REVIEW',
 }
@@ -123,17 +125,34 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
   ]);
 
   const creationConditionsSatisfied = React.useCallback(() => {
-    return (
+    const baseConditions =
       (state.bucketClassType === BucketClassType.STANDARD
         ? backingStoreNextConditions()
-        : namespaceStoreNextConditions()) && !!state.bucketClassName
-    );
+        : namespaceStoreNextConditions()) && !!state.bucketClassName;
+
+    // If deep archive is enabled for standard bucket class, require archive namespace store
+    if (
+      state.bucketClassType === BucketClassType.STANDARD &&
+      state.isDeepArchive
+    ) {
+      return baseConditions && !!state.archiveNamespaceStore;
+    }
+
+    return baseConditions;
   }, [
     state.bucketClassType,
     state.bucketClassName,
+    state.isDeepArchive,
+    state.archiveNamespaceStore,
     backingStoreNextConditions,
     namespaceStoreNextConditions,
   ]);
+
+  const archiveNextConditions = React.useCallback(() => {
+    // Archive policy is optional, so always allow proceeding
+    // But if deep archive is enabled, we need an archive namespace store in RESOURCES step
+    return true;
+  }, []);
 
   const canProceed = React.useMemo(() => {
     switch (currentStepId) {
@@ -143,10 +162,18 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
         return state.bucketClassType === BucketClassType.STANDARD
           ? !!state.tier1Policy
           : !!state.namespacePolicyType;
+      case CreateStepsBC.ARCHIVE:
+        return archiveNextConditions();
       case CreateStepsBC.RESOURCES:
-        return state.bucketClassType === BucketClassType.STANDARD
-          ? backingStoreNextConditions()
-          : namespaceStoreNextConditions();
+        if (state.bucketClassType === BucketClassType.STANDARD) {
+          const backingStoreValid = backingStoreNextConditions();
+          // If deep archive is enabled, also require an archive namespace store
+          if (state.isDeepArchive) {
+            return backingStoreValid && !!state.archiveNamespaceStore;
+          }
+          return backingStoreValid;
+        }
+        return namespaceStoreNextConditions();
       case CreateStepsBC.REVIEW:
         return creationConditionsSatisfied();
       default:
@@ -158,6 +185,9 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
     state.bucketClassType,
     state.tier1Policy,
     state.namespacePolicyType,
+    state.isDeepArchive,
+    state.archiveNamespaceStore,
+    archiveNextConditions,
     backingStoreNextConditions,
     namespaceStoreNextConditions,
     creationConditionsSatisfied,
@@ -192,6 +222,12 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
           placement: state.tier2Policy,
           backingStores: state.tier2BackingStore.map(getName),
         });
+      }
+      // Add archive policy if deep archive is enabled
+      if (state.isDeepArchive && state.archiveNamespaceStore) {
+        payload.spec.archivePolicy = {
+          deepArchiveResource: getName(state.archiveNamespaceStore),
+        };
       }
     }
     if (state.bucketClassType === BucketClassType.VECTOR) {
@@ -426,6 +462,10 @@ const CreateBucketClass: React.FC = () => {
     }
   };
 
+  // Archive policy step is only shown for STANDARD bucket class type
+  const shouldShowArchivePolicyStep =
+    state.bucketClassType === BucketClassType.STANDARD;
+
   const steps = [
     {
       id: CreateStepsBC.GENERAL,
@@ -445,6 +485,15 @@ const CreateBucketClass: React.FC = () => {
               ) : (
                 <NamespacePolicyPage state={state} dispatch={dispatch} />
               ),
+          },
+        ]
+      : []),
+    ...(shouldShowArchivePolicyStep
+      ? [
+          {
+            id: CreateStepsBC.ARCHIVE,
+            name: t('Archive Policy'),
+            component: <ArchivePolicyPage state={state} dispatch={dispatch} />,
           },
         ]
       : []),

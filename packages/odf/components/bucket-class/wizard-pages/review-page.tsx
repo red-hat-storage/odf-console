@@ -16,12 +16,9 @@ import {
   AlertVariant,
   Split,
   SplitItem,
-  ContentVariants,
-  Content,
   DescriptionList,
   DescriptionListDescription,
   DescriptionListGroup,
-  DescriptionListTerm,
 } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../../constants';
 import { convertTime, getTimeUnitString } from '../../../utils';
@@ -41,22 +38,6 @@ const REVIEW_ICON_MAP = {
   [AlertVariant.info]: BlueInfoCircleIcon,
   [AlertVariant.danger]: RedExclamationCircleIcon,
 };
-
-/**
- * @deprecated
- */
-const ReviewListTitle: React.FC<{ text: string }> = ({ text }) => (
-  <DescriptionListTerm>
-    <Content className="ocs-install-wizard__text-content">
-      <Content
-        component={ContentVariants.h3}
-        className="ocs-install-wizard__h3 "
-      >
-        {text}
-      </Content>
-    </Content>
-  </DescriptionListTerm>
-);
 
 /**
  * @deprecated
@@ -127,6 +108,8 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
     timeToLive,
     timeUnit,
     writeNamespaceStore,
+    isDeepArchive,
+    archiveNamespaceStore,
   } = state;
   const { error, isLoading } = state;
   const { t } = useCustomTranslation();
@@ -183,65 +166,91 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
   const getReviewForBackingStore = () => (
     <>
       <ReviewListBody hideIcon>
-        <span>{t('Placement policy details ')}</span>&nbsp;
+        <b>{t('Tier 1')}</b>
         <br />
-        <p data-test="tier1">
-          <b>
-            {t('Tier 1: ')}
-            {tier1Policy}
-          </b>
-        </p>
-        <p>{t('Selected BackingStores')}</p>
-        <StoreCard resources={tier1BackingStore} />
+        <span data-test="tier1" className="text-secondary">
+          {tier1Policy}
+        </span>
       </ReviewListBody>
       <ReviewListBody hideIcon>
-        {!!tier2Policy && (
-          <>
-            <p data-test="tier2">
-              <b>
-                {t('Tier 2: ')}
-                {tier2Policy}
-              </b>
-            </p>
-            <p>{t('Selected BackingStores')}</p>
-            <StoreCard resources={tier2BackingStore} />
-          </>
-        )}
+        <b>{t('Backingstore')}</b>
+        <br />
+        {tier1BackingStore.map((bs) => (
+          <span key={getName(bs)} className="text-secondary">
+            {getName(bs)}
+            <br />
+          </span>
+        ))}
       </ReviewListBody>
+      {!!tier2Policy && (
+        <>
+          <ReviewListBody hideIcon>
+            <b>{t('Tier 2')}</b>
+            <br />
+            <span data-test="tier2" className="text-secondary">
+              {tier2Policy}
+            </span>
+          </ReviewListBody>
+          <ReviewListBody hideIcon>
+            <b>{t('Backingstore')}</b>
+            <br />
+            {tier2BackingStore.map((bs) => (
+              <span key={getName(bs)} className="text-secondary">
+                {getName(bs)}
+                <br />
+              </span>
+            ))}
+          </ReviewListBody>
+        </>
+      )}
+      {isDeepArchive && archiveNamespaceStore && (
+        <ReviewListBody hideIcon>
+          <b>{t('Archive policy')}</b>
+          <br />
+          <span data-test="archive-policy">
+            {t('Deep archive Namespacestore')}
+          </span>
+          <br />
+          <span className="text-secondary">
+            {getName(archiveNamespaceStore)}
+          </span>
+        </ReviewListBody>
+      )}
     </>
   );
 
   return (
     <div className="nb-create-bc-step-page">
       <Title size="xl" headingLevel="h2">
-        {t('Review BucketClass')}
+        {t('Review')}
       </Title>
       <DescriptionList>
-        <ReviewListTitle text={t('General')} />
-        <br />
-        <div className="nb-create-bc-list--indent">
+        <ReviewListBody hideIcon>
+          <b>{t('BucketClass Type')}</b>
+          <br />
+          <span className="text-secondary">
+            {isDeepArchive ? t('Deep archive - Standard') : bucketClassType}
+          </span>
+        </ReviewListBody>
+        <ReviewListBody hideIcon>
+          <b>{t('BucketClassname')}</b>
+          <br />
+          <span data-test="bc-name" className="text-secondary">
+            {bucketClassName}
+          </span>
+        </ReviewListBody>
+        {!!description && (
           <ReviewListBody hideIcon>
-            <span>{t('BucketClass type: ')}</span>&nbsp;
-            <span className="text-secondary">{bucketClassType}</span>
-          </ReviewListBody>
-          <ReviewListBody hideIcon>
-            <span>{t('BucketClass name: ')}</span>&nbsp;
-            <span data-test="bc-name" className="text-secondary">
-              {bucketClassName}
+            <b>{t('Description')}</b>
+            <br />
+            <span data-test="bc-desc" className="text-secondary">
+              {description}
             </span>
           </ReviewListBody>
-          {!!description && (
-            <ReviewListBody hideIcon>
-              <span>{t('Description: ')}</span>&nbsp;
-              <span data-test="bc-desc" className="text-secondary">
-                {description}
-              </span>
-            </ReviewListBody>
-          )}
-          {bucketClassType === BucketClassType.STANDARD
-            ? getReviewForBackingStore()
-            : getReviewForNamespaceStore()}
-        </div>
+        )}
+        {bucketClassType === BucketClassType.STANDARD
+          ? getReviewForBackingStore()
+          : getReviewForNamespaceStore()}
       </DescriptionList>
       {isLoading && <LoadingInline />}
       {!!error && (

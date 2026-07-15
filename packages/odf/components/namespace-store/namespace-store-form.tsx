@@ -74,6 +74,8 @@ type NamespaceStoreFormProps = {
   onCancel: () => void;
   /** Vector BucketClass flow: Provider dropdown lists Filesystem only. */
   isVector?: boolean;
+  /** IBM Deep Archive flow: Archive checkbox is pre-selected and disabled. */
+  isArchivePreSelected?: boolean;
 };
 
 const createSecret = async (
@@ -128,14 +130,26 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   const [inProgress, setProgress] = React.useState(false);
   const [error, setError] = React.useState('');
   const [showSecret, setShowSecret] = React.useState(true);
-  const [isArchive, setIsArchive] = React.useState(false);
 
-  const { onCancel, className, redirectHandler, namespace, isVector } = props;
+  const {
+    onCancel,
+    className,
+    redirectHandler,
+    namespace,
+    isVector,
+    isArchivePreSelected,
+  } = props;
 
-  const providerDefault = React.useMemo(
-    () => (isVector ? StoreProviders.FILESYSTEM : StoreProviders.AWS),
-    [isVector]
+  // If archive is pre-selected (from BucketClass wizard), it's fixed to true
+  const [isArchive, setIsArchive] = React.useState(
+    isArchivePreSelected ?? false
   );
+
+  const providerDefault = React.useMemo(() => {
+    if (isArchivePreSelected) return StoreProviders.S3;
+    if (isVector) return StoreProviders.FILESYSTEM;
+    return StoreProviders.AWS;
+  }, [isVector, isArchivePreSelected]);
 
   const providerDropdownItems = React.useMemo(
     () => (isVector ? NAMESPACE_STORE_FILESYSTEM : PROVIDERS),
@@ -311,6 +325,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
               label={t('Opt in Namespacestore for IBM Deep Archive')}
               isChecked={isArchive}
               onChange={handleArchiveChange}
+              isDisabled={isArchivePreSelected}
               data-test="archive-checkbox"
             />
             {isArchive && (
