@@ -65,23 +65,23 @@
     "**/package.json": "npx --yes sort-package-json@3.0.0"
   },
   "resolutions": {
-    "@openshift-console/dynamic-plugin-sdk-webpack/ajv": "^6.15.0",
     "@eslint/eslintrc/ajv": "^6.15.0",
-    "eslint/ajv": "^6.15.0",
-    "schema-utils/ajv": "^8.20.0",
-    "table/ajv": "^8.20.0",
-    "ajv-formats/ajv": "^8.20.0",
-    "ajv-keywords/ajv": "^8.20.0",
+    "@openshift-console/dynamic-plugin-sdk-webpack/ajv": "^6.15.0",
     "@types/react": "^17",
     "@types/react-dom": "^17",
     "ajv-formats": "^3.0.1",
+    "ajv-formats/ajv": "^8.20.0",
     "ajv-keywords": "^5.1.0",
+    "ajv-keywords/ajv": "^8.20.0",
+    "eslint/ajv": "^6.15.0",
     "fast-xml-parser": "^5.5.8",
     "fork-ts-checker-webpack-plugin/schema-utils": "4.3.3",
-    "minimatch": "^3.1.5",
     "immutable": "^5.1.6",
+    "minimatch": "^3.1.5",
     "qs": "^6.15.2",
-    "react-router": "6.30.4"
+    "react-router": "6.30.4",
+    "schema-utils/ajv": "^8.20.0",
+    "table/ajv": "^8.20.0"
   },
   "dependencies": {
     "@aws-sdk/client-iam": "^3.1011.0",
