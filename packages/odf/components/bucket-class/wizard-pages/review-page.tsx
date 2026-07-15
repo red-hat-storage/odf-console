@@ -127,6 +127,8 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
     timeToLive,
     timeUnit,
     writeNamespaceStore,
+    isDeepArchive,
+    archiveNamespaceStore,
   } = state;
   const { error, isLoading } = state;
   const { t } = useCustomTranslation();
@@ -185,6 +187,14 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
       <ReviewListBody hideIcon>
         <span>{t('Placement policy details ')}</span>&nbsp;
         <br />
+        {isDeepArchive && archiveNamespaceStore && (
+          <p data-test="archive-namespacestore">
+            <span>{t('Deep archive NamespaceStore: ')}</span>
+            <span className="text-secondary">
+              {getName(archiveNamespaceStore)}
+            </span>
+          </p>
+        )}
         <p data-test="tier1">
           <b>
             {t('Tier 1: ')}

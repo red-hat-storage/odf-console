@@ -101,6 +101,10 @@ export type BucketClassKind = K8sResourceCommon & {
       resource: string;
       vectorDBType: 'lance';
     };
+    /** IBM Deep Archive policy for long-term data storage */
+    archivePolicy?: {
+      deepArchiveResource: string;
+    };
   };
   status: {
     conditions: K8sResourceCondition[];
