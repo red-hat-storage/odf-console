@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { createWizardNodeState } from '@odf/core/components/utils';
+import { NodeType } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared';
@@ -13,6 +14,7 @@ import {
   Alert,
 } from '@patternfly/react-core';
 import { WizardNodeState } from '../../reducer';
+import { SelectLocalClusterNodesTable } from '../../select-nodes-table/select-local-cluster-nodes-table';
 import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
 import './NodesSection.scss';
 
@@ -22,6 +24,9 @@ type NodesSectionProps = {
   setSelectedNodes: (nodes: WizardNodeState[]) => void;
   allNodesDescription?: string;
   selectNodesDescription?: string;
+  includeControlPlane?: boolean;
+  enableStretchCluster?: boolean;
+  hideAllNodesSelection?: boolean;
 };
 
 export const NodesSection: React.FC<NodesSectionProps> = React.memo(
@@ -31,22 +36,45 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
     setSelectedNodes,
     allNodesDescription,
     selectNodesDescription,
+    includeControlPlane,
+    enableStretchCluster,
+    hideAllNodesSelection,
   }) => {
     const { t } = useCustomTranslation();
     const [isUseAllNodes, setIsUseAllNodes] = React.useState(true);
-    const [allNodes, allNodesLoaded] = useNodesData(true);
+    const [allNodes, allNodesLoaded] = useNodesData(
+      true,
+      includeControlPlane || enableStretchCluster
+    );
 
     const onNodeSelect = React.useCallback(
       (nodes: NodeData[]) => {
-        const nodesData = createWizardNodeState(nodes);
-        setSelectedNodes(nodesData);
+        if (hideAllNodesSelection) {
+          setSelectedNodes(
+            createWizardNodeState(nodes, { enableStretchCluster })
+          );
+          return;
+        }
+        setSelectedNodes(createWizardNodeState(nodes));
       },
-      [setSelectedNodes]
+      [setSelectedNodes, enableStretchCluster, hideAllNodesSelection]
+    );
+
+    const onLocalClusterRoleChange = React.useCallback(
+      (nodeName: string, role: NodeType) => {
+        setSelectedNodes(
+          selectedNodes.map((node) =>
+            node.name === nodeName ? { ...node, localClusterRole: role } : node
+          )
+        );
+      },
+      [setSelectedNodes, selectedNodes]
     );
 
     // Initialize selected nodes when component mounts and "All nodes" is selected by default
     React.useEffect(() => {
       if (
+        !hideAllNodesSelection &&
         isUseAllNodes &&
         allNodesLoaded &&
         allNodes.length > 0 &&
@@ -55,6 +83,7 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
         onNodeSelect(allNodes);
       }
     }, [
+      hideAllNodesSelection,
       isUseAllNodes,
       allNodesLoaded,
       allNodes,
@@ -82,6 +111,29 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
     const defaultSelectNodesDescription = t(
       'Select a minimum of 3 nodes to handle requests to IBM scale'
     );
+    if (hideAllNodesSelection) {
+      return (
+        <>
+          <SelectLocalClusterNodesTable
+            nodes={selectedNodes}
+            onRowSelected={onNodeSelect}
+            onLocalClusterRoleChange={onLocalClusterRoleChange}
+            includeControlPlane={includeControlPlane}
+            enableStretchCluster={enableStretchCluster}
+          />
+          {isDisabled && (
+            <Alert
+              variant="info"
+              title={t('Nodes are disabled')}
+              isInline
+              className="pf-v6-u-mt-md"
+            >
+              {t('Nodes are disabled because the local cluster is configured')}
+            </Alert>
+          )}
+        </>
+      );
+    }
 
     return (
       <>

@@ -18,6 +18,7 @@ import {
   deviceTypeDropdownItems,
   diskModeDropdownItems,
 } from '../../constants';
+import { NodeType } from '../../constants/scale';
 import {
   DiskType,
   EncryptionType,
@@ -227,6 +228,8 @@ export type WizardNodeState = {
   taints: NodeKind['spec']['taints'];
   architecture: string;
   annotations?: NodeKind['metadata']['annotations'];
+  /** Local cluster role (disk-node, cluster-node, arbiter-node). */
+  localClusterRole?: NodeType;
 };
 
 export type CapacityAutoScalingState = {

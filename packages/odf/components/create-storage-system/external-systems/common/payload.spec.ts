@@ -9,6 +9,17 @@ import {
 } from './payload';
 
 const LABEL_PATH = '/metadata/labels/scale.spectrum.ibm.com~1daemon-selector';
+const NODE_ROLE_LABEL_PATH = '/metadata/labels/node-role';
+
+const getDaemonPatchCalls = () =>
+  mockK8sPatchByName.mock.calls.filter((call) =>
+    (call[3] as Patch[]).some((op) => op.path === LABEL_PATH)
+  );
+
+const getNodeRolePatchCalls = () =>
+  mockK8sPatchByName.mock.calls.filter((call) =>
+    (call[3] as Patch[]).some((op) => op.path === NODE_ROLE_LABEL_PATH)
+  );
 
 const mockK8sPatchByName = jest.fn().mockResolvedValue({});
 const mockK8sCreate = jest.fn().mockResolvedValue({});
@@ -35,7 +46,7 @@ describe('payload', () => {
       expect(mockK8sPatchByName).not.toHaveBeenCalled();
     });
 
-    it('should use only "add" patch operations so existing labels are never removed or replaced', async () => {
+    it('should use only "add" patch operations for daemon-selector labels', async () => {
       const nodes: WizardNodeState[] = [
         {
           name: 'node-1',
@@ -49,15 +60,16 @@ describe('payload', () => {
           labels: { 'existing.io/label': 'value' },
           taints: [],
           architecture: 'amd64',
+          localClusterRole: 'disk-node',
         },
       ];
       const execute = labelNodes(nodes);
       await execute();
 
-      const patch: Patch[] = mockK8sPatchByName.mock.calls[0][3];
-      patch.forEach((op) => {
-        expect(op.op).toBe('add');
-        expect(['remove', 'replace']).not.toContain(op.op);
+      getDaemonPatchCalls().forEach((call) => {
+        (call[3] as Patch[]).forEach((op) => {
+          expect(op.op).toBe('add');
+        });
       });
     });
 
@@ -111,18 +123,19 @@ describe('payload', () => {
       const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
-      expect(mockK8sPatchByName).toHaveBeenCalledWith(
+      expect(mockK8sPatchByName).toHaveBeenCalledTimes(2);
+      expect(getDaemonPatchCalls()).toHaveLength(1);
+      expect(getDaemonPatchCalls()[0]).toEqual([
         NodeModel,
         'node-no-labels',
         null,
         expect.arrayContaining([
           { op: 'add', path: '/metadata/labels', value: {} },
           { op: 'add', path: LABEL_PATH, value: '' },
-        ])
-      );
-      const patch: Patch[] = mockK8sPatchByName.mock.calls[0][3];
-      expect(patch).toHaveLength(2);
+        ]),
+      ]);
+      const daemonPatch: Patch[] = getDaemonPatchCalls()[0][3];
+      expect(daemonPatch).toHaveLength(2);
     });
 
     it('should not add /metadata/labels when node already has labels so existing labels are not replaced by {}', async () => {
@@ -177,13 +190,18 @@ describe('payload', () => {
       const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
-      const patch: Patch[] = mockK8sPatchByName.mock.calls[0][3];
-      expect(patch).toHaveLength(1);
-      expect(patch[0]).toEqual({ op: 'add', path: LABEL_PATH, value: '' });
+      expect(mockK8sPatchByName).toHaveBeenCalledTimes(2);
+      expect(getDaemonPatchCalls()).toHaveLength(1);
+      const daemonPatch: Patch[] = getDaemonPatchCalls()[0][3];
+      expect(daemonPatch).toHaveLength(1);
+      expect(daemonPatch[0]).toEqual({
+        op: 'add',
+        path: LABEL_PATH,
+        value: '',
+      });
     });
 
-    it('should not call k8sPatchByName when node already has daemon-selector label with truthy value', async () => {
+    it('should skip daemon-selector patch when node already has daemon-selector label with truthy value', async () => {
       const nodes: WizardNodeState[] = [
         {
           name: 'node-with-daemon-selector',
@@ -199,15 +217,24 @@ describe('payload', () => {
           },
           taints: [],
           architecture: 'amd64',
+          localClusterRole: 'disk-node',
         },
       ];
       const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).not.toHaveBeenCalled();
+      expect(getDaemonPatchCalls()).toHaveLength(0);
+      expect(getNodeRolePatchCalls()).toHaveLength(1);
+      expect(getNodeRolePatchCalls()[0][3]).toEqual([
+        {
+          op: 'add',
+          path: NODE_ROLE_LABEL_PATH,
+          value: 'disk-node',
+        },
+      ]);
     });
 
-    it('should call k8sPatchByName once per node that needs the label (correct model and name)', async () => {
+    it('should call k8sPatchByName once per node that needs the daemon-selector label (correct model and name)', async () => {
       const nodes: WizardNodeState[] = [
         {
           name: 'node-a',
@@ -239,21 +266,20 @@ describe('payload', () => {
       const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(2);
-      expect(mockK8sPatchByName).toHaveBeenNthCalledWith(
-        1,
+      expect(getDaemonPatchCalls()).toHaveLength(2);
+      expect(getDaemonPatchCalls()[0]).toEqual([
         NodeModel,
         'node-a',
         null,
-        expect.any(Array)
-      );
-      expect(mockK8sPatchByName).toHaveBeenNthCalledWith(
-        2,
+        expect.any(Array),
+      ]);
+      expect(getDaemonPatchCalls()[1]).toEqual([
         NodeModel,
         'node-b',
         null,
-        expect.any(Array)
-      );
+        expect.any(Array),
+      ]);
+      expect(getNodeRolePatchCalls()).toHaveLength(2);
     });
 
     it('should patch only nodes that do not already have daemon-selector label', async () => {
@@ -301,10 +327,11 @@ describe('payload', () => {
       const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(2);
+      expect(getDaemonPatchCalls()).toHaveLength(2);
+      expect(getNodeRolePatchCalls()).toHaveLength(3);
 
-      const patch1: Patch[] = mockK8sPatchByName.mock.calls[0][3];
-      const patch2: Patch[] = mockK8sPatchByName.mock.calls[1][3];
+      const patch1: Patch[] = getDaemonPatchCalls()[0][3];
+      const patch2: Patch[] = getDaemonPatchCalls()[1][3];
 
       [patch1, patch2].forEach((p) => {
         const daemonOp = p.find(
@@ -342,7 +369,66 @@ describe('payload', () => {
       const execute = labelNodes(nodes);
       const result = await execute();
 
-      expect(result).toEqual([resolved]);
+      expect(result).toEqual([resolved, resolved]);
+    });
+
+    it('should patch node-role from localClusterRole', async () => {
+      const nodes: WizardNodeState[] = [
+        {
+          name: 'node-disk',
+          hostName: 'node-disk',
+          cpu: '2',
+          memory: '4Gi',
+          zone: '',
+          rack: '',
+          uid: 'uid-disk',
+          roles: [],
+          labels: { 'some.io/label': 'value' },
+          taints: [],
+          architecture: 'amd64',
+          localClusterRole: 'disk-node',
+        },
+      ];
+      const execute = labelNodes(nodes);
+      await execute();
+
+      expect(getNodeRolePatchCalls()).toHaveLength(1);
+      expect(getNodeRolePatchCalls()[0][3]).toEqual([
+        {
+          op: 'add',
+          path: NODE_ROLE_LABEL_PATH,
+          value: 'disk-node',
+        },
+      ]);
+    });
+
+    it('should use replace for node-role when label already exists', async () => {
+      const nodes: WizardNodeState[] = [
+        {
+          name: 'node-cluster',
+          hostName: 'node-cluster',
+          cpu: '2',
+          memory: '4Gi',
+          zone: '',
+          rack: '',
+          uid: 'uid-cluster',
+          roles: [],
+          labels: { 'node-role': 'disk-node' },
+          taints: [],
+          architecture: 'amd64',
+          localClusterRole: 'cluster-node',
+        },
+      ];
+      const execute = labelNodes(nodes);
+      await execute();
+
+      expect(getNodeRolePatchCalls()[0][3]).toEqual([
+        {
+          op: 'replace',
+          path: NODE_ROLE_LABEL_PATH,
+          value: 'cluster-node',
+        },
+      ]);
     });
   });
 
