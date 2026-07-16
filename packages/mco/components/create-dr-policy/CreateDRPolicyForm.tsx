@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { usePrePairNetworkValidation } from '@odf/mco/hooks';
 import { getMajorVersion } from '@odf/mco/utils';
 import {
   ACM_DEFAULT_DOC_VERSION,
@@ -46,6 +47,10 @@ import {
   S3Details,
 } from './add-s3-bucket-details/s3-bucket-details-form';
 import './create-dr-policy.scss';
+import {
+  PrePairNetworkValidation,
+  shouldRunPrePairValidation,
+} from './pre-pair-network-validation';
 import { SelectClusterList } from './select-cluster-list';
 import { SelectReplicationBackend } from './select-replication-backend/select-replication-backend';
 import { SelectReplicationType } from './select-replication-type';
@@ -78,7 +83,8 @@ const areS3DetailsFormatValid = (d: S3Details): boolean =>
 
 export const validateDRPolicyInputs = (
   state: DRPolicyState,
-  allDRClustersExist = false
+  allDRClustersExist = false,
+  prePairValidationPassed = true
 ): boolean => {
   const {
     policyName,
@@ -95,6 +101,7 @@ export const validateDRPolicyInputs = (
     isFilled(policyName) &&
     !!replicationType &&
     isClusterSelectionValid &&
+    prePairValidationPassed &&
     selectedClusters.length === MAX_ALLOWED_CLUSTERS;
 
   if (!baseValid) return false;
@@ -317,10 +324,18 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
   const loaded = mirrorPeerLoaded && drClustersLoaded;
   const loadedError = mirrorPeerLoadError || drClustersLoadError;
 
-  const clusterNames = React.useMemo(
-    () => state.selectedClusters.map(getName),
-    [state.selectedClusters]
+  const clusterNames = state.selectedClusters.map(getName);
+  const shouldRunValidation = shouldRunPrePairValidation(
+    state.selectedClusters.length,
+    state.isClusterSelectionValid,
+    state.replicationBackend === BackendType.DataFoundation
   );
+  const prePairValidation = usePrePairNetworkValidation(
+    clusterNames,
+    shouldRunValidation
+  );
+  const prePairValidationPassed =
+    !shouldRunValidation || prePairValidation.canProceed;
 
   const acmDocVersion = useDocVersion({
     defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
@@ -393,7 +408,14 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
               mirrorPeers={mirrorPeers}
             />
           </FormGroup>
-          {state.isClusterSelectionValid && (
+          <FormGroup fieldId="pre-pair-network-validation">
+            <PrePairNetworkValidation
+              enabled={shouldRunValidation}
+              clusterNames={clusterNames}
+              validation={prePairValidation}
+            />
+          </FormGroup>
+          {state.isClusterSelectionValid && prePairValidationPassed && (
             <>
               {!state.selectedClustersHaveODF &&
                 state.selectedClusters.some(
@@ -491,7 +513,8 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
           isDisabled={
             !validateDRPolicyInputs(
               state,
-              selectedDRClusters.length === MAX_ALLOWED_CLUSTERS
+              selectedDRClusters.length === MAX_ALLOWED_CLUSTERS,
+              prePairValidationPassed
             ) || isLoading
           }
           isLoading={isLoading}

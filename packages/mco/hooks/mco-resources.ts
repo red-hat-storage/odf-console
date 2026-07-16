@@ -15,7 +15,13 @@ import {
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk';
-import { HUB_CLUSTER_NAME } from '../constants';
+import {
+  HUB_CLUSTER_NAME,
+  SUBMARINER_ADDON_KIND,
+  SUBMARINER_BROKER_KIND,
+  SUBMARINER_BROKER_NAMESPACE,
+  SUBMARINER_CLUSTER_KIND,
+} from '../constants';
 
 export const getDRClusterResourceObj = (props?: ClusterScopeObjectType) => ({
   cluster: HUB_CLUSTER_NAME,
@@ -145,6 +151,33 @@ export const getApplicationResourceObj = (props?: NamespacedObjectType) => ({
   kind: referenceForModel(ApplicationModel),
   ...(!props?.name ? { isList: true } : {}),
   namespaced: !!props?.namespace ? true : false,
+  optional: true,
+});
+
+export const getSubmarinerAddonListResourceObj = (clusterName: string) => ({
+  cluster: HUB_CLUSTER_NAME,
+  kind: SUBMARINER_ADDON_KIND,
+  isList: true,
+  namespace: clusterName,
+  namespaced: true,
+  optional: true,
+});
+
+export const getSubmarinerBrokerListResourceObj = () => ({
+  cluster: HUB_CLUSTER_NAME,
+  kind: SUBMARINER_BROKER_KIND,
+  isList: true,
+  namespace: SUBMARINER_BROKER_NAMESPACE,
+  namespaced: true,
+  optional: true,
+});
+
+export const getSubmarinerClusterListResourceObj = () => ({
+  cluster: HUB_CLUSTER_NAME,
+  kind: SUBMARINER_CLUSTER_KIND,
+  isList: true,
+  namespace: SUBMARINER_BROKER_NAMESPACE,
+  namespaced: true,
   optional: true,
 });
 
