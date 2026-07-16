@@ -35,6 +35,63 @@ enum Actions {
   EXPIRED_MARKERS = 'EXPIRED_MARKERS',
 }
 
+type DaysInputProps = {
+  id: string;
+  days: number;
+  onDaysChange: (days: number) => void;
+  isInvalid: boolean;
+  helperText: string;
+};
+
+const DaysInput: React.FC<DaysInputProps> = ({
+  id,
+  days,
+  onDaysChange,
+  isInvalid,
+  helperText,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['-', '+', 'e', 'E', '.'].includes(event.key)) {
+      event.preventDefault();
+    }
+  };
+
+  return (
+    <div className="pf-v6-u-w-25">
+      <TextInput
+        id={id}
+        value={days}
+        onChange={(_e, value) => onDaysChange(Math.round(+value || 0))}
+        onKeyDown={onKeyDown}
+        onBlur={() => {
+          if (days < 1) {
+            onDaysChange(1);
+          }
+        }}
+        placeholder={t('Enter number of days')}
+        type="number"
+        min={1}
+        validated={
+          isInvalid ? ValidatedOptions.error : ValidatedOptions.default
+        }
+      />
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem
+            variant={
+              isInvalid ? ValidatedOptions.error : ValidatedOptions.default
+            }
+          >
+            {isInvalid ? t('Must be an integer greater than 0.') : helperText}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
+    </div>
+  );
+};
+
 const ExpiredDeleteMarkers: React.FC<StateAndDispatchProps> = ({
   state,
   dispatch,
@@ -107,43 +164,18 @@ const IncompleteMultipartUploads: React.FC<StateAndDispatchProps> = ({
         }
         body={
           deleteIncompleteMultiparts.isChecked ? (
-            <div className="pf-v6-u-w-25">
-              <TextInput
-                id="incomplete-multiparts-delete-days"
-                value={deleteIncompleteMultiparts.days}
-                onChange={(_e, value) =>
-                  dispatch({
-                    type: RuleActionType.RULE_DELETE_MULTIPARTS_ACTION,
-                    payload: {
-                      ...deleteIncompleteMultiparts,
-                      days: Math.round(+value || 0),
-                    },
-                  })
-                }
-                placeholder={t('Enter number of days')}
-                type="number"
-                validated={
-                  invalidDeleteMultiparts
-                    ? ValidatedOptions.error
-                    : ValidatedOptions.default
-                }
-              />
-              <FormHelperText>
-                <HelperText>
-                  <HelperTextItem
-                    variant={
-                      invalidDeleteMultiparts
-                        ? ValidatedOptions.error
-                        : ValidatedOptions.default
-                    }
-                  >
-                    {invalidDeleteMultiparts
-                      ? t('Must be an integer greater than 0.')
-                      : t('Period of time (in days).')}
-                  </HelperTextItem>
-                </HelperText>
-              </FormHelperText>
-            </div>
+            <DaysInput
+              id="incomplete-multiparts-delete-days"
+              days={deleteIncompleteMultiparts.days}
+              onDaysChange={(days) =>
+                dispatch({
+                  type: RuleActionType.RULE_DELETE_MULTIPARTS_ACTION,
+                  payload: { ...deleteIncompleteMultiparts, days },
+                })
+              }
+              isInvalid={invalidDeleteMultiparts}
+              helperText={t('Period of time (in days).')}
+            />
           ) : null
         }
       />
@@ -218,45 +250,20 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
       body={
         deleteNonCurrent.isChecked ? (
           <>
-            <div className="pf-v6-u-w-25">
-              <TextInput
-                id="noncurrent-object-delete-days"
-                value={deleteNonCurrent.days}
-                onChange={(_e, value) =>
-                  dispatch({
-                    type: RuleActionType.RULE_DELETE_NON_CURRENT_ACTION,
-                    payload: {
-                      ...deleteNonCurrent,
-                      days: Math.round(+value || 0),
-                    },
-                  })
-                }
-                placeholder={t('Enter number of days')}
-                type="number"
-                validated={
-                  invalidDeleteNonCurrent
-                    ? ValidatedOptions.error
-                    : ValidatedOptions.default
-                }
-              />
-              <FormHelperText>
-                <HelperText>
-                  <HelperTextItem
-                    variant={
-                      invalidDeleteNonCurrent
-                        ? ValidatedOptions.error
-                        : ValidatedOptions.default
-                    }
-                  >
-                    {invalidDeleteNonCurrent
-                      ? t('Must be an integer greater than 0.')
-                      : t(
-                          'Period of time (in days) after which a noncurrent versions of object would be deleted since turning noncurrent.'
-                        )}
-                  </HelperTextItem>
-                </HelperText>
-              </FormHelperText>
-            </div>
+            <DaysInput
+              id="noncurrent-object-delete-days"
+              days={deleteNonCurrent.days}
+              onDaysChange={(days) =>
+                dispatch({
+                  type: RuleActionType.RULE_DELETE_NON_CURRENT_ACTION,
+                  payload: { ...deleteNonCurrent, days },
+                })
+              }
+              isInvalid={invalidDeleteNonCurrent}
+              helperText={t(
+                'Period of time (in days) after which a noncurrent versions of object would be deleted since turning noncurrent.'
+              )}
+            />
 
             <Content className="pf-v6-u-mt-lg">
               <Content component={ContentVariants.p}>
@@ -326,42 +333,20 @@ const CurrentObjects: React.FC<StateAndDispatchProps> = ({
       }}
       body={
         deleteCurrent.isChecked ? (
-          <div className="pf-v6-u-w-25">
-            <TextInput
-              id="current-object-delete-days"
-              value={deleteCurrent.days}
-              onChange={(_e, value) =>
-                dispatch({
-                  type: RuleActionType.RULE_DELETE_CURRENT_ACTION,
-                  payload: { ...deleteCurrent, days: Math.round(+value || 0) },
-                })
-              }
-              placeholder={t('Enter number of days')}
-              type="number"
-              validated={
-                invalidDeleteCurrent
-                  ? ValidatedOptions.error
-                  : ValidatedOptions.default
-              }
-            />
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem
-                  variant={
-                    invalidDeleteCurrent
-                      ? ValidatedOptions.error
-                      : ValidatedOptions.default
-                  }
-                >
-                  {invalidDeleteCurrent
-                    ? t('Must be an integer greater than 0.')
-                    : t(
-                        'Period of time (in days) after which an object would be deleted since its creation.'
-                      )}
-                </HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-          </div>
+          <DaysInput
+            id="current-object-delete-days"
+            days={deleteCurrent.days}
+            onDaysChange={(days) =>
+              dispatch({
+                type: RuleActionType.RULE_DELETE_CURRENT_ACTION,
+                payload: { ...deleteCurrent, days },
+              })
+            }
+            isInvalid={invalidDeleteCurrent}
+            helperText={t(
+              'Period of time (in days) after which an object would be deleted since its creation.'
+            )}
+          />
         ) : null
       }
     />
@@ -454,7 +439,7 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
             </Content>
             <Content
               component={ContentVariants.small}
-              className={invalidDeleteCurrent && 's3-lifecycle--margin'}
+              className={`s3-lifecycle-action-description ${invalidDeleteCurrent ? 's3-lifecycle--margin' : ''}`}
             >
               {t('Delete an object after a specified time.')}
             </Content>
@@ -497,7 +482,10 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                 )}
               </span>
             </Content>
-            <Content component={ContentVariants.small}>
+            <Content
+              component={ContentVariants.small}
+              className="s3-lifecycle-action-description"
+            >
               {t(
                 'Delete older versions of objects after they become noncurrent (e.g., a new version overwrites them). Applies only to versioned buckets.'
               )}
@@ -541,7 +529,10 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                 )}
               </span>
             </Content>
-            <Content component={ContentVariants.small}>
+            <Content
+              component={ContentVariants.small}
+              className="s3-lifecycle-action-description"
+            >
               {t(
                 'Clean up abandoned uploads to prevent accruing unnecessary storage costs. Targets multipart uploads that were initiated but never completed.'
               )}
@@ -570,7 +561,10 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
                 </Label>
               )}
             </Content>
-            <Content component={ContentVariants.small}>
+            <Content
+              component={ContentVariants.small}
+              className="s3-lifecycle-action-description"
+            >
               {t(
                 'Remove unnecessary delete markers that clutter bucket listings and do not serve a purpose. Targets delete markers in versioned buckets that do not have any associated object versions (orphaned delete markers).'
               )}

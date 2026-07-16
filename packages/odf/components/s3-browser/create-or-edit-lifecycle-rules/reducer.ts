@@ -18,6 +18,12 @@ export enum FuncType {
   ON_MINUS = 'MINUS',
   ON_CHANGE = 'CHANGE',
 }
+export enum LifecycleRuleStep {
+  GENERAL = 'GENERAL',
+  FILTERS = 'FILTERS',
+  ACTIONS = 'ACTIONS',
+  REVIEW = 'REVIEW',
+}
 
 export type StateAndDispatchProps = {
   state: RuleState;

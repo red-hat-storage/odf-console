@@ -1,3 +1,7 @@
+.s3-lifecycle-wizard > div > div {
+    max-height: 66vh;
+}
+
 .s3-lifecycle--margin {
     margin-left: calc(var(--pf-t--global--spacer--md) * -1);
 }
@@ -10,4 +14,10 @@
     .pf-v6-c-alert__title {
         font-weight: var(--pf-t--global--font--weight--body--default);
     }
+}
+
+.s3-lifecycle-action-description {
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: left;
 }
