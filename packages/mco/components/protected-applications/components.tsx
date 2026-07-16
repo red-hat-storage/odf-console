@@ -92,7 +92,7 @@ export const EnrollApplicationButton: React.FC<{
           !isNoDataMessage,
       })}
     >
-      <div className="pf-v6-u-ml-md pf-v6-u-mt-md">
+      <div className="pf-v6-u-ml-md">
         <ActionDropdown
           id="enroll-application-types"
           aria-label={t('Enroll application')}

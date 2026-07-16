@@ -2,21 +2,18 @@ import * as React from 'react';
 import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
 import {
   getApplicationName,
-  getDRPlacementControlRef,
   getPAVDRPolicyName,
   getPrimaryCluster,
 } from '@odf/mco/utils';
-import {
-  DRPlacementControlModel,
-  getNamespace,
-  useModalWrapper,
-} from '@odf/shared';
+import { DRPlacementControlModel, useModalWrapper } from '@odf/shared';
 import { DASH } from '@odf/shared/constants';
 import { PaginatedListPage } from '@odf/shared/list-page';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
+import { getUID } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
+  K8sResourceCommon,
   useK8sWatchResource,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -26,7 +23,8 @@ import {
   NavigateFunction,
   useNavigate,
 } from 'react-router-dom-v5-compat';
-import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
+import { Button, ButtonVariant } from '@patternfly/react-core';
+import { ActionsColumn, OnSelect, Td, Tr } from '@patternfly/react-table';
 import { DR_BASE_ROUTE } from '../../constants';
 import {
   getDRPlacementControlResourceObj,
@@ -35,6 +33,7 @@ import {
 import { DRPlacementControlKind } from '../../types';
 import { DRPlacementControlParser as DRStatusPopover } from '../dr-status-popover/parsers';
 import { getMCVName } from '../modals/app-manage-policies/helper/consistency-groups';
+import { BulkSelector } from './bulk-selector';
 import {
   AlertMessages,
   EmptyRowMessage,
@@ -44,6 +43,7 @@ import {
   NoDataMessage,
 } from './components';
 import { useDROperationAlert } from './dr-operation-alert-helper';
+import { getDRPCKey, useProtectedAppsSelection } from './use-selection';
 import './protected-apps.scss';
 import {
   drpcDetailsPageRoute,
@@ -52,21 +52,71 @@ import {
   getRowActions,
 } from './utils';
 
+type ProtectedAppsToolbarProps = {
+  selectedCount: number;
+  eligiblePageCount: number;
+  eligibleTotalCount: number;
+  isPartiallySelected: boolean;
+  isAllPageSelected: boolean;
+  onSelectNone: () => void;
+  onSelectPage: () => void;
+  onSelectAll: () => void;
+};
+
+const ProtectedAppsToolbar: React.FC<ProtectedAppsToolbarProps> = ({
+  selectedCount,
+  eligiblePageCount,
+  eligibleTotalCount,
+  isPartiallySelected,
+  isAllPageSelected,
+  onSelectNone,
+  onSelectPage,
+  onSelectAll,
+}) => {
+  const { t } = useCustomTranslation();
+  return (
+    <div className="mco-protected-applications__toolbar-actions">
+      <BulkSelector
+        selectedCount={selectedCount}
+        eligiblePageCount={eligiblePageCount}
+        eligibleTotalCount={eligibleTotalCount}
+        isPartiallySelected={isPartiallySelected}
+        isAllSelected={isAllPageSelected}
+        onSelectNone={onSelectNone}
+        onSelectPage={onSelectPage}
+        onSelectAll={onSelectAll}
+      />
+      <Button
+        variant={ButtonVariant.secondary}
+        isDisabled={selectedCount === 0}
+      >
+        {t('Failover/Relocate')}
+      </Button>
+    </div>
+  );
+};
+
+type RowSelectProps = {
+  onRowSelect: OnSelect;
+  isSelected: (pav: ProtectedApplicationViewKind) => boolean;
+  isDisabled: (pav: ProtectedApplicationViewKind) => boolean;
+};
+
 type RowExtraProps = {
   launcher: LaunchModal;
   navigate: NavigateFunction;
   drpcMap: Map<string, DRPlacementControlKind>;
+  selectProps: RowSelectProps;
 };
 
 const ProtectedAppsTableRow: React.FC<
   RowComponentType<ProtectedApplicationViewKind>
-> = ({ row: pav, extraProps }) => {
+> = ({ row: pav, rowIndex, extraProps }) => {
   const { t } = useCustomTranslation();
-  const { launcher, navigate, drpcMap }: RowExtraProps = extraProps;
+  const { launcher, navigate, drpcMap, selectProps }: RowExtraProps =
+    extraProps;
 
-  const drpcRef = getDRPlacementControlRef(pav);
-  const drpcKey = `${drpcRef.namespace || getNamespace(pav)}/${drpcRef.name}`;
-  const drpc = drpcMap.get(drpcKey);
+  const drpc = drpcMap.get(getDRPCKey(pav));
 
   const [expandableComponentType, setExpandableComponentType] = React.useState(
     ExpandableComponentType.DEFAULT
@@ -79,10 +129,12 @@ const ProtectedAppsTableRow: React.FC<
   const isExpanded: boolean =
     expandableComponentType === ExpandableComponentType.NS;
 
+  const totalColSpan = Object.keys(columnNames).length + 2;
+
   if (!drpc) {
     return (
       <Tr>
-        <Td colSpan={Object.keys(columnNames).length + 1}>
+        <Td colSpan={totalColSpan}>
           <div className="text-muted pf-v6-u-text-align-center pf-v6-u-p-md">
             {t('DRPlacementControl resource not found for')}{' '}
             <strong>{appName}</strong>
@@ -98,7 +150,7 @@ const ProtectedAppsTableRow: React.FC<
         <Td
           data-test="expand-button"
           expand={{
-            rowIndex: 0,
+            rowIndex: rowIndex ?? 0,
             isExpanded: isExpanded,
             onToggle: () =>
               setExpandableComponentType(
@@ -107,6 +159,15 @@ const ProtectedAppsTableRow: React.FC<
                   : ExpandableComponentType.NS
               ),
             expandId: 'expandable-table',
+          }}
+        />
+        <Td
+          select={{
+            rowIndex: rowIndex ?? 0,
+            onSelect: selectProps.onRowSelect,
+            isSelected: selectProps.isSelected(pav),
+            isDisabled: selectProps.isDisabled(pav),
+            props: { id: getUID(pav) },
           }}
         />
         <Td dataLabel={columnNames[1]}>
@@ -136,7 +197,7 @@ const ProtectedAppsTableRow: React.FC<
       </Tr>
       {isExpanded && (
         <Tr>
-          <Td colSpan={Object.keys(columnNames).length + 1}>
+          <Td colSpan={totalColSpan}>
             <NamespacesDetails view={pav} mcvName={getMCVName(drpc)} />
           </Td>
         </Tr>
@@ -158,7 +219,6 @@ export const ProtectedApplicationsListPage: React.FC = () => {
     DRPlacementControlKind[]
   >(getDRPlacementControlResourceObj({}));
 
-  // Monitor for DR operation completions and show alerts
   useDROperationAlert(drpcs || []);
 
   const drpcMap = React.useMemo(() => {
@@ -177,12 +237,50 @@ export const ProtectedApplicationsListPage: React.FC = () => {
 
   const [data, filteredData, onFilterChange] = useListPageFilter(pavs || []);
 
+  const [pagePavs, setPagePavs] = React.useState<
+    ProtectedApplicationViewKind[]
+  >([]);
+
+  const onPaginatedDataChange = React.useCallback(
+    (paginatedData: K8sResourceCommon[]) => {
+      setPagePavs(paginatedData as ProtectedApplicationViewKind[]);
+    },
+    []
+  );
+
+  const selection = useProtectedAppsSelection(
+    filteredData as ProtectedApplicationViewKind[],
+    pagePavs,
+    drpcMap
+  );
+
+  const rowSelectProps: RowSelectProps = {
+    onRowSelect: selection.onRowSelect,
+    isSelected: selection.isSelected,
+    isDisabled: selection.isDisabled,
+  };
+
+  const toolbarActions = (
+    <ProtectedAppsToolbar
+      selectedCount={selection.selectedCount}
+      eligiblePageCount={selection.eligiblePageCount}
+      eligibleTotalCount={selection.eligibleTotalCount}
+      isPartiallySelected={selection.isPartiallySelected}
+      isAllPageSelected={selection.isAllPageSelected}
+      onSelectNone={selection.onSelectNone}
+      onSelectPage={selection.onSelectPage}
+      onSelectAll={selection.onSelectAll}
+    />
+  );
+
   return (
     <PaginatedListPage
       filteredData={filteredData}
       CreateButton={EnrollApplicationButton}
+      toolbarActions={toolbarActions}
       Alerts={AlertMessages}
       noData={!isAllLoadedWOAnyError || !data.length}
+      onPaginatedDataChange={onPaginatedDataChange}
       listPageFilterProps={{
         data: data,
         loaded: drpcsLoaded && pavsLoaded,
@@ -191,12 +289,21 @@ export const ProtectedApplicationsListPage: React.FC = () => {
       composableTableProps={{
         columns: getHeaderColumns(t),
         RowComponent: ProtectedAppsTableRow,
-        extraProps: { launcher, navigate, drpcMap },
+        extraProps: {
+          launcher,
+          navigate,
+          drpcMap,
+          selectProps: rowSelectProps,
+        },
         emptyRowMessage: EmptyRowMessage,
         unfilteredData: data as [],
         noDataMsg: NoDataMessage,
         loaded: pavsLoaded && drpcsLoaded,
         loadError: pavsError || drpcsError,
+        selectProps: {
+          onSelect: selection.onSelectAllPage,
+          isAllSelected: selection.isAllPageSelected,
+        },
       }}
     />
   );
