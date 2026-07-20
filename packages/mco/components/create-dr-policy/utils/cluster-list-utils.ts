@@ -10,7 +10,7 @@ import { getLabel, getName, getNamespace } from '@odf/shared/selectors';
 import { ConfigMapKind } from '@odf/shared/types';
 import { sortRows } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { safeLoad } from 'js-yaml';
+import { load } from 'js-yaml';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
@@ -88,7 +88,7 @@ const getODFInfo = (
     // ToDo: Update this once we add support for multiple clusters
     const odfInfoKey = Object.keys(odfInfoConfigData)[0];
     const odfInfoYaml = odfInfoConfigData[odfInfoKey];
-    const odfInfo: ODFInfoYamlObject = safeLoad(odfInfoYaml);
+    const odfInfo: ODFInfoYamlObject = load(odfInfoYaml);
     const storageClusterName = odfInfo?.storageCluster?.namespacedName?.name;
     const storageClusterNamespace =
       odfInfo?.storageCluster?.namespacedName?.namespace;
