@@ -1,11 +1,11 @@
 import * as React from 'react';
+import { useKernelDevelEligibility } from '@odf/core/components/create-storage-system/external-systems/CreateScaleSystem/hooks/useKernelDevelEligibility';
 import { SCALE_DAEMON_NODE_LABEL } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom-v5-compat';
-import { useKernelDevelEligibility } from '../create-storage-system/external-systems/CreateScaleSystem/hooks/useKernelDevelEligibility';
 import AddLocalScaleNodesModal from './AddLocalScaleNodesModal';
 
 const mockPatchNode = jest.fn();
@@ -16,7 +16,7 @@ jest.mock('@odf/core/hooks', () => ({
 }));
 
 jest.mock(
-  '../create-storage-system/external-systems/CreateScaleSystem/hooks/useKernelDevelEligibility',
+  '@odf/core/components/create-storage-system/external-systems/CreateScaleSystem/hooks/useKernelDevelEligibility',
   () => ({ useKernelDevelEligibility: jest.fn() })
 );
 
