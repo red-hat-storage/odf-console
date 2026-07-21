@@ -176,7 +176,9 @@ export const detectComponents: FeatureDetector = async (
   };
 
   const noobaaDetector =
-    PLUGIN_OPENSHIFT_CI === 'true' || PLUGIN_OPENSHIFT_CI === '1'
+    PLUGIN_OPENSHIFT_CI === 'true' ||
+    PLUGIN_OPENSHIFT_CI === '1' ||
+    process.env.NODE_ENV === 'development'
       ? noobaaDetectorCI
       : noobaaDetectorProd;
 
