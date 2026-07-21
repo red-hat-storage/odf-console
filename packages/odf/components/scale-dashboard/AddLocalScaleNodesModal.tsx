@@ -9,6 +9,7 @@ import {
   getNodeCPUCapacity,
   getNodeTotalMemory,
   getZone,
+  nodesWithoutTaints,
 } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared';
 import { NodeModel } from '@odf/shared/models';
@@ -108,7 +109,7 @@ const AddLocalScaleNodesModal: React.FC<AddLocalScaleNodesModalProps> = ({
 
   const candidates = React.useMemo(
     () =>
-      nodes.filter(
+      nodesWithoutTaints(nodes).filter(
         (node) =>
           isExpansionCandidate(node) && !successfulNames.includes(getName(node))
       ),

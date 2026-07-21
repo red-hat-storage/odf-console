@@ -94,6 +94,15 @@ const LocalStorageClusterCard: React.FC = () => {
   const clusterName = getName(cluster);
   const isEncrypted = !!getName(encryptionConfig);
   const encryptionConfigNotFound = isNotFoundError(encryptionConfigLoadError);
+  const canEditLocalCluster =
+    clusterLoaded && !clusterLoadError && !!clusterName;
+  const canEnableEncryption =
+    canEditLocalCluster &&
+    !isEncrypted &&
+    !encryptionConfigLoadError &&
+    encryptionConfigLoaded;
+  const canEnableEncryptionAfterNotFound =
+    canEditLocalCluster && !isEncrypted && encryptionConfigNotFound;
 
   const openNodeExpansion = React.useCallback(
     () => launchModal(AddLocalScaleNodesModal, { systemName, isOpen: true }),
@@ -103,10 +112,9 @@ const LocalStorageClusterCard: React.FC = () => {
     () =>
       launchModal(EncryptionConfigModal, {
         systemName,
-        encryptionConfig,
         isOpen: true,
       }),
-    [encryptionConfig, launchModal, systemName]
+    [launchModal, systemName]
   );
 
   return (
@@ -140,14 +148,16 @@ const LocalStorageClusterCard: React.FC = () => {
               basePath={nodesHref}
             />
           </FlexItem>
-          <FlexItem>
-            <Button
-              variant="plain"
-              aria-label={t('Edit node inventory')}
-              onClick={openNodeExpansion}
-              icon={<PencilAltIcon />}
-            />
-          </FlexItem>
+          {canEditLocalCluster && (
+            <FlexItem>
+              <Button
+                variant="plain"
+                aria-label={t('Edit node inventory')}
+                onClick={openNodeExpansion}
+                icon={<PencilAltIcon />}
+              />
+            </FlexItem>
+          )}
         </Flex>
         <DescriptionList className="pf-v6-u-mt-md">
           <DescriptionListGroup>
@@ -165,17 +175,16 @@ const LocalStorageClusterCard: React.FC = () => {
                     t('Disabled')
                   )}
                 </FlexItem>
-                <FlexItem>
-                  <Button
-                    variant="plain"
-                    aria-label={t('Edit encryption')}
-                    onClick={openEncryptionConfig}
-                    icon={<PencilAltIcon />}
-                    isDisabled={
-                      !encryptionConfigLoaded && !encryptionConfigNotFound
-                    }
-                  />
-                </FlexItem>
+                {(canEnableEncryption || canEnableEncryptionAfterNotFound) && (
+                  <FlexItem>
+                    <Button
+                      variant="plain"
+                      aria-label={t('Edit encryption')}
+                      onClick={openEncryptionConfig}
+                      icon={<PencilAltIcon />}
+                    />
+                  </FlexItem>
+                )}
               </Flex>
             </DescriptionListDescription>
           </DescriptionListGroup>

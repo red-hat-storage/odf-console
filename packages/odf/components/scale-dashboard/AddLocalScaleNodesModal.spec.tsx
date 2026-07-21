@@ -70,9 +70,18 @@ describe('AddLocalScaleNodesModal', () => {
   };
 
   it('shows only unassigned worker expansion candidates', () => {
+    const cordonedWorker = makeNode('worker-cordoned');
+    cordonedWorker.spec.unschedulable = true;
+    const taintedWorker = makeNode('worker-tainted');
+    taintedWorker.spec.taints = [
+      { key: 'dedicated', value: 'other', effect: 'NoSchedule' },
+    ];
+
     (useNodesData as jest.Mock).mockReturnValue([
       [
         makeNode('worker-candidate'),
+        cordonedWorker,
+        taintedWorker,
         makeNode('worker-assigned', {
           'node-role.kubernetes.io/worker': '',
           [SCALE_DAEMON_NODE_LABEL]: '',
@@ -88,6 +97,8 @@ describe('AddLocalScaleNodesModal', () => {
     openModal();
 
     expect(screen.getByText('worker-candidate')).toBeInTheDocument();
+    expect(screen.getByText('worker-cordoned')).toBeInTheDocument();
+    expect(screen.queryByText('worker-tainted')).not.toBeInTheDocument();
     expect(screen.queryByText('worker-assigned')).not.toBeInTheDocument();
     expect(screen.queryByText('control-plane')).not.toBeInTheDocument();
   });

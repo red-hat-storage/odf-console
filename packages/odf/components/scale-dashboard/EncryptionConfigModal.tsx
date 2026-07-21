@@ -7,10 +7,8 @@ import {
 } from '@odf/core/components/create-storage-system/external-systems/CreateScaleSystem/payload';
 import useScaleSystemFormValidation from '@odf/core/components/create-storage-system/external-systems/CreateScaleSystem/useFormValidation';
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
-import { EncryptionConfigKind } from '@odf/core/types/scale';
 import { useCustomTranslation } from '@odf/shared';
 import { ConfigMapModel, SecretModel } from '@odf/shared/models';
-import { EncryptionConfigModel } from '@odf/shared/models/scale';
 import { k8sDelete } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import {
@@ -28,7 +26,6 @@ import {
 
 type EncryptionConfigModalProps = {
   closeModal: () => void;
-  encryptionConfig?: EncryptionConfigKind;
   isOpen: boolean;
   systemName: string;
 };
@@ -39,17 +36,13 @@ const namespacedResourceRef = (name: string) => ({
 
 const EncryptionConfigModal: React.FC<EncryptionConfigModalProps> = ({
   closeModal,
-  encryptionConfig,
   isOpen,
   systemName,
 }) => {
   const { t } = useCustomTranslation();
-  const isCurrentlyEnabled = !!encryptionConfig?.metadata?.name;
-  const [isEnabled, setIsEnabled] = React.useState(isCurrentlyEnabled);
+  const [isEnabled, setIsEnabled] = React.useState(false);
   const [certificate, setCertificate] = React.useState('');
-  const [certificateFileName, setCertificateFileName] = React.useState(
-    encryptionConfig?.spec?.cacert ?? ''
-  );
+  const [certificateFileName, setCertificateFileName] = React.useState('');
   const [error, setError] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -62,15 +55,13 @@ const EncryptionConfigModal: React.FC<EncryptionConfigModalProps> = ({
   } = useScaleSystemFormValidation(undefined, {
     encryptionOnly: true,
     defaultValues: {
-      encryptionUserName: isCurrentlyEnabled ? '********' : '',
-      encryptionPassword: isCurrentlyEnabled ? '********' : '',
-      encryptionPort: isCurrentlyEnabled
-        ? String(encryptionConfig?.spec?.port ?? 9443)
-        : '',
-      client: encryptionConfig?.spec?.client ?? '',
-      remoteRKM: encryptionConfig?.spec?.remoteRKM ?? '',
-      serverInformation: encryptionConfig?.spec?.server ?? '',
-      tenantId: encryptionConfig?.spec?.tenant ?? '',
+      encryptionUserName: '',
+      encryptionPassword: '',
+      encryptionPort: '',
+      client: '',
+      remoteRKM: '',
+      serverInformation: '',
+      tenantId: '',
     },
   });
 
@@ -142,58 +133,11 @@ const EncryptionConfigModal: React.FC<EncryptionConfigModalProps> = ({
     getValues,
   ]);
 
-  const disableEncryption = React.useCallback(async () => {
-    setError('');
-    setIsSubmitting(true);
-    try {
-      await deleteResource(EncryptionConfigModel, encryptionConfigName);
-
-      const supportingResources = [];
-      if (encryptionConfig?.spec?.secret === encryptionSecretName) {
-        supportingResources.push(
-          deleteResource(SecretModel, encryptionSecretName)
-        );
-      }
-      if (encryptionConfig?.spec?.cacert === encryptionConfigName) {
-        supportingResources.push(
-          deleteResource(ConfigMapModel, encryptionConfigName)
-        );
-      }
-      const cleanupResults = await Promise.allSettled(supportingResources);
-      const cleanupFailed = cleanupResults.some(
-        (result) => result.status === 'rejected'
-      );
-      if (cleanupFailed) {
-        throw new Error(t('Encryption was disabled, but cleanup failed'));
-      }
-      closeModal();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    closeModal,
-    deleteResource,
-    encryptionConfig,
-    encryptionConfigName,
-    encryptionSecretName,
-    t,
-  ]);
-
   const save = React.useCallback(() => {
-    if (isCurrentlyEnabled && !isEnabled) {
-      disableEncryption();
-    } else if (!isCurrentlyEnabled && isEnabled) {
+    if (isEnabled) {
       handleSubmit(enableEncryption)();
     }
-  }, [
-    disableEncryption,
-    enableEncryption,
-    handleSubmit,
-    isCurrentlyEnabled,
-    isEnabled,
-  ]);
+  }, [enableEncryption, handleSubmit, isEnabled]);
 
   const onCertificateInputChange = React.useCallback((_event, file: File) => {
     setCertificateFileName(file.name);
@@ -204,9 +148,7 @@ const EncryptionConfigModal: React.FC<EncryptionConfigModalProps> = ({
     reader.readAsText(file);
   }, []);
 
-  const isSaveDisabled = isCurrentlyEnabled
-    ? isEnabled
-    : !isEnabled || !isValid;
+  const isSaveDisabled = !isEnabled || !isValid;
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal} variant={ModalVariant.small}>
@@ -232,7 +174,6 @@ const EncryptionConfigModal: React.FC<EncryptionConfigModalProps> = ({
               certificateFileName={certificateFileName}
               control={control}
               fieldRequirements={fieldRequirements}
-              isDisabled={isCurrentlyEnabled}
               onCertificateClear={() => {
                 setCertificate('');
                 setCertificateFileName('');

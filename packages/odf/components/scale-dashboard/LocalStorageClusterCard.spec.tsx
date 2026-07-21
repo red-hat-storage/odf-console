@@ -213,6 +213,30 @@ describe('LocalStorageClusterCard', () => {
       );
     });
 
+    it.each([
+      { cluster: null, clusterLoaded: true, clusterLoadError: null },
+      {
+        cluster: makeCluster(IBM_SCALE_LOCAL_CLUSTER_NAME),
+        clusterLoaded: false,
+        clusterLoadError: null,
+      },
+      {
+        cluster: makeCluster(IBM_SCALE_LOCAL_CLUSTER_NAME),
+        clusterLoaded: false,
+        clusterLoadError: new Error('failed'),
+      },
+    ])(
+      'should hide node expansion until the local cluster is available',
+      ({ cluster, clusterLoaded, clusterLoadError }) => {
+        setupMocks({ cluster, clusterLoaded, clusterLoadError });
+        renderCard();
+
+        expect(
+          screen.queryByRole('button', { name: 'Edit node inventory' })
+        ).not.toBeInTheDocument();
+      }
+    );
+
     it('should watch only nodes selected for the local cluster', () => {
       setupMocks();
       renderCard();
@@ -274,11 +298,8 @@ describe('LocalStorageClusterCard', () => {
   });
 
   describe('Encryption field', () => {
-    it('should open encryption configuration for the viewed Scale system', async () => {
-      const encryptionConfig = makeEncryptionConfig(
-        `${systemName}-encryption-config`
-      );
-      setupMocks({ encryptionConfig });
+    it('should open encryption enablement for the viewed Scale system', async () => {
+      setupMocks();
       renderCard();
 
       await userEvent.click(
@@ -287,7 +308,7 @@ describe('LocalStorageClusterCard', () => {
 
       expect(launchModal).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ systemName, encryptionConfig })
+        expect.objectContaining({ systemName })
       );
     });
 
@@ -333,7 +354,34 @@ describe('LocalStorageClusterCard', () => {
       });
       renderCard();
       expect(screen.getByText('Enabled')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Edit encryption' })
+      ).not.toBeInTheDocument();
     });
+
+    it.each([
+      { cluster: null, clusterLoaded: true, clusterLoadError: null },
+      {
+        cluster: makeCluster(IBM_SCALE_LOCAL_CLUSTER_NAME),
+        clusterLoaded: false,
+        clusterLoadError: null,
+      },
+      {
+        cluster: makeCluster(IBM_SCALE_LOCAL_CLUSTER_NAME),
+        clusterLoaded: false,
+        clusterLoadError: new Error('failed'),
+      },
+    ])(
+      'should hide encryption enablement until the local cluster is available',
+      ({ cluster, clusterLoaded, clusterLoadError }) => {
+        setupMocks({ cluster, clusterLoaded, clusterLoadError });
+        renderCard();
+
+        expect(
+          screen.queryByRole('button', { name: 'Edit encryption' })
+        ).not.toBeInTheDocument();
+      }
+    );
 
     it('should show a skeleton while loading', () => {
       setupMocks({ encryptionConfigLoaded: false });
