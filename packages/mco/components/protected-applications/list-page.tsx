@@ -19,15 +19,26 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Link, NavigateFunction, useNavigate } from 'react-router';
-import { Button, ButtonVariant } from '@patternfly/react-core';
+import {
+  Alert,
+  AlertActionCloseButton,
+  AlertVariant,
+  Button,
+  ButtonVariant,
+} from '@patternfly/react-core';
 import { ActionsColumn, OnSelect, Td, Tr } from '@patternfly/react-table';
-import { DR_BASE_ROUTE } from '../../constants';
+import { DRActionType, DR_BASE_ROUTE } from '../../constants';
 import {
   getDRPlacementControlResourceObj,
   getProtectedApplicationViewResourceObj,
 } from '../../hooks';
 import { DRPlacementControlKind } from '../../types';
 import { DRPlacementControlParser as DRStatusPopover } from '../dr-status-popover/parsers';
+import {
+  BatchFailoverRelocateModal,
+  BatchFailoverRelocateExtraProps,
+  BatchFailureResult,
+} from '../modals/app-failover-relocate/batch-failover-relocate-modal';
 import { getMCVName } from '../modals/app-manage-policies/helper/consistency-groups';
 import { BulkSelector } from './bulk-selector';
 import {
@@ -48,6 +59,52 @@ import {
   getRowActions,
 } from './utils';
 
+type BatchFailureAlertProps = {
+  failure: BatchFailureResult;
+  onDismiss: () => void;
+  onRetry: () => void;
+};
+
+const BatchFailureAlert: React.FC<BatchFailureAlertProps> = ({
+  failure,
+  onDismiss,
+  onRetry,
+}) => {
+  const { t } = useCustomTranslation();
+  const actionName =
+    failure.action === DRActionType.FAILOVER ? t('failover') : t('relocate');
+  const actionProgress =
+    failure.action === DRActionType.FAILOVER
+      ? t('failing over')
+      : t('relocating');
+
+  return (
+    <Alert
+      variant={AlertVariant.warning}
+      title={t('{{count}} applications unable to {{action}}', {
+        count: failure.failedDRPCs.length,
+        action: actionName,
+      })}
+      isInline
+      actionClose={<AlertActionCloseButton onClose={onDismiss} />}
+      actionLinks={
+        <Button variant={ButtonVariant.link} isInline onClick={onRetry}>
+          {t('Retry')}
+        </Button>
+      }
+    >
+      {t(
+        '{{failed}} of {{total}} applications were unable to begin {{action}}.',
+        {
+          failed: failure.failedDRPCs.length,
+          total: failure.totalCount,
+          action: actionProgress,
+        }
+      )}
+    </Alert>
+  );
+};
+
 type ProtectedAppsToolbarProps = {
   selectedCount: number;
   eligiblePageCount: number;
@@ -57,6 +114,7 @@ type ProtectedAppsToolbarProps = {
   onSelectNone: () => void;
   onSelectPage: () => void;
   onSelectAll: () => void;
+  onBatchAction: () => void;
 };
 
 const ProtectedAppsToolbar: React.FC<ProtectedAppsToolbarProps> = ({
@@ -68,6 +126,7 @@ const ProtectedAppsToolbar: React.FC<ProtectedAppsToolbarProps> = ({
   onSelectNone,
   onSelectPage,
   onSelectAll,
+  onBatchAction,
 }) => {
   const { t } = useCustomTranslation();
   return (
@@ -85,6 +144,7 @@ const ProtectedAppsToolbar: React.FC<ProtectedAppsToolbarProps> = ({
       <Button
         variant={ButtonVariant.secondary}
         isDisabled={selectedCount === 0}
+        onClick={onBatchAction}
       >
         {t('Failover/Relocate')}
       </Button>
@@ -204,7 +264,7 @@ const ProtectedAppsTableRow: React.FC<
 
 export const ProtectedApplicationsListPage: React.FC = () => {
   const { t } = useCustomTranslation();
-  const launcher = useModalWrapper();
+  const launcher: LaunchModal = useModalWrapper();
   const navigate = useNavigate();
 
   const [pavs, pavsLoaded, pavsError] = useK8sWatchResource<
@@ -250,6 +310,37 @@ export const ProtectedApplicationsListPage: React.FC = () => {
     drpcMap
   );
 
+  const [batchFailure, setBatchFailure] =
+    React.useState<BatchFailureResult | null>(null);
+
+  const launchBatchModal = React.useCallback(
+    (selectedDRPCs: DRPlacementControlKind[], initialAction?: DRActionType) => {
+      const extraProps: BatchFailoverRelocateExtraProps = {
+        selectedDRPCs,
+        onComplete: selection.onSelectNone,
+        onPartialFailure: (result: BatchFailureResult) =>
+          setBatchFailure(result),
+        ...(initialAction && { initialAction }),
+      };
+      launcher(BatchFailoverRelocateModal, { isOpen: true, extraProps });
+    },
+    [launcher, selection.onSelectNone]
+  );
+
+  const onBatchAction = React.useCallback(() => {
+    const selectedDRPCs = (
+      filteredData as ProtectedApplicationViewKind[]
+    ).reduce<DRPlacementControlKind[]>((acc, pav) => {
+      if (selection.isSelected(pav)) {
+        const drpc = drpcMap.get(getDRPCKey(pav));
+        if (drpc) acc.push(drpc);
+      }
+      return acc;
+    }, []);
+
+    if (selectedDRPCs.length > 0) launchBatchModal(selectedDRPCs);
+  }, [filteredData, selection, drpcMap, launchBatchModal]);
+
   const rowSelectProps: RowSelectProps = {
     onRowSelect: selection.onRowSelect,
     isSelected: selection.isSelected,
@@ -266,41 +357,57 @@ export const ProtectedApplicationsListPage: React.FC = () => {
       onSelectNone={selection.onSelectNone}
       onSelectPage={selection.onSelectPage}
       onSelectAll={selection.onSelectAll}
+      onBatchAction={onBatchAction}
     />
   );
 
+  const onRetry = React.useCallback(() => {
+    if (!batchFailure) return;
+    setBatchFailure(null);
+    launchBatchModal(batchFailure.failedDRPCs, batchFailure.action);
+  }, [batchFailure, launchBatchModal]);
+
   return (
-    <PaginatedListPage
-      filteredData={filteredData}
-      CreateButton={EnrollApplicationButton}
-      toolbarActions={toolbarActions}
-      Alerts={AlertMessages}
-      noData={!isAllLoadedWOAnyError || !data.length}
-      onPaginatedDataChange={onPaginatedDataChange}
-      listPageFilterProps={{
-        data: data,
-        loaded: drpcsLoaded && pavsLoaded,
-        onFilterChange: onFilterChange,
-      }}
-      composableTableProps={{
-        columns: getHeaderColumns(t),
-        RowComponent: ProtectedAppsTableRow,
-        extraProps: {
-          launcher,
-          navigate,
-          drpcMap,
-          selectProps: rowSelectProps,
-        },
-        emptyRowMessage: EmptyRowMessage,
-        unfilteredData: data as [],
-        noDataMsg: NoDataMessage,
-        loaded: pavsLoaded && drpcsLoaded,
-        loadError: pavsError || drpcsError,
-        selectProps: {
-          onSelect: selection.onSelectAllPage,
-          isAllSelected: selection.isAllPageSelected,
-        },
-      }}
-    />
+    <>
+      {batchFailure && (
+        <BatchFailureAlert
+          failure={batchFailure}
+          onDismiss={() => setBatchFailure(null)}
+          onRetry={onRetry}
+        />
+      )}
+      <PaginatedListPage
+        filteredData={filteredData}
+        CreateButton={EnrollApplicationButton}
+        toolbarActions={toolbarActions}
+        Alerts={AlertMessages}
+        noData={!isAllLoadedWOAnyError || !data.length}
+        onPaginatedDataChange={onPaginatedDataChange}
+        listPageFilterProps={{
+          data: data,
+          loaded: drpcsLoaded && pavsLoaded,
+          onFilterChange: onFilterChange,
+        }}
+        composableTableProps={{
+          columns: getHeaderColumns(t),
+          RowComponent: ProtectedAppsTableRow,
+          extraProps: {
+            launcher,
+            navigate,
+            drpcMap,
+            selectProps: rowSelectProps,
+          },
+          emptyRowMessage: EmptyRowMessage,
+          unfilteredData: data as [],
+          noDataMsg: NoDataMessage,
+          loaded: pavsLoaded && drpcsLoaded,
+          loadError: pavsError || drpcsError,
+          selectProps: {
+            onSelect: selection.onSelectAllPage,
+            isAllSelected: selection.isAllPageSelected,
+          },
+        }}
+      />
+    </>
   );
 };

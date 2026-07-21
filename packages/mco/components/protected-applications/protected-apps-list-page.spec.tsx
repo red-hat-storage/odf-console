@@ -2,7 +2,8 @@ import * as React from 'react';
 import { DRPolicyModel, DRPlacementControlModel } from '@odf/shared';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { DR_BASE_ROUTE, ApplicationType } from '../../constants';
+import { DR_BASE_ROUTE, ApplicationType, DRActionType } from '../../constants';
+import { BatchFailoverRelocateModal } from '../modals/app-failover-relocate/batch-failover-relocate-modal';
 import { EmptyRowMessage, NoDataMessage } from './components';
 import { ProtectedApplicationsListPage } from './list-page';
 
@@ -193,6 +194,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
     return [[], true, ''];
   }),
   useModal: jest.fn(() => jest.fn()),
+  k8sPatch: jest.fn(() => Promise.resolve({})),
   AlertSeverity: { Critical: 'critical' },
   useK8sWatchResources: jest.fn(() => ({})),
 }));
@@ -516,5 +518,201 @@ describe('Test selection mechanics (RHSTOR-6406)', () => {
     expect(
       screen.getByText('Select all ({{count}} items)')
     ).toBeInTheDocument();
+  });
+});
+
+describe('Test batch failover/relocate (RHSTOR-6407, RHSTOR-6408)', () => {
+  const { useProtectedAppsSelection } = jest.requireMock('./use-selection');
+  const { useModal, k8sPatch } = jest.requireMock(
+    '@openshift-console/dynamic-plugin-sdk'
+  );
+  let user;
+
+  beforeEach(() => {
+    user = userEvent.setup();
+    resetGlobals();
+    useProtectedAppsSelection.mockReturnValue({
+      ...mockSelection,
+      selectedCount: 1,
+      isSelected: jest.fn((pav) => pav.metadata.uid === 'pav-uid-2'),
+    });
+    k8sPatch.mockReset().mockResolvedValue({});
+  });
+  afterEach(() => jest.clearAllMocks());
+  beforeAll(() => ignoreErrors());
+  afterAll(() => consoleSpy.mockRestore());
+
+  it('Clicking Failover/Relocate button launches the batch modal', async () => {
+    const launcherMock = jest.fn();
+    useModal.mockReturnValue(launcherMock);
+
+    render(<ProtectedApplicationsListPage />);
+    const button = screen.getByRole('button', { name: /Failover\/Relocate/i });
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(launcherMock).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.objectContaining({
+          isOpen: true,
+          extraProps: expect.objectContaining({
+            selectedDRPCs: expect.any(Array),
+          }),
+        })
+      );
+    });
+  });
+
+  it('Batch modal renders two action tiles with Initiate disabled', () => {
+    const closeModal = jest.fn();
+    render(
+      <BatchFailoverRelocateModal
+        isOpen={true}
+        closeModal={closeModal}
+        extraProps={{
+          selectedDRPCs: [relocatedDRPC as any],
+          onComplete: jest.fn(),
+          onPartialFailure: jest.fn(),
+        }}
+      />
+    );
+
+    expect(
+      screen.getByText('Failover or relocate selected applications')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Failover')).toBeInTheDocument();
+    expect(screen.getByText('Relocate')).toBeInTheDocument();
+
+    const initiateButton = screen.getByRole('button', { name: /Initiate/i });
+    expect(initiateButton).toBeDisabled();
+  });
+
+  it('Selecting a tile enables the Initiate button', async () => {
+    render(
+      <BatchFailoverRelocateModal
+        isOpen={true}
+        closeModal={jest.fn()}
+        extraProps={{
+          selectedDRPCs: [relocatedDRPC as any],
+          onComplete: jest.fn(),
+          onPartialFailure: jest.fn(),
+        }}
+      />
+    );
+
+    const relocateCard = screen.getByText('Relocate').closest('.pf-v6-c-card');
+    await user.click(relocateCard);
+
+    const initiateButton = screen.getByRole('button', { name: /Initiate/i });
+    expect(initiateButton).toBeEnabled();
+  });
+
+  it('Cancel closes the modal without side effects', async () => {
+    const closeModal = jest.fn();
+    const onComplete = jest.fn();
+
+    render(
+      <BatchFailoverRelocateModal
+        isOpen={true}
+        closeModal={closeModal}
+        extraProps={{
+          selectedDRPCs: [relocatedDRPC as any],
+          onComplete,
+          onPartialFailure: jest.fn(),
+        }}
+      />
+    );
+
+    const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+    await user.click(cancelButton);
+
+    expect(closeModal).toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(k8sPatch).not.toHaveBeenCalled();
+  });
+
+  it('Initiate shows progress view then patches DRPCs and calls onComplete', async () => {
+    let patchResolve: () => void = () => undefined;
+    k8sPatch.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          patchResolve = resolve;
+        })
+    );
+
+    const closeModal = jest.fn();
+    const onComplete = jest.fn();
+    const onPartialFailure = jest.fn();
+
+    render(
+      <BatchFailoverRelocateModal
+        isOpen={true}
+        closeModal={closeModal}
+        extraProps={{
+          selectedDRPCs: [relocatedDRPC as any],
+          onComplete,
+          onPartialFailure,
+        }}
+      />
+    );
+
+    const failoverCard = screen.getByText('Failover').closest('.pf-v6-c-card');
+    await user.click(failoverCard);
+
+    const initiateButton = screen.getByRole('button', { name: /Initiate/i });
+    await user.click(initiateButton);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Sending failover requests...')
+      ).toBeInTheDocument();
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    });
+
+    patchResolve();
+
+    await waitFor(() => {
+      expect(onComplete).toHaveBeenCalled();
+      expect(closeModal).toHaveBeenCalled();
+      expect(onPartialFailure).not.toHaveBeenCalled();
+    });
+  });
+
+  it('Partial failure calls onPartialFailure with failed DRPCs', async () => {
+    k8sPatch.mockRejectedValueOnce(new Error('patch failed'));
+
+    const closeModal = jest.fn();
+    const onComplete = jest.fn();
+    const onPartialFailure = jest.fn();
+
+    render(
+      <BatchFailoverRelocateModal
+        isOpen={true}
+        closeModal={closeModal}
+        extraProps={{
+          selectedDRPCs: [relocatedDRPC as any],
+          onComplete,
+          onPartialFailure,
+        }}
+      />
+    );
+
+    const relocateCard = screen.getByText('Relocate').closest('.pf-v6-c-card');
+    await user.click(relocateCard);
+
+    const initiateButton = screen.getByRole('button', { name: /Initiate/i });
+    await user.click(initiateButton);
+
+    await waitFor(() => {
+      expect(onPartialFailure).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: DRActionType.RELOCATE,
+          failedDRPCs: [relocatedDRPC],
+          totalCount: 1,
+        })
+      );
+      expect(onComplete).toHaveBeenCalled();
+      expect(closeModal).toHaveBeenCalled();
+    });
   });
 });
