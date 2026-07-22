@@ -30,7 +30,7 @@
     "fuzzysearch": "^1.0.3",
     "i18next-parser": "^9.4.0",
     "js-base64": "^3.7.8",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.3.0",
     "lodash-es": "^4.17.23",
     "murmurhash-js": "^1.0.0",
     "react-copy-to-clipboard": "5.x",
