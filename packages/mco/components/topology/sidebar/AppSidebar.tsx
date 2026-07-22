@@ -9,15 +9,19 @@ import {
   EmptyStateBody,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
-import { getProtectedCondition } from '../../../utils';
-import { getDRStatus } from '../../../utils/dr-status';
 import { getPAVDRPolicyName } from '../../../utils/pav';
+import { TopologyDataContext } from '../context/TopologyContext';
 import {
   AppSidebarItem,
   StaticAppsSidebarData,
   OperationAppSidebarData,
 } from '../types';
-import { getAppLink, DRStatusIcon } from '../utils/sidebar-utils';
+import {
+  getAppLink,
+  DRStatusIcon,
+  getOperationDRStatus,
+  buildDRPolicyByName,
+} from '../utils/sidebar-utils';
 import { DRPCFilterToolbar } from './DRPCFilterToolbar';
 import './TopologySidebar.scss';
 
@@ -118,6 +122,8 @@ export const DRPCTable: React.FC<DRPCTableProps> = ({ apps }) => {
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
   const { t } = useCustomTranslation();
+  const { clusterPairPoliciesMap } = React.useContext(TopologyDataContext);
+
   if ('isStatic' in edgeData && edgeData.isStatic === true) {
     return (
       <div className="mco-topology-sidebar__container">
@@ -137,21 +143,13 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
   const operations =
     operationData.operations ||
     (operationData.operation ? [operationData.operation] : []);
-  const appsFromOperations = operations.map((op) => {
-    const protectedCondition = getProtectedCondition(op.drpc);
-    return {
-      name: op.applicationName,
-      namespace: op.applicationNamespace,
-      status: getDRStatus({
-        phase: op.phase,
-        progression: op.progression,
-        protectedCondition,
-        volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
-        action: op.action,
-      }),
-      drPolicy: op.pav ? getPAVDRPolicyName(op.pav) : '',
-    };
-  });
+  const drPolicyByName = buildDRPolicyByName(clusterPairPoliciesMap);
+  const appsFromOperations = operations.map((op) => ({
+    name: op.applicationName,
+    namespace: op.applicationNamespace,
+    status: getOperationDRStatus(op, drPolicyByName),
+    drPolicy: op.pav ? getPAVDRPolicyName(op.pav) : '',
+  }));
 
   return (
     <div className="mco-topology-sidebar__container">

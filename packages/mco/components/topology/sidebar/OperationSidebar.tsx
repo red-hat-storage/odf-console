@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { getDRStatus } from '@odf/mco/utils/dr-status';
 import { DASH } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -19,17 +18,16 @@ import {
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { getClustersFromPairKey } from '../../../hooks/useDRPoliciesByClusterPair';
 import { getPAVDRPolicyName } from '../../../utils/pav';
+import { TopologyDataContext } from '../context/TopologyContext';
 import { DROperationInfo, OperationEdgeSidebarData } from '../types';
-import { DRStatusIcon, getAppLink } from '../utils/sidebar-utils';
+import {
+  DRStatusIcon,
+  getAppLink,
+  getOperationDRStatus,
+  buildDRPolicyByName,
+} from '../utils/sidebar-utils';
 import { DRPCFilterToolbar } from './DRPCFilterToolbar';
 import './TopologySidebar.scss';
-
-const getOperationStatus = (op: DROperationInfo) =>
-  getDRStatus({
-    phase: op.phase,
-    progression: op.progression,
-    action: op.action,
-  });
 
 type OperationSidebarProps = {
   edgeData: OperationEdgeSidebarData;
@@ -42,12 +40,22 @@ const OperationsTableView: React.FC<{
 }> = ({ operations, cluster1, cluster2 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
+  const { clusterPairPoliciesMap } = React.useContext(TopologyDataContext);
+  const drPolicyByName = React.useMemo(
+    () => buildDRPolicyByName(clusterPairPoliciesMap),
+    [clusterPairPoliciesMap]
+  );
   const [nameFilter, setNameFilter] = React.useState('');
   const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
 
   const uniqueStatuses = React.useMemo(
-    () => Array.from(new Set(operations.map((op) => getOperationStatus(op)))),
-    [operations]
+    () =>
+      Array.from(
+        new Set(
+          operations.map((op) => getOperationDRStatus(op, drPolicyByName))
+        )
+      ),
+    [operations, drPolicyByName]
   );
 
   const filteredOperations = React.useMemo(() => {
@@ -60,11 +68,11 @@ const OperationsTableView: React.FC<{
     }
     if (selectedStatuses.length > 0) {
       results = results.filter((op) =>
-        selectedStatuses.includes(getOperationStatus(op))
+        selectedStatuses.includes(getOperationDRStatus(op, drPolicyByName))
       );
     }
     return results;
-  }, [operations, nameFilter, selectedStatuses]);
+  }, [operations, nameFilter, selectedStatuses, drPolicyByName]);
 
   const operationCount = operations.length;
 
@@ -166,7 +174,12 @@ const OperationsTableView: React.FC<{
                         </div>
                       </Td>
                       <Td dataLabel={t('DR Status')}>
-                        <DRStatusIcon status={getOperationStatus(operation)} />
+                        <DRStatusIcon
+                          status={getOperationDRStatus(
+                            operation,
+                            drPolicyByName
+                          )}
+                        />
                       </Td>
                       <Td dataLabel={t('Policy')}>
                         {operation.pav
