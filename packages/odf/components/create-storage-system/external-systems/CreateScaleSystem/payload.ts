@@ -152,7 +152,9 @@ export const createEncryptionConfigPayload = (
   tenant: string,
   client: string,
   secret: string,
-  configMapName: string
+  configMapName?: string,
+  port?: string | number,
+  remoteRKM?: string
 ) => {
   const payload: EncryptionConfigKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
@@ -166,6 +168,8 @@ export const createEncryptionConfigPayload = (
       server,
       tenant,
       client,
+      port: Number(port || 9443),
+      ...(remoteRKM && { remoteRKM }),
       secret,
     },
   };

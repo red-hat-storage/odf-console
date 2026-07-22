@@ -12,7 +12,6 @@ import {
 } from '@odf/shared';
 import { k8sPatchByName } from '@odf/shared/utils';
 import {
-  K8sKind,
   Patch,
   k8sCreate,
   k8sPatch,
@@ -28,28 +27,45 @@ export type ExternalKMMRegistryConfig = {
   privateKeySecret?: string;
 };
 
-export const labelNodes = (nodes: WizardNodeState[]) => {
+const patchScaleNode = (node: WizardNodeState) => {
   const labelPath = `/metadata/labels/${SCALE_DAEMON_NODE_LABEL.replace('/', '~1')}`;
-  const requests: Promise<K8sKind>[] = [];
-  nodes.forEach((node) => {
-    const patch: Patch[] = [];
-    if (!node.labels) {
-      patch.push({
-        op: 'add',
-        path: '/metadata/labels',
-        value: {},
-      });
-    }
+  const patch: Patch[] = [];
+  if (!node.labels) {
     patch.push({
       op: 'add',
-      path: labelPath,
-      value: '',
+      path: '/metadata/labels',
+      value: {},
     });
-    if (!node.labels?.[SCALE_DAEMON_NODE_LABEL]) {
-      requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
-    }
+  }
+  patch.push({
+    op: 'add',
+    path: labelPath,
+    value: '',
   });
+  return k8sPatchByName(NodeModel, node.name, null, patch);
+};
+
+export const labelNodes = (nodes: WizardNodeState[]) => {
+  const requests = nodes
+    .filter((node) => !node.labels?.[SCALE_DAEMON_NODE_LABEL])
+    .map(patchScaleNode);
   return () => Promise.all(requests);
+};
+
+export const labelNodesSettled = async (nodes: WizardNodeState[]) => {
+  const results = await Promise.allSettled(nodes.map(patchScaleNode));
+  return results.reduce<{
+    successfulNames: string[];
+    failedNames: string[];
+  }>(
+    (acc, result, index) => {
+      acc[
+        result.status === 'fulfilled' ? 'successfulNames' : 'failedNames'
+      ].push(nodes[index].name);
+      return acc;
+    },
+    { successfulNames: [], failedNames: [] }
+  );
 };
 
 export const createScaleLocalClusterPayload = (
