@@ -23,6 +23,7 @@ import StoragePoolListPage from '../storage-pool/StoragePoolListPage';
 import { StatusCard as NFSStatusCard } from './network-file-system/status-card/status-card';
 import { ThroughputCard } from './network-file-system/throughput-card/throughput-card';
 import { TopClientsCard } from './network-file-system/top-clients-card/top-clients-card';
+import { default as NFSVolumeHealthCard } from './network-file-system/volume-health-card/volume-health-card';
 import { default as ObjectActivityCard } from './object-service/activity-card/activity-card';
 import AutomaticBackupCard from './object-service/automatic-backup/automatic-backup-card';
 import { BucketsCard } from './object-service/buckets-card/buckets-card';
@@ -47,6 +48,7 @@ import RawCapacityCard from './persistent-internal/raw-capacity-card/raw-capacit
 import { default as StatusCard } from './persistent-internal/status-card/status-card';
 import storageEfficiencyCard from './persistent-internal/storage-efficiency-card/storage-efficiency-card';
 import UtilizationCard from './persistent-internal/utilization-card/utilization-card';
+import VolumeHealthCard from './persistent-internal/volume-health-card/volume-health-card';
 
 const convertToCard = (Card: React.ComponentType): OverviewGridCard => ({
   Card,
@@ -86,6 +88,7 @@ const PersistentInternalDashboard: React.FC = () => {
     RawCapacityCard,
     CapacityTrendCard,
     BreakdownCard,
+    VolumeHealthCard,
     PoolUtilizationCard,
     CephFSSubvolumeCard,
     UtilizationCard,
@@ -110,6 +113,7 @@ const PersistentExternalDashboard: React.FC = () => {
   const mainCards: React.ComponentType[] = [
     ExtStatusCard,
     ExtBreakdownCard,
+    VolumeHealthCard,
     ExtUtilizationCard,
   ];
   const leftCards: React.ComponentType[] = [ExtDetailsCard, InventoryCard];
@@ -152,6 +156,7 @@ const ObjectServiceDashboard: React.FC = () => {
 const NFSDashboard: React.FC = () => {
   const mainCards: React.ComponentType[] = [
     NFSStatusCard,
+    NFSVolumeHealthCard,
     ThroughputCard,
     TopClientsCard,
   ];

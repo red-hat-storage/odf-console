@@ -18,6 +18,7 @@ import {
 import { FileSystemModel, LocalDiskModel } from '@odf/shared/models/scale';
 import { ListKind, PersistentVolumeClaimKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getStorageClassName } from '@odf/shared/utils';
 import {
   k8sDelete,
   k8sList,
@@ -64,10 +65,6 @@ enum DeletionStatus {
   BOUNDED = 'BOUNDED',
   LOADING = 'LOADING',
 }
-
-const getStorageClassName = (pvc: PersistentVolumeClaimKind): string => {
-  return pvc?.spec?.storageClassName || '';
-};
 
 const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
   isOpen,

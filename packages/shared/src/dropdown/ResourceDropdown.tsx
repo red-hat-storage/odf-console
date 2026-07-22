@@ -114,6 +114,7 @@ type ResourceDropdownProps<T> = {
   initialSelection?: (resource: T[]) => T;
   filterResource?: (resource: T) => boolean;
   isDisabled?: boolean;
+  extraDropdownItems?: T[];
   'data-test'?: string;
   id?: string;
   selectedResource?: T;
@@ -135,6 +136,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   initialSelection,
   filterResource,
   isDisabled = false,
+  extraDropdownItems = [],
   'data-test': dataTest,
   id,
   children,
@@ -172,21 +174,35 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   const onClick = React.useCallback(
     (event: React.SyntheticEvent<HTMLDivElement>) => {
       const resourceName = event?.currentTarget?.id;
-      const selectedResource = resources.find(
+      const selectedResource = [...extraDropdownItems, ...resources].find(
         (resource) => getName(resource) + '-link' === resourceName
       );
       onSelect(selectedResource);
       setSelectedItem(selectedResource);
       setOpen(false);
     },
-    [onSelect, setSelectedItem, resources]
+    [onSelect, setSelectedItem, resources, extraDropdownItems]
   );
 
   const dropdownItems = React.useMemo(() => {
     if (!loaded && loadError) {
       return [];
     } else {
-      return resources
+      const extraItems = extraDropdownItems.map((extraItem) => (
+        <ResourceDropdownItem<T>
+          key={propertySelector(extraItem)}
+          resourceModel={null}
+          showBadge={false}
+          resource={extraItem}
+          id={`${getName(extraItem)}-link`}
+          propertySelector={propertySelector}
+          onClick={onClick}
+          onBlur={onBlur}
+          data-test="dropdown-menu-item-link"
+        />
+      ));
+
+      const resourceItems = resources
         .filter(
           (res) =>
             filterName(searchText, getName(res)) &&
@@ -210,9 +226,12 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
             />,
           ];
         }, []);
+
+      return [...extraItems, ...resourceItems];
     }
   }, [
     resources,
+    extraDropdownItems,
     loaded,
     loadError,
     resourceModel,
@@ -236,13 +255,18 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
       onClick={onToggle}
       isExpanded={isOpen}
       data-test={dataTest}
-      isDisabled={isDisabled || !loaded || loadError || _.isEmpty(resources)}
+      isDisabled={
+        isDisabled ||
+        !loaded ||
+        loadError ||
+        (_.isEmpty(resources) && _.isEmpty(extraDropdownItems))
+      }
       isFullWidth
     >
       {!loaded && <LoadingInline />}
       {loaded &&
         !loadError &&
-        (_.isEmpty(resources) ? (
+        (_.isEmpty(resources) && _.isEmpty(extraDropdownItems) ? (
           <span>{t('No resources available')}</span>
         ) : (
           <ResourceDropdownText

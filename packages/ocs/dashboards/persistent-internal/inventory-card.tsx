@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cephStorageLabel } from '@odf/core/constants';
-import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import {
   NodeModel,
   PersistentVolumeClaimModel,
@@ -49,7 +49,7 @@ const watchResources = {
 const InventoryCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
 
   const resources = useK8sWatchResources(watchResources);
 
