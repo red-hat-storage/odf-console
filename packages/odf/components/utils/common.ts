@@ -62,6 +62,7 @@ import {
   ERASURE_CODING_CEPHFS_DATA_POOL_POSTFIX,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
+import { getDefaultLocalClusterRole } from './scale';
 
 export const pluralize = (
   count: number,
@@ -117,8 +118,13 @@ export const getExternalStorage = (
  * e.g. misleadingly warning the end user about not having enough resources for a
  * successfully applied performance mode.
  */
+export type CreateWizardNodeStateOptions = {
+  enableStretchCluster?: boolean;
+};
+
 export const createWizardNodeState = (
-  nodes: NodeData[] = []
+  nodes: NodeData[] = [],
+  options?: CreateWizardNodeStateOptions
 ): WizardNodeState[] =>
   nodes.map((node) => {
     const name = getName(node);
@@ -146,6 +152,13 @@ export const createWizardNodeState = (
       taints,
       architecture,
       annotations,
+      ...(options && {
+        localClusterRole: getDefaultLocalClusterRole(
+          roles,
+          zone ?? '',
+          options.enableStretchCluster
+        ),
+      }),
     };
   });
 

@@ -13,6 +13,7 @@ export const NO_PROVISIONER = 'kubernetes.io/no-provisioner';
 export const SCALE_PROVISIONER = 'spectrumscale.csi.ibm.com';
 export const STORAGE_CLUSTER_SYSTEM_KIND = 'storagecluster.ocs.openshift.io/v1';
 export const HOSTNAME_LABEL_KEY = 'kubernetes.io/hostname';
+export const CONTROL_PLANE = 'control-plane';
 export const LABEL_OPERATOR = 'In';
 export const OCS_SUPPORT_ANNOTATION = 'features.ocs.openshift.io/enabled';
 export const OCS_DISABLED_ANNOTATION = 'features.ocs.openshift.io/disabled';

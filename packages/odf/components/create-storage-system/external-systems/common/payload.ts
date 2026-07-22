@@ -2,6 +2,7 @@ import {
   IBM_SCALE_LOCAL_CLUSTER_NAME,
   IBM_SCALE_NAMESPACE,
   SCALE_DAEMON_NODE_LABEL,
+  LOCAL_CLUSTER_NODE_ROLE_LABEL,
 } from '@odf/core/constants';
 import { ClusterKind } from '@odf/core/types/scale';
 import {
@@ -30,6 +31,7 @@ export type ExternalKMMRegistryConfig = {
 
 export const labelNodes = (nodes: WizardNodeState[]) => {
   const labelPath = `/metadata/labels/${SCALE_DAEMON_NODE_LABEL.replace('/', '~1')}`;
+  const nodeRoleLabelPath = `/metadata/labels/${LOCAL_CLUSTER_NODE_ROLE_LABEL}`;
   const requests: Promise<K8sKind>[] = [];
   nodes.forEach((node) => {
     const patch: Patch[] = [];
@@ -48,6 +50,22 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
     if (!node.labels?.[SCALE_DAEMON_NODE_LABEL]) {
       requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
     }
+  });
+  nodes.forEach((node) => {
+    const rolePatch: Patch[] = [];
+    if (!node.labels) {
+      rolePatch.push({
+        op: 'add',
+        path: '/metadata/labels',
+        value: {},
+      });
+    }
+    rolePatch.push({
+      op: node.labels?.[LOCAL_CLUSTER_NODE_ROLE_LABEL] ? 'replace' : 'add',
+      path: nodeRoleLabelPath,
+      value: node.localClusterRole,
+    });
+    requests.push(k8sPatchByName(NodeModel, node.name, null, rolePatch));
   });
   return () => Promise.all(requests);
 };

@@ -22,7 +22,8 @@ import { NodeData } from '../types';
  * Make sure to optimise on the consumer FC side (in case really needed or if it affects the FC's performance).
  */
 export const useNodesData = (
-  useOnlyWorker?: boolean
+  useOnlyWorker?: boolean,
+  controlPlaneOrStretchCluster?: boolean
 ): [NodeData[], boolean, any] => {
   const [nodes, nodesLoaded, nodesLoadError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
@@ -45,7 +46,11 @@ export const useNodesData = (
             !useOnlyWorker ||
             node.metadata.labels?.hasOwnProperty(
               'node-role.kubernetes.io/worker'
-            )
+            ) ||
+            (controlPlaneOrStretchCluster &&
+              node.metadata.labels?.hasOwnProperty(
+                'node-role.kubernetes.io/control-plane'
+              ))
         )
         .map((node: Partial<NodeData>): NodeData => {
           const metric = _.find(utilization?.data?.result || [], [
@@ -57,7 +62,14 @@ export const useNodesData = (
         });
     }
     return nodesData;
-  }, [nodes, utilization, loaded, error, useOnlyWorker]);
+  }, [
+    nodes,
+    utilization,
+    loaded,
+    error,
+    useOnlyWorker,
+    controlPlaneOrStretchCluster,
+  ]);
 
   return [nodesData, loaded, error];
 };
