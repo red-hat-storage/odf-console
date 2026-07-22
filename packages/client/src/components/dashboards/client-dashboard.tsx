@@ -5,13 +5,20 @@ import UtilizationCard from '@odf/ocs/dashboards/persistent-external/utilization
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs from '@odf/shared/utils/Tabs';
-import { ActivityCard, DetailsCard, StatusCard, InventoryCard } from './cards';
+import {
+  ActivityCard,
+  DetailsCard,
+  StatusCard,
+  InventoryCard,
+  VolumeHealthCard,
+} from './cards';
 
 const PersistentClientDashboard: React.FC = () => {
   const mainCards: React.ComponentType[] = [
     StatusCard,
     BreakdownCard,
     UtilizationCard,
+    VolumeHealthCard,
   ];
   const leftCards: React.ComponentType[] = [DetailsCard, InventoryCard];
   const rightCards: React.ComponentType[] = [ActivityCard];
