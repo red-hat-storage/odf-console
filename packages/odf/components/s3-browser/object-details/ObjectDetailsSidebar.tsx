@@ -270,12 +270,12 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
   const isDeleteMarker = object?.isDeleteMarker;
 
   const { data: objectData, isLoading: isObjectDataLoading } = useSWR(
-    // don't fetch if object is a delete marker ("getObject" not supported)
+    // don't fetch if object is a delete marker ("headObject" not supported)
     isDeleteMarker
       ? null
       : `${s3Client.providerType}-${objectKey}-${lastModified}-${OBJECT_CACHE_KEY_SUFFIX}`,
     () =>
-      s3Client.getObject({
+      s3Client.headObject({
         Bucket: bucketName,
         Key: objectKey,
         ...(showVersioning && { VersionId: versionId }),
