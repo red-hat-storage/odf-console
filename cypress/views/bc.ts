@@ -42,9 +42,15 @@ const createPVCBackingStore = (storeName: string) => {
   cy.exec(
     `echo '${JSON.stringify(
       bucketStore(storeName)
-    )}' | kubectl create -n openshift-storage -f -`,
+    )}' | oc create -n openshift-storage -f -`,
     { failOnNonZeroExit: false, timeout: 120000 }
-  );
+  ).then(({ exitCode, stderr }) => {
+    if (exitCode !== 0) {
+      throw new Error(
+        `Failed to create backing store "${storeName}": ${stderr}`
+      );
+    }
+  });
 };
 
 export class StandardBucketClassConfig extends BucketClassConfig {
@@ -70,7 +76,7 @@ const createAWSStore = (name: string, type: StoreType) => {
   cy.exec(
     `echo '${JSON.stringify(
       namespaceStore(name, type)
-    )}' | kubectl create -n openshift-storage -f -`,
+    )}' | oc create -n openshift-storage -f -`,
     { failOnNonZeroExit: false }
   );
 };

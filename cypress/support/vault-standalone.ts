@@ -11,6 +11,24 @@ import {
 } from '../helpers/vault';
 import { commandPoll } from '../views/common';
 
+/**
+ * Runs a command that a later step depends on. Unlike a bare
+ * `failOnNonZeroExit: false` exec, this fails the test immediately with a
+ * clear message if the command doesn't succeed, instead of letting the
+ * failure surface later as a confusing, unrelated error.
+ */
+const execCritical = (
+  command: string,
+  options: Partial<Cypress.ExecOptions> = {}
+) =>
+  cy
+    .exec(command, { failOnNonZeroExit: false, ...options })
+    .then(({ exitCode, stderr }) => {
+      if (exitCode !== 0) {
+        throw new Error(`Command failed: "${command}"\n${stderr}`);
+      }
+    });
+
 export const configureVault = () => {
   cy.exec('oc get project hashicorp', {
     failOnNonZeroExit: false,
@@ -21,64 +39,61 @@ export const configureVault = () => {
       return;
     }
     cy.log('Create a new project for internal vault');
-    cy.exec('oc new-project hashicorp', {
-      failOnNonZeroExit: false,
-      timeout: 60000,
-    }).then(() => {
+    execCritical('oc new-project hashicorp', { timeout: 60000 }).then(() => {
       cy.log('Creating CR to configure vault');
-      cy.exec(`echo '${JSON.stringify(serviceAccountJSON)}' | oc apply -f -`, {
-        failOnNonZeroExit: false,
-        timeout: 60000,
-      });
-      cy.exec(`echo '${JSON.stringify(roleBindingJSON)}' | oc apply -f -`, {
-        failOnNonZeroExit: false,
-        timeout: 60000,
-      });
-      cy.exec(
-        `echo '${JSON.stringify(pvcJSON)}' | oc apply -f - -n hashicorp`,
-        { failOnNonZeroExit: false, timeout: 60000 }
+      execCritical(
+        `echo '${JSON.stringify(serviceAccountJSON)}' | oc apply -f -`,
+        { timeout: 60000 }
       );
-      cy.exec(
+      execCritical(
+        `echo '${JSON.stringify(roleBindingJSON)}' | oc apply -f -`,
+        { timeout: 60000 }
+      );
+      execCritical(
+        `echo '${JSON.stringify(pvcJSON)}' | oc apply -f - -n hashicorp`,
+        { timeout: 60000 }
+      );
+      execCritical(
         `echo '${JSON.stringify(configMapJSON)}' | oc apply -f - -n hashicorp`,
-        { failOnNonZeroExit: false, timeout: 60000 }
+        { timeout: 60000 }
       );
 
       cy.log('Deploying vault');
-      cy.exec(
+      execCritical(
         `echo '${JSON.stringify(deploymentJSON)}' | oc apply -f - -n hashicorp`,
-        { failOnNonZeroExit: false, timeout: 60000 }
+        { timeout: 60000 }
       );
-      cy.exec(
+      execCritical(
         `echo '${JSON.stringify(serviceJSON)}' | oc apply -f - -n hashicorp`,
-        { failOnNonZeroExit: false, timeout: 60000 }
+        { timeout: 60000 }
       );
 
       cy.log('Configuring router');
-      cy.exec(
+      execCritical(
         `echo '${JSON.stringify(routeJSON)}' | oc apply -f - -n hashicorp`,
-        { failOnNonZeroExit: false, timeout: 60000 }
+        { timeout: 60000 }
       );
-      cy.exec(
+      execCritical(
         `echo '${JSON.stringify(networkPolicyJSON)}' | oc apply -f - -n hashicorp`,
-        { failOnNonZeroExit: false, timeout: 60000 }
+        { timeout: 60000 }
       );
 
       cy.log('Waiting for route to be available');
-      cy.exec(
+      execCritical(
         `oc wait route/vault -n hashicorp --for=jsonpath='{.status.ingress[0].conditions[0].status}'=True --timeout=120s`,
-        { failOnNonZeroExit: false, timeout: 130000 }
+        { timeout: 130000 }
       );
 
       cy.log('Deploying test deployment');
-      cy.exec(`echo '${JSON.stringify(testDeploymentJSON)}' | oc apply -f -`, {
-        failOnNonZeroExit: false,
-        timeout: 60000,
-      });
+      execCritical(
+        `echo '${JSON.stringify(testDeploymentJSON)}' | oc apply -f -`,
+        { timeout: 60000 }
+      );
 
       cy.log('Waiting for vault pod to be in Running phase');
-      cy.exec(
+      execCritical(
         'oc wait pod -n hashicorp --for=condition=Ready -l app.kubernetes.io/name=vault --timeout=300s',
-        { timeout: 310000, failOnNonZeroExit: false }
+        { timeout: 310000 }
       );
 
       initializeAndConfigureVault();
@@ -98,14 +113,15 @@ const initializeAndConfigureVault = () => {
     cy.exec(
       `oc exec ${podName} -n hashicorp -- vault operator init --key-shares=1 --key-threshold=1 --format=json`,
       { timeout: 120000, failOnNonZeroExit: false }
-    ).then((vault) => {
-      const rawOutput = vault.stdout.trim();
+    ).then(({ exitCode, stdout, stderr }) => {
+      const rawOutput = stdout.trim();
 
-      if (!rawOutput || !rawOutput.startsWith('{')) {
-        cy.log(
-          'Vault may already be initialized or returned no output, skipping init...'
-        );
-        return;
+      if (exitCode !== 0 || !rawOutput || !rawOutput.startsWith('{')) {
+        if (stderr.includes('already initialized')) {
+          cy.log('Vault is already initialized, skipping init...');
+          return;
+        }
+        throw new Error(`Failed to initialize vault: ${stderr || rawOutput}`);
       }
 
       const vaultObj = parseVaultOutput(rawOutput);
@@ -135,9 +151,9 @@ const parseVaultOutput = (rawOutput: string) => {
 
 const unsealVault = (podName: string, unsealKey: string) => {
   cy.log('Unsealing Vault');
-  cy.exec(
+  execCritical(
     `oc exec ${podName} -n hashicorp -- vault operator unseal ${unsealKey}`,
-    { timeout: 60000, failOnNonZeroExit: false }
+    { timeout: 60000 }
   );
 };
 
@@ -146,7 +162,13 @@ const enableSecretsEngine = (podName: string, token: string) => {
   cy.exec(
     `oc exec ${podName} -n hashicorp -- /bin/sh -c 'export VAULT_TOKEN=${token} && vault secrets enable -path=secret kv'`,
     { timeout: 60000, failOnNonZeroExit: false }
-  );
+  ).then(({ exitCode, stderr }) => {
+    // "already in use" means the secrets engine was enabled by a previous
+    // run - that's fine, anything else is a real failure.
+    if (exitCode !== 0 && !stderr.includes('already in use')) {
+      throw new Error(`Failed to enable secrets engine: ${stderr}`);
+    }
+  });
 };
 
 const createKmsTokenSecret = (token: string) => {
@@ -154,17 +176,17 @@ const createKmsTokenSecret = (token: string) => {
     `oc delete secret ceph-csi-kms-token -n default --ignore-not-found=true`,
     { failOnNonZeroExit: false, timeout: 60000 }
   );
-  cy.exec(
+  execCritical(
     `oc create secret generic ceph-csi-kms-token --from-literal=token=${token} -n default`,
-    { failOnNonZeroExit: false, timeout: 60000 }
+    { timeout: 60000 }
   );
 };
 
 export const isPodRunningWithEncryptedPV = () => {
   cy.log('Checking pod is up and running with encrypted PV');
-  cy.exec(
+  execCritical(
     `oc wait deployment/${testDeploymentJSON.metadata.name} -n default --for=condition=Available --timeout=300s`,
-    { timeout: 310000, failOnNonZeroExit: false }
+    { timeout: 310000 }
   );
   commandPoll(
     `oc get Deployment ${testDeploymentJSON.metadata.name} -n default -ojsonpath='{.status.availableReplicas}'`,

@@ -24,7 +24,7 @@ describe('Tests Expansion of a PVC', () => {
     pvc.expandPVC('10');
     cy.byTestID('pvc-requested-capacity', { timeout: 30000 }).should(
       'contain',
-      '10'
+      '10 GiB'
     );
   });
 
@@ -34,7 +34,7 @@ describe('Tests Expansion of a PVC', () => {
     pvc.expandPVC('10');
     cy.byTestID('pvc-requested-capacity', { timeout: 30000 }).should(
       'contain',
-      '10'
+      '10 GiB'
     );
   });
 });

@@ -9,14 +9,6 @@ import {
   deleteStorageClassFromCLI,
 } from '../views/storage-class';
 
-// Must be outside describe block to register before tests run
-Cypress.on('uncaught:exception', (err) => {
-  if (err.message.includes('Cannot convert undefined or null to object')) {
-    return false;
-  }
-  return true;
-});
-
 describe('Test Ceph pool creation', () => {
   const scName: string = 'sc-encrypt';
   const pvcName: string = 'encrypted-pvc';

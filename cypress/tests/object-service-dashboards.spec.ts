@@ -14,16 +14,16 @@ describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Provide
 
   it('Tests Buckets Cards', () => {
     cy.log('Create an Object Bucket Claim and test equality');
-    cy.exec(`kubectl get ObjectBucketClaims -A | wc -l`).then(({ stdout }) => {
+    cy.exec(`oc get ObjectBucketClaims -A | wc -l`).then(({ stdout }) => {
       // "-1" excludes the first heading row from the initial OBC count.
       let initCount = parseInt(stdout, 10);
       initCount = initCount ? initCount - 1 : initCount;
-      cy.exec(`echo '${JSON.stringify(testBucket)}' | kubectl create -f -`);
+      cy.exec(`echo '${JSON.stringify(testBucket)}' | oc create -f -`);
       const newCount = initCount + 1;
       cy.byTestID('resource-inventory-item-obc').contains(
         `${newCount} Object Bucket Claim${newCount > 1 ? 's' : ''}`
       );
-      cy.exec(`echo '${JSON.stringify(testBucket)}' | kubectl delete -f -`);
+      cy.exec(`echo '${JSON.stringify(testBucket)}' | oc delete -f -`);
     });
   });
 

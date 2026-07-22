@@ -54,7 +54,11 @@ describe('Test Object Bucket Claim resource', () => {
     cy.byTestID(`resource-link-${OBC_NAME}`).click();
     cy.url().should('include', `/odf/resource/`, { timeout: MINUTE });
     cy.url().should('include', OBC_NAME);
-    cy.byLegacyTestID('resource-title').should('contain', OBC_NAME);
+    cy.reload(true)
+    cy.byLegacyTestID('resource-title', { timeout: MINUTE }).should(
+      'contain',
+      OBC_NAME
+    );
     cy.byTestID('resource-status').contains(BOUND, { timeout: MINUTE });
 
     cy.log('Test if secret data is masked');
@@ -74,14 +78,16 @@ describe('Test Object Bucket Claim resource', () => {
     cy.log('Test if secret data can be revealed');
     CreateOBCHandler.revealHiddenValues();
     cy.byTestID('secret-data').should(($h) => {
-      expect($h[0].innerText).to.equal('Endpoint');
-      expect($h[2].innerText).to.equal('Access Key');
-      expect($h[3].innerText).to.equal('Secret Key');
+      const items = Cypress.$($h) as JQuery<HTMLElement>;
+      expect(items.eq(0).text()).to.equal('Endpoint');
+      expect(items.eq(2).text()).to.equal('Access Key');
+      expect(items.eq(3).text()).to.equal('Secret Key');
     });
     cy.byTestID('copy-to-clipboard').then(($el) => {
-      expect($el[0].innerText).to.include(NS);
-      expect($el[2].innerText).to.match(new RegExp(ACCESS_KEY));
-      expect($el[3].innerText).to.match(new RegExp(SECRET_KEY));
+      const items = Cypress.$($el) as JQuery<HTMLElement>;
+      expect(items.eq(0).text()).to.include(NS);
+      expect(items.eq(2).text()).to.match(new RegExp(ACCESS_KEY));
+      expect(items.eq(3).text()).to.match(new RegExp(SECRET_KEY));
     });
 
     cy.log('Test if secret data can be hidden again');
@@ -121,7 +127,7 @@ describe('Test Object Bucket Claim resource', () => {
     cy.exec(
       `echo '${JSON.stringify(
         deployment
-      )}' | kubectl create -n ${testName} -f -`
+      )}' | oc create -n ${testName} -f -`
     );
     listPage.rows.shouldBeLoaded();
     listPage.rows.clickKebabAction(OBC_NAME, 'Attach to Deployment');
@@ -133,7 +139,7 @@ describe('Test Object Bucket Claim resource', () => {
     cy.exec(
       `echo '${JSON.stringify(
         deployment
-      )}' | kubectl delete -n ${testName} -f -`
+      )}' | oc delete -n ${testName} -f -`
     );
   });
 });
