@@ -30,14 +30,17 @@ type ActionsForExternalSystem = {
   customActions: {
     key: string;
     value: string;
+    description?: string;
     component: React.LazyExoticComponent<any>;
+    isDisabled?: boolean;
   }[];
   hiddenActions: ModalKeys[];
 };
 
 export const getActions = (
   obj: StorageSystemKind,
-  t: TFunction
+  t: TFunction,
+  isSANSystemDeletable: boolean
 ): ActionsForExternalSystem => {
   if (getKindOfExternalSystem(obj) === ClusterModel.kind) {
     return {
@@ -49,10 +52,20 @@ export const getActions = (
             () => import('../../modals/lun-group/AddLunGroupModal')
           ),
         },
+        {
+          key: ModalKeys.DELETE,
+          value: t('Delete SAN_Storage'),
+          description: isSANSystemDeletable
+            ? undefined
+            : t('Cannot be deleted if LUN groups exist.'),
+          component: React.lazy(
+            () => import('../../modals/san-system/DeleteSANSystemModal')
+          ),
+          isDisabled: !isSANSystemDeletable,
+        },
       ],
       hiddenActions: [
         ModalKeys.EDIT_RES,
-        ModalKeys.DELETE,
         ModalKeys.EDIT_ANN,
         ModalKeys.EDIT_LABELS,
       ],

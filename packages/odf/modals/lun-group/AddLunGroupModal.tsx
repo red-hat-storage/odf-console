@@ -31,14 +31,20 @@ type AddLunGroupModalProps = {
   onSubmit: () => void;
   inProgress: boolean;
   error: string;
+  shouldShowExpand?: boolean;
   extraProps: {
     resource?: FileSystemKind;
   };
 };
 
+export const ExpandLUNGroupModal: React.FC<AddLunGroupModalProps> = (props) => {
+  return <AddLunGroupModal {...props} shouldShowExpand={true} />;
+};
+
 const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   isOpen,
   closeModal: onClose,
+  shouldShowExpand,
   extraProps: { resource: existingLUNGroup },
 }) => {
   const { t } = useCustomTranslation();
@@ -49,7 +55,7 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   const [error, setError] = React.useState<Error>(undefined);
   const { deviceFinderLoading, sharedDevices } = useDeviceFinder();
 
-  const isUpdateOperation = !_.isEmpty(existingLUNGroup);
+  const isUpdateOperation = !!shouldShowExpand;
 
   const [disks] = useK8sWatchResource<LocalDiskKind[]>({
     groupVersionKind: {

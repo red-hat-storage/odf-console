@@ -250,8 +250,10 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
       {
         key: 'EXPAND_LUN_GROUP',
         value: t('Add disks'),
-        component: React.lazy(
-          () => import('../../modals/lun-group/AddLunGroupModal')
+        component: React.lazy(() =>
+          import('../../modals/lun-group/AddLunGroupModal').then((module) => ({
+            default: module.ExpandLUNGroupModal,
+          }))
         ),
       },
       {
