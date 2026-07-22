@@ -77,6 +77,8 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     protectedNamespaces?: string[];
     // Whether to retain namespace SCC annotations across peers.
     retainNamespaceSCCAcrossPeers?: boolean;
+    // Non-destructive failover test mode.
+    dryRun?: boolean;
   };
   status?: {
     // The time of the most recent successful kube object protection
@@ -148,6 +150,7 @@ export enum Progression {
   WaitOnUserToCleanUp = 'WaitOnUserToCleanUp',
   CleaningUp = 'CleaningUp',
   WaitForUserAction = 'WaitForUserAction',
+  TestingFailover = 'TestingFailover',
 }
 
 // DRPC phases (from Ramen)

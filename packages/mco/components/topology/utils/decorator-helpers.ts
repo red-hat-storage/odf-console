@@ -45,6 +45,7 @@ export const getDecoratorForStatus = (
     case DRStatus.Relocating:
     case DRStatus.Deleting:
     case DRStatus.Protecting:
+    case DRStatus.TestingFailover:
     case Phase.Initiating:
     case Phase.Deploying:
     case Progression.CleaningUp:

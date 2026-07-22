@@ -58,6 +58,7 @@ export type DRStatusProps = {
   isDiscoveredApp?: boolean;
   protectedCondition?: K8sResourceCondition;
   availableCondition?: K8sResourceCondition;
+  dryRun?: boolean;
 };
 
 const DR_STATUS_CLASS_NAMES = {
@@ -113,6 +114,7 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.Deleting]: <InProgressIcon />,
     [DRStatus.Protecting]: <InProgressIcon />,
     [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
+    [DRStatus.TestingFailover]: <InProgressIcon />,
   };
 
   return iconMap[status] ?? null;
@@ -389,6 +391,7 @@ type GetDRStatusDetailsParams = {
   schedulingInterval?: string;
   actionStartTime?: string;
   action?: DRActionType;
+  dryRun?: boolean;
 };
 
 const getDRStatusDetails = ({
@@ -406,6 +409,7 @@ const getDRStatusDetails = ({
   schedulingInterval,
   actionStartTime,
   action,
+  dryRun,
 }: GetDRStatusDetailsParams): StatusContent => {
   const drStatus = getDRStatus({
     isCleanupRequired,
@@ -418,6 +422,7 @@ const getDRStatusDetails = ({
     schedulingInterval,
     actionStartTime,
     action,
+    dryRun,
   });
 
   switch (drStatus) {
@@ -538,6 +543,17 @@ const getDRStatusDetails = ({
         t('Action needed'),
         availableCondition?.message || t('User action is required to proceed.'),
         DR_STATUS_CLASS_NAMES.ACTION_NEEDED
+      );
+
+    case DRStatus.TestingFailover:
+      return createStatus(
+        DRStatus.TestingFailover,
+        t('Failover test active'),
+        t(
+          'Non-disruptive test in progress. Primary cluster {{primaryCluster}} is unaffected.',
+          { primaryCluster }
+        ),
+        DR_STATUS_CLASS_NAMES.FAILOVER
       );
 
     case DRStatus.FailingOver:
@@ -700,6 +716,7 @@ const DRStatusPopoverBody: React.FC<{
         DRStatus.Relocating,
         DRStatus.FailedOver,
         DRStatus.Relocated,
+        DRStatus.TestingFailover,
       ].includes(status) && (
         <div className="dr-status-popover__cluster-details">
           <ClusterDetails
@@ -737,6 +754,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         schedulingInterval: disasterRecoveryStatus.schedulingInterval,
         actionStartTime: disasterRecoveryStatus.actionStartTime,
         action: disasterRecoveryStatus.action,
+        dryRun: disasterRecoveryStatus.dryRun,
       }),
     [disasterRecoveryStatus, t]
   );

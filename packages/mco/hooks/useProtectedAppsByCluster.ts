@@ -118,6 +118,7 @@ export const useProtectedAppsByCluster = (): [
           schedulingInterval,
           actionStartTime: drpc?.status?.actionStartTime,
           action: drpc?.spec?.action,
+          dryRun: drpc?.spec?.dryRun,
         });
 
         // Get the list of clusters this app is deployed to
