@@ -29,6 +29,7 @@ const getOperationStatus = (op: DROperationInfo) =>
     phase: op.phase,
     progression: op.progression,
     action: op.action,
+    dryRun: op.drpc?.spec?.dryRun,
   });
 
 type OperationSidebarProps = {

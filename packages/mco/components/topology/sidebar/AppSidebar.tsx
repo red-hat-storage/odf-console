@@ -148,6 +148,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
         protectedCondition,
         volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
         action: op.action,
+        dryRun: op.drpc?.spec?.dryRun,
       }),
       drPolicy: op.pav ? getPAVDRPolicyName(op.pav) : '',
     };
