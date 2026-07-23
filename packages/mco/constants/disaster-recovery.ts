@@ -113,6 +113,20 @@ export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
   [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
 });
 
+// Create DRPolicy wizard steps
+export enum CreateDRPolicyWizardSteps {
+  Clusters = 'clusters',
+  Configure = 'configure',
+  Policy = 'policy',
+  Review = 'review',
+}
+export const CreateDRPolicyStepNames = (t: TFunction) => ({
+  [CreateDRPolicyWizardSteps.Clusters]: t('Clusters'),
+  [CreateDRPolicyWizardSteps.Configure]: t('Configure'),
+  [CreateDRPolicyWizardSteps.Policy]: t('Policy'),
+  [CreateDRPolicyWizardSteps.Review]: t('Review'),
+});
+
 export const MCV_NAME_TEMPLATE = 'odf-multicluster-mcv-';
 
 export const MCO_CREATED_BY_LABEL_KEY =

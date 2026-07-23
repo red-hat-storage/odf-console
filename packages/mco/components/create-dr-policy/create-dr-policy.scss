@@ -3,10 +3,6 @@
   width: 90%;
 }
 
-.mco-create-data-policy__action-group {
-  margin-bottom: var(--pf-t--global--spacer--md);
-}
-
 .mco-create-data-policy__description {
   margin-bottom: var(--pf-t--global--spacer--sm);
 }
@@ -27,5 +23,9 @@
 
 .mco-create-data-policy__text-input {
   width: 67%;
+}
+
+.mco-create-data-policy__wizard--height {
+  max-height: 74vh;
 }
 
