@@ -1612,6 +1612,8 @@
   "None (no device class)": "None (no device class)",
   "NooBaa Bucket": "NooBaa Bucket",
   "NooBaa does not automatically delete the OBC if a bucket is deleted. Make sure you delete the corresponding OBC": "NooBaa does not automatically delete the OBC if a bucket is deleted. Make sure you delete the corresponding OBC",
+  "NooBaa is {{phase}}": "NooBaa is {{phase}}",
+  "NooBaa spec rejected": "NooBaa spec rejected",
   "Normal": "Normal",
   "Not Authorized": "Not Authorized",
   "Not available": "Not available",

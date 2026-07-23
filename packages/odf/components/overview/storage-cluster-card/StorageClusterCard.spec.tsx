@@ -34,6 +34,7 @@ jest.mock('@odf/core/utils', () => ({
       (cluster) => cluster?.metadata?.namespace === namespace
     );
   }),
+  isExternalCluster: jest.fn(() => false),
 }));
 
 jest.mock('@odf/ocs/queries', () => ({
@@ -104,6 +105,9 @@ jest.mock('@odf/shared/useCustomTranslationHook', () => ({
 }));
 
 jest.mock('@odf/shared/utils', () => ({
+  referenceForModel: jest.fn(
+    (model) => `${model?.apiGroup}~${model?.apiVersion}~${model?.kind}`
+  ),
   getOprChannelFromSub: jest.fn((sub) => sub?.spec?.channel || DASH),
   getOprVersionFromCSV: jest.fn((csv) => csv?.spec?.version || DASH),
   getStorageClusterMetric: jest.fn((metric) => {
@@ -146,6 +150,7 @@ jest.mock('@odf/ocs/hooks/useOcsHealth', () => ({
 
 jest.mock('@odf/ocs/utils', () => ({
   getDataResiliencyState: jest.fn(),
+  getNooBaaHealthFromCR: jest.fn(() => ({ state: 'OK' })),
 }));
 
 const mockStorageCluster = {
