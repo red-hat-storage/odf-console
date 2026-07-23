@@ -102,14 +102,21 @@ export const evaluateSubmarinerPrePair = (
     addon: SubmarinerAddOnKind | undefined;
     loaded: boolean;
     loadError: unknown;
+    upstreamDetected?: boolean;
   }>
 ): { canProceed: boolean; status: SubmarinerStatus } => {
   if (!clusters.every(({ loaded }) => loaded)) {
     return { canProceed: false, status: SubmarinerStatus.Checking };
   }
 
-  const statuses = clusters.map(({ addon, loaded, loadError }) =>
-    getClusterSubmarinerStatus(addon, loaded, loadError)
+  const statuses = clusters.map(
+    ({ addon, loaded, loadError, upstreamDetected }) => {
+      const health = getClusterSubmarinerStatus(addon, loaded, loadError);
+      if (health === SubmarinerStatus.NotInstalled && upstreamDetected) {
+        return SubmarinerStatus.UpstreamDetected;
+      }
+      return health;
+    }
   );
 
   const allNotInstalled = statuses.every(
@@ -134,7 +141,20 @@ export const evaluateSubmarinerPrePair = (
     return { canProceed: false, status: SubmarinerStatus.Progressing };
   }
 
-  if (statuses.every((status) => status === SubmarinerStatus.Healthy)) {
+  // Only all-upstream skips ACM Globalnet. Mixed ACM + upstream keeps Globalnet.
+  if (
+    statuses.every((status) => status === SubmarinerStatus.UpstreamDetected)
+  ) {
+    return { canProceed: true, status: SubmarinerStatus.UpstreamDetected };
+  }
+
+  if (
+    statuses.every(
+      (status) =>
+        status === SubmarinerStatus.Healthy ||
+        status === SubmarinerStatus.UpstreamDetected
+    )
+  ) {
     return { canProceed: true, status: SubmarinerStatus.Healthy };
   }
 

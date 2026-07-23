@@ -255,3 +255,50 @@ describe('extractCidrsFromNetworkClaimValue', () => {
     });
   });
 });
+
+describe('evaluateSubmarinerPrePair upstream detection', () => {
+  const notFound = {
+    addon: undefined,
+    loaded: true,
+    loadError: { response: { status: 404 }, message: 'NotFound' },
+  };
+
+  it('allows proceed when upstream Submariner is detected on both clusters', () => {
+    const result = evaluateSubmarinerPrePair([
+      { ...notFound, upstreamDetected: true },
+      { ...notFound, upstreamDetected: true },
+    ]);
+    expect(result.status).toBe(SubmarinerStatus.UpstreamDetected);
+    expect(result.canProceed).toBe(true);
+  });
+
+  it('keeps ACM Globalnet path when only one cluster is upstream', () => {
+    const healthyAddon = {
+      apiVersion: 'addon.open-cluster-management.io/v1alpha1',
+      kind: 'ManagedClusterAddOn',
+      metadata: { name: 'submariner' },
+      status: {
+        conditions: [
+          {
+            type: 'SubmarinerAgentAvailable',
+            status: 'True',
+          },
+          {
+            type: 'SubMarinerAgentDegraded',
+            status: 'False',
+          },
+          {
+            type: 'SubMarinerConnectionDegraded',
+            status: 'False',
+          },
+        ],
+      },
+    };
+    const result = evaluateSubmarinerPrePair([
+      { addon: healthyAddon, loaded: true, loadError: null },
+      { ...notFound, upstreamDetected: true },
+    ]);
+    expect(result.status).toBe(SubmarinerStatus.Healthy);
+    expect(result.canProceed).toBe(true);
+  });
+});

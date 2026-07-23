@@ -1,11 +1,19 @@
 export const SUBMARINER_ADDON_NAME = 'submariner';
 export const SUBMARINER_BROKER_NAME = 'submariner-broker';
 export const SUBMARINER_BROKER_NAMESPACE = 'submariner-k8s-broker';
+export const SUBMARINER_OPERATOR_NAMESPACE = 'submariner-operator';
 
 export const SUBMARINER_ADDON_KIND =
   'addon.open-cluster-management.io~v1alpha1~ManagedClusterAddOn';
 export const SUBMARINER_BROKER_KIND = 'submariner.io~v1alpha1~Broker';
 export const SUBMARINER_CLUSTER_KIND = 'submariner.io~v1~Cluster';
+
+// ManagedClusterView requires separate GVK fields (not a watch reference).
+export const SUBMARINER_GVK = {
+  group: 'submariner.io',
+  version: 'v1alpha1',
+  kind: 'Submariner',
+} as const;
 
 export const SUBMARINER_CONDITION_TYPES = {
   AVAILABLE: 'SubmarinerAgentAvailable', /* also SubMariner* casing; match ignore-case */
@@ -23,6 +31,7 @@ export const NETWORK_CLUSTER_CLAIM_NAMES = [
 export enum SubmarinerStatus {
   Checking = 'checking',
   NotInstalled = 'notInstalled',
+  UpstreamDetected = 'upstreamDetected',
   Progressing = 'progressing',
   Healthy = 'healthy',
   Degraded = 'degraded',

@@ -2461,6 +2461,7 @@
   "Uploading files to the bucket is in progress": "Uploading files to the bucket is in progress",
   "Uploads": "Uploads",
   "Upon rotation, the existing signing key will be revoked and replaced with a new one.": "Upon rotation, the existing signing key will be revoked and replaced with a new one.",
+  "Upstream Submariner detected. Advanced validation is only available for ACM-managed Submariner.": "Upstream Submariner detected. Advanced validation is only available for ACM-managed Submariner.",
   "URL of the image registry.": "URL of the image registry.",
   "Use a predefined policy configuration?": "Use a predefined policy configuration?",
   "Use an existing StorageClass": "Use an existing StorageClass",

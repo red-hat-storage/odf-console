@@ -1,7 +1,10 @@
+import * as React from 'react';
 import {
   GlobalnetStatus,
   MAX_ALLOWED_CLUSTERS,
   SUBMARINER_ADDON_NAME,
+  SUBMARINER_GVK,
+  SUBMARINER_OPERATOR_NAMESPACE,
   SubmarinerStatus,
 } from '@odf/mco/constants';
 import {
@@ -10,6 +13,7 @@ import {
   SubmarinerBrokerKind,
   SubmarinerClusterKind,
 } from '@odf/mco/types';
+import { startManagedClusterView } from '@odf/mco/utils/managed-cluster-view';
 import {
   doesGlobalnetBlockProceed,
   evaluateGlobalnetPrePair,
@@ -21,6 +25,7 @@ import {
   isNotFoundError,
 } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'react-i18next';
 import {
   getManagedClusterResourceObj,
   getSubmarinerAddonListResourceObj,
@@ -42,6 +47,80 @@ const idleState: PrePairNetworkValidationState = {
   canProceed: true,
   status: SubmarinerStatus.NotInstalled,
   globalnetStatus: GlobalnetStatus.Skipped,
+};
+
+// MCV errors are swallowed for detection; avoid t() identity churn in the effect.
+const passthroughT = ((key: string) => key) as TFunction;
+
+const isAddonAbsent = (
+  loaded: boolean,
+  addon: SubmarinerAddOnKind | undefined,
+  loadError: unknown
+): boolean => loaded && !addon && (!loadError || isNotFoundError(loadError));
+
+type UpstreamDetectionResult = {
+  detected: boolean;
+  pending: boolean;
+};
+
+const useUpstreamSubmarinerDetection = (
+  clusterName: string | undefined,
+  enabled: boolean
+): UpstreamDetectionResult => {
+  const [result, setResult] = React.useState<UpstreamDetectionResult>({
+    detected: false,
+    pending: false,
+  });
+
+  React.useEffect(() => {
+    if (!enabled || !clusterName) {
+      setResult({ detected: false, pending: false });
+      return;
+    }
+
+    let cancelled = false;
+    let cancelRequest = () => {};
+    setResult({ detected: false, pending: true });
+
+    startManagedClusterView(
+      SUBMARINER_ADDON_NAME,
+      SUBMARINER_OPERATOR_NAMESPACE,
+      SUBMARINER_GVK.kind,
+      SUBMARINER_GVK.version,
+      SUBMARINER_GVK.group,
+      clusterName,
+      passthroughT
+    )
+      .then(({ promise, cancel }) => {
+        // Unmounted (or deps changed) while k8sCreate was in flight.
+        if (cancelled) {
+          cancel();
+          return undefined;
+        }
+        cancelRequest = cancel;
+        return promise;
+      })
+      .then((response) => {
+        if (!cancelled && response) {
+          setResult({
+            detected: getName(response.result) === SUBMARINER_ADDON_NAME,
+            pending: false,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setResult({ detected: false, pending: false });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      cancelRequest();
+    };
+  }, [clusterName, enabled]);
+
+  return result;
 };
 
 export const usePrePairNetworkValidation = (
@@ -104,13 +183,36 @@ export const usePrePairNetworkValidation = (
       )
     );
 
+  const shouldDetectUpstreamA =
+    shouldWatch && !!clusterA && isAddonAbsent(loadedA, addonA, errorA);
+  const shouldDetectUpstreamB =
+    shouldWatch && !!clusterB && isAddonAbsent(loadedB, addonB, errorB);
+  const upstreamA = useUpstreamSubmarinerDetection(
+    clusterA,
+    shouldDetectUpstreamA
+  );
+  const upstreamB = useUpstreamSubmarinerDetection(
+    clusterB,
+    shouldDetectUpstreamB
+  );
+
   if (!shouldWatch) {
     return idleState;
   }
 
   const { canProceed, status } = evaluateSubmarinerPrePair([
-    { addon: addonA, loaded: loadedA, loadError: errorA },
-    { addon: addonB, loaded: loadedB, loadError: errorB },
+    {
+      addon: addonA,
+      loaded: loadedA && !upstreamA.pending,
+      loadError: errorA,
+      upstreamDetected: upstreamA.detected,
+    },
+    {
+      addon: addonB,
+      loaded: loadedB && !upstreamB.pending,
+      loadError: errorB,
+      upstreamDetected: upstreamB.detected,
+    },
   ]);
 
   const globalnetStatus = evaluateGlobalnetPrePair(
@@ -131,12 +233,15 @@ export const usePrePairNetworkValidation = (
     ],
     submarinerClusters,
     watchGlobalnet ? submarinerClustersLoaded : false,
-    status === SubmarinerStatus.NotInstalled
+    status === SubmarinerStatus.NotInstalled ||
+      status === SubmarinerStatus.UpstreamDetected
   );
 
   const loaded =
     loadedA &&
     loadedB &&
+    !upstreamA.pending &&
+    !upstreamB.pending &&
     (!watchGlobalnet ||
       (brokersLoaded &&
         managedClusterALoaded &&

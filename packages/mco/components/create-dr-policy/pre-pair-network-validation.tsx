@@ -45,6 +45,14 @@ const getSubmarinerStatusLine = (
         icon: <GreenCheckCircleIcon />,
         title: t('Submariner is healthy'),
       };
+    case SubmarinerStatus.UpstreamDetected:
+      return {
+        icon: <YellowExclamationTriangleIcon />,
+        title: t('Cluster network - Skipped'),
+        description: t(
+          'Upstream Submariner detected. Advanced validation is only available for ACM-managed Submariner.'
+        ),
+      };
     case SubmarinerStatus.NotInstalled:
       return {
         icon: <YellowExclamationTriangleIcon />,
