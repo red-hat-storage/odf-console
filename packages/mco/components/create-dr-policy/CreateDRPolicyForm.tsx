@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { getMajorVersion } from '@odf/mco/utils';
+import { usePrePairNetworkValidation } from '@odf/mco/hooks';
+import { getMajorVersion, shouldRunPrePairValidation } from '@odf/mco/utils';
 import {
   ACM_DEFAULT_DOC_VERSION,
   DRClusterModel,
@@ -12,10 +13,11 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { Wizard, WizardStep } from '@patternfly/react-core';
+import { FormGroup, Wizard, WizardStep } from '@patternfly/react-core';
 import {
   ACM_OPERATOR_SPEC_NAME,
   acmDocHome,
+  acmSubmarinerDoc,
   BackendType,
   CreateDRPolicyStepNames,
   CreateDRPolicyWizardSteps,
@@ -31,6 +33,7 @@ import { ConfigureClusterPairStep } from './configure-cluster-pair-step';
 import './create-dr-policy.scss';
 import { CreateDRPolicyWizardFooter } from './footer';
 import { PolicyStep } from './policy-step';
+import { PrePairNetworkValidation } from './pre-pair-network-validation';
 import { ReviewDRPolicyStep } from './review-dr-policy-step';
 import { createPolicyPromises } from './utils/k8s-utils';
 import {
@@ -133,6 +136,7 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
   const [s3ErrorMessage, setS3ErrorMessage] = React.useState('');
   const [createErrorMessage, setCreateErrorMessage] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [step, setStep] = React.useState(CreateDRPolicyWizardSteps.Clusters);
 
   const [mirrorPeers, mirrorPeerLoaded, mirrorPeerLoadError] =
     useK8sWatchResource<MirrorPeerKind[]>({
@@ -253,6 +257,20 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
   const loadedError = mirrorPeerLoadError || drClustersLoadError;
 
   const clusterNames = state.selectedClusters.map(getName);
+  const shouldRunValidation = shouldRunPrePairValidation(
+    state.selectedClusters.length,
+    state.isClusterSelectionValid,
+    state.replicationBackend === BackendType.DataFoundation
+  );
+  // Cluster pair validation runs only after the user leaves the clusters page.
+  const validationActive =
+    shouldRunValidation && step !== CreateDRPolicyWizardSteps.Clusters;
+  const prePairValidation = usePrePairNetworkValidation(
+    clusterNames,
+    validationActive
+  );
+  const prePairValidationPassed =
+    !validationActive || prePairValidation.canProceed;
 
   const acmDocVersion = useDocVersion({
     defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
@@ -260,6 +278,7 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
   });
 
   const acmDoc = acmDocHome(acmDocVersion);
+  const submarinerDoc = acmSubmarinerDoc(acmDocVersion);
 
   const allDRClustersExist = selectedDRClusters.length === MAX_ALLOWED_CLUSTERS;
 
@@ -273,15 +292,11 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
       state,
       allDRClustersExist
     ),
-    [CreateDRPolicyWizardSteps.Configure]: validateClusterInputs(
-      state,
-      allDRClustersExist
-    ),
+    [CreateDRPolicyWizardSteps.Configure]: prePairValidation.canProceed,
     [CreateDRPolicyWizardSteps.Policy]: validatePolicyInputs(state),
-    [CreateDRPolicyWizardSteps.Review]: validateDRPolicyInputs(
-      state,
-      allDRClustersExist
-    ),
+    [CreateDRPolicyWizardSteps.Review]:
+      validateDRPolicyInputs(state, allDRClustersExist) &&
+      prePairValidationPassed,
   };
 
   return (
@@ -289,6 +304,9 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
       className="mco-create-data-policy__wizard--height"
       navAriaLabel={t('Create DRPolicy steps')}
       isVisitRequired
+      onStepChange={(_event, currentStep) =>
+        setStep(currentStep.id as CreateDRPolicyWizardSteps)
+      }
       footer={
         <CreateDRPolicyWizardFooter
           stepValidity={stepValidity}
@@ -320,7 +338,11 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
         name={stepNames[CreateDRPolicyWizardSteps.Configure]}
         isHidden={state.replicationBackend !== BackendType.DataFoundation}
       >
-        <ConfigureClusterPairStep />
+        <ConfigureClusterPairStep
+          clusterNames={clusterNames}
+          validation={prePairValidation}
+          docHref={submarinerDoc}
+        />
       </WizardStep>
       <WizardStep
         id={CreateDRPolicyWizardSteps.Policy}
@@ -332,7 +354,20 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
         id={CreateDRPolicyWizardSteps.Review}
         name={stepNames[CreateDRPolicyWizardSteps.Review]}
       >
-        <ReviewDRPolicyStep state={state} />
+        <ReviewDRPolicyStep
+          state={state}
+          networkStatus={
+            shouldRunValidation ? (
+              <FormGroup fieldId="review-cluster-network">
+                <PrePairNetworkValidation
+                  clusterNames={clusterNames}
+                  validation={prePairValidation}
+                  docHref={submarinerDoc}
+                />
+              </FormGroup>
+            ) : undefined
+          }
+        />
       </WizardStep>
     </Wizard>
   );

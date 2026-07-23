@@ -18,10 +18,12 @@ import { DRPolicyState } from './utils/reducer';
 
 type ReviewDRPolicyStepProps = {
   state: DRPolicyState;
+  networkStatus?: React.ReactNode;
 };
 
 export const ReviewDRPolicyStep: React.FC<ReviewDRPolicyStepProps> = ({
   state,
+  networkStatus,
 }) => {
   const { t } = useCustomTranslation();
   const clusterNames = state.selectedClusters.map(getName).join(', ');
@@ -57,6 +59,7 @@ export const ReviewDRPolicyStep: React.FC<ReviewDRPolicyStepProps> = ({
             {clusterNames}
           </ReviewAndCreationItem>
         </ReviewAndCreationGroup>
+        {networkStatus}
         <ReviewAndCreationGroup title={t('Replication')}>
           <ReviewAndCreationItem label={t('Replication type:')}>
             {replicationLabel}
