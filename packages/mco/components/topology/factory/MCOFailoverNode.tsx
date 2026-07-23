@@ -47,6 +47,7 @@ const getFailoverNodeStatus = (data: FailoverNodeData): NodeStatus => {
       protectedCondition,
       volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
       action: op.action,
+      dryRun: op.drpc?.spec?.dryRun,
     });
     const nodeStatus = getDRNodeStatus(effectiveStatus);
 
@@ -124,6 +125,7 @@ const MCOFailoverNodeComponent: React.FC<MCOFailoverNodeProps> = ({
         protectedCondition,
         volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
         action: op.action,
+        dryRun: op.drpc?.spec?.dryRun,
       })
     );
   });

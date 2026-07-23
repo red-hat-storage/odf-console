@@ -88,6 +88,7 @@ const computeOperationDRStatus = (
     schedulingInterval,
     actionStartTime: drpc?.status?.actionStartTime,
     action: drpc?.spec?.action,
+    dryRun: drpc?.spec?.dryRun,
   });
 };
 
