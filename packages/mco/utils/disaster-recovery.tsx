@@ -669,9 +669,18 @@ export const getPrimaryClusterName = (
     return '';
   }
 
+  // During dryRun the primary cluster is untouched — use the original
+  // deployment cluster from the annotation, not spec.failoverCluster.
+  if (drPlacementControl.spec?.dryRun) {
+    return getLastAppDeploymentClusterName(drPlacementControl);
+  }
+
   switch (drPlacementControl.status.phase) {
     case Phase.FailedOver:
-      return drPlacementControl.spec.failoverCluster;
+      return (
+        drPlacementControl.spec.failoverCluster ||
+        getLastAppDeploymentClusterName(drPlacementControl)
+      );
     case Phase.Relocated:
       return drPlacementControl.spec.preferredCluster;
     default:
