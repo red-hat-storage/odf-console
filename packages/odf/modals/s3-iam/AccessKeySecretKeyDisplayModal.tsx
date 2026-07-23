@@ -2,7 +2,7 @@ import * as React from 'react';
 import { GreenCheckCircleIcon, useCustomTranslation } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   Form,
   FormGroup,

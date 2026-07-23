@@ -42,7 +42,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
-import { Link, useLocation } from 'react-router-dom-v5-compat';
+import { Link, useLocation } from 'react-router';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import {

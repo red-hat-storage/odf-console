@@ -16,6 +16,7 @@ type DetailsItemProps = {
   field: string;
   padChildElement?: boolean; // Add slight padding to the left for cascade effect
   showBorder?: boolean;
+  children?: React.ReactNode;
 };
 
 export const DetailsItem: React.FC<DetailsItemProps> = ({
@@ -46,6 +47,7 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
 type CommonDetailsSectionProps = {
   resource: K8sResourceCommon;
   resourceModel: K8sModel;
+  children?: React.ReactNode;
 };
 
 export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({

@@ -17,6 +17,7 @@ export type HealthItemProps = {
   maxWidth?: string;
   disableDetails?: boolean;
   onClick?: () => void;
+  children?: React.ReactNode;
 };
 
 const HealthItemIcon: React.FC<HealthItemIconProps> = ({ state, dataTest }) => (

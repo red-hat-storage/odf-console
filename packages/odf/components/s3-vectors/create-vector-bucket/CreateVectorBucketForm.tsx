@@ -13,7 +13,7 @@ import {
 import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   ActionGroup,
   Alert,

@@ -5,7 +5,7 @@ import '@testing-library/jest-dom';
 import { CreateScaleSystem } from './CreateScaleSystem';
 
 // Mock all external dependencies
-jest.mock('react-router-dom-v5-compat', () => ({
+jest.mock('react-router', () => ({
   useNavigate: jest.fn(() => jest.fn()),
   Link: ({
     children,

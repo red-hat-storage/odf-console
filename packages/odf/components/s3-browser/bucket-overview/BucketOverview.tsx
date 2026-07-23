@@ -25,10 +25,10 @@ import {
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
-import { useNavigate, NavigateFunction } from 'react-router-dom-v5-compat';
-import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
+import { useNavigate, NavigateFunction } from 'react-router';
+import { useParams, useSearchParams } from 'react-router';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
 import {

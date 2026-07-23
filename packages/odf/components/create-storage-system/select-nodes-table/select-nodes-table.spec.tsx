@@ -3,7 +3,7 @@ import { createWizardNodeState } from '@odf/core/components/utils';
 import { useNodesData } from '@odf/core/hooks';
 import { useListPageFilter } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom-v5-compat';
+import { BrowserRouter } from 'react-router';
 import { createFakeNodesData } from '../../../../../jest/helpers';
 import { SelectNodesTable } from './select-nodes-table';
 

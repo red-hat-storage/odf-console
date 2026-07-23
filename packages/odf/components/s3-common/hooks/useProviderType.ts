@@ -1,5 +1,5 @@
 import { S3ProviderType } from '@odf/core/types';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 
 export const useProviderType = (override?: S3ProviderType): S3ProviderType => {
   const { s3Provider } = useParams();

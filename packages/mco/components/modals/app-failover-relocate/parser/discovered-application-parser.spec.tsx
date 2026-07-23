@@ -96,31 +96,24 @@ jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
   }),
 }));
 
-jest.mock(
-  '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api',
-  () => ({
-    ...jest.requireActual(
-      '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api'
-    ),
-    useK8sWatchResource: jest.fn(() => {
-      if (type === 1 || type === 5) {
-        return [[mockManagedClusterEast1, mockManagedClusterWest1], true, ''];
-      } else if (type === 4) {
-        return [[mockManagedClusterEast1, mockManagedClusterEast2], true, ''];
-      } else {
-        return [
-          [mockManagedClusterEast1, mockManagedClusterWest1Down],
-          true,
-          '',
-        ];
-      }
-    }),
-    k8sPatch: jest.fn(({ data }) => {
-      patchObj = data;
-      return Promise.resolve({ data: {} });
-    }),
-  })
-);
+jest.mock('@openshift-console/dynamic-plugin-sdk/lib/api/core-api', () => ({
+  ...jest.requireActual(
+    '@openshift-console/dynamic-plugin-sdk/lib/api/core-api'
+  ),
+  useK8sWatchResource: jest.fn(() => {
+    if (type === 1 || type === 5) {
+      return [[mockManagedClusterEast1, mockManagedClusterWest1], true, ''];
+    } else if (type === 4) {
+      return [[mockManagedClusterEast1, mockManagedClusterEast2], true, ''];
+    } else {
+      return [[mockManagedClusterEast1, mockManagedClusterWest1Down], true, ''];
+    }
+  }),
+  k8sPatch: jest.fn(({ data }) => {
+    patchObj = data;
+    return Promise.resolve({ data: {} });
+  }),
+}));
 
 jest.mock('@odf/shared/hooks', () => ({
   ...jest.requireActual('@odf/shared/hooks'),

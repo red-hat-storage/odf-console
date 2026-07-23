@@ -14,7 +14,7 @@ import {
   Overview,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 import { Grid, GridItem } from '@patternfly/react-core';
 import ActivityCard from '../ibm-common/ActivityCard';
 import CapacityCard from '../ibm-common/CapacityCard';

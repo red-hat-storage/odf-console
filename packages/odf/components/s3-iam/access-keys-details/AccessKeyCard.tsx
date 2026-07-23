@@ -8,7 +8,7 @@ import { DASH, useCustomTranslation, useModalWrapper } from '@odf/shared';
 import { IamCommands } from '@odf/shared/iam';
 import { GreenCheckCircleIcon } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 import {
   Card,
   CardBody,

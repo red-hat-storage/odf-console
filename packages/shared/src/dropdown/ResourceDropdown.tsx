@@ -120,7 +120,13 @@ type ResourceDropdownProps<T> = {
 };
 
 type ResourceDropdown = <T>(
-  props: React.PropsWithChildren<ResourceDropdownProps<T>>
+  props: ResourceDropdownProps<T> & {
+    children?: (
+      loaded: boolean,
+      loadError: any,
+      resources: T[]
+    ) => React.ReactNode;
+  }
 ) => ReturnType<React.FC>;
 
 const ResourceDropdown: ResourceDropdown = <T extends unknown>({

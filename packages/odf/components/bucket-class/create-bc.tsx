@@ -9,7 +9,7 @@ import {
   getAPIVersionForModel,
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useParams, useNavigate } from 'react-router-dom-v5-compat';
+import { useParams, useNavigate } from 'react-router';
 import {
   Alert,
   AlertActionCloseButton,

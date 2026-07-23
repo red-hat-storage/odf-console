@@ -35,7 +35,7 @@ import {
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import {
   getFsPoolIndex,
   getScNamesUsingPool,
@@ -299,9 +299,9 @@ const DeleteStoragePoolModalBase: React.FC<DeleteStoragePoolModalBaseProps> = (
               </div>
             ) : state.poolStatus === PoolProgress.BOUNDED ? (
               <div>
-                <Trans t={t}>
+                <Trans t={t} values={{ poolName }}>
                   <p data-test="pool-bound-message">
-                    <strong>{{ poolName }}</strong> cannot be deleted. When a
+                    <strong>{'{{poolName}}'}</strong> cannot be deleted. When a
                     pool is bounded to PVC it cannot be deleted. Please detach
                     all the resources from StorageClass(es):
                   </p>
@@ -311,9 +311,9 @@ const DeleteStoragePoolModalBase: React.FC<DeleteStoragePoolModalBaseProps> = (
                 </strong>
               </div>
             ) : (
-              <Trans t={t}>
+              <Trans t={t} values={{ poolName }}>
                 <p>
-                  Deleting <strong>{{ poolName }}</strong> will remove all the
+                  Deleting <strong>{'{{poolName}}'}</strong> will remove all the
                   saved data of this pool. Are you sure want to delete?
                 </p>
               </Trans>

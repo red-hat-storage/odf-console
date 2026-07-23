@@ -40,6 +40,7 @@ type ExternalLinkProps = {
   additionalClassName?: string;
   dataTestID?: string;
   stopPropagation?: boolean;
+  children?: React.ReactNode;
 };
 
 export const ExternalLink: React.FC<ExternalLinkProps> = ({

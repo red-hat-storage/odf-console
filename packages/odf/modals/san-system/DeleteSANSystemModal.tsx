@@ -16,7 +16,7 @@ import {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { Alert, Button, FormGroup, TextInput } from '@patternfly/react-core';
 
 type DeleteSANSystemModalProps = CommonModalProps<{

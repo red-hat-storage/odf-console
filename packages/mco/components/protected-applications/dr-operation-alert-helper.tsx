@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import { DR_BASE_ROUTE } from '../../constants';
 import { DRPlacementControlKind, Phase } from '../../types';
 

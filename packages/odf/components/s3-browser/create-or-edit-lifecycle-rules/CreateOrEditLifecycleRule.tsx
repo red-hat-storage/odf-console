@@ -16,7 +16,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
-import { useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { useNavigate, useParams } from 'react-router';
 import useSWR from 'swr';
 import {
   ContentVariants,

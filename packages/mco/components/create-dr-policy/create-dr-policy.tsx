@@ -3,7 +3,7 @@ import { DRPolicyModel } from '@odf/shared';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import { Content, ContentVariants } from '@patternfly/react-core';
 import '../../style.scss';
 import './create-dr-policy.scss';

@@ -9,7 +9,7 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import { NamespaceStoreKind } from '../../types';
 import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';

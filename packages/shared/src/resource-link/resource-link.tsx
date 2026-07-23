@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import '../style.scss';
 
 type ResourceLinkProps = {

@@ -9,7 +9,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  HealthBody,
+  HealthBody as HealthBodyBase,
   HealthItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
@@ -22,6 +22,8 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import '../../../../style.scss';
+
+const HealthBody = HealthBodyBase as React.FC<React.PropsWithChildren<{}>>;
 
 const clientResource: WatchK8sResource = {
   kind: referenceForModel(StorageClientModel),

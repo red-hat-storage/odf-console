@@ -3,7 +3,7 @@ import { CORSRule } from '@aws-sdk/client-s3';
 import { BUCKET_CORS_RULE_CACHE_KEY_SUFFIX } from '@odf/core/constants';
 import { isNoCorsRuleError } from '@odf/shared/s3/utils';
 import { isClientPlugin } from '@odf/shared/utils';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import useSWR from 'swr';
 import { AllowedMethods } from '../create-or-edit-cors-rules/reducer';
 import { S3Context } from '../s3-context';

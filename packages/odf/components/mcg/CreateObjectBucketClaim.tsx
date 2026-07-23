@@ -43,7 +43,7 @@ import { Tile } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { Control, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   ActionGroup,
   Button,

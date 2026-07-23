@@ -9,6 +9,7 @@ type HandleErrorAndLoadingProps = {
   loading: boolean;
   error: string;
   ErrorMessage?: React.FC<{ error: string }>;
+  children?: React.ReactNode;
 };
 
 const HandleErrorAndLoading: React.FC<HandleErrorAndLoadingProps> = ({

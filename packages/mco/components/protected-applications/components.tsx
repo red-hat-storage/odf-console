@@ -22,7 +22,7 @@ import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk-internal
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
 import { Trans } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import {
   Alert,
   AlertProps,

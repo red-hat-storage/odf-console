@@ -9,7 +9,7 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { Button, ButtonVariant, Icon } from '@patternfly/react-core';
 import { ArrowRightIcon } from '@patternfly/react-icons';
 

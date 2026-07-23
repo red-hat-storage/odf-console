@@ -8,7 +8,7 @@ import {
   NodeKind,
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useParams, useNavigate } from 'react-router-dom-v5-compat';
+import { useParams, useNavigate } from 'react-router';
 import { Form } from '@patternfly/react-core';
 import { FormFooter } from '../common/form-footer';
 import { getNodesByHostNameLabel } from '../local-volume-discovery/util';

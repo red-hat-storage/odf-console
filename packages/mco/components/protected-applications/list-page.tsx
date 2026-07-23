@@ -18,11 +18,7 @@ import {
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import {
-  Link,
-  NavigateFunction,
-  useNavigate,
-} from 'react-router-dom-v5-compat';
+import { Link, NavigateFunction, useNavigate } from 'react-router';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ActionsColumn, OnSelect, Td, Tr } from '@patternfly/react-table';
 import { DR_BASE_ROUTE } from '../../constants';

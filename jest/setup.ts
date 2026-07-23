@@ -1,7 +1,13 @@
 import '@testing-library/jest-dom';
+import { TextEncoder, TextDecoder } from 'util';
 import { configure } from '@testing-library/react';
 
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
+global.TextDecoder = TextDecoder as typeof global.TextDecoder;
+
 configure({ testIdAttribute: 'data-test-id' });
+
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 // Mock required window properties.
 window['SERVER_FLAGS'] = {

@@ -1,5 +1,5 @@
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { FileSystemKind } from '../types/scale';
 import useIsSANSystemDeletable from './useIsSANSystemDeletable';
 
