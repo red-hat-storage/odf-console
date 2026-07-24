@@ -24,9 +24,9 @@ describe('Add capacity using multiple storage classes', () => {
   };
 
   before(() => {
-    cy.exec(`echo '${JSON.stringify(testEbsSC)}' | kubectl apply -f -`);
+    cy.exec(`echo '${JSON.stringify(testEbsSC)}' | oc apply -f -`);
     cy.exec(
-      `echo '${JSON.stringify(testNoProvisionerSC)}' | kubectl apply -f -`
+      `echo '${JSON.stringify(testNoProvisionerSC)}' | oc apply -f -`
     );
     fetchWorkerNodesJson().then((res) => {
       const nodes = JSON.parse(res.stdout);
@@ -36,7 +36,7 @@ describe('Add capacity using multiple storage classes', () => {
         cy.exec(
           `echo '${JSON.stringify(
             getPVJSON(id, nodeName, scName)
-          )}' | kubectl apply -f -`
+          )}' | oc apply -f -`
         );
       });
     });
@@ -52,9 +52,9 @@ describe('Add capacity using multiple storage classes', () => {
   });
 
   after(() => {
-    cy.exec(`echo '${JSON.stringify(testEbsSC)}' | kubectl delete -f -`);
+    cy.exec(`echo '${JSON.stringify(testEbsSC)}' | oc delete -f -`);
     cy.exec(
-      `echo '${JSON.stringify(testNoProvisionerSC)}' | kubectl delete -f -`
+      `echo '${JSON.stringify(testNoProvisionerSC)}' | oc delete -f -`
     );
     fetchWorkerNodesJson().then((res) => {
       const nodes = JSON.parse(res.stdout);
@@ -64,7 +64,7 @@ describe('Add capacity using multiple storage classes', () => {
         cy.exec(
           `echo '${JSON.stringify(
             getPVJSON(id, nodeName, scName)
-          )}' | kubectl delete -f -`
+          )}' | oc delete -f -`
         );
       });
     });

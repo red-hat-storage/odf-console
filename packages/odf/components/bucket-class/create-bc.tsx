@@ -337,6 +337,7 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
           variant="primary"
           onClick={handleNext}
           className="pf-v6-u-mr-md"
+          data-test="wizard-next-btn"
         >
           {currentStepId === CreateStepsBC.REVIEW
             ? t('Create BucketClass')

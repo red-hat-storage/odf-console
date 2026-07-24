@@ -3,6 +3,7 @@ export const commonFlows = {
     cy.clickNavLink(['Storage', 'Data Foundation']);
   },
   navigateToObjectStorage: () => {
+    cy.visit('/');
     cy.clickNavLink(['Storage', 'Object storage']);
   },
 };

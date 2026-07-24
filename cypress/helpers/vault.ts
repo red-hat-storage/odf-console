@@ -184,7 +184,7 @@ export const deploymentJSON = {
       spec: {
         containers: [
           {
-            image: 'vault:1.3.5',
+            image: 'docker.io/hashicorp/vault:1.3.5',
             name: 'vault',
             ports: [
               {
@@ -321,7 +321,7 @@ export const testDeploymentJSON = {
         containers: [
           {
             name: 'hello-openshift',
-            image: 'openshift/hello-openshift',
+            image: 'docker.io/openshift/hello-openshift',
             ports: [
               {
                 containerPort: 5555,

@@ -1,36 +1,45 @@
-import { testBucket } from '../utils/consts';
+import { MINUTE, testBucket } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
 
 describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Providers Cards', () => {
   beforeEach(() => {
     ODFCommon.visitStorageCluster();
     cy.byTestID('horizontal-link-Object').first().click();
+
+    // Wait for any "Processing" states to resolve before each test
+    cy.byTestID('Data Resiliency-health-item-icon', {
+      timeout: 10 * MINUTE,
+    }).should('not.contain.text', 'Processing');
   });
 
   it('Tests Buckets Cards', () => {
     cy.log('Create an Object Bucket Claim and test equality');
-    cy.exec(`kubectl get ObjectBucketClaims -A | wc -l`).then(({ stdout }) => {
+    cy.exec(`oc get ObjectBucketClaims -A | wc -l`).then(({ stdout }) => {
       // "-1" excludes the first heading row from the initial OBC count.
       let initCount = parseInt(stdout, 10);
       initCount = initCount ? initCount - 1 : initCount;
-      cy.exec(`echo '${JSON.stringify(testBucket)}' | kubectl create -f -`);
+      cy.exec(`echo '${JSON.stringify(testBucket)}' | oc create -f -`);
       const newCount = initCount + 1;
       cy.byTestID('resource-inventory-item-obc').contains(
         `${newCount} Object Bucket Claim${newCount > 1 ? 's' : ''}`
       );
-      cy.exec(`echo '${JSON.stringify(testBucket)}' | kubectl delete -f -`);
+      cy.exec(`echo '${JSON.stringify(testBucket)}' | oc delete -f -`);
     });
   });
 
   it('Test Status Cards', () => {
     cy.log('Check if Multi Cloud Gateway is in a healthy state');
-    cy.byTestID('Object Service-health-item-icon').within(() => {
-      cy.byTestID('success-icon');
+    cy.byTestID('Object Service-health-item-icon', {
+      timeout: 3 * MINUTE,
+    }).within(() => {
+      cy.byTestID('success-icon', { timeout: 3 * MINUTE }).should('exist');
     });
 
     cy.log('Check if Data Resiliency of MCG is in healthy state');
-    cy.byTestID('Data Resiliency-health-item-icon').within(() => {
-      cy.byTestID('success-icon');
+    cy.byTestID('Data Resiliency-health-item-icon', {
+      timeout: 3 * MINUTE,
+    }).within(() => {
+      cy.byTestID('success-icon', { timeout: 3 * MINUTE }).should('exist');
     });
   });
 

@@ -30,9 +30,15 @@ describe('Test Object Bucket Claim resource', () => {
     cy.visit('/');
     cy.install();
     obcHandler.createBucketClaim();
+    obcNavigate.navigateToOBC();
+    projectNameSpace.selectOrCreateProject(testName);
+    listPage.searchInList(OBC_NAME);
+    cy.byTestID(`resource-link-${OBC_NAME}`).should('exist');
+    cy.contains(BOUND, { timeout: 3 * MINUTE });
   });
 
   beforeEach(() => {
+    cy.login();
     obcNavigate.navigateToOBC();
     projectNameSpace.selectOrCreateProject(testName);
   });
@@ -44,7 +50,15 @@ describe('Test Object Bucket Claim resource', () => {
   it('Test if Object Bucket Claim details page is rendered correctly', () => {
     cy.log('Test if OBC is bound');
     listPage.searchInList(OBC_NAME);
+    listPage.rows.shouldBeLoaded();
     cy.byTestID(`resource-link-${OBC_NAME}`).click();
+    cy.url().should('include', `/odf/resource/`, { timeout: MINUTE });
+    cy.url().should('include', OBC_NAME);
+    cy.reload(true);
+    cy.byLegacyTestID('resource-title', { timeout: MINUTE }).should(
+      'contain',
+      OBC_NAME
+    );
     cy.byTestID('resource-status').contains(BOUND, { timeout: MINUTE });
 
     cy.log('Test if secret data is masked');
@@ -64,14 +78,16 @@ describe('Test Object Bucket Claim resource', () => {
     cy.log('Test if secret data can be revealed');
     CreateOBCHandler.revealHiddenValues();
     cy.byTestID('secret-data').should(($h) => {
-      expect($h[0].innerText).to.equal('Endpoint');
-      expect($h[2].innerText).to.equal('Access Key');
-      expect($h[3].innerText).to.equal('Secret Key');
+      const items = Cypress.$($h) as JQuery<HTMLElement>;
+      expect(items.eq(0).text()).to.equal('Endpoint');
+      expect(items.eq(2).text()).to.equal('Access Key');
+      expect(items.eq(3).text()).to.equal('Secret Key');
     });
     cy.byTestID('copy-to-clipboard').then(($el) => {
-      expect($el[0].innerText).to.include(NS);
-      expect($el[2].innerText).to.match(new RegExp(ACCESS_KEY));
-      expect($el[3].innerText).to.match(new RegExp(SECRET_KEY));
+      const items = Cypress.$($el) as JQuery<HTMLElement>;
+      expect(items.eq(0).text()).to.include(NS);
+      expect(items.eq(2).text()).to.match(new RegExp(ACCESS_KEY));
+      expect(items.eq(3).text()).to.match(new RegExp(SECRET_KEY));
     });
 
     cy.log('Test if secret data can be hidden again');
@@ -95,7 +111,7 @@ describe('Test Object Bucket Claim resource', () => {
     cy.byLegacyTestID(OBC_NAME).contains(OBC_NAME);
 
     cy.log('Test if status and storage class are shown correctly');
-    cy.byTestID('status-text').contains(BOUND);
+    cy.byTestID('resource-status').contains(BOUND);
     cy.byLegacyTestID('openshift-storage.noobaa.io').contains(
       OBC_STORAGE_CLASS_EXACT
     );
@@ -111,7 +127,7 @@ describe('Test Object Bucket Claim resource', () => {
     cy.exec(
       `echo '${JSON.stringify(
         deployment
-      )}' | kubectl create -n ${testName} -f -`
+      )}' | oc create -n ${testName} -f -`
     );
     listPage.rows.shouldBeLoaded();
     listPage.rows.clickKebabAction(OBC_NAME, 'Attach to Deployment');
@@ -123,7 +139,7 @@ describe('Test Object Bucket Claim resource', () => {
     cy.exec(
       `echo '${JSON.stringify(
         deployment
-      )}' | kubectl delete -n ${testName} -f -`
+      )}' | oc delete -n ${testName} -f -`
     );
   });
 });
@@ -136,7 +152,13 @@ describe('Tests form validations on Object Bucket Claim', () => {
     cy.contains('openshift-storage.noobaa.io').click();
   };
 
+  before(() => {
+    cy.login();
+    cy.visit('/');
+  });
+
   beforeEach(() => {
+    cy.login();
     obcNavigate.navigateToOBC();
     cy.byTestID('item-create').click();
   });

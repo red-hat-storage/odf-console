@@ -18,7 +18,7 @@ export const withJSONResult = (
 
 export const fetchStorageClusterJson = () =>
   cy.exec(
-    `kubectl get --ignore-not-found storagecluster ${OCS_INTERNAL_CR_NAME} -n ${NS} -o json`
+    `oc get --ignore-not-found storagecluster ${OCS_INTERNAL_CR_NAME} -n ${NS} -o json`
   );
 
 export const fetchWorkerNodesJson = () =>

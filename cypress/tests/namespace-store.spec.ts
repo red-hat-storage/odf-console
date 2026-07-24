@@ -16,13 +16,15 @@ describe('Tests creation of Namespace Stores', () => {
     cy.byTestActionID('Delete Namespace Store').click();
     cy.byTestID('delete-action').click();
 
-    // We are deleting above but this command will ensure the resource's complete termination
     cy.exec(
       `oc delete namespacestores ${testName} -n openshift-storage --wait`,
       { timeout: 5 * MIN, failOnNonZeroExit: false }
     );
     cy.log('Deleting secrets');
-    cy.exec(`oc delete secrets ${testName}-secret -n openshift-storage --wait`);
+    cy.exec(
+      `oc delete secrets ${testName}-secret -n openshift-storage --wait`,
+      { timeout: 2 * MIN, failOnNonZeroExit: false }
+    );
   });
 
   beforeEach(() => {
@@ -40,21 +42,28 @@ describe('Tests creation of Namespace Stores', () => {
       .its('exitCode')
       .should('eq', 0);
   };
+
+  const assertResourceCreated = () => {
+    cy.url().should('not.include', 'create');
+    cy.url().should('include', testName);
+    cy.contains('h1', testName, { timeout: 5 * MIN }).should('be.visible');
+  };
+
   it('Test creation of AWS namespace store', () => {
     createStore(Providers.AWS, StoreType.NamespaceStore);
-    cy.byLegacyTestID('resource-title').contains(testName);
+    assertResourceCreated();
     checkSecret(testName);
   });
 
   it('Test creation of Azure namespace store', () => {
     createStore(Providers.AZURE, StoreType.NamespaceStore);
-    cy.byLegacyTestID('resource-title').contains(testName);
+    assertResourceCreated();
     checkSecret(testName);
   });
 
   it('Test creation of S3 Endpoint Type', () => {
     createStore(Providers.S3, StoreType.NamespaceStore);
-    cy.byLegacyTestID('resource-title').contains(testName);
+    assertResourceCreated();
     checkSecret(testName);
   });
 });

@@ -82,6 +82,13 @@ Cypress.Commands.add(
             masthead.username.shouldBeVisible();
           }
 
+          // Remove webpack dev server overlay if present.
+          cy.document().then((doc) => {
+            doc
+              .querySelectorAll('#webpack-dev-server-client-overlay')
+              .forEach((el) => el.remove());
+          });
+
           // Close console tour modal.
           cy.byTestID('detail-item-title')
             .contains('Cluster API address')
