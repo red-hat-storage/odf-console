@@ -22,6 +22,16 @@ export const validateClustersStepInputs = (state: DRPolicyState): boolean =>
   state.isClusterSelectionValid &&
   state.selectedClusters.length === MAX_ALLOWED_CLUSTERS;
 
+// DF path only: run ACM Submariner / Globalnet pre-pair watches.
+export const shouldRunPrePairValidation = (
+  selectedClusterCount: number,
+  isClusterSelectionValid: boolean,
+  isDataFoundationBackend: boolean
+): boolean =>
+  selectedClusterCount === MAX_ALLOWED_CLUSTERS &&
+  isClusterSelectionValid &&
+  isDataFoundationBackend;
+
 // Configure-step gate only (pair already required to reach this step).
 export const validateConfigureStepInputs = (
   state: DRPolicyState,

@@ -2,6 +2,7 @@ import { BackendType, MAX_ALLOWED_CLUSTERS } from '@odf/mco/constants';
 import { S3Details } from '../add-s3-bucket-details/s3-bucket-details-form';
 import { DRPolicyState, drPolicyInitialState } from './reducer';
 import {
+  shouldRunPrePairValidation,
   validateClustersStepInputs,
   validateConfigureStepInputs,
   validateThirdPartyConfigureInputs,
@@ -113,5 +114,14 @@ describe('validateConfigureStepInputs', () => {
       useSameS3Connection: false,
     });
     expect(validateConfigureStepInputs(filled, false, true)).toBe(true);
+  });
+});
+
+describe('shouldRunPrePairValidation', () => {
+  it('runs only for Data Foundation with a valid two-cluster selection', () => {
+    expect(shouldRunPrePairValidation(2, true, true)).toBe(true);
+    expect(shouldRunPrePairValidation(2, true, false)).toBe(false);
+    expect(shouldRunPrePairValidation(2, false, true)).toBe(false);
+    expect(shouldRunPrePairValidation(1, true, true)).toBe(false);
   });
 });

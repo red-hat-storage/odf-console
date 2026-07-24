@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { usePrePairNetworkValidation } from '@odf/mco/hooks';
-import { getMajorVersion, shouldRunPrePairValidation } from '@odf/mco/utils';
+import { getMajorVersion } from '@odf/mco/utils';
 import {
   ACM_DEFAULT_DOC_VERSION,
   DRClusterModel,
@@ -28,6 +28,7 @@ import '../../style.scss';
 import { DRClusterKind, MirrorPeerKind, S3StoreProfile } from '../../types';
 import { fetchRamenS3Profiles } from '../../utils/tps-payload-creator';
 import { S3Details } from './add-s3-bucket-details/s3-bucket-details-form';
+import { shouldRunPrePairValidation } from './utils/step-validation';
 import { ClustersStep } from './clusters-step';
 import { ConfigureClusterPairStep } from './configure-cluster-pair-step';
 import './create-dr-policy.scss';
