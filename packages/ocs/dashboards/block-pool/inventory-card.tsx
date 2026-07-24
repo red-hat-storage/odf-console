@@ -10,10 +10,10 @@ import {
   StorageClassResourceKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getStorageClassName } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { getStorageClassName } from '../../utils/common';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const scResource = {

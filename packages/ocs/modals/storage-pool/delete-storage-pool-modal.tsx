@@ -24,6 +24,7 @@ import {
   StorageClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getStorageClassName } from '@odf/shared/utils';
 import {
   k8sDelete,
   K8sModel,
@@ -37,11 +38,6 @@ import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 import {
-  getFsPoolIndex,
-  getScNamesUsingPool,
-  isDefaultPool,
-} from '../..//utils';
-import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   PoolProgress,
   PoolType,
@@ -54,7 +50,11 @@ import {
   storagePoolReducer,
 } from '../../storage-pool/reducer';
 import { StoragePool } from '../../types';
-import { getStorageClassName } from '../../utils/common';
+import {
+  getFsPoolIndex,
+  getScNamesUsingPool,
+  isDefaultPool,
+} from '../../utils';
 import { StoragePoolModalFooter, FooterPrimaryActions } from './modal-footer';
 
 const deleteFsPoolRequest = (

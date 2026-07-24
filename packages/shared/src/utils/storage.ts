@@ -12,6 +12,7 @@ import { StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors/k8s';
 import {
   ClusterServiceVersionKind,
+  PersistentVolumeClaimKind,
   StorageClusterKind,
   StorageSystemKind,
 } from '@odf/shared/types';
@@ -108,3 +109,17 @@ export const isCephWithNFSOrNooBaaProvisioner = (
   provisioner: string
 ): boolean =>
   isCephWithNFSProvisioner(provisioner) || isNooBaaProvisioner(provisioner);
+
+export const getStorageClassName = (pvc: PersistentVolumeClaimKind): string =>
+  pvc?.spec?.storageClassName ||
+  pvc?.metadata?.annotations?.['volume.beta.kubernetes.io/storage-class'];
+
+export const filterPVCsByStorageClass = (
+  scNames: string[],
+  pvcsData: PersistentVolumeClaimKind[]
+): PersistentVolumeClaimKind[] => {
+  const scNameSet = new Set<string>([...scNames]);
+  return pvcsData.filter((pvc: PersistentVolumeClaimKind) =>
+    scNameSet.has(getStorageClassName(pvc))
+  );
+};
