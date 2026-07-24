@@ -9,7 +9,6 @@ type SelectReplicationBackendProps = {
   clusterNames?: string[];
   selectedKey?: BackendType;
   dispatch: React.Dispatch<DRPolicyAction>;
-  doClustersHaveODF?: boolean;
 };
 
 export const SelectReplicationBackend: React.FC<

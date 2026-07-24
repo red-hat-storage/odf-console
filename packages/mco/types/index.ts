@@ -4,3 +4,4 @@ export * from './odf-mco';
 export * from './argo-cd';
 export * from './dashboard';
 export * from './pav';
+export * from './submariner';
