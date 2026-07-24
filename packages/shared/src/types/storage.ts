@@ -231,9 +231,13 @@ export enum StorageConsumerState {
   Deleting = 'Deleting',
   Failed = 'Failed',
   Disabled = 'Disabled',
+  NotEnabled = 'NotEnabled',
 }
 
 type StorageConsumerSpec = {
+  resourceNameMappingConfigMap?: {
+    name: string;
+  };
   enable?: boolean;
   storageQuotaInGiB: number;
   storageClasses?: {
