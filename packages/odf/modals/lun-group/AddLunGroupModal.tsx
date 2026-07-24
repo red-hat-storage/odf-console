@@ -5,7 +5,6 @@ import {
   createLocalDisks,
   createLocalFileSystem,
   updateLocalFileSystem,
-  createStorageClass,
 } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/payload';
 import { useDeviceFinder } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useDeviceFinder';
 import useSANSystemFormValidation from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useFormValidation';
@@ -107,12 +106,7 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
     );
     try {
       const localDisks = await createLocalDisks(selectedLUNsData, t);
-      const fileSystem = await createLocalFileSystem(
-        lunGroupName,
-        localDisks,
-        t
-      );
-      await createStorageClass(fileSystem, t);
+      await createLocalFileSystem(lunGroupName, localDisks, t);
       setInProgress(false);
       onClose();
     } catch (err) {

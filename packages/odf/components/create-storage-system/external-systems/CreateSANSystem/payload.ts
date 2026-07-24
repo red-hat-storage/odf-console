@@ -1,4 +1,4 @@
-import { IBM_SCALE_NAMESPACE, SCALE_PROVISIONER } from '@odf/core/constants';
+import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import {
   DiscoveredDevice,
   FileSystemKind,
@@ -7,8 +7,8 @@ import {
 import {
   CSIDriverModel,
   getName,
-  StorageClassModel,
-  StorageClassResourceKind,
+  ReclaimPolicy,
+  VolumeBindingMode,
 } from '@odf/shared';
 import { FileSystemModel, LocalDiskModel } from '@odf/shared/models/scale';
 import {
@@ -124,6 +124,24 @@ export const createLocalFileSystem = async (
       namespace: IBM_SCALE_NAMESPACE,
     },
     spec: {
+      storageClasses: [
+        {
+          name: `san-${fsName}`,
+          reclaimPolicy: ReclaimPolicy.Delete,
+          allowVolumeExpansion: true,
+          volumeBindingMode: VolumeBindingMode.Immediate,
+        },
+        {
+          name: `san-${fsName}-vm`,
+          reclaimPolicy: ReclaimPolicy.Delete,
+          allowVolumeExpansion: true,
+          volumeBindingMode: VolumeBindingMode.Immediate,
+          parameters: {
+            volBackendFs: fsName,
+            volumeType: 'vmdisk',
+          },
+        },
+      ],
       local: {
         replication: '1-way',
         type: 'shared',
@@ -143,73 +161,6 @@ export const createLocalFileSystem = async (
   } catch (error) {
     throw new Error(
       t('Failed to create Filesystem: {{error}}', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      })
-    );
-  }
-};
-
-export const createStorageClass = async (
-  fileSystem: FileSystemKind,
-  t: TFunction
-): Promise<StorageClassResourceKind[]> => {
-  if (!fileSystem) {
-    throw new Error(t('Filesystem is required for Storageclass creation'));
-  }
-
-  const fileSystemName = getName(fileSystem);
-  if (!fileSystemName) {
-    throw new Error(t('Filesystem name is required'));
-  }
-
-  // StorageClass for containers
-  const containerStorageClassPayload: StorageClassResourceKind = {
-    apiVersion: 'storage.k8s.io/v1',
-    kind: StorageClassModel.kind,
-    metadata: {
-      name: `san-${fileSystemName}`,
-    },
-    provisioner: SCALE_PROVISIONER,
-    reclaimPolicy: 'Delete',
-    allowVolumeExpansion: true,
-    volumeBindingMode: 'Immediate',
-    parameters: {
-      volBackendFs: fileSystemName,
-      filesetType: 'independent',
-    },
-  };
-
-  // StorageClass for VMs
-  const vmStorageClassPayload: StorageClassResourceKind = {
-    apiVersion: 'storage.k8s.io/v1',
-    kind: StorageClassModel.kind,
-    metadata: {
-      name: `san-${fileSystemName}-vm`,
-    },
-    provisioner: SCALE_PROVISIONER,
-    reclaimPolicy: 'Delete',
-    allowVolumeExpansion: true,
-    volumeBindingMode: 'Immediate',
-    parameters: {
-      volBackendFs: fileSystemName,
-      volumeType: 'vmdisk',
-    },
-  };
-
-  try {
-    return await Promise.all([
-      k8sCreate({
-        model: StorageClassModel,
-        data: containerStorageClassPayload,
-      }),
-      k8sCreate({
-        model: StorageClassModel,
-        data: vmStorageClassPayload,
-      }),
-    ]);
-  } catch (error) {
-    throw new Error(
-      t('Failed to create Storageclasses: {{error}}', {
         error: error instanceof Error ? error.message : 'Unknown error',
       })
     );

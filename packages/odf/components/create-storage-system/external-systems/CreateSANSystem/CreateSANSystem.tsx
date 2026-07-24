@@ -46,7 +46,6 @@ import {
   createCSIDriver,
   createLocalDisks,
   createLocalFileSystem,
-  createStorageClass,
 } from './payload';
 import { initialComponentState, SANSystemComponentState } from './types';
 import { useDeviceFinder } from './useDeviceFinder';
@@ -199,12 +198,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
       }
       if (lunGroupName && mappedLuns.length > 0) {
         const localDisks = await createLocalDisks(mappedLuns, t);
-        const fileSystem = await createLocalFileSystem(
-          lunGroupName,
-          localDisks,
-          t
-        );
-        await createStorageClass(fileSystem, t);
+        await createLocalFileSystem(lunGroupName, localDisks, t);
       }
       navigate('/odf/external-systems');
     } catch (err) {
