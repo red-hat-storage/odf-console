@@ -117,12 +117,9 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
           </FormGroup>
         </p>
         <p>
-          <Trans t={t}>
+          <Trans t={t} values={{ name: getName(resource) }}>
             Confirm deletion by typing{' '}
-            <strong className="co-break-word">
-              {{ name: getName(resource) }}
-            </strong>{' '}
-            below:
+            <strong className="co-break-word">{'{{name}}'}</strong> below:
           </Trans>
         </p>
         <input

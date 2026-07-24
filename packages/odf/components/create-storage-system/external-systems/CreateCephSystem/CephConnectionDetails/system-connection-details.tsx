@@ -131,9 +131,13 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
             <HelperText>
               <HelperTextItem>
                 <div className="odf-connection-details__helper-text">
-                  <Trans t={t as any} ns="plugin__odf-console">
-                    1. Download <code>{{ SCRIPT_NAME }}</code> script and run on
-                    the RHCS cluster, then upload the results (JSON) in the
+                  <Trans
+                    t={t as any}
+                    ns="plugin__odf-console"
+                    values={{ SCRIPT_NAME }}
+                  >
+                    1. Download <code>{'{{SCRIPT_NAME}}'}</code> script and run
+                    on the RHCS cluster, then upload the results (JSON) in the
                     External storage system metadata field.
                   </Trans>{' '}
                   {!!downloadFile && (
@@ -266,7 +270,9 @@ export const EXTERNAL_CEPH_STORAGE: ExternalStorage[] = [
       kind: StorageClusterModel.kind,
       plural: StorageClusterModel.plural,
     },
-    component: ConnectionDetails,
+    component: ConnectionDetails as unknown as React.FC<
+      ExternalComponentProps<{}>
+    >,
     createPayload: rhcsPayload,
     canGoToNextStep: rhcsCanGoToNextStep,
   },

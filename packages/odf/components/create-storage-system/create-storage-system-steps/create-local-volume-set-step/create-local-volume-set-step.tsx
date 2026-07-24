@@ -23,9 +23,9 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isCSVSucceeded } from '@odf/shared/utils';
 import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { useWizardContext } from '@patternfly/react-core';
 import {
   Alert,

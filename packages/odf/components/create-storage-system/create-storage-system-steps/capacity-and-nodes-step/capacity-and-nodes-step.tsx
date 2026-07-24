@@ -90,9 +90,9 @@ const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
       <Content>
         <Content component="p">{text}</Content>
         <Content component="p">
-          <Trans t={t as any} ns="plugin__odf-console">
+          <Trans t={t as any} ns="plugin__odf-console" values={{ label }}>
             If not labeled, the selected nodes are labeled{' '}
-            <Label color="blue">{{ label }}</Label> to make them target hosts
+            <Label color="blue">{'{{label}}'}</Label> to make them target hosts
             for Data Foundation
             {/* eslint-disable react/no-unescaped-entities */}'s components.
           </Trans>
@@ -104,7 +104,7 @@ const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
 SelectNodesText.displayName = 'SelectNodesText';
 
 type SelectNodesTextProps = {
-  text: JSX.Element;
+  text: React.ReactNode;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
@@ -375,11 +375,11 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
               />
               <Content>
                 <Content component={ContentVariants.small}>
-                  <Trans ns="plugin__odf-console">
+                  <Trans ns="plugin__odf-console" values={{ storageClassName }}>
                     The available capacity is based on all attached disks
                     associated with the selected{' '}
                     {/* eslint-disable-next-line react/no-unescaped-entities */}
-                    StorageClass <b>{{ storageClassName }}</b>
+                    StorageClass <b>{'{{storageClassName}}'}</b>
                   </Trans>
                 </Content>
               </Content>

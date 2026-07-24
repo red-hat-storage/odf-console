@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { StatusBox, useCustomTranslation } from '@odf/shared';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import useSWR from 'swr';
 import {
   Button,

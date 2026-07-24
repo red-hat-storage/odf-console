@@ -404,7 +404,7 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
         <Content component={ContentVariants.small} className="pf-v6-u-my-sm">
           <Trans t={t} values={{ actionsCount }}>
             You have defined{' '}
-            <strong>{{ actionsCount }} lifecycle rules.</strong>
+            <strong>{'{{actionsCount}}'} lifecycle rules.</strong>
           </Trans>
         </Content>
       </Content>

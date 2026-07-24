@@ -16,7 +16,7 @@ import {
   k8sPatch,
   Patch,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 
 const generateLocalDiskName = (wwn: string) => `localdisk-${wwn}`;
 

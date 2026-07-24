@@ -208,8 +208,8 @@ jest.mock('../modals/app-manage-policies/helper/consistency-groups', () => ({
   getMCVName: jest.fn(() => ''),
 }));
 
-jest.mock('react-router-dom-v5-compat', () => ({
-  ...jest.requireActual('react-router-dom-v5-compat'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useNavigate: () => jest.fn(),
   useLocation: () => ({ pathname: '/', search: '' }),
   Link: jest.fn((props) => <a {...props}>{props.children}</a>),

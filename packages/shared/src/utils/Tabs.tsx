@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ResourceEventStream } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import {
   Tab,
   Tabs as PfTabs,

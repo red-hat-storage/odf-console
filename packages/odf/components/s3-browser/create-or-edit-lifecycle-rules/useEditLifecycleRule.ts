@@ -7,7 +7,7 @@ import {
 import { deepSortObject, humanizeBinaryBytes } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
-import { useSearchParams } from 'react-router-dom-v5-compat';
+import { useSearchParams } from 'react-router';
 import { RULE_NAME, RULE_HASH } from '../../../constants';
 import { isRuleScopeGlobal } from '../../../utils';
 import {

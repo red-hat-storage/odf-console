@@ -166,6 +166,7 @@ type ExternalLinkProps = {
   additionalClassName?: string;
   dataTestID?: string;
   stopPropagation?: boolean;
+  children?: React.ReactNode;
 };
 
 type ExternalLinkWithCopyProps = {

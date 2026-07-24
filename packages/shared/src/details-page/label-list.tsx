@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import * as _ from 'lodash-es';
 /* eslint-disable import/named */
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 /* eslint-enable import/named */
 
 export const isGroupVersionKind = (ref: GroupVersionKind | string) =>
@@ -16,7 +16,7 @@ export const isGroupVersionKind = (ref: GroupVersionKind | string) =>
 export const kindForReference = (ref: K8sResourceKindReference) =>
   isGroupVersionKind(ref) ? ref.split('~')[2] : ref;
 
-export const Label: React.SFC<LabelProps> = ({ kind, name, value, expand }) => {
+export const Label: React.FC<LabelProps> = ({ kind, name, value, expand }) => {
   const href = `/search?kind=${kind}&q=${
     value ? encodeURIComponent(`${name}=${value}`) : name
   }`;

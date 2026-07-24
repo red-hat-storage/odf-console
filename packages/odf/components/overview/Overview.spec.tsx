@@ -6,7 +6,7 @@ import {
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom-v5-compat';
+import { BrowserRouter } from 'react-router';
 import Overview from './Overview';
 
 const odfNamespace = 'test-ns';
@@ -31,8 +31,8 @@ jest.mock('@odf/core/redux/selectors', () => ({
   }),
 }));
 
-jest.mock('react-router-dom-v5-compat', () => ({
-  ...jest.requireActual('react-router-dom-v5-compat'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useLocation: jest.fn(() => ({ pathname: '/overview', search: '' })),
 }));
 

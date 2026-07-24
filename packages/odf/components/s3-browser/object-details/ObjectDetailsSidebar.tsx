@@ -24,8 +24,8 @@ import { useModalWrapper } from '@odf/shared';
 import { PaginatedListPage } from '@odf/shared/list-page';
 import { S3Commands } from '@odf/shared/s3';
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
-import { TFunction } from 'react-i18next';
-import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
+import { TFunction } from 'i18next';
+import { useParams, useSearchParams } from 'react-router';
 import useSWR from 'swr';
 import {
   Alert,

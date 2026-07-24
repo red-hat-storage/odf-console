@@ -8,7 +8,7 @@ import {
 } from '@odf/shared';
 import { ValidatedPasswordInput } from '@odf/shared/text-inputs/password-input';
 import * as _ from 'lodash-es';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   Form,
   FormGroup,

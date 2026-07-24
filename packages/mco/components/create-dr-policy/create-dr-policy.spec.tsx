@@ -178,8 +178,8 @@ const csv = {
   },
 };
 
-jest.mock('react-router-dom-v5-compat', () => ({
-  ...jest.requireActual('react-router-dom-v5-compat'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useNavigate: () => null,
   useLocation: () => ({ pathname: '/' }),
 }));

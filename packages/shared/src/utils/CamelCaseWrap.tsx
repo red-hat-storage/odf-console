@@ -2,7 +2,7 @@ import * as React from 'react';
 
 const MEMO = {};
 
-export const CamelCaseWrap: React.SFC<CamelCaseWrapProps> = ({
+export const CamelCaseWrap: React.FC<CamelCaseWrapProps> = ({
   value,
   dataTest,
 }) => {

@@ -17,7 +17,7 @@ import {
 } from '@odf/shared';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { useNavigate, useParams } from 'react-router';
 import {
   ActionGroup,
   Alert,

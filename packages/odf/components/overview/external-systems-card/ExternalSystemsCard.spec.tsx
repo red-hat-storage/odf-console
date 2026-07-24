@@ -7,7 +7,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen, within } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom-v5-compat';
+import { BrowserRouter } from 'react-router';
 import { ExternalSystemsCard } from './ExternalSystemsCard';
 
 jest.mock('@odf/shared/hooks/useWatchStorageClusters', () => ({

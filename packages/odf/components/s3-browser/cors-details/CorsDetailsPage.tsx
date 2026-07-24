@@ -14,15 +14,15 @@ import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
-import { TFunction } from 'react-i18next';
 import {
   useParams,
   useSearchParams,
   useNavigate,
   NavigateFunction,
-} from 'react-router-dom-v5-compat';
+} from 'react-router';
 import useSWR, { KeyedMutator } from 'swr';
 import {
   Content,

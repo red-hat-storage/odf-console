@@ -8,7 +8,7 @@ import { useODFSystemFlagsSelector } from '@odf/core/redux/selectors';
 import { PageHeading, useCustomTranslation } from '@odf/shared';
 import { useModalWrapper } from '@odf/shared';
 import { Helmet } from 'react-helmet';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { useLocation } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { hasAnyInternalCeph } from '../../utils';
 import { HealthOverviewCard } from './health-overview-card/HealthOverviewCard';

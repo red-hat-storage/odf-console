@@ -26,7 +26,7 @@ export const ModalTitle: React.FC<ModalTitleProps> = ({
   </div>
 );
 
-export const ModalBody: React.SFC<ModalBodyProps> = ({ children }) => (
+export const ModalBody: React.FC<ModalBodyProps> = ({ children }) => (
   <div className="modal-body">
     <div className="modal-body-content">
       <div className="modal-body-inner-shadow-covers">{children}</div>
@@ -34,7 +34,7 @@ export const ModalBody: React.SFC<ModalBodyProps> = ({ children }) => (
   </div>
 );
 
-export const ModalFooter: React.SFC<ModalFooterProps> = ({
+export const ModalFooter: React.FC<ModalFooterProps> = ({
   message,
   errorMessage,
   inProgress,
@@ -52,7 +52,7 @@ export const ModalFooter: React.SFC<ModalFooterProps> = ({
   );
 };
 
-export const ModalSubmitFooter: React.SFC<ModalSubmitFooterProps> = ({
+export const ModalSubmitFooter: React.FC<ModalSubmitFooterProps> = ({
   message,
   errorMessage,
   inProgress,
@@ -130,16 +130,19 @@ export const ModalSubmitFooter: React.SFC<ModalSubmitFooterProps> = ({
 export type ModalTitleProps = {
   className?: string;
   close?: (e: React.SyntheticEvent<any, Event>) => void;
+  children?: React.ReactNode;
 };
 
 export type ModalBodyProps = {
   className?: string;
+  children?: React.ReactNode;
 };
 
 export type ModalFooterProps = {
   message?: string;
   errorMessage?: React.ReactNode;
   inProgress: boolean;
+  children?: React.ReactNode;
 };
 
 export type ModalSubmitFooterProps = {

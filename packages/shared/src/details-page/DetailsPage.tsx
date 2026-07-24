@@ -139,6 +139,7 @@ export type DetailsItemProps = {
   path?: string | string[];
   valueClassName?: string;
   model?: K8sKind;
+  children?: React.ReactNode;
 };
 
 export const PropertyPath: React.FC<{
@@ -164,6 +165,7 @@ export const PropertyPath: React.FC<{
 type EditButtonProps = {
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   testId?: string;
+  children?: React.ReactNode;
 };
 
 const EditButton: React.FC<EditButtonProps> = (props) => {
