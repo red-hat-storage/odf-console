@@ -11,8 +11,10 @@ import {
   fieldRequirementsTranslations,
   formSettings,
   getName,
+  ResourceDropdown,
   StorageConsumerKind,
   StorageConsumerModel,
+  StorageConsumerState,
   TextInputWithFieldRequirements,
   useCustomTranslation,
   useDeepCompareMemoize,
@@ -23,7 +25,9 @@ import {
   getAPIVersionForModel,
   k8sCreate,
   useK8sWatchResource,
+  WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
@@ -34,6 +38,8 @@ import {
   ContentVariants,
   ActionGroup,
   Button,
+  Radio,
+  FormGroup,
 } from '@patternfly/react-core';
 import { StorageQuotaBody } from './onboarding-modal';
 
@@ -42,16 +48,20 @@ const unlimitedQuota: StorageQuota = {
   unit: null,
 };
 
+const storageConsumerResource: WatchK8sResource = {
+  groupVersionKind: {
+    group: StorageConsumerModel.apiGroup,
+    kind: StorageConsumerModel.kind,
+    version: StorageConsumerModel.apiVersion,
+  },
+  isList: true,
+};
+
 const useStorageConsumerFormSchema = () => {
   const { t } = useCustomTranslation();
-  const [data] = useK8sWatchResource<StorageConsumerKind[]>({
-    groupVersionKind: {
-      group: StorageConsumerModel.apiGroup,
-      kind: StorageConsumerModel.kind,
-      version: StorageConsumerModel.apiVersion,
-    },
-    isList: true,
-  });
+  const [data] = useK8sWatchResource<StorageConsumerKind[]>(
+    storageConsumerResource
+  );
   const unmemoizedNames = data?.map(getName);
   const names = useDeepCompareMemoize(unmemoizedNames, true);
 
@@ -85,11 +95,17 @@ const useStorageConsumerFormSchema = () => {
   }, [names, t]);
 };
 
+const filterStorageConsumerResource = (resource: StorageConsumerKind) =>
+  resource.status?.state === StorageConsumerState.Ready;
+
 const CreateStorageConsumer: React.FC = () => {
   const [name, setName] = React.useState('');
   const [progress, setProgress] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [quota, setQuota] = React.useState<StorageQuota>(unlimitedQuota);
+  const [isBackedByConsumer, setIsBackedByConsumer] = React.useState(false);
+  const [backingStorageConsumer, setBackingStorageConsumer] =
+    React.useState<StorageConsumerKind>(null);
 
   const { odfNamespace } = useODFNamespaceSelector();
 
@@ -100,7 +116,12 @@ const CreateStorageConsumer: React.FC = () => {
 
   const { formSchema, fieldRequirements } = useStorageConsumerFormSchema();
   const resolver = useYupValidationResolver(formSchema);
-  const { control, handleSubmit, watch } = useForm({
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { isValid },
+  } = useForm({
     ...formSettings,
     resolver,
   });
@@ -120,6 +141,8 @@ const CreateStorageConsumer: React.FC = () => {
         return Number(quota.value) * 1024;
       }
     })();
+    const resourceNameMappingCM =
+      backingStorageConsumer?.status?.resourceNameMappingConfigMap;
     setProgress(true);
     k8sCreate<StorageConsumerKind>({
       model: StorageConsumerModel,
@@ -131,6 +154,7 @@ const CreateStorageConsumer: React.FC = () => {
           namespace: odfNamespace,
         },
         spec: {
+          resourceNameMappingConfigMap: resourceNameMappingCM,
           storageQuotaInGiB: quotaInGib,
           storageClasses: [
             { name: `${clusterName}-ceph-rbd` },
@@ -155,6 +179,9 @@ const CreateStorageConsumer: React.FC = () => {
   };
 
   const exampleTranslatedText = t('Example');
+
+  const isDisabled =
+    (isBackedByConsumer && _.isEmpty(backingStorageConsumer)) || !isValid;
 
   return (
     <div className="odf-m-pane__body odf-m-pane__form">
@@ -190,10 +217,51 @@ const CreateStorageConsumer: React.FC = () => {
               isRequired: true,
             }}
           />
+          <FormGroup label={t('Storage type')}>
+            <Radio
+              isChecked={!isBackedByConsumer}
+              id="new-storage"
+              name="storage-type"
+              label={t('New storage')}
+              description={t(
+                'Provision a dedicated, isolated storage instance with new backing resources.'
+              )}
+              onChange={() => setIsBackedByConsumer(false)}
+            />
+            <Radio
+              isChecked={isBackedByConsumer}
+              id="backed-by-existing"
+              name="storage-type"
+              label={t('Backed by existing')}
+              description={t(
+                'Share storage resources with an existing consumer.'
+              )}
+              onChange={() => setIsBackedByConsumer(true)}
+              className="pf-v6-u-mt-sm"
+            />
+            {isBackedByConsumer && (
+              <FormGroup
+                label={t('Backing Storage Consumer')}
+                className="pf-v6-u-mt-sm"
+              >
+                <ResourceDropdown
+                  resource={storageConsumerResource}
+                  resourceModel={StorageConsumerModel}
+                  onSelect={setBackingStorageConsumer}
+                  filterResource={filterStorageConsumerResource}
+                />
+              </FormGroup>
+            )}
+          </FormGroup>
           <StorageQuotaBody quota={quota} setQuota={setQuota} />
           <ButtonBar errorMessage={error} inProgress={progress}>
             <ActionGroup className="pf-v6-c-form">
-              <Button id="submit-btn" type="submit" variant="primary">
+              <Button
+                id="submit-btn"
+                type="submit"
+                variant="primary"
+                isDisabled={isDisabled}
+              >
                 {t('Create')}
               </Button>
               <Button onClick={() => navigate(-1)} variant="secondary">
