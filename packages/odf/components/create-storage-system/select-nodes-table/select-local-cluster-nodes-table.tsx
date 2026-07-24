@@ -296,17 +296,21 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     localClusterRoleSort,
   ]);
 
-  const [selectedRows, setSelectedRows] = React.useState<NodeData[]>([]);
+  // Initialize with all nodes selected (only once on first load, not when user deselects all)
+  const [selectedNodes, setSelectedNodes] = React.useState<NodeData[]>([]);
+  const hasInitializedSelection = React.useRef(false);
 
   React.useEffect(() => {
-    if (!filteredData.length) return;
-    setSelectedRows(filteredData);
+    if (hasInitializedSelection.current || !filteredData.length) return;
+    if (selectedNodes.length > 0) return;
+    setSelectedNodes(filteredData);
     onRowSelected(filteredData);
-  }, [filteredData, selectedRows.length, onRowSelected]);
+    hasInitializedSelection.current = true;
+  }, [filteredData, selectedNodes.length, onRowSelected]);
 
   const handleRowSelection = React.useCallback(
     (selected: NodeData[]) => {
-      setSelectedRows(selected);
+      setSelectedNodes(selected);
       onRowSelected(selected);
     },
     [onRowSelected]
@@ -319,7 +323,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
         rows={filteredData}
         RowComponent={NodeRow}
         extraProps={{ enableStretchCluster, nodes, onLocalClusterRoleChange }}
-        selectedRows={selectedRows}
+        selectedRows={selectedNodes}
         setSelectedRows={handleRowSelection}
         loaded={true}
         variant={TableVariant.COMPACT}
