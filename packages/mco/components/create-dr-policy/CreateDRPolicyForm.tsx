@@ -38,6 +38,7 @@ import {
   ODFMCO_OPERATOR,
   ReplicationType,
 } from '../../constants';
+import { gettingStartedDRDocs } from '../../constants/doc';
 import '../../style.scss';
 import { DRClusterKind, MirrorPeerKind, S3StoreProfile } from '../../types';
 import { fetchRamenS3Profiles } from '../../utils/tps-payload-creator';
@@ -116,6 +117,7 @@ export const validateDRPolicyInputs = (
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   enableRBDImageFlatten,
+  docHref,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
@@ -144,12 +146,12 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
         className="pf-v6-u-mt-md odf-alert mco-create-data-policy__alert"
         title={
           <Trans>
-            Before choosing this option, read the section
-            <i className="pf-v6-u-mx-xs">
-              Creating Disaster Recovery Policy on Hub cluster chapter of
-              Regional-DR solution guide
-            </i>
-            to understand the impact and limitations of this feature.
+            Before choosing this option, read the section{' '}
+            <ExternalLink href={docHref}>
+              Creating Disaster Recovery Policy on Hub cluster
+            </ExternalLink>{' '}
+            chapter of Regional-DR solution guide to understand the impact and
+            limitations of this feature.
           </Trans>
         }
         variant={AlertVariant.warning}
@@ -462,6 +464,9 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
                   <FormGroup fieldId="advanced-settings">
                     <AdvancedSettings
                       enableRBDImageFlatten={state.enableRBDImageFlatten}
+                      docHref={
+                        gettingStartedDRDocs(odfMCOVersion).CREATE_POLICY
+                      }
                       dispatch={dispatch}
                     />
                   </FormGroup>
@@ -512,5 +517,6 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
 
 type AdvancedSettingsProps = {
   enableRBDImageFlatten: boolean;
+  docHref: string;
   dispatch: React.Dispatch<DRPolicyAction>;
 };
