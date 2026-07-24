@@ -1521,6 +1521,7 @@
   "Namespaces": "Namespaces",
   "NamespaceStore": "NamespaceStore",
   "NamespaceStore details": "NamespaceStore details",
+  "NamespaceStore list": "NamespaceStore list",
   "NamespaceStores": "NamespaceStores",
   "Navigate through your buckets effortlessly. View the contents of your S3-managed and Openshift-managed buckets, making it easy to locate and inspect objects.": "Navigate through your buckets effortlessly. View the contents of your S3-managed and Openshift-managed buckets, making it easy to locate and inspect objects.",
   "needs attention": "needs attention",

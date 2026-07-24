@@ -29,8 +29,9 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
+import { Label } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
-import { BucketClassKind } from '../../types';
+import { BucketClassKind, NamespaceStoreKind } from '../../types';
 import { getBucketClassTypeDisplayText } from '../../utils/mcg';
 import { OperandStatus } from '../utils';
 
@@ -416,9 +417,191 @@ export const BucketClassListPage: React.FC = () => {
   );
 };
 
-export const NamespaceStoreListPage: React.FC = () => (
-  <GenericListPage resourceModel={NooBaaNamespaceStoreModel} />
-);
+// NamespaceStore-specific table with archive label next to name
+const nsTableColumnInfo = [
+  { className: '', id: 'name' },
+  { className: '', id: 'kind' },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-sm'),
+    id: 'status',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-md'),
+    id: 'labels',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'),
+    id: 'creationTimestamp',
+  },
+  { className: Kebab.columnClass, id: '' },
+];
+
+type NamespaceStoreTableProps = {
+  data: NamespaceStoreKind[];
+  unfilteredData: NamespaceStoreKind[];
+  loaded: boolean;
+  loadError: any;
+  rowData: CustomData;
+};
+
+const NamespaceStoreTable: React.FC<NamespaceStoreTableProps> = (props) => {
+  const { t } = useCustomTranslation();
+  const tableColumns = React.useMemo<TableColumn<NamespaceStoreKind>[]>(
+    () => [
+      {
+        title: t('Name'),
+        sort: 'metadata.name',
+        transforms: [sortable],
+        props: {
+          className: nsTableColumnInfo[0].className,
+        },
+        id: nsTableColumnInfo[0].id,
+      },
+      {
+        title: t('Kind'),
+        props: {
+          className: nsTableColumnInfo[1].className,
+        },
+        id: nsTableColumnInfo[1].id,
+      },
+      {
+        title: t('Status'),
+        props: {
+          className: nsTableColumnInfo[2].className,
+        },
+        id: nsTableColumnInfo[2].id,
+      },
+      {
+        title: t('Labels'),
+        props: {
+          className: nsTableColumnInfo[3].className,
+        },
+        id: nsTableColumnInfo[3].id,
+      },
+      {
+        title: t('Last Updated'),
+        props: {
+          className: nsTableColumnInfo[4].className,
+        },
+        id: nsTableColumnInfo[4].id,
+      },
+      {
+        title: '',
+        props: {
+          className: nsTableColumnInfo[5].className,
+        },
+        id: nsTableColumnInfo[5].id,
+      },
+    ],
+    [t]
+  );
+
+  const [columns] = useActiveColumns({
+    columns: tableColumns,
+    showNamespaceOverride: false,
+    columnManagementID: null,
+  });
+  return (
+    <VirtualizedTable
+      {...props}
+      aria-label={t('NamespaceStore list')}
+      columns={columns}
+      Row={NamespaceStoreRowRenderer}
+    />
+  );
+};
+
+const NamespaceStoreRowRenderer: React.FC<
+  RowProps<NamespaceStoreKind, CustomData>
+> = ({ obj, activeColumnIDs, rowData }) => {
+  const { t } = useCustomTranslation();
+  const { resourceModel, kebabActions } = rowData;
+  const name = getName(obj);
+  const path = `/odf/resource/${referenceForModel(resourceModel)}/${name}`;
+  const isArchive = obj.spec?.archive === true;
+
+  return (
+    <>
+      <TableData {...nsTableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
+        <ResourceLink
+          resourceModel={resourceModel}
+          resourceName={name}
+          link={path}
+        />
+        {isArchive && (
+          <Label color="green" isCompact className="pf-v5-u-ml-sm">
+            {t('IBM Deep archive')}
+          </Label>
+        )}
+      </TableData>
+      <TableData {...nsTableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
+        {obj.kind}
+      </TableData>
+      <TableData {...nsTableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
+        <OperandStatus operand={obj} />
+      </TableData>
+      <TableData {...nsTableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
+        <LabelList kind={obj.kind} labels={obj.metadata.labels} />
+      </TableData>
+      <TableData {...nsTableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
+        <Timestamp timestamp={obj.metadata.creationTimestamp} />
+      </TableData>
+      <TableData {...nsTableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
+        <Kebab
+          extraProps={{ resource: obj, resourceModel: resourceModel }}
+          customKebabItems={kebabActions}
+        />
+      </TableData>
+    </>
+  );
+};
+
+export const NamespaceStoreListPage: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
+
+  const [resources, loaded, loadError] = useSafeK8sWatchResource<
+    NamespaceStoreKind[]
+  >((ns: string) => ({
+    kind: referenceForModel(NooBaaNamespaceStoreModel),
+    namespace: ns,
+    isList: true,
+  }));
+
+  const [data, filteredData, onFilterChange] = useListPageFilter(resources);
+
+  const createLink = `/odf/resource/${referenceForModel(
+    NooBaaNamespaceStoreModel
+  )}/create/~new`;
+
+  return (
+    <>
+      <ListPageHeader title={null}>
+        <ListPageCreateLink to={createLink}>
+          {t('Create NamespaceStore')}
+        </ListPageCreateLink>
+      </ListPageHeader>
+      <ListPageBody>
+        <ListPageFilterWrapper
+          data={data}
+          loaded={loaded && isODFNsLoaded}
+          onFilterChange={onFilterChange}
+          hideColumnManagement={true}
+        />
+        <NamespaceStoreTable
+          data={filteredData || []}
+          unfilteredData={data || []}
+          loaded={loaded && isODFNsLoaded}
+          loadError={loadError || odfNsLoadError}
+          rowData={{
+            resourceModel: NooBaaNamespaceStoreModel,
+          }}
+        />
+      </ListPageBody>
+    </>
+  );
+};
 
 export const BackingStoreListPage: React.FC = () => (
   <GenericListPage resourceModel={NooBaaBackingStoreModel} />
