@@ -229,7 +229,7 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
           <b>{t('BucketClass Type')}</b>
           <br />
           <span className="text-secondary">
-            {isDeepArchive ? t('Deep archive - Standard') : bucketClassType}
+            {isDeepArchive ? t('Standard + Deep archive') : bucketClassType}
           </span>
         </ReviewListBody>
         <ReviewListBody hideIcon>

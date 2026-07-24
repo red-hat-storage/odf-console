@@ -30,6 +30,8 @@ import {
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import { sortable } from '@patternfly/react-table';
+import { BucketClassKind } from '../../types';
+import { getBucketClassTypeDisplayText } from '../../utils/mcg';
 import { OperandStatus } from '../utils';
 
 const tableColumnInfo = [
@@ -234,13 +236,183 @@ const bcKebabActions = (t: TFunction) => [
   },
 ];
 
+// BucketClass-specific table with Type column instead of Kind
+const bcTableColumnInfo = [
+  { className: '', id: 'name' },
+  { className: '', id: 'type' },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-sm'),
+    id: 'status',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-md'),
+    id: 'labels',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'),
+    id: 'creationTimestamp',
+  },
+  { className: Kebab.columnClass, id: '' },
+];
+
+type BucketClassTableProps = {
+  data: BucketClassKind[];
+  unfilteredData: BucketClassKind[];
+  loaded: boolean;
+  loadError: any;
+  rowData: CustomData;
+};
+
+const BucketClassTable: React.FC<BucketClassTableProps> = (props) => {
+  const { t } = useCustomTranslation();
+  const tableColumns = React.useMemo<TableColumn<BucketClassKind>[]>(
+    () => [
+      {
+        title: t('Name'),
+        sort: 'metadata.name',
+        transforms: [sortable],
+        props: {
+          className: bcTableColumnInfo[0].className,
+        },
+        id: bcTableColumnInfo[0].id,
+      },
+      {
+        title: t('Type'),
+        props: {
+          className: bcTableColumnInfo[1].className,
+        },
+        id: bcTableColumnInfo[1].id,
+      },
+      {
+        title: t('Status'),
+        props: {
+          className: bcTableColumnInfo[2].className,
+        },
+        id: bcTableColumnInfo[2].id,
+      },
+      {
+        title: t('Labels'),
+        props: {
+          className: bcTableColumnInfo[3].className,
+        },
+        id: bcTableColumnInfo[3].id,
+      },
+      {
+        title: t('Last Updated'),
+        props: {
+          className: bcTableColumnInfo[4].className,
+        },
+        id: bcTableColumnInfo[4].id,
+      },
+      {
+        title: '',
+        props: {
+          className: bcTableColumnInfo[5].className,
+        },
+        id: bcTableColumnInfo[5].id,
+      },
+    ],
+    [t]
+  );
+
+  const [columns] = useActiveColumns({
+    columns: tableColumns,
+    showNamespaceOverride: false,
+    columnManagementID: null,
+  });
+  return (
+    <VirtualizedTable
+      {...props}
+      aria-label={t('BucketClass list')}
+      columns={columns}
+      Row={BucketClassRowRenderer}
+    />
+  );
+};
+
+const BucketClassRowRenderer: React.FC<
+  RowProps<BucketClassKind, CustomData>
+> = ({ obj, activeColumnIDs, rowData }) => {
+  const { t } = useCustomTranslation();
+  const { resourceModel, kebabActions } = rowData;
+  const name = getName(obj);
+  const path = `/odf/resource/${referenceForModel(resourceModel)}/${name}`;
+  return (
+    <>
+      <TableData {...bcTableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
+        <ResourceLink
+          resourceModel={resourceModel}
+          resourceName={name}
+          link={path}
+        />
+      </TableData>
+      <TableData {...bcTableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
+        {getBucketClassTypeDisplayText(obj, t)}
+      </TableData>
+      <TableData {...bcTableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
+        <OperandStatus operand={obj} />
+      </TableData>
+      <TableData {...bcTableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
+        <LabelList kind={obj.kind} labels={obj.metadata.labels} />
+      </TableData>
+      <TableData {...bcTableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
+        <Timestamp timestamp={obj.metadata.creationTimestamp} />
+      </TableData>
+      <TableData {...bcTableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
+        <Kebab
+          extraProps={{ resource: obj, resourceModel: resourceModel }}
+          customKebabItems={kebabActions}
+        />
+      </TableData>
+    </>
+  );
+};
+
 export const BucketClassListPage: React.FC = () => {
   const { t } = useCustomTranslation();
+
+  const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
+
+  const [resources, loaded, loadError] = useSafeK8sWatchResource<
+    BucketClassKind[]
+  >((ns: string) => ({
+    kind: referenceForModel(NooBaaBucketClassModel),
+    namespace: ns,
+    isList: true,
+  }));
+
+  const [data, filteredData, onFilterChange] = useListPageFilter(resources);
+
+  const createLink = `/odf/resource/${referenceForModel(
+    NooBaaBucketClassModel
+  )}/create/~new`;
+
   return (
-    <GenericListPage
-      resourceModel={NooBaaBucketClassModel}
-      kebabActions={bcKebabActions(t)}
-    />
+    <>
+      <ListPageHeader title={null}>
+        <ListPageCreateLink to={createLink}>
+          {t('Create Bucket Class')}
+        </ListPageCreateLink>
+      </ListPageHeader>
+      <ListPageBody>
+        <ListPageFilterWrapper
+          data={data}
+          loaded={loaded && isODFNsLoaded}
+          onFilterChange={onFilterChange}
+          hideColumnManagement={true}
+        />
+        <BucketClassTable
+          data={filteredData || []}
+          unfilteredData={data || []}
+          loaded={loaded && isODFNsLoaded}
+          loadError={loadError || odfNsLoadError}
+          rowData={{
+            resourceModel: NooBaaBucketClassModel,
+            kebabActions: bcKebabActions(t),
+          }}
+        />
+      </ListPageBody>
+    </>
   );
 };
 

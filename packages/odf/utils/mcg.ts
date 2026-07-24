@@ -27,6 +27,7 @@ import {
 import {
   BackingStoreKind,
   BucketClassKind,
+  BucketClassType,
   NamespaceStoreKind,
   PlacementPolicy,
 } from '../types';
@@ -341,4 +342,42 @@ export const createNewObjectBucketClaim = (
       },
     },
   };
+};
+
+/**
+ * Determines the BucketClass type based on its spec.
+ * - vectorPolicy → Vector
+ * - namespacePolicy → Namespace (even if placementPolicy also exists, e.g., Cache type)
+ * - placementPolicy only → Standard
+ */
+export const getBucketClassType = (bc: BucketClassKind): BucketClassType => {
+  if (bc.spec?.vectorPolicy) {
+    return BucketClassType.VECTOR;
+  }
+  if (bc.spec?.namespacePolicy) {
+    return BucketClassType.NAMESPACE;
+  }
+  return BucketClassType.STANDARD;
+};
+
+/**
+ * Checks if a BucketClass has archive policy enabled (IBM Deep Archive).
+ */
+export const isArchiveEnabled = (bc: BucketClassKind): boolean => {
+  return !!bc.spec?.archivePolicy;
+};
+
+/**
+ * Returns the display text for BucketClass type.
+ * For Standard with archive enabled, returns 'Standard + Deep archive'.
+ */
+export const getBucketClassTypeDisplayText = (
+  bc: BucketClassKind,
+  t: TFunction
+): string => {
+  const type = getBucketClassType(bc);
+  if (type === BucketClassType.STANDARD && isArchiveEnabled(bc)) {
+    return t('Standard + Deep archive');
+  }
+  return type;
 };
