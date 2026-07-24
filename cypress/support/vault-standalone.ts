@@ -90,9 +90,13 @@ export const configureVault = () => {
         { timeout: 60000 }
       );
 
+      // Wait for the pod to be Running (not Ready). Vault starts sealed and
+      // uninitialized, so the readiness probe (`vault status`) fails until we
+      // exec in and run `vault operator init` + `unseal`. Waiting for
+      // condition=Ready would deadlock.
       cy.log('Waiting for vault pod to be in Running phase');
       execCritical(
-        'oc wait pod -n hashicorp --for=condition=Ready -l app.kubernetes.io/name=vault --timeout=300s',
+        "oc wait pod -n hashicorp --for=jsonpath='{.status.phase}'=Running -l app.kubernetes.io/name=vault --timeout=300s",
         { timeout: 310000 }
       );
 
@@ -118,7 +122,26 @@ const initializeAndConfigureVault = () => {
 
       if (exitCode !== 0 || !rawOutput || !rawOutput.startsWith('{')) {
         if (stderr.includes('already initialized')) {
-          cy.log('Vault is already initialized, skipping init...');
+          // Vault was initialized by a previous run but the cleanup deleted
+          // the token secret. We cannot retrieve the old root token, so
+          // re-initialize by wiping the data directory and retrying.
+          cy.log(
+            'Vault already initialized — wiping data and re-initializing...'
+          );
+          execCritical(
+            `oc exec ${podName} -n hashicorp -- /bin/sh -c "rm -rf /vault/data/*"`,
+            { timeout: 30000 }
+          );
+          // Re-init after wipe
+          execCritical(
+            `oc exec ${podName} -n hashicorp -- vault operator init --key-shares=1 --key-threshold=1 --format=json`,
+            { timeout: 120000 }
+          ).then(({ stdout: reinitOutput }) => {
+            const vaultObj = parseVaultOutput(reinitOutput.trim());
+            unsealVault(podName, vaultObj.unseal_keys_b64[0]);
+            enableSecretsEngine(podName, vaultObj.root_token);
+            createKmsTokenSecret(vaultObj.root_token);
+          });
           return;
         }
         throw new Error(`Failed to initialize vault: ${stderr || rawOutput}`);

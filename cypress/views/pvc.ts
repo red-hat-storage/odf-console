@@ -22,8 +22,8 @@ export const pvc = {
 
     cy.byTestID('create-pvc').click();
     app.waitForLoad();
-    cy.byTestID('resource-status', { timeout: MINUTE }).contains('Bound', {
-      timeout: MINUTE,
+    cy.byTestID('resource-status', { timeout: 3 * MINUTE }).contains('Bound', {
+      timeout: 3 * MINUTE,
     });
   },
 

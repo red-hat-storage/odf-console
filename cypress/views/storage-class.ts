@@ -14,7 +14,10 @@ const configureKms = () => {
   cy.byTestID('kms-advanced-settings-link').click();
   cy.byTestID('kms-service-backend-path').type('secret');
   cy.byTestID('save-kms-action').click();
-  cy.byTestID('save-action').click();
+  // Wait for form validation to complete before clicking Save
+  cy.byTestID('save-action', { timeout: 30000 })
+    .should('not.be.disabled')
+    .click();
   cy.byTestID('kms-service-dropdown-toggle').should('contain', 'vault');
 };
 

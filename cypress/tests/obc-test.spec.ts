@@ -54,7 +54,7 @@ describe('Test Object Bucket Claim resource', () => {
     cy.byTestID(`resource-link-${OBC_NAME}`).click();
     cy.url().should('include', `/odf/resource/`, { timeout: MINUTE });
     cy.url().should('include', OBC_NAME);
-    cy.reload(true)
+    cy.reload(true);
     cy.byLegacyTestID('resource-title', { timeout: MINUTE }).should(
       'contain',
       OBC_NAME
