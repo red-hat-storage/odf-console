@@ -1,7 +1,13 @@
 import { isOcsLabeledWizardNode } from '@odf/core/components/create-storage-system/payloads';
 import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
-import { StorageClusterKind } from '@odf/shared';
+import { StorageClusterKind, StorageClusterResource } from '@odf/shared';
 import { ConfigurePerformanceProfileFormState } from './state';
+
+export const MCG_CUSTOM_RESOURCE_KEYS = [
+  'noobaa-core',
+  'noobaa-db',
+  'noobaa-endpoint',
+] as const;
 
 export const getOcsLabeledWizardNodes = (
   nodes: WizardNodeState[],
@@ -34,15 +40,32 @@ export const shouldShowConfigurePerformanceProfile = (
   shouldShowCoreStorageSection(params) ||
   shouldShowMcgPerformanceSection(params);
 
+export const hasMcgCustomResources = (
+  resources?: StorageClusterResource
+): boolean =>
+  !!resources &&
+  MCG_CUSTOM_RESOURCE_KEYS.some((key) => resources[key] !== undefined);
+
+export const clearMcgCustomResources = (
+  resources?: StorageClusterResource
+): StorageClusterResource | undefined => {
+  if (!resources || !hasMcgCustomResources(resources)) {
+    return resources;
+  }
+  const cleaned = { ...resources };
+  MCG_CUSTOM_RESOURCE_KEYS.forEach((key) => {
+    delete cleaned[key];
+  });
+  return cleaned;
+};
+
 export const checkRequiredValues = (
   state: ConfigurePerformanceProfileFormState,
   showCoreStorage: boolean,
   showMcgPerformance: boolean
 ): boolean => {
-  const isCoreDisabled = showCoreStorage ? !state.resourceProfile : true;
-  const isMcgDisabled = showMcgPerformance
-    ? true // ToDo: Add !state.performanceProfile
-    : true;
+  const isCoreDisabled = showCoreStorage && !state.resourceProfile;
+  const isMcgDisabled = showMcgPerformance && !state.mcgPerformanceProfile;
 
   if (showCoreStorage && showMcgPerformance) {
     return isCoreDisabled && isMcgDisabled;

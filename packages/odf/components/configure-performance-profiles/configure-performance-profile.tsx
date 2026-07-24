@@ -74,8 +74,11 @@ const ConfigurePerformanceProfilePage: React.FC<
           resourceProfile: state.resourceProfile,
         });
       }
-      if (showMcgPerformance) {
-        await patchMcgPerformanceProfile();
+      if (showMcgPerformance && state.mcgPerformanceProfile) {
+        await patchMcgPerformanceProfile({
+          storageCluster,
+          mcgPerformanceProfile: state.mcgPerformanceProfile,
+        });
       }
       onClose();
     } catch (error) {
@@ -112,7 +115,14 @@ const ConfigurePerformanceProfilePage: React.FC<
                 clusterNodes={clusterNodes}
               />
             )}
-            {showMcgPerformance && <McgPerformanceSection />}
+            {showMcgPerformance && (
+              <McgPerformanceSection
+                state={state}
+                dispatch={dispatch}
+                storageCluster={storageCluster}
+                clusterNodes={clusterNodes}
+              />
+            )}
           </div>
           <div className="odf-m-pane__body configure-performance-profile__footer">
             <ConfigurePerformanceProfileFormFooter
@@ -150,9 +160,9 @@ const ConfigurePerformanceProfile: React.FC = () => {
   const showCoreStorage = shouldShowCoreStorageSection(
     configurePerformanceProfileParams
   );
-  // ToDo: remove false once MCG performance profile is implemented
-  const showMcgPerformance =
-    shouldShowMcgPerformanceSection(configurePerformanceProfileParams) && false;
+  const showMcgPerformance = shouldShowMcgPerformanceSection(
+    configurePerformanceProfileParams
+  );
 
   const isLoaded = areFlagsLoaded && storageClusterLoaded;
   const isLoadError = flagsLoadError || storageClusterLoadError;
