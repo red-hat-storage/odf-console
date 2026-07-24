@@ -12,6 +12,10 @@ import { MultusNetworkConfigurationComponent } from './multus';
 import { NICSelectComponent } from './nic';
 import './configure.scss';
 
+// DFBUGS-7048: 4.21 backend does not support public/cluster CIDR separation under
+// Host networking. Keep the code for an easy restore; hide the UI until support lands.
+const SHOW_HOST_NETWORK_SEPARATION = false;
+
 export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   setNetworkType,
   networkType,
@@ -105,6 +109,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           setIsMultusAcknowledged={setIsMultusAcknowledged}
         />
       ) : (
+        SHOW_HOST_NETWORK_SEPARATION &&
         isFDF && (
           <NICSelectComponent
             cephClusterCIDR={cephClusterCIDR ?? ''}
