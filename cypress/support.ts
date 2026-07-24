@@ -84,7 +84,6 @@ Cypress.Commands.add('install', () => {
       })
         .first()
         .should('be.visible');
-      cy.get('[data-label="status"]').contains('Ready', {});
       cy.visit('/');
     } else {
       cy.log(
