@@ -50,3 +50,12 @@ export const getRack = (node: NodeKind) => node.metadata.labels?.[RACK_LABEL];
 export const getNodeArchitecture = (node: NodeKind): string =>
   (node?.status?.nodeInfo as { architecture?: string } | undefined)
     ?.architecture ?? '';
+
+export const OCS_CLUSTER_NODE_LABEL_PREFIX = 'cluster.ocs.openshift.io/';
+
+export const isOcsLabeledNode = (node: {
+  labels?: { [key: string]: string };
+}): boolean =>
+  Object.keys(node?.labels || {}).some((key) =>
+    key.startsWith(OCS_CLUSTER_NODE_LABEL_PREFIX)
+  );
