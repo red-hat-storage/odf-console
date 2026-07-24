@@ -55,7 +55,6 @@ import {
   getDeviceSetReplica,
 } from '../../components/utils';
 import {
-  DefaultRequestSize,
   deviceClassTooltip,
   NO_PROVISIONER,
   requestedCapacityTooltip,
@@ -65,7 +64,6 @@ import { CAPACITY_INFO_QUERIES, StorageDashboardQuery } from '../../queries';
 import {
   checkArbiterCluster,
   checkFlexibleScaling,
-  createDeviceSet,
   filterSC,
   getCurrentDeviceSetIndex,
   getDeviceSetCount,
@@ -329,6 +327,16 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     [installStorageClass]
   );
 
+  const storageClassesUsedByDeviceSets = React.useMemo(() => {
+    const storageClasses = new Set<string>();
+    for (const ds of deviceSets) {
+      if (ds.dataPVCTemplate?.spec?.storageClassName) {
+        storageClasses.add(ds.dataPVCTemplate.spec.storageClassName);
+      }
+    }
+    return storageClasses;
+  }, [deviceSets]);
+
   const deviceClasses = React.useMemo(
     () => getDeviceClassesForSC(deviceSets, selectedSCName),
     [deviceSets, selectedSCName]
@@ -353,6 +361,9 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   // Stops users from moving from no-prov SC to prov SC. (Bug 2213183)
   const storageClassFilter = React.useCallback(
     (sc: StorageClassResourceKind) => {
+      if (!storageClassesUsedByDeviceSets.has(getName(sc))) {
+        return undefined;
+      }
       if (scResourcesLoaded && !scResourcesLoadError) {
         const initialSC = scResources?.find(
           (item) => getName(item) === installStorageClass
@@ -363,7 +374,13 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
       }
       return sc;
     },
-    [installStorageClass, scResources, scResourcesLoadError, scResourcesLoaded]
+    [
+      storageClassesUsedByDeviceSets,
+      installStorageClass,
+      scResources,
+      scResourcesLoadError,
+      scResourcesLoaded,
+    ]
   );
 
   const validateSC = React.useCallback(() => {
@@ -418,39 +435,27 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   const submit = (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();
     setProgress(true);
-    const patch = {
-      op: '',
-      path: '',
-      value: null,
-    };
-    const osdSizeRequest = isNoProvionerSC
-      ? DefaultRequestSize.BAREMETAL
-      : osdSizeWithUnit;
-    let portable = !isNoProvionerSC;
-    let deviceSetReplica = replica;
-    let deviceSetCount = 1;
-
-    if (hasFlexibleScaling) {
-      portable = false;
-    }
-    if (isNoProvionerSC)
-      deviceSetCount = getDeviceSetCount(availablePvsCount, deviceSetReplica);
 
     if (deviceSetIndex === -1) {
-      patch.op = 'add';
-      patch.path = `/spec/storageDeviceSets/-`;
-      patch.value = createDeviceSet(
-        selectedSCName,
-        osdSizeRequest,
-        portable,
-        deviceSetReplica,
-        deviceSetCount
+      // eslint-disable-next-line no-console -- intentional diagnostics if state and UI ever diverge
+      console.error(
+        '[Add Capacity] No StorageDeviceSet matches the selected StorageClass; adding new device sets is not supported.',
+        { selectedSCName, deviceClass }
       );
-    } else {
-      patch.op = 'replace';
-      patch.path = `/spec/storageDeviceSets/${deviceSetIndex}/count`;
-      patch.value = deviceSets[deviceSetIndex].count + deviceSetCount;
+      setProgress(false);
+      return;
     }
+
+    let deviceSetCount = 1;
+    if (isNoProvionerSC) {
+      deviceSetCount = getDeviceSetCount(availablePvsCount, replica);
+    }
+
+    const patch = {
+      op: 'replace',
+      path: `/spec/storageDeviceSets/${deviceSetIndex}/count`,
+      value: deviceSets[deviceSetIndex].count + deviceSetCount,
+    };
 
     const validation: string = validateSC();
     if (validation) {
