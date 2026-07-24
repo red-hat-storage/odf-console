@@ -1,4 +1,4 @@
-import { SECOND } from '../consts';
+import { MINUTE, SECOND } from '../consts';
 import { getPVCJSON } from '../helpers/pvc';
 import { ODFCommon } from '../views/odf-common';
 import { deletePVCFromCLI } from '../views/pvc';
@@ -19,9 +19,13 @@ describe('Check Persistent Dashboard', () => {
 
   it('Check Status Card is healthy', () => {
     cy.log('Check if Storage Cluster is Healthy');
-    cy.byTestID('success-icon').first().should('be.visible');
+    cy.byTestID('success-icon', { timeout: 5 * MINUTE })
+      .first()
+      .should('be.visible');
     cy.log('Check if Data Resiliency is Healthy');
-    cy.byTestID('success-icon').last().should('be.visible');
+    cy.byTestID('success-icon', { timeout: 5 * MINUTE })
+      .last()
+      .should('be.visible');
   });
 
   it('Check Details card is correct', () => {

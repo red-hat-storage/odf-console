@@ -45,11 +45,13 @@ export const showAvailablePoolsInSCForm = (poolType: PoolType) => {
       : CEPH_DEFAULT_FS_POOL_NAME;
 
   cy.log('Selecting provisioner');
-  cy.byTestID('storage-class-provisioner-dropdown').click();
-  cy.byLegacyTestID('dropdown-text-filter').type(
-    `openshift-storage.${provisioner}.csi.ceph.com`
-  );
-  cy.byTestID('dropdown-menu-item-link')
+  cy.byTestID('storage-class-provisioner-dropdown')
+    .should('be.visible')
+    .click();
+  cy.byTestID('console-select-search-input')
+    .find('input')
+    .type(`openshift-storage.${provisioner}.csi.ceph.com`);
+  cy.byTestID('console-select-item')
     .contains(`openshift-storage.${provisioner}.csi.ceph.com`)
     .click();
   cy.log('Show Storage pool list.');
