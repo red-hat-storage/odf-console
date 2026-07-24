@@ -1,8 +1,13 @@
 import { useMemo } from 'react';
-import { LSO_OPERATOR } from '@odf/core/constants';
+import { shouldShowConfigurePerformanceProfile } from '@odf/core/components/configure-performance-profiles/utils';
+import {
+  getAttachStorageRoute,
+  getConfigurePerformanceProfileRoute,
+  LSO_OPERATOR,
+} from '@odf/core/constants';
 import AddCapacityModal from '@odf/core/modals/add-capacity/add-capacity-modal';
 import CapacityAutoscalingModal from '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal';
-import ConfigurePerformanceModal from '@odf/core/modals/configure-performance/configure-performance-modal';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
 import {
   DEFAULT_INFRASTRUCTURE,
@@ -30,12 +35,10 @@ import {
 } from '@odf/shared/utils';
 import {
   Action,
-  useFlag,
   useK8sModel,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { PROVIDER_MODE } from '../../features';
 
 export const useCsvActions = ({
   resource,
@@ -47,7 +50,7 @@ export const useCsvActions = ({
     referenceFor(group)(version)(resource.kind)
   );
   const launchModal = useModalWrapper();
-  const isProviderMode = useFlag(PROVIDER_MODE);
+  const { systemFlags } = useODFSystemFlagsSelector();
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
@@ -69,10 +72,15 @@ export const useCsvActions = ({
       isOCSStorageSystem(resource)
     ) {
       items.push(AddCapacityStorageSystem(launchModal, storageCluster));
-      if (!isProviderMode) {
-        items.push(
-          ConfigurePerformanceStorageSystem(launchModal, storageCluster)
-        );
+      if (
+        shouldShowConfigurePerformanceProfile({
+          storageCluster,
+          isExternalMode: systemFlags[resource.spec.namespace]?.isExternalMode,
+          isNoobaaAvailable:
+            systemFlags[resource.spec.namespace]?.isNoobaaAvailable,
+        })
+      ) {
+        items.push(ConfigurePerformanceStorageSystem(storageCluster));
       }
       if (
         isCapacityAutoScalingAllowed(
@@ -92,7 +100,7 @@ export const useCsvActions = ({
     resource,
     launchModal,
     infrastructure,
-    isProviderMode,
+    systemFlags,
     isLSOInstalled,
     resourceProfile,
     storageCluster,
@@ -107,10 +115,7 @@ const AttachStorageStorageSystem = (resource: StorageSystemKind): Action => {
     label: 'Attach Storage',
     insertBefore: 'add-capacity-storage-system',
     cta: {
-      href: `/odf/system/ns/${getNamespace(resource)}/${referenceForModel(
-        StorageClusterModel
-      )}/${getName(resource)}/~attachstorage`,
-      external: false,
+      href: getAttachStorageRoute(getNamespace(resource), getName(resource)),
     },
   };
 };
@@ -133,18 +138,17 @@ const AddCapacityStorageSystem = (
 };
 
 const ConfigurePerformanceStorageSystem = (
-  launchModal: LaunchModal,
   storageCluster: StorageClusterKind
 ): Action => {
   return {
     id: 'configure-performance-storage-system',
-    label: 'Configure performance',
+    label: 'Configure performance profiles',
     insertAfter: 'add-capacity-storage-system',
-    cta: () => {
-      launchModal(ConfigurePerformanceModal, {
-        extraProps: { storageCluster },
-        isOpen: true,
-      });
+    cta: {
+      href: getConfigurePerformanceProfileRoute(
+        getNamespace(storageCluster),
+        getName(storageCluster)
+      ),
     },
   };
 };
