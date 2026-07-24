@@ -27,7 +27,9 @@ import {
   ActionGroup,
   Alert,
   Button,
+  Checkbox,
   Form,
+  FormGroup,
   TextInput,
 } from '@patternfly/react-core';
 import {
@@ -72,6 +74,8 @@ type NamespaceStoreFormProps = {
   onCancel: () => void;
   /** Vector BucketClass flow: Provider dropdown lists Filesystem only. */
   isVector?: boolean;
+  /** IBM Deep Archive flow: Archive checkbox is pre-selected and disabled. */
+  isArchivePreSelected?: boolean;
 };
 
 const createSecret = async (
@@ -127,12 +131,25 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   const [error, setError] = React.useState('');
   const [showSecret, setShowSecret] = React.useState(true);
 
-  const { onCancel, className, redirectHandler, namespace, isVector } = props;
+  const {
+    onCancel,
+    className,
+    redirectHandler,
+    namespace,
+    isVector,
+    isArchivePreSelected,
+  } = props;
 
-  const providerDefault = React.useMemo(
-    () => (isVector ? StoreProviders.FILESYSTEM : StoreProviders.AWS),
-    [isVector]
+  // If archive is pre-selected (from BucketClass wizard), it's fixed to true
+  const [isArchive, setIsArchive] = React.useState(
+    isArchivePreSelected ?? false
   );
+
+  const providerDefault = React.useMemo(() => {
+    if (isArchivePreSelected) return StoreProviders.S3;
+    if (isVector) return StoreProviders.FILESYSTEM;
+    return StoreProviders.AWS;
+  }, [isVector, isArchivePreSelected]);
 
   const providerDropdownItems = React.useMemo(
     () => (isVector ? NAMESPACE_STORE_FILESYSTEM : PROVIDERS),
@@ -184,6 +201,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { isValid, isSubmitted },
   } = useForm({
     ...formSettings,
@@ -194,6 +212,17 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   });
 
   const provider = watch('provider-name');
+
+  // Handle archive checkbox change - set provider to S3 Compatible when checked
+  const handleArchiveChange = React.useCallback(
+    (_event: React.FormEvent<HTMLInputElement>, checked: boolean) => {
+      setIsArchive(checked);
+      if (checked) {
+        setValue('provider-name', StoreProviders.S3);
+      }
+    },
+    [setValue]
+  );
 
   const onSubmit = async (values, event) => {
     event.preventDefault();
@@ -223,6 +252,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         },
         spec: {
           type: NOOBAA_TYPE_MAP[provider],
+          ...(isArchive && { archive: true }),
         },
       };
       if (externalProviders.includes(provider)) {
@@ -288,6 +318,29 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         onSubmit={handleSubmit(onSubmit)}
         noValidate={false}
       >
+        {!isVector && (
+          <FormGroup fieldId="archive-checkbox">
+            <Checkbox
+              id="archive-checkbox"
+              label={t('Opt in Namespacestore for IBM Deep Archive')}
+              isChecked={isArchive}
+              onChange={handleArchiveChange}
+              isDisabled={isArchivePreSelected}
+              data-test="archive-checkbox"
+            />
+            {isArchive && (
+              <Alert
+                variant="info"
+                isInline
+                isPlain
+                title={t(
+                  'Created IBM Deep archive NamespaceStore should be applied in IBM Deep archive standard bucketclass'
+                )}
+                className="pf-v5-u-mt-sm"
+              />
+            )}
+          </FormGroup>
+        )}
         <TextInputWithFieldRequirements
           control={control}
           fieldRequirements={fieldRequirements}
@@ -327,6 +380,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
               defaultSelection={value}
               data-test="namespacestore-provider"
               isFullWidth
+              isDisabled={isArchive}
             />
           )}
         />

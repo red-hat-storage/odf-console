@@ -49,6 +49,8 @@ type PageHeadingProps = {
   style?: object;
   title?: string | JSX.Element;
   badge?: React.ReactNode;
+  /** Additional badge/label to display after the status badge */
+  titleBadge?: React.ReactNode;
   className?: string;
   actions?: Function;
   resource?: K8sResourceKind;
@@ -64,6 +66,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
     breadcrumbs,
     style,
     badge,
+    titleBadge,
     className,
     actions,
     resource,
@@ -118,6 +121,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
                   <Status status={resourceStatus} />
                 </ResourceStatus>
               )}
+              {titleBadge}
             </span>
           </Content>
         </Content>

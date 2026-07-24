@@ -27,6 +27,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   creatorDisabled,
   launchModal,
   filterFilesystem,
+  filterArchive,
 }) => {
   const { t } = useCustomTranslation();
   const [isOpen, setOpen] = React.useState(false);
@@ -49,7 +50,16 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
     [nnsData]
   );
 
-  const noobaaNamespaceStores = filterFilesystem ? nnsfsData : nnsData;
+  const nnsArchiveData = React.useMemo(
+    () => nnsData.filter((nns) => nns.spec?.archive === true),
+    [nnsData]
+  );
+
+  const noobaaNamespaceStores = React.useMemo(() => {
+    if (filterArchive) return nnsArchiveData;
+    if (filterFilesystem) return nnsfsData;
+    return nnsData;
+  }, [filterArchive, filterFilesystem, nnsArchiveData, nnsfsData, nnsData]);
 
   React.useEffect(() => {
     const nnsDropdownItems = noobaaNamespaceStores.reduce(
@@ -119,7 +129,8 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
         !!nnsLoadErr ||
         (namespacePolicy === NamespacePolicyType.MULTI &&
           enabledItems?.length === 0) ||
-        (filterFilesystem && nnsfsData.length === 0)
+        (filterFilesystem && nnsfsData.length === 0) ||
+        (filterArchive && nnsArchiveData.length === 0 && creatorDisabled)
       }
       isFullWidth
     >
@@ -162,4 +173,6 @@ type NamespaceStoreDropdownProps = {
   creatorDisabled?: boolean;
   launchModal?: () => void;
   filterFilesystem?: boolean;
+  /** Filter to only show namespace stores with spec.archive: true (for IBM Deep Archive) */
+  filterArchive?: boolean;
 };

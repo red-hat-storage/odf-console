@@ -41,6 +41,11 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
   const [selectedItem, setSelectedItem] = React.useState(defaultSelection);
   const [isOpen, setOpen] = React.useState(false);
 
+  // Sync internal state when defaultSelection changes externally
+  React.useEffect(() => {
+    setSelectedItem(defaultSelection);
+  }, [defaultSelection]);
+
   const onChange = (
     _event?: React.MouseEvent<Element, MouseEvent>,
     value?: string | number

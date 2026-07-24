@@ -1,8 +1,17 @@
 import * as React from 'react';
 import { useModalWrapper } from '@odf/shared';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Alert, AlertActionCloseButton } from '@patternfly/react-core';
+import {
+  Alert,
+  AlertActionCloseButton,
+  Form,
+  FormGroup,
+  Title,
+} from '@patternfly/react-core';
+import { NamespaceStoreKind } from '../../../types';
 import { ExternalLink } from '../../mcg-endpoints/gcp-endpoint-type';
+import { NamespaceStoreDropdown } from '../../namespace-store/namespace-store-dropdown';
 import BackingStoreSelection from '../backingstore-table';
 import { Action, State } from '../state';
 
@@ -10,12 +19,22 @@ const CreateBackingStoreModal = React.lazy(
   () => import('../../create-bs/create-bs-modal')
 );
 
+const NamespaceStoreCreateModal = React.lazy(
+  () => import('../../namespace-store/namespace-store-modal')
+);
+
 const BackingStorePage: React.FC<BackingStorePageProps> = React.memo(
-  ({ dispatcher, state }) => {
+  ({ dispatcher, state, namespace }) => {
     // CR data
     // CR data clones to maintain order and selection state for table rows
-    const { tier2Policy, tier1Policy, tier1BackingStore, tier2BackingStore } =
-      state;
+    const {
+      tier2Policy,
+      tier1Policy,
+      tier1BackingStore,
+      tier2BackingStore,
+      isDeepArchive,
+      archiveNamespaceStore,
+    } = state;
     const [showHelp, setShowHelp] = React.useState(true);
     const { t } = useCustomTranslation();
     const launcher = useModalWrapper();
@@ -23,8 +42,58 @@ const BackingStorePage: React.FC<BackingStorePageProps> = React.memo(
     const launchModal = () =>
       launcher(CreateBackingStoreModal, { isOpen: true });
 
+    const launchArchiveNamespaceStoreModal = React.useCallback(
+      () =>
+        launcher(NamespaceStoreCreateModal, {
+          isOpen: true,
+          extraProps: {
+            isArchivePreSelected: true,
+          },
+        }),
+      [launcher]
+    );
+
+    const handleArchiveNamespaceStoreChange = React.useCallback(
+      (selectedNamespaceStore: NamespaceStoreKind) => {
+        dispatcher({
+          type: 'setArchiveNamespaceStore',
+          value: selectedNamespaceStore,
+        });
+      },
+      [dispatcher]
+    );
+
     return (
       <div className="nb-create-bc-step-page">
+        {/* IBM Deep Archive - Archive NamespaceStore Section */}
+        {isDeepArchive && (
+          <>
+            <Title
+              size="xl"
+              headingLevel="h2"
+              className="nb-bc-step-page-form__title"
+            >
+              {t('Archive - IBM Deep archive')}
+            </Title>
+            <Form className="nb-create-bc-step-page-form">
+              <FormGroup
+                label={t('NamespaceStore')}
+                fieldId="archive-namespacestore-input"
+                isRequired
+              >
+                <NamespaceStoreDropdown
+                  id="archive-namespacestore-input"
+                  namespace={namespace}
+                  onChange={handleArchiveNamespaceStoreChange}
+                  selectedKey={getName(archiveNamespaceStore)}
+                  launchModal={launchArchiveNamespaceStoreModal}
+                  filterArchive
+                />
+              </FormGroup>
+            </Form>
+          </>
+        )}
+
         {showHelp && (
           <Alert
             className="nb-create-bc-step-page__info"
