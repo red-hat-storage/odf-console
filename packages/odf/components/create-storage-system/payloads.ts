@@ -251,13 +251,20 @@ export const createStorageAutoScaler = (
   return k8sCreate({ model: StorageAutoScalerModel, data });
 };
 
+export const isOcsLabeledWizardNode = (
+  node: WizardNodeState,
+  namespace: string
+): boolean => {
+  const storageLabel = cephStorageLabel(namespace);
+  return _.has(node, ['labels', storageLabel]);
+};
+
 export const labelNodes = async (
   nodes: WizardNodeState[],
   namespace: string
 ) => {
   // ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters
   const labelPath = `/metadata/labels/cluster.ocs.openshift.io~1${DEFAULT_STORAGE_NAMESPACE}`;
-  const storageLabel = cephStorageLabel(namespace);
   const patch: Patch[] = [
     {
       op: 'add',
@@ -267,7 +274,7 @@ export const labelNodes = async (
   ];
   const requests: Promise<K8sKind>[] = [];
   nodes.forEach((node) => {
-    if (!node.labels?.[storageLabel])
+    if (!isOcsLabeledWizardNode(node, namespace))
       requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
   });
   try {
