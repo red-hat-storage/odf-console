@@ -1,5 +1,6 @@
 import { FileSystemKind } from '@odf/core/types/scale';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 
 /** Stuck LUN group creation is treated as error after this (same as LUNCard). */
 export const LUN_GROUP_CREATION_TIMEOUT_MS = 5 * 60 * 1000;
@@ -69,6 +70,9 @@ export const isLunGroupCreating = (fileSystem: FileSystemKind): boolean => {
 export const getLUNGroupStatus = (fileSystem: FileSystemKind): HealthState => {
   if (isLunGroupConnected(fileSystem)) {
     return HealthState.OK;
+  }
+  if (_.isEmpty(fileSystem.status)) {
+    return HealthState.UNKNOWN;
   }
   if (isLunGroupCreating(fileSystem)) {
     const creationTimestamp = fileSystem.metadata?.creationTimestamp;
