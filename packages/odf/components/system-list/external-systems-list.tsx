@@ -2,7 +2,7 @@ import * as React from 'react';
 import { IBM_SCALE_NAMESPACE, LSO_OPERATOR } from '@odf/core/constants';
 import useIsSANSystemDeletable from '@odf/core/hooks/useIsSANSystemDeletable';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
-import { FDF_FLAG } from '@odf/core/redux';
+import { FDF_FLAG, useODFSystemFlagsSelector } from '@odf/core/redux';
 import { storageClusterResource } from '@odf/core/resources';
 import { ClusterKind } from '@odf/core/types/scale';
 import {
@@ -456,19 +456,38 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   rowData,
 }) => {
   const { t } = useCustomTranslation();
+  const { systemFlags } = useODFSystemFlagsSelector();
   const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = getName(obj);
   const systemNamespace = getNamespace(obj);
-  const { normalizedMetrics, isSANSystemDeletable, sanClustersByName } =
-    rowData;
+  const {
+    normalizedMetrics,
+    isSANSystemDeletable,
+    sanClustersByName,
+    storageClusters,
+  } = rowData;
   const isSANSystem = kind === ClusterModel.kind.toLowerCase();
   const isRemoteCluster = kind === RemoteClusterModel.kind.toLowerCase();
+  const isStorageClusterSystem =
+    kind === StorageClusterModel.kind.toLowerCase();
   const sanCluster = isSANSystem ? sanClustersByName[obj.spec.name] : undefined;
+  const storageCluster = isStorageClusterSystem
+    ? storageClusters?.find(
+        (sc) =>
+          getName(sc) === obj.spec.name &&
+          getNamespace(sc) === obj.spec.namespace
+      )
+    : undefined;
   const { customActions, hiddenActions } = getActions(
     obj,
     t,
-    isSANSystemDeletable
+    isSANSystemDeletable,
+    {
+      storageCluster,
+      isExternalMode: systemFlags[obj.spec.namespace]?.isExternalMode,
+      isNoobaaAvailable: systemFlags[obj.spec.namespace]?.isNoobaaAvailable,
+    }
   );
   const resolvedActions = isSANSystem
     ? customActions.map((action) =>

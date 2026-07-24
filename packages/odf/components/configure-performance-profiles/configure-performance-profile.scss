@@ -1,0 +1,21 @@
+.configure-performance-profile {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  > .odf-m-nav-title {
+    flex-shrink: 0;
+  }
+
+  &__content {
+    flex: 1 1 auto;
+    margin-top: 0;
+    overflow-y: auto;
+  }
+
+  &__content.odf-m-pane__body + &__footer {
+    flex-shrink: 0;
+    border-top: none;
+    padding-top: 0;
+  }
+}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LSO_OPERATOR } from '@odf/core/constants';
+import { LSO_OPERATOR, getStorageClusterBaseRoute } from '@odf/core/constants';
 import { expandStorageUXBackendEndpoint } from '@odf/core/constants/attach-storage';
 import { useNodesData, useSafeK8sGet } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
@@ -19,14 +19,14 @@ import {
   StorageClusterModel,
   useFetchCsv,
 } from '@odf/shared';
-import { isCSVSucceeded, referenceForModel } from '@odf/shared/utils';
+import { isCSVSucceeded } from '@odf/shared/utils';
 import {
   consoleFetch,
   K8sResourceCommon,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { Content, ContentVariants } from '@patternfly/react-core';
 import { createWizardNodeState, getDeviceSetReplica } from '../utils';
 import { AttachStorageFormFooter } from './attach-storage-footer';
@@ -61,7 +61,6 @@ const sendPostRequest = async (payload: AttachStoragePayload) => {
 const AttachStorage = () => {
   const { t } = useTranslation();
   const { resourceName, namespace } = useParams();
-  const location = useLocation();
   const [state, dispatch] = React.useReducer(
     attachStorageReducer,
     initialAttachStorageState
@@ -77,11 +76,7 @@ const AttachStorage = () => {
 
   React.useEffect(() => {
     if (csvLoaded && !isLSOInstalled) {
-      navigate(
-        `/odf/system/ns/${namespace}/${referenceForModel(
-          StorageClusterModel
-        )}/${resourceName}`
-      );
+      navigate(getStorageClusterBaseRoute(namespace, resourceName));
     }
   }, [csvLoaded, isLSOInstalled, navigate, namespace, resourceName]);
 
@@ -101,7 +96,7 @@ const AttachStorage = () => {
   const breadcrumbs = [
     {
       name: resourceName,
-      path: `${location.pathname.split(`/~attachstorage`)[0]}`,
+      path: getStorageClusterBaseRoute(namespace, resourceName),
     },
     {
       name: t('Attach Storage'),
