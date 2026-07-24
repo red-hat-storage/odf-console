@@ -1,3 +1,4 @@
+import { SCALE_DAEMON_NODE_LABEL } from '@odf/core/constants';
 import { NodeModel } from '@odf/shared';
 import { Patch } from '@openshift-console/dynamic-plugin-sdk';
 import { WizardNodeState } from '../../reducer';
@@ -7,7 +8,6 @@ import {
   ExternalKMMRegistryConfig,
 } from './payload';
 
-const DAEMON_SELECTOR_LABEL_KEY = 'scale.spectrum.ibm.com/daemon-selector/';
 const LABEL_PATH = '/metadata/labels/scale.spectrum.ibm.com~1daemon-selector';
 
 const mockK8sPatchByName = jest.fn().mockResolvedValue({});
@@ -169,7 +169,7 @@ describe('payload', () => {
           rack: '',
           uid: 'uid-empty',
           roles: [],
-          labels: { [DAEMON_SELECTOR_LABEL_KEY]: '' },
+          labels: { [SCALE_DAEMON_NODE_LABEL]: '' },
           taints: [],
           architecture: 'amd64',
         },
@@ -195,7 +195,7 @@ describe('payload', () => {
           uid: 'uid-daemon',
           roles: [],
           labels: {
-            [DAEMON_SELECTOR_LABEL_KEY]: 'applied',
+            [SCALE_DAEMON_NODE_LABEL]: 'applied',
           },
           taints: [],
           architecture: 'amd64',
@@ -293,7 +293,7 @@ describe('payload', () => {
           rack: '',
           uid: 'uid-3',
           roles: [],
-          labels: { [DAEMON_SELECTOR_LABEL_KEY]: 'applied' },
+          labels: { [SCALE_DAEMON_NODE_LABEL]: 'applied' },
           taints: [],
           architecture: 'amd64',
         },

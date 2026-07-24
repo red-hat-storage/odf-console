@@ -4,6 +4,7 @@ import { DASH, ListPageFilterWrapper, useCustomTranslation } from '@odf/shared';
 import { TableSkeletonLoader } from '@odf/shared/skeletal-loader/TableSkeleton';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { useListPageFilter } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import {
   Table,
   Tbody,
@@ -134,6 +135,7 @@ export const LUNsTable: React.FC<LUNsTableProps> = ({
     sortedLUNs.map((lun) => ({ ...lun, metadata: { name: lun.path } })),
     []
   );
+
   if (!loaded) {
     return <TableSkeletonLoader columns={4} rows={5} />;
   }

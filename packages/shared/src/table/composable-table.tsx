@@ -2,6 +2,7 @@ import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import {
+  OnSelect,
   SortByDirection,
   Table,
   TableVariant,
@@ -40,6 +41,7 @@ export const ComposableTable: ComposableTableProps = <
   emptyRowMessage,
   variant,
   isFavorites,
+  selectProps,
 }) => {
   const {
     onSort,
@@ -76,6 +78,15 @@ export const ComposableTable: ComposableTableProps = <
       >
         <Thead>
           <Tr>
+            {!!selectProps && (
+              <Th
+                select={{
+                  onSelect: selectProps.onSelect,
+                  isSelected: selectProps.isAllSelected,
+                }}
+                aria-label={t('Select all')}
+              />
+            )}
             {columns?.map((col, index) => (
               <Th
                 {...(!!col?.thProps ? col.thProps : {})}
@@ -105,6 +116,11 @@ export const ComposableTable: ComposableTableProps = <
 // sort is replaced by sortFunction
 type TableThProps = Omit<ThProps, 'sort' | 'ref'>;
 
+export type SelectAllProps = {
+  onSelect: OnSelect;
+  isAllSelected: boolean;
+};
+
 export type TableProps<T extends K8sResourceCommon | unknown> = {
   rows: T[];
   columns: TableColumnProps[];
@@ -117,6 +133,7 @@ export type TableProps<T extends K8sResourceCommon | unknown> = {
   emptyRowMessage?: React.FC;
   variant?: TableVariant;
   isFavorites?: boolean;
+  selectProps?: SelectAllProps;
 };
 
 type ComposableTableProps = <T extends K8sResourceCommon>(

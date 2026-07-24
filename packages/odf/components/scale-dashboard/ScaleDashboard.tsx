@@ -20,6 +20,7 @@ import ActivityCard from './ActivityCard';
 import CapacityCard from './CapacityCard';
 import DetailsCard from './DetailsCard';
 import FileSystemCard from './FileSystems';
+import LocalStorageClusterCard from './LocalStorageClusterCard';
 import StatusCard from './StatusCard';
 
 const scaleDashboardActions = (
@@ -73,7 +74,10 @@ const ScaleDashboard: React.FC = () => {
     isList: false,
   });
 
-  const leftCards: OverviewGridCard[] = [{ Card: DetailsCard }];
+  const leftCards: OverviewGridCard[] = [
+    { Card: DetailsCard },
+    { Card: LocalStorageClusterCard },
+  ];
 
   const rightCards: OverviewGridCard[] = [{ Card: ActivityCard }];
 

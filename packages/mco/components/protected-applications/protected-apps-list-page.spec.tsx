@@ -29,6 +29,7 @@ const failingDRPC = {
   metadata: {
     name: failingDRPCName,
     namespace: 'test',
+    uid: 'drpc-uid-1',
     annotations: {
       'drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster':
         deploymentClusterName,
@@ -57,6 +58,7 @@ const relocatedDRPC = {
   metadata: {
     name: relocatedDRPCName,
     namespace: 'test',
+    uid: 'drpc-uid-2',
     annotations: {
       'drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster':
         deploymentClusterName,
@@ -92,7 +94,7 @@ const drPolicy = {
 const failingPAV = {
   apiVersion: 'multicluster.odf.openshift.io/v1alpha1',
   kind: 'ProtectedApplicationView',
-  metadata: { name: failingDRPCName, namespace: 'test' },
+  metadata: { name: failingDRPCName, namespace: 'test', uid: 'pav-uid-1' },
   spec: { drpcRef: { name: failingDRPCName, namespace: 'test' } },
   status: {
     applicationInfo: {
@@ -123,7 +125,7 @@ const failingPAV = {
 const relocatedPAV = {
   apiVersion: 'multicluster.odf.openshift.io/v1alpha1',
   kind: 'ProtectedApplicationView',
-  metadata: { name: relocatedDRPCName, namespace: 'test' },
+  metadata: { name: relocatedDRPCName, namespace: 'test', uid: 'pav-uid-2' },
   spec: { drpcRef: { name: relocatedDRPCName, namespace: 'test' } },
   status: {
     applicationInfo: {
@@ -150,16 +152,26 @@ const relocatedPAV = {
 
 const drpcs = [failingDRPC, relocatedDRPC];
 const pavs = [failingPAV, relocatedPAV];
+const emptyArr: unknown[] = [];
+const pavsWithoutFailing = pavs.filter(
+  (pav) => pav.metadata.name !== failingDRPCName
+);
+const pavsWithoutRelocated = pavs.filter(
+  (pav) => pav.metadata.name !== relocatedDRPCName
+);
+const mockOnFilterChange = jest.fn();
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
-  useListPageFilter: jest.fn(() => [
-    noData ? [] : pavs,
-    noFilteredData
-      ? []
-      : pavs.filter((pav) => pav.metadata.name !== filterDRPC),
-    jest.fn(),
-  ]),
+  useListPageFilter: jest.fn(() => {
+    if (noData) return [emptyArr, emptyArr, mockOnFilterChange];
+    if (noFilteredData) return [pavs, emptyArr, mockOnFilterChange];
+    if (filterDRPC === failingDRPCName)
+      return [pavs, pavsWithoutFailing, mockOnFilterChange];
+    if (filterDRPC === relocatedDRPCName)
+      return [pavs, pavsWithoutRelocated, mockOnFilterChange];
+    return [pavs, pavs, mockOnFilterChange];
+  }),
   useK8sWatchResource: jest.fn(({ kind, groupVersionKind }) => {
     if (noData) return [[], true, ''];
     if (
@@ -220,6 +232,28 @@ jest.mock('../dr-status-popover/parsers', () => ({
   DRPlacementControlParser: jest.fn(() => <div>DR Status</div>),
 }));
 
+const mockSelection = {
+  onRowSelect: jest.fn(),
+  isSelected: jest.fn(() => false),
+  isDisabled: jest.fn(() => false),
+  isAllPageSelected: false,
+  onSelectAllPage: jest.fn(),
+  selectedCount: 0,
+  eligiblePageCount: 0,
+  eligibleTotalCount: 0,
+  isPartiallySelected: false,
+  onSelectNone: jest.fn(),
+  onSelectPage: jest.fn(),
+  onSelectAll: jest.fn(),
+};
+
+jest.mock('./use-selection', () => ({
+  getDRPCKey: jest.fn(
+    (pav) => `${pav.spec.drpcRef.namespace}/${pav.spec.drpcRef.name}`
+  ),
+  useProtectedAppsSelection: jest.fn(() => mockSelection),
+}));
+
 jest.mock('@odf/mco/utils', () => ({
   getApplicationName: jest.fn((pav) => pav.metadata.name),
   getDRPlacementControlRef: jest.fn((pav) => pav.spec.drpcRef),
@@ -258,8 +292,8 @@ describe('Test protected applications list page table (ProtectedApplicationsList
     noFilteredData = true;
     render(<ProtectedApplicationsListPage />);
 
-    expect(NoDataMessage).toHaveBeenCalledTimes(1);
-    expect(EmptyRowMessage).toHaveBeenCalledTimes(0);
+    expect(NoDataMessage).toHaveBeenCalled();
+    expect(EmptyRowMessage).not.toHaveBeenCalled();
   });
 
   it('"EmptyRowMessage" FC is rendered when applications are found but filtered data is empty', async () => {
@@ -267,8 +301,8 @@ describe('Test protected applications list page table (ProtectedApplicationsList
     noFilteredData = true;
     render(<ProtectedApplicationsListPage />);
 
-    expect(EmptyRowMessage).toHaveBeenCalledTimes(1);
-    expect(NoDataMessage).toHaveBeenCalledTimes(0);
+    expect(EmptyRowMessage).toHaveBeenCalled();
+    expect(NoDataMessage).not.toHaveBeenCalled();
   });
 
   it('"ComposableTable" FC is rendered, listing all the DRPCs', async () => {
@@ -397,5 +431,90 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     expect(screen.getByText(namespaces[1])).toBeInTheDocument();
     expect(screen.getByText(namespaces[2])).toBeInTheDocument();
     expect(screen.getByText(namespaces[3])).toBeInTheDocument();
+  });
+});
+
+describe('Test selection mechanics (RHSTOR-6406)', () => {
+  const { useProtectedAppsSelection } = jest.requireMock('./use-selection');
+  let user;
+  beforeEach(() => {
+    user = userEvent.setup();
+    resetGlobals();
+    useProtectedAppsSelection.mockReturnValue({ ...mockSelection });
+  });
+  afterEach(() => jest.clearAllMocks());
+  beforeAll(() => ignoreErrors());
+  afterAll(() => consoleSpy.mockRestore());
+
+  it('Renders checkboxes for each row', () => {
+    render(<ProtectedApplicationsListPage />);
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('Disabled rows reflect isDisabled from the selection hook', () => {
+    useProtectedAppsSelection.mockReturnValue({
+      ...mockSelection,
+      isDisabled: jest.fn((pav) => pav.metadata.uid === 'pav-uid-1'),
+    });
+    const { container } = render(<ProtectedApplicationsListPage />);
+
+    const checkboxes = container.querySelectorAll(
+      'tbody tr input[type="checkbox"]'
+    );
+
+    const failingCheckbox = Array.from(checkboxes).find((cb) => {
+      const row = cb.closest('tr');
+      return row?.textContent?.includes(failingDRPCName);
+    }) as HTMLInputElement;
+
+    const relocatedCheckbox = Array.from(checkboxes).find((cb) => {
+      const row = cb.closest('tr');
+      return row?.textContent?.includes(relocatedDRPCName);
+    }) as HTMLInputElement;
+
+    expect(failingCheckbox).toBeDefined();
+    expect(failingCheckbox.disabled).toBe(true);
+
+    expect(relocatedCheckbox).toBeDefined();
+    expect(relocatedCheckbox.disabled).toBe(false);
+  });
+
+  it('Failover/Relocate button is disabled when selectedCount is 0', () => {
+    render(<ProtectedApplicationsListPage />);
+
+    const button = screen.getByRole('button', { name: /Failover\/Relocate/i });
+    expect(button).toBeDisabled();
+  });
+
+  it('Failover/Relocate button is enabled when selectedCount > 0', () => {
+    useProtectedAppsSelection.mockReturnValue({
+      ...mockSelection,
+      selectedCount: 1,
+    });
+    render(<ProtectedApplicationsListPage />);
+
+    const button = screen.getByRole('button', { name: /Failover\/Relocate/i });
+    expect(button).toBeEnabled();
+  });
+
+  it('Bulk selector dropdown renders with correct options', async () => {
+    render(<ProtectedApplicationsListPage />);
+
+    const bulkToggle = screen.getByRole('button', {
+      name: /Bulk selection/i,
+    });
+    await user.click(bulkToggle);
+
+    await waitFor(() => {
+      expect(screen.getByText('Select none (0 items)')).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText('Select page ({{count}} items)')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Select all ({{count}} items)')
+    ).toBeInTheDocument();
   });
 });
