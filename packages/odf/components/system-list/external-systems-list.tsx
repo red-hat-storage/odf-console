@@ -311,6 +311,7 @@ type CustomData = {
   storageClusters: StorageClusterKind[];
   isSANSystemDeletable: boolean;
   sanClustersByName: Record<string, ClusterKind>;
+  filesystemsByRemoteCluster: FilesystemsByRemoteCluster;
 };
 
 type StorageSystemNewPageProps = {
@@ -460,15 +461,22 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = getName(obj);
   const systemNamespace = getNamespace(obj);
-  const { normalizedMetrics, isSANSystemDeletable, sanClustersByName } =
-    rowData;
+  const {
+    normalizedMetrics,
+    isSANSystemDeletable,
+    sanClustersByName,
+    filesystemsByRemoteCluster,
+  } = rowData;
   const isSANSystem = kind === ClusterModel.kind.toLowerCase();
   const isRemoteCluster = kind === RemoteClusterModel.kind.toLowerCase();
   const sanCluster = isSANSystem ? sanClustersByName[obj.spec.name] : undefined;
+  const isRemoteClusterDeletable =
+    isRemoteCluster && !(filesystemsByRemoteCluster[obj.spec.name]?.length > 0);
   const { customActions, hiddenActions } = getActions(
     obj,
     t,
-    isSANSystemDeletable
+    isSANSystemDeletable,
+    isRemoteClusterDeletable
   );
   const resolvedActions = isSANSystem
     ? customActions.map((action) =>
@@ -767,6 +775,7 @@ export const StorageSystemListPage: React.FC = () => {
             storageClusters,
             isSANSystemDeletable,
             sanClustersByName,
+            filesystemsByRemoteCluster,
           }}
         />
       </ListPageBody>

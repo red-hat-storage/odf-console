@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
+import useIsRemoteClusterDeletable from '@odf/core/hooks/useIsRemoteClusterDeletable';
 import { RemoteClusterKind } from '@odf/core/types/scale';
 import {
   RemoteClusterModel,
@@ -25,7 +26,8 @@ import StatusCard from './StatusCard';
 
 const scaleDashboardActions = (
   t: TFunction,
-  clusterResource: RemoteClusterKind
+  clusterResource: RemoteClusterKind,
+  isRemoteClusterDeletable: boolean
 ) => {
   const actions = [
     {
@@ -34,6 +36,18 @@ const scaleDashboardActions = (
       component: React.lazy(
         () => import('../../modals/add-remote-fs/AddRemoteFileSystemModal')
       ),
+    },
+    {
+      key: 'REMOVE_REMOTE_CLUSTER',
+      value: t('Remove'),
+      description: isRemoteClusterDeletable
+        ? undefined
+        : t('Cannot be removed if file systems exist.'),
+      component: React.lazy(
+        () =>
+          import('../../modals/remove-remote-cluster/RemoveRemoteClusterModal')
+      ),
+      isDisabled: !isRemoteClusterDeletable,
     },
   ];
   return (
@@ -73,6 +87,7 @@ const ScaleDashboard: React.FC = () => {
     namespace: IBM_SCALE_NAMESPACE,
     isList: false,
   });
+  const isRemoteClusterDeletable = useIsRemoteClusterDeletable(systemName);
 
   const leftCards: OverviewGridCard[] = [
     { Card: DetailsCard },
@@ -96,7 +111,9 @@ const ScaleDashboard: React.FC = () => {
             path: '',
           },
         ]}
-        actions={() => scaleDashboardActions(t, resource)}
+        actions={() =>
+          scaleDashboardActions(t, resource, isRemoteClusterDeletable)
+        }
       />
       <Overview>
         <OverviewGrid

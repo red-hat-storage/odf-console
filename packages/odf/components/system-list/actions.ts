@@ -40,7 +40,8 @@ type ActionsForExternalSystem = {
 export const getActions = (
   obj: StorageSystemKind,
   t: TFunction,
-  isSANSystemDeletable: boolean
+  isSANSystemDeletable: boolean,
+  isRemoteClusterDeletable?: boolean
 ): ActionsForExternalSystem => {
   if (getKindOfExternalSystem(obj) === ClusterModel.kind) {
     return {
@@ -80,6 +81,18 @@ export const getActions = (
           component: React.lazy(
             () => import('../../modals/add-remote-fs/AddRemoteFileSystemModal')
           ),
+        },
+        {
+          key: 'REMOVE_REMOTE_CLUSTER',
+          value: t('Remove'),
+          description: isRemoteClusterDeletable
+            ? undefined
+            : t('Cannot be removed while remote file systems exist.'),
+          component: React.lazy(
+            () =>
+              import('../../modals/remove-remote-cluster/RemoveRemoteClusterModal')
+          ),
+          isDisabled: !isRemoteClusterDeletable,
         },
       ],
       hiddenActions: [
