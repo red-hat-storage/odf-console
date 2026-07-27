@@ -5,12 +5,8 @@ import {
   useCustomTranslation,
   TextInputWithFieldRequirements,
   ButtonBar,
-  DOC_VERSION,
-  ocpDocHome,
 } from '@odf/shared';
 import { ValidatedPasswordInput } from '@odf/shared/text-inputs/password-input';
-import { ExternalLink } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router';
 import {
@@ -27,11 +23,9 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
-  HelperTextItemProps,
   AlertVariant,
   ButtonType,
   ButtonVariant,
-  Spinner,
 } from '@patternfly/react-core';
 import { enableScaleEncryption } from '../../../scale-encryption/enableScaleEncryption';
 import { ScaleEncryptionForm } from '../../../scale-encryption/ScaleEncryptionForm';
@@ -51,60 +45,9 @@ import {
   createScaleRemoteClusterPayload,
   createFileSystem,
 } from './payload';
-import {
-  KernelDevelEligibility,
-  ScaleSystemComponentState,
-  initialComponentState,
-} from './types';
+import { ScaleSystemComponentState, initialComponentState } from './types';
 import useScaleSystemFormValidation from './useFormValidation';
 import './CreateScaleSystem.scss';
-
-const KERNEL_DEVEL_DOC_URL =
-  `${ocpDocHome(DOC_VERSION)}machine_configuration/machine-configs-configure` +
-  '#rhcos-add-extensions_machine-configs-configure';
-
-const getKernelDevelStatus = (
-  kernelDevelEligibility: KernelDevelEligibility,
-  t: TFunction
-): {
-  kind: string;
-  variant: HelperTextItemProps['variant'];
-  message: string;
-  details?: string;
-} => {
-  if (kernelDevelEligibility.error) {
-    return {
-      kind: 'danger',
-      variant: 'error',
-      message: t('Unable to verify kernel-devel package status'),
-      details: kernelDevelEligibility.error,
-    };
-  }
-
-  if (kernelDevelEligibility.isLoading) {
-    return {
-      kind: 'pending',
-      variant: 'default',
-      message: t('Checking kernel-devel packages on selected nodes'),
-    };
-  }
-
-  if (kernelDevelEligibility.nodesWithoutKernelDevel.length > 0) {
-    return {
-      kind: 'warning',
-      variant: 'warning',
-      message: t(
-        'Kernel-devel packages are missing on some selected nodes. Please apply the Machine Config Operator (MCO) update to install them before connecting to the remote cluster.'
-      ),
-    };
-  }
-
-  return {
-    kind: 'success',
-    variant: 'success',
-    message: t('Kernel-devel packages verified'),
-  };
-};
 
 type CreateScaleSystemFormProps = {
   componentState: ScaleSystemComponentState;
@@ -150,10 +93,6 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const userName = watch('userName');
   const password = watch('password');
   const fileSystemName = watch('fileSystemName');
-  const hasSelectedNodes = componentState.selectedNodes.length > 0;
-  const kernelDevelStatus = hasSelectedNodes
-    ? getKernelDevelStatus(kernelDevelEligibility, t)
-    : null;
 
   const mandatoryFieldsValid = !!(
     name &&
@@ -330,34 +269,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
             setSelectedNodes={(nodes) =>
               setComponentState((prev) => ({ ...prev, selectedNodes: nodes }))
             }
-            statusContent={
-              kernelDevelStatus ? (
-                <HelperText className="pf-v6-u-mt-md">
-                  <HelperTextItem
-                    data-test={`kernel-devel-status-${kernelDevelStatus.kind}`}
-                    variant={kernelDevelStatus.variant}
-                    icon={
-                      kernelDevelStatus.kind === 'pending' ? (
-                        <Spinner size="sm" />
-                      ) : undefined
-                    }
-                  >
-                    {kernelDevelStatus.message}
-                    {kernelDevelStatus.details
-                      ? ` ${kernelDevelStatus.details}`
-                      : ''}
-                    {kernelDevelStatus.kind === 'warning' && (
-                      <>
-                        {' '}
-                        <ExternalLink href={KERNEL_DEVEL_DOC_URL}>
-                          {t('Learn more')}
-                        </ExternalLink>
-                      </>
-                    )}
-                  </HelperTextItem>
-                </HelperText>
-              ) : null
-            }
+            kernelDevelEligibility={kernelDevelEligibility}
           />
         </FormGroup>
       </FormSection>

@@ -33,6 +33,7 @@ import {
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
 import { ENCRYPTION_CONFIG_NAME } from '../scale-encryption/enableScaleEncryption';
+import AddLocalScaleNodesModal from './AddLocalScaleNodesModal';
 import EncryptionConfigModal from './EncryptionConfigModal';
 
 const nodesHref = `${resourcePathFromModel(NodeModel)}?label=${encodeURIComponent(
@@ -92,17 +93,17 @@ const LocalStorageClusterCard: React.FC = () => {
 
   const clusterName = getName(cluster);
   const isEncrypted = !!getName(encryptionConfig);
+  const canEditLocalCluster =
+    clusterLoaded && !clusterLoadError && !!clusterName;
   const canEnableEncryption =
-    clusterLoaded &&
-    !clusterLoadError &&
-    !!clusterName &&
+    canEditLocalCluster &&
     !isEncrypted &&
     (encryptionConfigLoaded || encryptionConfigNotFound);
 
-  const openEncryptionConfig = React.useCallback(
-    () => launchModal(EncryptionConfigModal, { isOpen: true }),
-    [launchModal]
-  );
+  const openNodeExpansion = () =>
+    launchModal(AddLocalScaleNodesModal, { isOpen: true });
+  const openEncryptionConfig = () =>
+    launchModal(EncryptionConfigModal, { isOpen: true });
 
   return (
     <Card>
@@ -124,14 +125,28 @@ const LocalStorageClusterCard: React.FC = () => {
             </DescriptionListDescription>
           </DescriptionListGroup>
         </DescriptionList>
-        <ResourceInventoryItem
-          dataTest="inventory-nodes"
-          isLoading={!nodesLoaded}
-          error={!!nodesLoadError}
-          kind={NodeModel as any}
-          resources={nodes}
-          basePath={nodesHref}
-        />
+        <Flex alignItems={{ default: 'alignItemsCenter' }}>
+          <FlexItem>
+            <ResourceInventoryItem
+              dataTest="inventory-nodes"
+              isLoading={!nodesLoaded}
+              error={!!nodesLoadError}
+              kind={NodeModel as any}
+              resources={nodes}
+              basePath={nodesHref}
+            />
+          </FlexItem>
+          {canEditLocalCluster && (
+            <FlexItem>
+              <Button
+                variant="plain"
+                aria-label={t('Edit node inventory')}
+                onClick={openNodeExpansion}
+                icon={<PencilAltIcon />}
+              />
+            </FlexItem>
+          )}
+        </Flex>
         <DescriptionList className="pf-v6-u-mt-md">
           <DescriptionListGroup>
             <DescriptionListTerm>{t('Encryption')}</DescriptionListTerm>

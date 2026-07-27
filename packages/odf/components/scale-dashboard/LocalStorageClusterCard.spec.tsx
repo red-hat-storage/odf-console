@@ -200,6 +200,44 @@ describe('LocalStorageClusterCard', () => {
   });
 
   describe('Node inventory', () => {
+    it('should open node expansion for the local Scale cluster', async () => {
+      setupMocks();
+      renderCard();
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Edit node inventory' })
+      );
+
+      expect(launchModal).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ isOpen: true })
+      );
+    });
+
+    it.each([
+      { cluster: null, clusterLoaded: true, clusterLoadError: null },
+      {
+        cluster: makeCluster(IBM_SCALE_LOCAL_CLUSTER_NAME),
+        clusterLoaded: false,
+        clusterLoadError: null,
+      },
+      {
+        cluster: makeCluster(IBM_SCALE_LOCAL_CLUSTER_NAME),
+        clusterLoaded: false,
+        clusterLoadError: new Error('failed'),
+      },
+    ])(
+      'should hide node expansion until the local cluster is available',
+      ({ cluster, clusterLoaded, clusterLoadError }) => {
+        setupMocks({ cluster, clusterLoaded, clusterLoadError });
+        renderCard();
+
+        expect(
+          screen.queryByRole('button', { name: 'Edit node inventory' })
+        ).not.toBeInTheDocument();
+      }
+    );
+
     it('should watch only nodes selected for the local cluster', () => {
       setupMocks();
       renderCard();
@@ -219,12 +257,15 @@ describe('LocalStorageClusterCard', () => {
       );
     });
 
-    it('should display the count of nodes returned by the label-selector watch', () => {
+    it('should count assigned labels without waiting for Scale pod readiness', () => {
       setupMocks({
         nodes: [scaleNode('node-1'), scaleNode('node-2'), scaleNode('node-3')],
       });
       renderCard();
       expect(screen.getByText('3 Nodes')).toBeInTheDocument();
+      expect(
+        (useK8sWatchResources as jest.Mock).mock.calls[0][0]
+      ).not.toHaveProperty('corePods');
     });
 
     it('should show 0 nodes when the watch returns an empty list', () => {
