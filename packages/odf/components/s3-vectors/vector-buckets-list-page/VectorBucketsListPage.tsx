@@ -105,7 +105,7 @@ const VectorBucketsListPageContent: React.FC = () => {
         {...(!isAdmin ? { badge: getAcountBadge(t) } : {})}
       >
         <ListPageCreateLink to={getVectorBucketCreatePageRoute(providerType)}>
-          {t('Create bucket')}
+          {t('Create vector bucket')}
         </ListPageCreateLink>
         {!isAdmin && (
           <ActionsColumn
