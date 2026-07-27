@@ -48,6 +48,68 @@ describe('NodesSection', () => {
     );
   });
 
+  it('selects default nodes when inventory arrives after an empty load', async () => {
+    const nodes = [
+      {
+        metadata: {
+          name: 'worker-0',
+          uid: 'worker-0-uid',
+          labels: { 'node-role.kubernetes.io/worker': '' },
+        },
+        spec: {},
+      },
+    ];
+    const setSelectedNodes = jest.fn();
+
+    (useNodesData as jest.Mock).mockReturnValue([[], true, null]);
+    const { rerender } = render(
+      <NodesSection
+        showNodesTable
+        selectedNodes={[]}
+        setSelectedNodes={setSelectedNodes}
+      />
+    );
+
+    expect(setSelectedNodes).not.toHaveBeenCalled();
+
+    (useNodesData as jest.Mock).mockReturnValue([nodes, true, null]);
+    rerender(
+      <NodesSection
+        showNodesTable
+        selectedNodes={[]}
+        setSelectedNodes={setSelectedNodes}
+      />
+    );
+
+    await waitFor(() =>
+      expect(setSelectedNodes).toHaveBeenCalledWith([
+        expect.objectContaining({ name: 'worker-0' }),
+      ])
+    );
+  });
+
+  it('preserves deselect-all after mounting with an existing selection', () => {
+    const nodes = [
+      { metadata: { name: 'node-0', uid: 'node-0-uid' }, spec: {} },
+      { metadata: { name: 'node-1', uid: 'node-1-uid' }, spec: {} },
+    ];
+    const setSelectedNodes = jest.fn();
+
+    (useNodesData as jest.Mock).mockReturnValue([nodes, true, null]);
+    const { rerender } = render(
+      <NodesSection
+        selectedNodes={[{ name: 'node-0' } as WizardNodeState]}
+        setSelectedNodes={setSelectedNodes}
+      />
+    );
+
+    rerender(
+      <NodesSection selectedNodes={[]} setSelectedNodes={setSelectedNodes} />
+    );
+
+    expect(setSelectedNodes).not.toHaveBeenCalled();
+  });
+
   it('shows worker nodes by default and adds control plane nodes on request', async () => {
     const nodes = [
       {

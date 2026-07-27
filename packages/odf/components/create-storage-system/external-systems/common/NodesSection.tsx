@@ -124,7 +124,9 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
       if (isUseAllNodes && defaultNodes.length > 0 && !selectedNodes.length) {
         onNodeSelect(defaultNodes);
       }
-      hasInitializedSelection.current = true;
+      if (defaultNodes.length > 0) {
+        hasInitializedSelection.current = true;
+      }
     }, [
       hideAllNodesSelection,
       isUseAllNodes,

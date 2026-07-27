@@ -8,8 +8,21 @@ import { formSettings, useYupValidationResolver } from '@odf/shared';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
-import { useForm } from 'react-hook-form';
+import {
+  Control,
+  FieldValues,
+  UseFormGetValues,
+  UseFormHandleSubmit,
+  UseFormProps,
+  UseFormWatch,
+  useForm,
+} from 'react-hook-form';
 import * as Yup from 'yup';
+import {
+  EncryptionFormData,
+  encryptionFormDefaultValues,
+  getEncryptionFormValidation,
+} from '../../../scale-encryption/useEncryptionFormValidation';
 
 // Constants for validation
 const SYSTEM_NAME_MAX_LENGTH = 63;
@@ -20,9 +33,6 @@ const USERNAME_MAX_LENGTH = 63;
 const USERNAME_MIN_LENGTH = 1;
 const PORT_MIN = 1;
 const PORT_MAX = 65535;
-const TENANT_ID_MAX_LENGTH = 63;
-const CLIENT_MAX_LENGTH = 63;
-const SERVER_INFO_MAX_LENGTH = 255;
 
 export type ScaleSystemFormSchema = Yup.ObjectSchema<{
   name: Yup.StringSchema;
@@ -44,7 +54,7 @@ export type ScaleSystemFormSchema = Yup.ObjectSchema<{
   tenantId: Yup.StringSchema;
 }>;
 
-export type ScaleSystemFormData = {
+export type ScaleSystemFormData = EncryptionFormData & {
   name: string;
   'mandatory-endpoint-host': string;
   'mandatory-endpoint-port': string;
@@ -55,13 +65,6 @@ export type ScaleSystemFormData = {
   userName: string;
   password: string;
   fileSystemName: string;
-  encryptionUserName: string;
-  encryptionPassword: string;
-  encryptionPort: string;
-  client: string;
-  remoteRKM: string;
-  serverInformation: string;
-  tenantId: string;
 };
 
 export type ScaleSystemFormValidation = {
@@ -77,11 +80,11 @@ export type ScaleSystemFormValidation = {
     client: string[];
     serverInfo: string[];
   };
-  control: any;
-  handleSubmit: any;
-  formState: { isSubmitted: boolean };
-  watch: any;
-  getValues: any;
+  control: Control<FieldValues>;
+  handleSubmit: UseFormHandleSubmit<ScaleSystemFormData>;
+  formState: { isSubmitted: boolean; isValid: boolean };
+  watch: UseFormWatch<ScaleSystemFormData>;
+  getValues: UseFormGetValues<ScaleSystemFormData>;
 };
 
 const useScaleSystemFormValidation = (
@@ -160,23 +163,7 @@ const useScaleSystemFormValidation = (
       t('Name must be unique'),
     ];
 
-    // Tenant ID validation
-    const tenantIdFieldRequirements = [
-      fieldRequirementsTranslations.maxChars(t, TENANT_ID_MAX_LENGTH),
-      fieldRequirementsTranslations.cannotBeEmpty(t),
-    ];
-
-    // Client validation
-    const clientFieldRequirements = [
-      fieldRequirementsTranslations.maxChars(t, CLIENT_MAX_LENGTH),
-      fieldRequirementsTranslations.cannotBeEmpty(t),
-    ];
-
-    // Server information validation
-    const serverInfoFieldRequirements = [
-      fieldRequirementsTranslations.maxChars(t, SERVER_INFO_MAX_LENGTH),
-      fieldRequirementsTranslations.cannotBeEmpty(t),
-    ];
+    const encryptionValidation = getEncryptionFormValidation(t, false);
 
     const formSchema = Yup.object({
       name: Yup.string()
@@ -277,50 +264,7 @@ const useScaleSystemFormValidation = (
         )
         .transform((value: string) => (!!value ? value : '')),
 
-      encryptionUserName: Yup.string()
-        .optional()
-        .max(USERNAME_MAX_LENGTH, usernameFieldRequirements[0])
-        .min(USERNAME_MIN_LENGTH, usernameFieldRequirements[1])
-        .transform((value: string) => (!!value ? value : undefined)),
-
-      encryptionPassword: Yup.string()
-        .optional()
-        .transform((value: string) => (!!value ? value : undefined)),
-
-      encryptionPort: Yup.string()
-        .optional()
-        .matches(/^\d+$/, portFieldRequirements[0])
-        .test('port-range', portFieldRequirements[0], (value) => {
-          if (!value) return true;
-          const port = parseInt(value, 10);
-          return port >= PORT_MIN && port <= PORT_MAX;
-        })
-        .transform((value: string) => (!!value ? value : undefined)),
-
-      client: Yup.string()
-        .optional()
-        .max(CLIENT_MAX_LENGTH, clientFieldRequirements[0])
-        .transform((value: string) => (!!value ? value : undefined)),
-
-      remoteRKM: Yup.string()
-        .optional()
-        .max(HOSTNAME_MAX_LENGTH, hostnameFieldRequirements[0])
-        .min(HOSTNAME_MIN_LENGTH, hostnameFieldRequirements[1])
-        .test('valid-hostname-or-ip', hostnameFieldRequirements[2], (value) => {
-          if (!value) return true;
-          return isValidHostnameOrIP(value);
-        })
-        .transform((value: string) => (!!value ? value : undefined)),
-
-      serverInformation: Yup.string()
-        .optional()
-        .max(SERVER_INFO_MAX_LENGTH, serverInfoFieldRequirements[0])
-        .transform((value: string) => (!!value ? value : undefined)),
-
-      tenantId: Yup.string()
-        .optional()
-        .max(TENANT_ID_MAX_LENGTH, tenantIdFieldRequirements[0])
-        .transform((value: string) => (!!value ? value : undefined)),
+      ...encryptionValidation.fields,
     });
 
     return {
@@ -332,23 +276,25 @@ const useScaleSystemFormValidation = (
         username: usernameFieldRequirements,
         password: passwordFieldRequirements,
         fileSystemName: fileSystemNameFieldRequirements,
-        tenantId: tenantIdFieldRequirements,
-        client: clientFieldRequirements,
-        serverInfo: serverInfoFieldRequirements,
+        tenantId: encryptionValidation.fieldRequirements.tenantId,
+        client: encryptionValidation.fieldRequirements.client,
+        serverInfo: encryptionValidation.fieldRequirements.serverInfo,
       },
     };
   }, [t, existingFileSystemNames]);
 
-  const resolver = useYupValidationResolver(formSchema) as any;
+  const resolver = useYupValidationResolver<ScaleSystemFormData>(
+    formSchema
+  ) as unknown as UseFormProps<ScaleSystemFormData>['resolver'];
 
   const {
     control,
     handleSubmit,
-    formState: { isSubmitted },
+    formState: { isSubmitted, isValid },
     watch,
     getValues,
-  } = useForm({
-    ...formSettings,
+  } = useForm<ScaleSystemFormData>({
+    ...(formSettings as unknown as UseFormProps<ScaleSystemFormData>),
     resolver,
     defaultValues: {
       name: '',
@@ -361,22 +307,16 @@ const useScaleSystemFormValidation = (
       userName: '',
       password: '',
       fileSystemName: '',
-      encryptionUserName: '',
-      encryptionPassword: '',
-      encryptionPort: '',
-      client: '',
-      remoteRKM: '',
-      serverInformation: '',
-      tenantId: '',
+      ...encryptionFormDefaultValues,
     },
   });
 
   return {
     formSchema,
     fieldRequirements,
-    control,
-    handleSubmit,
-    formState: { isSubmitted },
+    control: control as unknown as Control<FieldValues>,
+    handleSubmit: handleSubmit as UseFormHandleSubmit<ScaleSystemFormData>,
+    formState: { isSubmitted, isValid },
     watch,
     getValues,
   };

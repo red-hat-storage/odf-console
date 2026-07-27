@@ -174,8 +174,13 @@ jest.mock('./payload', () => ({
   createScaleRemoteClusterPayload: jest.fn(() => Promise.resolve({})),
   createFileSystem: jest.fn(() => Promise.resolve({})),
   createConfigMapPayload: jest.fn(() => Promise.resolve({})),
-  createEncryptionConfigPayload: jest.fn(() => Promise.resolve({})),
   createUserDetailsSecretPayload: jest.fn(() => Promise.resolve({})),
+}));
+
+jest.mock('@odf/core/components/scale-encryption/payload', () => ({
+  createEncryptionCertificatePayload: jest.fn(() => () => Promise.resolve({})),
+  createEncryptionConfigPayload: jest.fn(() => () => Promise.resolve({})),
+  createEncryptionSecretPayload: jest.fn(() => () => Promise.resolve({})),
 }));
 
 jest.mock('../common/payload', () => ({

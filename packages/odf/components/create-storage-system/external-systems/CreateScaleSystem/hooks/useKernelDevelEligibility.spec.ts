@@ -3,7 +3,7 @@ import {
   MachineConfigNodeKind,
 } from '@odf/core/types/scale';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { WizardNodeState } from '../../../reducer';
 import { useKernelDevelEligibility } from './useKernelDevelEligibility';
 

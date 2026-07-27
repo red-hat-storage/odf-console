@@ -1,20 +1,12 @@
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
-import {
-  EncryptionConfigKind,
-  FileSystemKind,
-  RemoteClusterKind,
-} from '@odf/core/types/scale';
+import { FileSystemKind, RemoteClusterKind } from '@odf/core/types/scale';
 import {
   ConfigMapKind,
   ConfigMapModel,
   SecretKind,
   SecretModel,
 } from '@odf/shared';
-import {
-  EncryptionConfigModel,
-  FileSystemModel,
-  RemoteClusterModel,
-} from '@odf/shared/models/scale';
+import { FileSystemModel, RemoteClusterModel } from '@odf/shared/models/scale';
 import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
 
 export const createUserDetailsSecretPayload = (
@@ -144,30 +136,4 @@ export const createFileSystem = (
     },
   };
   return () => k8sCreate({ model: FileSystemModel, data: payload });
-};
-
-export const createEncryptionConfigPayload = (
-  name: string,
-  server: string,
-  tenant: string,
-  client: string,
-  secret: string,
-  configMapName: string
-) => {
-  const payload: EncryptionConfigKind = {
-    apiVersion: 'scale.spectrum.ibm.com/v1beta1',
-    kind: 'EncryptionConfig',
-    metadata: {
-      name: name,
-      namespace: IBM_SCALE_NAMESPACE,
-    },
-    spec: {
-      ...(configMapName && { cacert: configMapName }),
-      server,
-      tenant,
-      client,
-      secret,
-    },
-  };
-  return () => k8sCreate({ model: EncryptionConfigModel, data: payload });
 };
