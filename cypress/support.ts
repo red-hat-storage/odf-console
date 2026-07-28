@@ -57,13 +57,13 @@ Cypress.Commands.add('install', () => {
       cy.byTestID('create-wizard-empty-state').should('not.exist');
       cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();
-      // @TODO: Do we still want to uncheck the already unchecked 'Taint nodes' checkbox?
-      // If yes, we should scroll down (needed after adding the performance profile selection)
-      // and then scroll up again to still be able to select nodes
-      // (or put this action after nodes' selection).
-      //cy.get('input[type="checkbox"]').first().uncheck();
-
       cy.get('table').get('input[type="checkbox"]').first().check();
+      // Select Lean performance mode for resource-efficient CI installs.
+      cy.get(
+        '[aria-label="Select a performance mode from the list"]'
+      ).scrollIntoView();
+      cy.get('[aria-label="Select a performance mode from the list"]').click();
+      cy.byLegacyTestID('Lean mode').find('button').click();
       cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();
       cy.get('button')
