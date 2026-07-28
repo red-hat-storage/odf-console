@@ -1,8 +1,16 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Content, ContentVariants, Title } from '@patternfly/react-core';
+import {
+  PrePairNetworkValidation,
+  PrePairNetworkValidationProps,
+} from './pre-pair-network-validation';
 
-export const ConfigureClusterPairStep: React.FC = () => {
+type ConfigureClusterPairStepProps = PrePairNetworkValidationProps;
+
+export const ConfigureClusterPairStep: React.FC<
+  ConfigureClusterPairStepProps
+> = ({ clusterNames, validation, docHref }) => {
   const { t } = useCustomTranslation();
 
   return (
@@ -17,6 +25,11 @@ export const ConfigureClusterPairStep: React.FC = () => {
           )}
         </Content>
       </Content>
+      <PrePairNetworkValidation
+        clusterNames={clusterNames}
+        validation={validation}
+        docHref={docHref}
+      />
     </div>
   );
 };

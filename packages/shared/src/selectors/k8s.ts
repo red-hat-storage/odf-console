@@ -56,15 +56,36 @@ export const getOwnerReferences = <
     'metadata.ownerReferences'
   ) as K8sResourceCommon['metadata']['ownerReferences'];
 
+export const findCondition = (
+  conditions: K8sResourceCondition[] | undefined,
+  type: string,
+  options?: { ignoreCase?: boolean }
+): K8sResourceCondition | undefined => {
+  if (!conditions?.length) {
+    return undefined;
+  }
+  if (options?.ignoreCase) {
+    const normalizedType = type.toLowerCase();
+    return conditions.find(
+      (current) => current.type?.toLowerCase() === normalizedType
+    );
+  }
+  return conditions.find((current) => current.type === type);
+};
+
+export const isConditionStatus = (
+  condition: Pick<K8sResourceCondition, 'status'> | undefined,
+  status: string
+): boolean => condition?.status?.toLowerCase() === status.toLowerCase();
+
 export const getResourceCondition = <
   A extends K8sResourceKind = K8sResourceKind,
 >(
   resource: A,
-  condition: string
+  condition: string,
+  options?: { ignoreCase?: boolean }
 ): K8sResourceCondition => {
-  return resource?.status?.conditions?.find(
-    (current: K8sResourceCondition) => current.type === condition
-  );
+  return findCondition(resource?.status?.conditions, condition, options);
 };
 
 export const getCreationTimestamp: GetStringProperty = (resource) =>
