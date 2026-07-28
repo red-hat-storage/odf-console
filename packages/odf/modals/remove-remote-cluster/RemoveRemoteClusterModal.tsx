@@ -7,11 +7,7 @@ import useIsRemoteClusterDeletable from '@odf/core/hooks/useIsRemoteClusterDelet
 import { ClusterKind, RemoteClusterKind } from '@odf/core/types/scale';
 import { getName } from '@odf/shared';
 import { ModalFooter } from '@odf/shared/generic/ModalTitle';
-import {
-  CommonModalProps,
-  ModalBody,
-  ModalHeader,
-} from '@odf/shared/modals/Modal';
+import { CommonModalProps } from '@odf/shared/modals/Modal';
 import { ClusterModel, RemoteClusterModel } from '@odf/shared/models/scale';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isNotFoundError } from '@odf/shared/utils';
@@ -20,13 +16,16 @@ import {
   k8sGet,
   k8sList,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { useNavigate } from 'react-router';
 import {
   ActionGroup,
   Alert,
   Button,
   FormGroup,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  ModalVariant,
   TextInput,
 } from '@patternfly/react-core';
 
@@ -123,23 +122,14 @@ const RemoveRemoteClusterModal: React.FC<RemoveRemoteClusterModalProps> = ({
     'Removing {{clusterName}} means you will no longer be able to access the remote file systems',
     { clusterName }
   );
-  const modalTitle = (
-    <>
-      <ModalHeader>{title}</ModalHeader>
-      <p className="pf-v6-u-mt-sm" data-test="remove-warning-text">
-        {description}
-      </p>
-    </>
-  );
-
   return (
     <Modal
       isOpen={isOpen}
-      header={modalTitle}
       aria-label={title}
       variant={ModalVariant.small}
       onClose={closeModal}
     >
+      <ModalHeader title={title} description={description} />
       <ModalBody>
         <FormGroup
           label={t('Type {{name}} to confirm', { name: clusterName })}
