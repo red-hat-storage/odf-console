@@ -41,7 +41,7 @@ export type ManagedClusterInfoType = K8sResourceCommon & {
   providers?: Provider[];
 };
 
-type S3Details = {
+export type S3Details = {
   clusterName: string;
   bucketName: string;
   endpoint: string;

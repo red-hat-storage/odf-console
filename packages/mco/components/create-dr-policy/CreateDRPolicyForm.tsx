@@ -41,67 +41,13 @@ import {
   DRPolicyActionType,
   drPolicyInitialState,
   drPolicyReducer,
-  DRPolicyState,
 } from './utils/reducer';
 import {
-  isValidBucketName,
-  isValidEndpoint,
-  isValidS3ProfileName,
-} from './utils/s3-validators';
-
-const isFilled = (v: string) => !!v && v.trim().length > 0;
-
-const areS3DetailsFormatValid = (d: S3Details): boolean =>
-  isValidBucketName(d.bucketName) &&
-  isValidEndpoint(d.endpoint) &&
-  isFilled(d.accessKeyId) &&
-  isFilled(d.secretKey) &&
-  isFilled(d.region) &&
-  isFilled(d.s3ProfileName) &&
-  isValidS3ProfileName(d.s3ProfileName);
-
-const validateClusterInputs = (
-  state: DRPolicyState,
-  allDRClustersExist = false
-): boolean => {
-  const {
-    selectedClusters,
-    isClusterSelectionValid,
-    replicationBackend,
-    cluster1S3Details,
-    cluster2S3Details,
-    useSameS3Connection,
-  } = state;
-
-  const baseValid =
-    isClusterSelectionValid && selectedClusters.length === MAX_ALLOWED_CLUSTERS;
-
-  if (!baseValid) return false;
-
-  if (replicationBackend === BackendType.ThirdParty) {
-    if (allDRClustersExist) return true;
-    const c2ProfileValid =
-      isFilled(cluster2S3Details.s3ProfileName) &&
-      isValidS3ProfileName(cluster2S3Details.s3ProfileName);
-    return (
-      areS3DetailsFormatValid(cluster1S3Details) &&
-      c2ProfileValid &&
-      (useSameS3Connection || areS3DetailsFormatValid(cluster2S3Details))
-    );
-  }
-
-  return true;
-};
-
-const validatePolicyInputs = (state: DRPolicyState): boolean =>
-  isFilled(state.policyName) && !!state.replicationType;
-
-const validateDRPolicyInputs = (
-  state: DRPolicyState,
-  allDRClustersExist = false
-): boolean =>
-  validatePolicyInputs(state) &&
-  validateClusterInputs(state, allDRClustersExist);
+  validateClustersStepInputs,
+  validateConfigureStepInputs,
+  validatePolicyStepInputs,
+  validateReviewStepInputs,
+} from './utils/step-validation';
 
 const convertS3ProfileToDetails = (
   profile: S3StoreProfile,
@@ -289,15 +235,18 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
 
   const stepNames = CreateDRPolicyStepNames(t);
   const stepValidity: Record<CreateDRPolicyWizardSteps, boolean> = {
-    [CreateDRPolicyWizardSteps.Clusters]: validateClusterInputs(
+    [CreateDRPolicyWizardSteps.Clusters]: validateClustersStepInputs(state),
+    [CreateDRPolicyWizardSteps.Configure]: validateConfigureStepInputs(
       state,
-      allDRClustersExist
+      allDRClustersExist,
+      prePairValidationPassed
     ),
-    [CreateDRPolicyWizardSteps.Configure]: prePairValidation.canProceed,
-    [CreateDRPolicyWizardSteps.Policy]: validatePolicyInputs(state),
-    [CreateDRPolicyWizardSteps.Review]:
-      validateDRPolicyInputs(state, allDRClustersExist) &&
-      prePairValidationPassed,
+    [CreateDRPolicyWizardSteps.Policy]: validatePolicyStepInputs(state),
+    [CreateDRPolicyWizardSteps.Review]: validateReviewStepInputs(
+      state,
+      allDRClustersExist,
+      prePairValidationPassed
+    ),
   };
 
   return (
@@ -329,20 +278,24 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
           preSelectedClusters={preSelectedClusters}
           acmDoc={acmDoc}
           mirrorPeers={mirrorPeers}
-          clusterNames={clusterNames}
-          selectedDRClusters={selectedDRClusters}
-          errorMessage={s3ErrorMessage}
         />
       </WizardStep>
       <WizardStep
         id={CreateDRPolicyWizardSteps.Configure}
         name={stepNames[CreateDRPolicyWizardSteps.Configure]}
-        isHidden={state.replicationBackend !== BackendType.DataFoundation}
       >
         <ConfigureClusterPairStep
-          clusterNames={clusterNames}
+          replicationBackend={state.replicationBackend}
+          selectedClusters={state.selectedClusters}
+          selectedClustersHaveODF={state.selectedClustersHaveODF}
+          cluster1S3Details={state.cluster1S3Details}
+          cluster2S3Details={state.cluster2S3Details}
+          useSameS3Connection={state.useSameS3Connection}
+          dispatch={dispatch}
+          selectedDRClusters={selectedDRClusters}
           validation={prePairValidation}
           docHref={submarinerDoc}
+          errorMessage={s3ErrorMessage}
         />
       </WizardStep>
       <WizardStep

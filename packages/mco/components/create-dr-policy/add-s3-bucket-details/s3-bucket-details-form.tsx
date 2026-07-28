@@ -14,18 +14,14 @@ import {
   TextInput,
 } from '@patternfly/react-core';
 import { EyeIcon, EyeSlashIcon } from '@patternfly/react-icons';
-import { DRPolicyActionType, ManagedClusterInfoType } from '../utils/reducer';
+import {
+  DRPolicyActionType,
+  ManagedClusterInfoType,
+  S3Details,
+} from '../utils/reducer';
 import { isValidBucketName, isValidEndpoint } from '../utils/s3-validators';
 
-export type S3Details = {
-  clusterName: string;
-  bucketName: string;
-  endpoint: string;
-  accessKeyId: string;
-  secretKey: string;
-  region: string;
-  s3ProfileName: string;
-};
+export type { S3Details };
 
 type ClusterS3BucketDetailsFormProps = {
   selectedClusters: ManagedClusterInfoType[];
