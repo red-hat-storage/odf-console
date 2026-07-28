@@ -6,6 +6,7 @@ const config = {
       '<rootDir>/jest/mocks/console-pane-body.tsx',
     '^@console': 'identity-obj-proxy',
     '^@odf/shared(.*)': '<rootDir>/packages/shared/src$1',
+    '^@odf/core/(.*)': '<rootDir>/packages/odf/$1',
     '^@odf/(mco|odf|ocs)/(.*)': '<rootDir>/packages/$1/$2',
     '^lodash-es$': 'lodash',
     '\\.(css|scss)$': 'identity-obj-proxy',
