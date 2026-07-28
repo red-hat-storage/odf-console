@@ -81,20 +81,6 @@ Cypress.Commands.add(
             /* eslint-enable cypress/require-data-selectors */
             masthead.username.shouldBeVisible();
           }
-
-          // Close console tour modal.
-          cy.byTestID('detail-item-title')
-            .contains('Cluster API address')
-            .should('be.visible');
-          // eslint-disable-next-line cypress/require-data-selectors
-          cy.get('body').then(($body) => {
-            if ($body.find(`[data-test="guided-tour-modal"]`).length > 0) {
-              cy.byTestID('tour-step-footer-secondary')
-                .contains('Skip tour')
-                .click();
-              cy.byTestID('guided-tour-modal').should('not.exist');
-            }
-          });
         });
       },
       { cacheAcrossSpecs: true }
