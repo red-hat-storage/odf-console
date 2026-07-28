@@ -15,7 +15,12 @@ import {
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk';
-import { HUB_CLUSTER_NAME, SUBMARINER_ADDON_KIND } from '../constants';
+import {
+  HUB_CLUSTER_NAME,
+  SUBMARINER_ADDON_KIND,
+  SUBMARINER_BROKER_KIND,
+  SUBMARINER_CLUSTER_KIND,
+} from '../constants';
 
 export const getDRClusterResourceObj = (props?: ClusterScopeObjectType) => ({
   cluster: HUB_CLUSTER_NAME,
@@ -155,6 +160,22 @@ export const getSubmarinerAddonListResourceObj = () => ({
   namespaced: false,
   optional: true,
 });
+
+// ACM places Broker/Cluster CRs in <ManagedClusterSet>-broker (often
+// default-broker), not always the legacy submariner-k8s-broker namespace.
+const getSubmarinerHubListResourceObj = (kind: string) => ({
+  cluster: HUB_CLUSTER_NAME,
+  kind,
+  isList: true,
+  namespaced: false,
+  optional: true,
+});
+
+export const getSubmarinerBrokerListResourceObj = () =>
+  getSubmarinerHubListResourceObj(SUBMARINER_BROKER_KIND);
+
+export const getSubmarinerClusterListResourceObj = () =>
+  getSubmarinerHubListResourceObj(SUBMARINER_CLUSTER_KIND);
 
 type ClusterScopeObjectType = {
   name?: string;

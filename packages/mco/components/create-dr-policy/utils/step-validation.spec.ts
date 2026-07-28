@@ -5,6 +5,7 @@ import {
 } from '@odf/mco/constants';
 import { DRPolicyState, S3Details, drPolicyInitialState } from './reducer';
 import {
+  shouldRunPrePairValidation,
   validateClustersStepInputs,
   validateConfigureStepInputs,
   validatePolicyStepInputs,
@@ -132,5 +133,36 @@ describe('validateReviewStepInputs', () => {
     });
     expect(validateReviewStepInputs(ready, false, false)).toBe(false);
     expect(validateReviewStepInputs(ready, false, true)).toBe(true);
+  });
+});
+
+describe('shouldRunPrePairValidation', () => {
+  it('runs only for Data Foundation with a valid two-cluster selection', () => {
+    expect(
+      shouldRunPrePairValidation(
+        withClusters({ replicationBackend: BackendType.DataFoundation })
+      )
+    ).toBe(true);
+    expect(
+      shouldRunPrePairValidation(
+        withClusters({ replicationBackend: BackendType.ThirdParty })
+      )
+    ).toBe(false);
+    expect(
+      shouldRunPrePairValidation(
+        withClusters({
+          replicationBackend: BackendType.DataFoundation,
+          isClusterSelectionValid: false,
+        })
+      )
+    ).toBe(false);
+    expect(
+      shouldRunPrePairValidation({
+        ...drPolicyInitialState,
+        replicationBackend: BackendType.DataFoundation,
+        isClusterSelectionValid: true,
+        selectedClusters: [{ metadata: { name: 'one' } } as any],
+      })
+    ).toBe(false);
   });
 });

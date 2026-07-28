@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { usePrePairNetworkValidation } from '@odf/mco/hooks';
-import { getMajorVersion, shouldRunPrePairValidation } from '@odf/mco/utils';
+import { getMajorVersion } from '@odf/mco/utils';
 import {
   ACM_DEFAULT_DOC_VERSION,
   DRClusterModel,
@@ -43,6 +43,7 @@ import {
   drPolicyReducer,
 } from './utils/reducer';
 import {
+  shouldRunPrePairValidation,
   validateClustersStepInputs,
   validateConfigureStepInputs,
   validatePolicyStepInputs,
@@ -204,11 +205,7 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
   const loadedError = mirrorPeerLoadError || drClustersLoadError;
 
   const clusterNames = state.selectedClusters.map(getName);
-  const shouldRunValidation = shouldRunPrePairValidation(
-    state.selectedClusters.length,
-    state.isClusterSelectionValid,
-    state.replicationBackend === BackendType.DataFoundation
-  );
+  const shouldRunValidation = shouldRunPrePairValidation(state);
   // Cluster pair validation runs only after the user leaves the clusters page.
   const validationActive =
     shouldRunValidation && step !== CreateDRPolicyWizardSteps.Clusters;

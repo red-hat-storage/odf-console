@@ -1,15 +1,34 @@
 import {
-  MAX_ALLOWED_CLUSTERS,
+  SUBMARINER_BROKER_NAME,
+  BrokerGlobalnetFlag,
+  GlobalnetStatus,
   SubmarinerConditionType,
   SubmarinerStatus,
+  isNetworkClusterClaimName,
 } from '@odf/mco/constants';
-import { SubmarinerAddOnKind } from '@odf/mco/types';
-import { findCondition, isConditionStatus } from '@odf/shared/selectors';
+import {
+  ClusterClaim,
+  ClusterNetworkCidrs,
+  ManagedClusterNetworkInfo,
+  SubmarinerAddOnKind,
+  SubmarinerBrokerKind,
+  SubmarinerClusterKind,
+} from '@odf/mco/types';
+import {
+  findCondition,
+  getName,
+  isConditionStatus,
+} from '@odf/shared/selectors';
 import {
   K8sResourceCondition,
   K8sResourceConditionStatus,
 } from '@odf/shared/types';
-import { isNotFoundError } from '@odf/shared/utils';
+import {
+  CidrOverlapResult,
+  asStringArray,
+  evaluateCidrListsOverlap,
+  isNotFoundError,
+} from '@odf/shared/utils';
 
 export type SubmarinerPrePairResult = {
   canProceed: boolean;
@@ -154,10 +173,10 @@ export const evaluateSubmarinerPrePair = (
     return { canProceed: true, status: SubmarinerStatus.NotInstalled };
   }
 
-  const bothInstalled = statuses.every(
-    (status) => status !== SubmarinerStatus.NotInstalled
+  const someNotInstalled = statuses.some(
+    (status) => status === SubmarinerStatus.NotInstalled
   );
-  if (!bothInstalled) {
+  if (someNotInstalled) {
     return { canProceed: false, status: SubmarinerStatus.Inconsistent };
   }
 
@@ -189,11 +208,173 @@ export const evaluateSubmarinerPrePair = (
   return { canProceed: false, status: SubmarinerStatus.Unknown };
 };
 
-export const shouldRunPrePairValidation = (
-  selectedClusterCount: number,
-  isClusterSelectionValid: boolean,
-  isDataFoundation: boolean
-): boolean =>
-  isDataFoundation &&
-  isClusterSelectionValid &&
-  selectedClusterCount === MAX_ALLOWED_CLUSTERS;
+export const extractCidrsFromNetworkClaimValue = (
+  value?: string
+): ClusterNetworkCidrs | null => {
+  if (!value?.trim()) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as {
+      clusterNetwork?: unknown;
+      serviceNetwork?: unknown;
+    };
+    const clusterCidrs = asStringArray(parsed.clusterNetwork);
+    const serviceCidrs = asStringArray(parsed.serviceNetwork);
+
+    if (!clusterCidrs.length && !serviceCidrs.length) {
+      return null;
+    }
+
+    return { clusterCidrs, serviceCidrs };
+  } catch {
+    return null;
+  }
+};
+
+const getClusterNetworkCidrsFromClaims = (
+  clusterClaims?: ClusterClaim[]
+): ClusterNetworkCidrs | null => {
+  const networkClaim = clusterClaims?.find((claim) =>
+    isNetworkClusterClaimName(claim.name)
+  );
+  return extractCidrsFromNetworkClaimValue(networkClaim?.value);
+};
+
+const getClusterNetworkCidrsFromSubmarinerCluster = (
+  clusterName: string,
+  submarinerClusters?: SubmarinerClusterKind[]
+): ClusterNetworkCidrs | null => {
+  const match = submarinerClusters?.find((cluster) => {
+    const name = getName(cluster);
+    const clusterId = cluster.spec?.cluster_id;
+    return name === clusterName || clusterId === clusterName;
+  });
+
+  if (!match) {
+    return null;
+  }
+
+  const clusterCidrs = match.spec?.cluster_cidr ?? [];
+  const serviceCidrs = match.spec?.service_cidr ?? [];
+  if (!clusterCidrs.length && !serviceCidrs.length) {
+    return null;
+  }
+
+  return { clusterCidrs, serviceCidrs };
+};
+
+const resolveClusterNetworkCidrs = (
+  clusterName: string,
+  clusterClaims?: ClusterClaim[],
+  submarinerClusters?: SubmarinerClusterKind[]
+): ClusterNetworkCidrs | null =>
+  getClusterNetworkCidrsFromClaims(clusterClaims) ??
+  getClusterNetworkCidrsFromSubmarinerCluster(clusterName, submarinerClusters);
+
+const getBrokerGlobalnetFlag = (
+  brokers: SubmarinerBrokerKind[] | undefined
+): BrokerGlobalnetFlag => {
+  if (!brokers?.length) {
+    return BrokerGlobalnetFlag.Missing;
+  }
+  const broker =
+    brokers.find((item) => getName(item) === SUBMARINER_BROKER_NAME) ??
+    brokers[0];
+  return broker?.spec?.globalnetEnabled
+    ? BrokerGlobalnetFlag.Enabled
+    : BrokerGlobalnetFlag.Disabled;
+};
+
+// Overlap first, then broker:
+// 1. CIDRs missing/unreadable → CidrUnread (block)
+// 2. Overlap + Globalnet off/missing → block
+// 3. Broker watch failure → LoadError (block)
+// 4. Otherwise show broker status (allow)
+export const evaluateGlobalnetPrePair = (
+  brokers: SubmarinerBrokerKind[] | undefined,
+  brokersLoaded: boolean,
+  brokersError: unknown,
+  clusters: ManagedClusterNetworkInfo[],
+  submarinerClusters: SubmarinerClusterKind[] | undefined,
+  submarinerClustersLoaded: boolean,
+  skipGlobalnetCheck: boolean
+): GlobalnetStatus => {
+  if (skipGlobalnetCheck) {
+    return GlobalnetStatus.Skipped;
+  }
+
+  if (
+    !brokersLoaded ||
+    !clusters.every((cluster) => cluster.loaded) ||
+    !submarinerClustersLoaded
+  ) {
+    return GlobalnetStatus.Checking;
+  }
+
+  if (brokersError && !isNotFoundError(brokersError)) {
+    return GlobalnetStatus.LoadError;
+  }
+
+  const networkCidrs = clusters.map((cluster) =>
+    resolveClusterNetworkCidrs(
+      cluster.clusterName,
+      cluster.clusterClaims,
+      submarinerClusters
+    )
+  );
+
+  if (networkCidrs.some((cidrs) => !cidrs)) {
+    return GlobalnetStatus.CidrUnread;
+  }
+
+  const [left, right] = networkCidrs as ClusterNetworkCidrs[];
+  const clusterOverlap = evaluateCidrListsOverlap(
+    left.clusterCidrs,
+    right.clusterCidrs
+  );
+  const serviceOverlap = evaluateCidrListsOverlap(
+    left.serviceCidrs,
+    right.serviceCidrs
+  );
+
+  if (
+    clusterOverlap === CidrOverlapResult.Unknown ||
+    serviceOverlap === CidrOverlapResult.Unknown
+  ) {
+    return GlobalnetStatus.CidrUnread;
+  }
+
+  const hasOverlap =
+    clusterOverlap === CidrOverlapResult.Overlap ||
+    serviceOverlap === CidrOverlapResult.Overlap;
+  const broker = getBrokerGlobalnetFlag(
+    isNotFoundError(brokersError) ? undefined : brokers
+  );
+
+  if (hasOverlap) {
+    if (broker === BrokerGlobalnetFlag.Enabled) {
+      return GlobalnetStatus.EnabledWithOverlap;
+    }
+    if (broker === BrokerGlobalnetFlag.Missing) {
+      return GlobalnetStatus.OverlapBrokerMissing;
+    }
+    return GlobalnetStatus.OverlapGlobalnetOff;
+  }
+
+  if (broker === BrokerGlobalnetFlag.Enabled) {
+    return GlobalnetStatus.Enabled;
+  }
+  if (broker === BrokerGlobalnetFlag.Missing) {
+    return GlobalnetStatus.NotFound;
+  }
+  return GlobalnetStatus.Disabled;
+};
+
+export const doesGlobalnetBlockProceed = (status: GlobalnetStatus): boolean =>
+  status === GlobalnetStatus.Checking ||
+  status === GlobalnetStatus.CidrUnread ||
+  status === GlobalnetStatus.LoadError ||
+  status === GlobalnetStatus.OverlapBrokerMissing ||
+  status === GlobalnetStatus.OverlapGlobalnetOff;

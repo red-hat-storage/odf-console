@@ -1,10 +1,18 @@
 import {
+  GlobalnetStatus,
   MAX_ALLOWED_CLUSTERS,
   SUBMARINER_ADDON_NAME,
   SubmarinerStatus,
 } from '@odf/mco/constants';
-import { SubmarinerAddOnKind } from '@odf/mco/types';
 import {
+  ACMManagedClusterKind,
+  SubmarinerAddOnKind,
+  SubmarinerBrokerKind,
+  SubmarinerClusterKind,
+} from '@odf/mco/types';
+import {
+  doesGlobalnetBlockProceed,
+  evaluateGlobalnetPrePair,
   evaluateSubmarinerPrePair,
   SubmarinerPrePairResult,
 } from '@odf/mco/utils/submariner-health';
@@ -14,11 +22,17 @@ import {
   isNotFoundError,
 } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { getSubmarinerAddonListResourceObj } from './mco-resources';
+import {
+  getManagedClusterResourceObj,
+  getSubmarinerAddonListResourceObj,
+  getSubmarinerBrokerListResourceObj,
+  getSubmarinerClusterListResourceObj,
+} from './mco-resources';
 
 export type PrePairNetworkValidationState = SubmarinerPrePairResult & {
   loaded: boolean;
   loadError: unknown;
+  globalnetStatus: GlobalnetStatus;
 };
 
 const idleState: PrePairNetworkValidationState = {
@@ -26,6 +40,7 @@ const idleState: PrePairNetworkValidationState = {
   loadError: null,
   canProceed: true,
   status: SubmarinerStatus.NotInstalled,
+  globalnetStatus: GlobalnetStatus.Skipped,
 };
 
 type SubmarinerAddonsWatchResult = [
@@ -66,6 +81,16 @@ const useSubmarinerAddons = (
   return [addonByCluster, loaded, loadError];
 };
 
+const useManagedClusterClaims = (clusterName: string, enabled: boolean) => {
+  const [cluster, loaded] = useK8sWatchResource<ACMManagedClusterKind>(
+    getValidWatchK8sResourceObj(
+      getManagedClusterResourceObj({ name: clusterName }),
+      enabled && !!clusterName
+    )
+  );
+  return { clusterClaims: cluster?.status?.clusterClaims, loaded };
+};
+
 export const usePrePairNetworkValidation = (
   clusterNames: string[],
   enabled: boolean
@@ -82,6 +107,29 @@ export const usePrePairNetworkValidation = (
   const addonA = addonByCluster.get(clusterA);
   const addonB = addonByCluster.get(clusterB);
 
+  const watchGlobalnet = shouldWatch && addonsLoaded && (!!addonA || !!addonB);
+
+  const [brokers, brokersLoaded, brokersError] = useK8sWatchResource<
+    SubmarinerBrokerKind[]
+  >(
+    getValidWatchK8sResourceObj(
+      getSubmarinerBrokerListResourceObj(),
+      watchGlobalnet
+    )
+  );
+  const { clusterClaims: claimsA, loaded: managedClusterALoaded } =
+    useManagedClusterClaims(clusterA || '', watchGlobalnet);
+  const { clusterClaims: claimsB, loaded: managedClusterBLoaded } =
+    useManagedClusterClaims(clusterB || '', watchGlobalnet);
+  const [submarinerClusters, submarinerClustersLoaded] = useK8sWatchResource<
+    SubmarinerClusterKind[]
+  >(
+    getValidWatchK8sResourceObj(
+      getSubmarinerClusterListResourceObj(),
+      watchGlobalnet
+    )
+  );
+
   if (!shouldWatch) {
     return idleState;
   }
@@ -91,14 +139,44 @@ export const usePrePairNetworkValidation = (
     { addon: addonB, loaded: addonsLoaded, loadError: addonsError },
   ]);
 
+  const globalnetStatus = evaluateGlobalnetPrePair(
+    brokers,
+    watchGlobalnet ? brokersLoaded : false,
+    watchGlobalnet ? brokersError : null,
+    [
+      {
+        clusterName: clusterA,
+        clusterClaims: claimsA,
+        loaded: watchGlobalnet ? managedClusterALoaded : false,
+      },
+      {
+        clusterName: clusterB,
+        clusterClaims: claimsB,
+        loaded: watchGlobalnet ? managedClusterBLoaded : false,
+      },
+    ],
+    submarinerClusters,
+    watchGlobalnet ? submarinerClustersLoaded : false,
+    status === SubmarinerStatus.NotInstalled
+  );
+
+  const loaded =
+    addonsLoaded &&
+    (!watchGlobalnet ||
+      (brokersLoaded &&
+        managedClusterALoaded &&
+        managedClusterBLoaded &&
+        submarinerClustersLoaded));
+
   const loadError =
     addonsError && !isNotFoundError(addonsError) ? addonsError : undefined;
 
   // Non-404 load errors already map to Degraded / canProceed false in evaluate.
   return {
-    loaded: addonsLoaded,
+    loaded,
     loadError,
-    canProceed,
+    canProceed: canProceed && !doesGlobalnetBlockProceed(globalnetStatus),
     status,
+    globalnetStatus,
   };
 };

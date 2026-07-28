@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SubmarinerStatus } from '@odf/mco/constants';
+import { GlobalnetStatus, SubmarinerStatus } from '@odf/mco/constants';
 import { PrePairNetworkValidationState } from '@odf/mco/hooks';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import {
@@ -84,6 +84,87 @@ const getSubmarinerStatusLine = (
   }
 };
 
+const getGlobalnetStatusLine = (
+  status: GlobalnetStatus,
+  t: TFunction
+): StatusLine => {
+  const notEnabled = (description: string): StatusLine => ({
+    icon: <YellowExclamationTriangleIcon />,
+    title: t('Not enabled'),
+    description,
+    showDocLink: true,
+  });
+
+  switch (status) {
+    case GlobalnetStatus.Checking:
+      return {
+        icon: <Spinner size="sm" />,
+        title: t('Checking Globalnet...'),
+      };
+    case GlobalnetStatus.CidrUnread:
+      return notEnabled(t('Unable to determine network overlap information.'));
+    case GlobalnetStatus.LoadError:
+    case GlobalnetStatus.NotFound:
+      return notEnabled(
+        t('Unable to retrieve Submariner broker configuration')
+      );
+    case GlobalnetStatus.OverlapBrokerMissing:
+      return notEnabled(
+        t('Globalnet is required as CIDRs overlap. Broker is missing')
+      );
+    case GlobalnetStatus.OverlapGlobalnetOff:
+      return notEnabled(
+        t(
+          'Globalnet is required as CIDRs overlap. Globalnet is off on the Submariner broker.'
+        )
+      );
+    case GlobalnetStatus.EnabledWithOverlap:
+      return {
+        icon: <GreenCheckCircleIcon />,
+        title: t('Enabled'),
+        description: t(
+          'Globalnet is on. Cluster networks have overlapping Pod or Service CIDR.'
+        ),
+      };
+    case GlobalnetStatus.Enabled:
+      return {
+        icon: <GreenCheckCircleIcon />,
+        title: t('Enabled'),
+        description: t('Globalnet is on. Cluster networks do not overlap'),
+      };
+    case GlobalnetStatus.Disabled:
+      return notEnabled(t('Globalnet is off'));
+    default:
+      return notEnabled(
+        t('Unable to retrieve Submariner broker configuration')
+      );
+  }
+};
+
+const StatusSection: React.FC<{
+  heading: string;
+  line: StatusLine;
+  docHref?: string;
+}> = ({ heading, line, docHref }) => (
+  <>
+    <Title headingLevel="h4" size="md" className="pf-v6-u-mb-sm">
+      {heading}
+    </Title>
+    <StatusIconAndText icon={line.icon} title={line.title} />
+    {(line.description || (line.showDocLink && docHref)) && (
+      <Content component={ContentVariants.small} className="pf-v6-u-mt-xs">
+        {line.description}
+        {line.showDocLink && !!docHref && (
+          <ViewDocumentation
+            doclink={docHref}
+            padding={line.description ? '0 10px' : '0'}
+          />
+        )}
+      </Content>
+    )}
+  </>
+);
+
 export type PrePairNetworkValidationProps = {
   clusterNames: string[];
   validation: PrePairNetworkValidationState;
@@ -98,7 +179,9 @@ export const PrePairNetworkValidation: React.FC<
     SubmarinerStatus.Checking,
     t
   );
-  const statusLine = getSubmarinerStatusLine(validation.status, t);
+  const submariner = getSubmarinerStatusLine(validation.status, t);
+  const showGlobalnet = validation.globalnetStatus !== GlobalnetStatus.Skipped;
+  const globalnet = getGlobalnetStatusLine(validation.globalnetStatus, t);
 
   return (
     <StatusBox
@@ -112,17 +195,19 @@ export const PrePairNetworkValidation: React.FC<
         />
       }
     >
-      <Title headingLevel="h3" size="md" className="pf-v6-u-mb-sm">
-        {t('Submariner')}
-      </Title>
-      <StatusIconAndText icon={statusLine.icon} title={statusLine.title} />
-      {statusLine.description && (
-        <Content component={ContentVariants.small}>
-          {statusLine.description}
-        </Content>
-      )}
-      {statusLine.showDocLink && docHref && (
-        <ViewDocumentation doclink={docHref} />
+      <StatusSection
+        heading={t('Submariner')}
+        line={submariner}
+        docHref={docHref}
+      />
+      {showGlobalnet && (
+        <div className="pf-v6-u-mt-md">
+          <StatusSection
+            heading={t('Globalnet')}
+            line={globalnet}
+            docHref={docHref}
+          />
+        </div>
       )}
     </StatusBox>
   );
