@@ -1,5 +1,6 @@
 export const SUBMARINER_ADDON_NAME = 'submariner';
 export const SUBMARINER_BROKER_NAME = 'submariner-broker';
+export const SUBMARINER_OPERATOR_NAMESPACE = 'submariner-operator';
 
 export const SUBMARINER_ADDON_KIND =
   'addon.open-cluster-management.io~v1alpha1~ManagedClusterAddOn';
@@ -40,6 +41,7 @@ export const isNetworkClusterClaimName = (
 export enum SubmarinerStatus {
   Checking = 'checking',
   NotInstalled = 'notInstalled',
+  UpstreamDetected = 'upstreamDetected',
   Progressing = 'progressing',
   Unknown = 'unknown',
   Healthy = 'healthy',

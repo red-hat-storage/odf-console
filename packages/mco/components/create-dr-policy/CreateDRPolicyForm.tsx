@@ -13,7 +13,7 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { FormGroup, Wizard, WizardStep } from '@patternfly/react-core';
+import { Wizard, WizardStep } from '@patternfly/react-core';
 import {
   ACM_OPERATOR_SPEC_NAME,
   acmDocHome,
@@ -34,7 +34,6 @@ import { ConfigureClusterPairStep } from './configure-cluster-pair-step';
 import './create-dr-policy.scss';
 import { CreateDRPolicyWizardFooter } from './footer';
 import { PolicyStep } from './policy-step';
-import { PrePairNetworkValidation } from './pre-pair-network-validation';
 import { ReviewDRPolicyStep } from './review-dr-policy-step';
 import { createPolicyPromises } from './utils/k8s-utils';
 import {
@@ -311,17 +310,7 @@ export const CreateDRPolicyForm: React.FC<CreateDRPolicyFormProps> = ({
       >
         <ReviewDRPolicyStep
           state={state}
-          networkStatus={
-            shouldRunValidation ? (
-              <FormGroup fieldId="review-cluster-network">
-                <PrePairNetworkValidation
-                  clusterNames={clusterNames}
-                  validation={prePairValidation}
-                  docHref={submarinerDoc}
-                />
-              </FormGroup>
-            ) : undefined
-          }
+          validation={shouldRunValidation ? prePairValidation : undefined}
         />
       </WizardStep>
     </Wizard>

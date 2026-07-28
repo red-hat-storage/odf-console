@@ -1,4 +1,6 @@
-import { getName, ACMManagedClusterActionModel } from '@odf/shared';
+import { ACMManagedClusterActionModel, getName } from '@odf/shared';
+import { findCondition, isConditionStatus } from '@odf/shared/selectors';
+import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { isNotFoundError } from '@odf/shared/utils';
 import { NotFoundError } from '@odf/shared/utils/error/http-error';
 import {
@@ -11,6 +13,8 @@ import {
 import { TFunction } from 'i18next';
 import {
   ACMManagedClusterActionKind,
+  ManagedClusterActionConditionReason,
+  ManagedClusterActionConditionType,
   ManagedClusterActionType,
 } from '../types';
 
@@ -80,23 +84,33 @@ export const pollManagedClusterAction = (
         const response = await getManagedClusterAction(actionName, clusterName);
 
         if (response?.status) {
-          const {
-            type: isComplete,
-            reason: isActionDone,
-            message: actionMessage,
-          } = response.status.conditions?.[0] || {};
+          const completedCondition = findCondition(
+            response.status.conditions,
+            ManagedClusterActionConditionType.Completed
+          );
+          const isComplete = isConditionStatus(
+            completedCondition,
+            K8sResourceConditionStatus.True
+          );
+          const reason = completedCondition?.reason;
+          const actionMessage = completedCondition?.message;
 
-          if (isComplete === 'Completed' && isActionDone === 'ActionDone') {
+          if (
+            isComplete &&
+            reason === ManagedClusterActionConditionReason.ActionDone
+          ) {
             await deleteManagedClusterAction(actionName, clusterName);
 
             return resolve({
-              complete: isComplete,
-              actionDone: isActionDone,
+              complete: ManagedClusterActionConditionType.Completed,
+              actionDone: reason,
               result: response.status?.result,
             });
           }
 
-          if (isComplete === 'Completed') {
+          // Completed reported True with a non-success reason — terminal failure.
+          // Missing / not-True Completed: keep polling until timeout.
+          if (isComplete) {
             await deleteManagedClusterAction(actionName, clusterName);
 
             return reject(
@@ -105,14 +119,6 @@ export const pollManagedClusterAction = (
               )
             );
           }
-
-          await deleteManagedClusterAction(actionName, clusterName);
-
-          return reject(
-            new Error(
-              'There was an error while performing the managed cluster resource action. Make sure the managed cluster is online and healthy, and that the work manager pod in namespace open-cluster-management-agent-addon is healthy '
-            )
-          );
         }
 
         if (retries < MAX_RETRIES) {

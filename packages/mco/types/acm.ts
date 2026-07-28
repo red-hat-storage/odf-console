@@ -205,13 +205,25 @@ export type ACMManagedClusterActionKind = K8sResourceCommon & {
     };
   };
   status?: {
-    conditions?: Array<{
-      lastTransitionTime: Date;
-      message: string;
-      reason: string;
-      status: string;
-      type: string;
-    }>;
+    conditions?: K8sResourceCondition[];
     result?: K8sResourceCommon;
   };
 };
+
+// ManagedClusterView conditions (ACM) — same Type/Reason split as DRPC in ramen.ts
+export enum ManagedClusterViewConditionType {
+  Processing = 'Processing',
+}
+
+export enum ManagedClusterViewConditionReason {
+  GetResourceProcessing = 'GetResourceProcessing',
+}
+
+// ManagedClusterAction conditions (ACM)
+export enum ManagedClusterActionConditionType {
+  Completed = 'Completed',
+}
+
+export enum ManagedClusterActionConditionReason {
+  ActionDone = 'ActionDone',
+}

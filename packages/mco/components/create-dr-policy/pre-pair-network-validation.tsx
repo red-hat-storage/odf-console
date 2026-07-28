@@ -18,6 +18,7 @@ import {
   Spinner,
   Title,
 } from '@patternfly/react-core';
+import { getSubmarinerStatusDescription } from './pre-pair-status-copy';
 
 type StatusLine = {
   icon: React.ReactElement;
@@ -55,23 +56,27 @@ const getSubmarinerStatusLine = (
     case SubmarinerStatus.Healthy:
       return {
         icon: <GreenCheckCircleIcon />,
-        title: t('Submariner is healthy'),
+        title:
+          getSubmarinerStatusDescription(status, t) ??
+          t('Submariner is healthy'),
+      };
+    case SubmarinerStatus.UpstreamDetected:
+      return {
+        icon: <YellowExclamationTriangleIcon />,
+        title: t('Cluster network - Skipped'),
+        description: getSubmarinerStatusDescription(status, t),
       };
     case SubmarinerStatus.NotInstalled:
       return {
         icon: <YellowExclamationTriangleIcon />,
         title: t('Cluster network - Skipped'),
-        description: t(
-          'Deployment is not using submariner. Selected cluster pairs lack submariner addon'
-        ),
+        description: getSubmarinerStatusDescription(status, t),
       };
     case SubmarinerStatus.Inconsistent:
       return {
         icon: <RedExclamationCircleIcon />,
         title: t('Degraded - Cluster unhealthy'),
-        description: t(
-          'Submariner is not installed on one or both selected cluster pairs'
-        ),
+        description: getSubmarinerStatusDescription(status, t),
         showDocLink: true,
       };
     case SubmarinerStatus.Degraded:

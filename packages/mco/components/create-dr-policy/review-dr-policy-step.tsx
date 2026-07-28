@@ -1,32 +1,54 @@
 import * as React from 'react';
 import {
   BackendType,
+  GlobalnetStatus,
   REPLICATION_DISPLAY_TEXT,
   ReplicationType,
+  SubmarinerStatus,
   SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '@odf/mco/constants';
+import { PrePairNetworkValidationState } from '@odf/mco/hooks';
 import { parseSyncInterval } from '@odf/mco/utils';
 import {
   ReviewAndCreateStep,
   ReviewAndCreationGroup,
   ReviewAndCreationItem,
 } from '@odf/shared/review-and-create-step';
-import { getName } from '@odf/shared/selectors';
+import { GreenCheckCircleIcon } from '@odf/shared/status';
+import StatusIconAndText from '@odf/shared/status/StatusIconAndText';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { TFunction } from 'i18next';
 import { Content, ContentVariants, Title } from '@patternfly/react-core';
+import { getSubmarinerStatusDescription } from './pre-pair-status-copy';
 import { DRPolicyState } from './utils/reducer';
 
 type ReviewDRPolicyStepProps = {
   state: DRPolicyState;
-  networkStatus?: React.ReactNode;
+  validation?: PrePairNetworkValidationState;
+};
+
+const getClusterPairDescription = (
+  status: SubmarinerStatus,
+  globalnetStatus: GlobalnetStatus,
+  t: TFunction
+): string => {
+  if (
+    status === SubmarinerStatus.Healthy &&
+    (globalnetStatus === GlobalnetStatus.Enabled ||
+      globalnetStatus === GlobalnetStatus.EnabledWithOverlap)
+  ) {
+    return t('Submariner and Globalnet is enabled');
+  }
+  // Review only receives validation when Configure already passed (canProceed),
+  // so status is Healthy | NotInstalled | UpstreamDetected — all have copy.
+  return getSubmarinerStatusDescription(status, t)!;
 };
 
 export const ReviewDRPolicyStep: React.FC<ReviewDRPolicyStepProps> = ({
   state,
-  networkStatus,
+  validation,
 }) => {
   const { t } = useCustomTranslation();
-  const clusterNames = state.selectedClusters.map(getName).join(', ');
   const replicationLabel = state.replicationType
     ? REPLICATION_DISPLAY_TEXT(t)[state.replicationType]
     : '';
@@ -34,48 +56,51 @@ export const ReviewDRPolicyStep: React.FC<ReviewDRPolicyStepProps> = ({
   const syncSchedule =
     state.replicationType === ReplicationType.ASYNC
       ? `${interval} ${SYNC_SCHEDULE_DISPLAY_TEXT(t)[unitVal]}`
-      : t('N/A');
+      : '';
 
   return (
     <div className="mco-create-data-policy__body">
       <Title headingLevel="h2" size="lg" className="pf-v6-u-mb-md">
-        {t('Review and create')}
+        {t('Review')}
       </Title>
-      <Content className="pf-v6-u-mb-lg">
-        <Content component={ContentVariants.small}>
-          {t(
-            'Confirm the disaster recovery policy details before creating the policy.'
-          )}
-        </Content>
-      </Content>
+      {!!validation && (
+        <div className="pf-v6-u-mb-lg">
+          <StatusIconAndText
+            title={t('Cluster pair - Configured')}
+            icon={<GreenCheckCircleIcon />}
+            className="pf-v6-u-mb-xs"
+          />
+          <Content>
+            <Content component={ContentVariants.small}>
+              {getClusterPairDescription(
+                validation.status,
+                validation.globalnetStatus,
+                t
+              )}
+            </Content>
+          </Content>
+        </div>
+      )}
       <ReviewAndCreateStep>
         <ReviewAndCreationGroup title={t('Policy')}>
-          <ReviewAndCreationItem label={t('Policy name:')}>
+          <ReviewAndCreationItem label={t('Policy name')}>
             {state.policyName}
           </ReviewAndCreationItem>
-        </ReviewAndCreationGroup>
-        <ReviewAndCreationGroup title={t('Clusters')}>
-          <ReviewAndCreationItem label={t('Clusters:')}>
-            {clusterNames}
-          </ReviewAndCreationItem>
-        </ReviewAndCreationGroup>
-        {networkStatus}
-        <ReviewAndCreationGroup title={t('Replication')}>
-          <ReviewAndCreationItem label={t('Replication type:')}>
+          <ReviewAndCreationItem label={t('Replication type')}>
             {replicationLabel}
           </ReviewAndCreationItem>
-          {state.replicationType === ReplicationType.ASYNC && (
-            <ReviewAndCreationItem label={t('Sync interval:')}>
+          {!!syncSchedule && (
+            <ReviewAndCreationItem label={t('Sync interval')}>
               {syncSchedule}
             </ReviewAndCreationItem>
           )}
         </ReviewAndCreationGroup>
         {state.replicationBackend === BackendType.ThirdParty && (
           <ReviewAndCreationGroup title={t('Replication site')}>
-            <ReviewAndCreationItem label={t('S3 profile (cluster 1):')}>
+            <ReviewAndCreationItem label={t('S3 profile (cluster 1)')}>
               {state.cluster1S3Details.s3ProfileName}
             </ReviewAndCreationItem>
-            <ReviewAndCreationItem label={t('S3 profile (cluster 2):')}>
+            <ReviewAndCreationItem label={t('S3 profile (cluster 2)')}>
               {state.useSameS3Connection
                 ? state.cluster1S3Details.s3ProfileName
                 : state.cluster2S3Details.s3ProfileName}

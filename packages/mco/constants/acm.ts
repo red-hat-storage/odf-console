@@ -1,4 +1,5 @@
 import { TFunction } from 'i18next';
+import { ManagedClusterViewConditionType } from '../types/acm';
 
 // Managed cluster OCP public URL claim
 export const CLUSTER_CLAIM_URL_NAME =
@@ -34,11 +35,12 @@ export const APPLICATION_TYPE_DISPLAY_TEXT = (
   [DRApplication.DISCOVERED]: t('Discovered'),
 });
 
-// Condition types
+// ACM ManagedCluster / ManagedClusterView condition name constants (identity strings)
 export const MANAGED_CLUSTER_CONDITION_AVAILABLE =
   'ManagedClusterConditionAvailable';
 export const MANAGED_CLUSTER_JOINED = 'ManagedClusterJoined';
-export const MANAGED_CLUSTER_VIEW_PROCESSING = 'Processing';
+export const MANAGED_CLUSTER_VIEW_PROCESSING =
+  ManagedClusterViewConditionType.Processing;
 
 // Search result labels
 export const LABEL = 'label';
