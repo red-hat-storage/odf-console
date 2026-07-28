@@ -296,13 +296,15 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     localClusterRoleSort,
   ]);
 
-  const [selectedRows, setSelectedRows] = React.useState<NodeData[]>([]);
+  // Initialize with all nodes selected (only once on first load, not when user deselects all)
+  const [selectedRows, setSelectedRows] = React.useState<NodeData[]>(
+    () => filteredData
+  );
 
   React.useEffect(() => {
-    if (!filteredData.length) return;
-    setSelectedRows(filteredData);
-    onRowSelected(filteredData);
-  }, [filteredData, selectedRows.length, onRowSelected]);
+    onRowSelected(selectedRows);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRowSelection = React.useCallback(
     (selected: NodeData[]) => {
