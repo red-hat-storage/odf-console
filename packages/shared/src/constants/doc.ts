@@ -44,4 +44,4 @@ export const externalSystemsDoc = (odfDocVersion: string): string =>
   )}/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhods`;
 
 export const tnfHomePage = (odfDocVersion: string): string =>
-  `${ocpDocHome(odfDocVersion)}/installing_a_two_node_openshift_cluster/two-node-with-fencing`;
+  `${odfDocHome(odfDocVersion)}/html/deploying_openshift_data_foundation_on_two-node_clusters`;
