@@ -53,7 +53,7 @@ Cypress.Commands.add('install', () => {
       cy.byLegacyTestID('item-filter').type(ODF_OPERATOR_NAME);
       // data-test-operator-row="OpenShift Data Foundation"
       cy.byTestOperatorRow(ODF_OPERATOR_NAME).click();
-      cy.byLegacyTestID('horizontal-link-Storage System').click();
+      cy.byLegacyTestID('horizontal-link-Storage Systems').click();
       cy.byTestID('item-create').click();
 
       // Wait for the StorageSystem page to load.
