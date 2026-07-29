@@ -3,61 +3,172 @@ import { createWizardNodeState } from '@odf/core/components/utils';
 import { NodeType } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
-import { useCustomTranslation } from '@odf/shared';
 import {
-  Card,
-  CardHeader,
-  Flex,
-  CardTitle,
-  CardBody,
-  FlexItem,
-  Alert,
-} from '@patternfly/react-core';
+  nodesIncludingControlPlane,
+  nodesWithoutTaints,
+} from '@odf/core/utils';
+import { getName, useCustomTranslation } from '@odf/shared';
+import { isControlPlaneNode, isWorkerNode } from '@odf/shared/utils';
+import { Alert, Checkbox } from '@patternfly/react-core';
+import { NodesTable } from '../../../nodes-table/NodesTable';
 import { WizardNodeState } from '../../reducer';
 import { SelectLocalClusterNodesTable } from '../../select-nodes-table/select-local-cluster-nodes-table';
-import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
-import './NodesSection.scss';
 
-type NodesSectionProps = {
+type IncludeControlPlaneCheckboxProps = {
+  isChecked: boolean;
+  isDisabled?: boolean;
+  onChange: (
+    event: React.FormEvent<HTMLInputElement>,
+    checked: boolean
+  ) => void;
+  className?: string;
+};
+
+export const IncludeControlPlaneCheckbox: React.FC<
+  IncludeControlPlaneCheckboxProps
+> = ({ isChecked, isDisabled, onChange, className }) => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <Checkbox
+      id="include-control-plane-nodes"
+      label={t('Include control plane nodes')}
+      isChecked={isChecked}
+      isDisabled={isDisabled}
+      onChange={onChange}
+      className={className}
+    />
+  );
+};
+
+type ScaleNodesSectionProps = {
   isDisabled?: boolean;
   selectedNodes: WizardNodeState[];
   setSelectedNodes: (nodes: WizardNodeState[]) => void;
-  allNodesDescription?: string;
-  selectNodesDescription?: string;
-  includeControlPlane?: boolean;
-  enableStretchCluster?: boolean;
-  hideAllNodesSelection?: boolean;
+  statusContent?: React.ReactNode;
 };
 
-export const NodesSection: React.FC<NodesSectionProps> = React.memo(
-  ({
-    isDisabled,
-    selectedNodes,
-    setSelectedNodes,
-    allNodesDescription,
-    selectNodesDescription,
-    includeControlPlane,
-    enableStretchCluster,
-    hideAllNodesSelection,
-  }) => {
+export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
+  ({ isDisabled, selectedNodes, setSelectedNodes, statusContent }) => {
     const { t } = useCustomTranslation();
-    const [isUseAllNodes, setIsUseAllNodes] = React.useState(true);
-    const [allNodes, allNodesLoaded] = useNodesData(
-      true,
-      includeControlPlane || enableStretchCluster
+    const [includeControlPlaneNodes, setIncludeControlPlaneNodes] =
+      React.useState(false);
+    const [allNodes, allNodesLoaded] = useNodesData();
+    const hasInitializedSelection = React.useRef(false);
+
+    const [workerNodes, controlPlaneNodes] = React.useMemo(
+      () => [
+        allNodes.filter(isWorkerNode),
+        allNodes.filter(isControlPlaneNode),
+      ],
+      [allNodes]
+    );
+    const tableNodes = React.useMemo(
+      () =>
+        includeControlPlaneNodes
+          ? nodesIncludingControlPlane([...workerNodes, ...controlPlaneNodes])
+          : nodesWithoutTaints(workerNodes),
+      [controlPlaneNodes, includeControlPlaneNodes, workerNodes]
     );
 
     const onNodeSelect = React.useCallback(
       (nodes: NodeData[]) => {
-        if (hideAllNodesSelection) {
-          setSelectedNodes(
-            createWizardNodeState(nodes, { enableStretchCluster })
-          );
-          return;
-        }
         setSelectedNodes(createWizardNodeState(nodes));
       },
-      [setSelectedNodes, enableStretchCluster, hideAllNodesSelection]
+      [setSelectedNodes]
+    );
+    const isNodeSelectable = React.useCallback(() => !isDisabled, [isDisabled]);
+
+    // Initialize once so an intentional deselect-all action is preserved.
+    React.useEffect(() => {
+      if (!allNodesLoaded || hasInitializedSelection.current) {
+        return;
+      }
+
+      if (tableNodes.length > 0 && !selectedNodes.length) {
+        onNodeSelect(tableNodes);
+      }
+      hasInitializedSelection.current = true;
+    }, [allNodesLoaded, onNodeSelect, selectedNodes.length, tableNodes]);
+
+    const selectedNodeNames = React.useMemo(
+      () => new Set(selectedNodes.map((node) => node.name)),
+      [selectedNodes]
+    );
+    const selectedNodeData = React.useMemo(
+      () => tableNodes.filter((node) => selectedNodeNames.has(getName(node))),
+      [selectedNodeNames, tableNodes]
+    );
+
+    const handleIncludeControlPlaneNodes = React.useCallback(
+      (_event: React.FormEvent<HTMLInputElement>, isChecked: boolean) => {
+        const nextSelectedNodes = selectedNodeData.filter(
+          (node) => isChecked || !isControlPlaneNode(node)
+        );
+
+        setIncludeControlPlaneNodes(isChecked);
+        onNodeSelect(nextSelectedNodes);
+      },
+      [onNodeSelect, selectedNodeData]
+    );
+
+    return (
+      <>
+        <IncludeControlPlaneCheckbox
+          isChecked={includeControlPlaneNodes}
+          isDisabled={isDisabled}
+          onChange={handleIncludeControlPlaneNodes}
+          className="pf-v6-u-mb-sm"
+        />
+        <NodesTable
+          nodes={tableNodes}
+          selectedNodes={selectedNodeData}
+          setSelectedNodes={onNodeSelect}
+          loaded={allNodesLoaded}
+          isRowSelectable={isNodeSelectable}
+          nameColumnTitle={t('Node')}
+        />
+        {statusContent}
+        {isDisabled && (
+          <Alert
+            variant="info"
+            title={t('Nodes are disabled')}
+            isInline
+            className="pf-v6-u-mt-md"
+          >
+            {t('Nodes are disabled because the local cluster is configured')}
+          </Alert>
+        )}
+      </>
+    );
+  }
+);
+
+type SANNodesSectionProps = {
+  isDisabled?: boolean;
+  selectedNodes: WizardNodeState[];
+  setSelectedNodes: (nodes: WizardNodeState[]) => void;
+  includeControlPlane?: boolean;
+  enableStretchCluster?: boolean;
+};
+
+export const SANNodesSection: React.FC<SANNodesSectionProps> = React.memo(
+  ({
+    isDisabled,
+    selectedNodes,
+    setSelectedNodes,
+    includeControlPlane,
+    enableStretchCluster,
+  }) => {
+    const { t } = useCustomTranslation();
+
+    const onNodeSelect = React.useCallback(
+      (nodes: NodeData[]) => {
+        setSelectedNodes(
+          createWizardNodeState(nodes, { enableStretchCluster })
+        );
+      },
+      [enableStretchCluster, setSelectedNodes]
     );
 
     const onLocalClusterRoleChange = React.useCallback(
@@ -71,129 +182,15 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
       [setSelectedNodes, selectedNodes]
     );
 
-    // Initialize selected nodes when component mounts and "All nodes" is selected by default
-    React.useEffect(() => {
-      if (
-        !hideAllNodesSelection &&
-        isUseAllNodes &&
-        allNodesLoaded &&
-        allNodes.length > 0 &&
-        selectedNodes.length === 0
-      ) {
-        onNodeSelect(allNodes);
-      }
-    }, [
-      hideAllNodesSelection,
-      isUseAllNodes,
-      allNodesLoaded,
-      allNodes,
-      selectedNodes.length,
-      onNodeSelect,
-    ]);
-
-    // Handle "All nodes" selection directly in the click handler
-    const handleAllNodesClick = React.useCallback(() => {
-      setIsUseAllNodes(true);
-      if (allNodesLoaded && allNodes.length > 0) {
-        onNodeSelect(allNodes);
-      }
-    }, [allNodesLoaded, allNodes, onNodeSelect]);
-
-    // Handle "Select Nodes" selection - clear previous selection
-    const handleSelectNodesClick = React.useCallback(() => {
-      setIsUseAllNodes(false);
-      setSelectedNodes([]);
-    }, [setSelectedNodes]);
-
-    const defaultAllNodesDescription = t(
-      'All non control plane nodes are selected to handle requests to IBM Scale'
-    );
-    const defaultSelectNodesDescription = t(
-      'Select a minimum of 3 nodes to handle requests to IBM scale'
-    );
-    if (hideAllNodesSelection) {
-      return (
-        <>
-          <SelectLocalClusterNodesTable
-            nodes={selectedNodes}
-            onRowSelected={onNodeSelect}
-            onLocalClusterRoleChange={onLocalClusterRoleChange}
-            includeControlPlane={includeControlPlane}
-            enableStretchCluster={enableStretchCluster}
-          />
-          {isDisabled && (
-            <Alert
-              variant="info"
-              title={t('Nodes are disabled')}
-              isInline
-              className="pf-v6-u-mt-md"
-            >
-              {t('Nodes are disabled because the local cluster is configured')}
-            </Alert>
-          )}
-        </>
-      );
-    }
-
     return (
       <>
-        <Flex direction={{ default: 'row' }}>
-          <FlexItem>
-            <Card
-              className="odf-nodes-section__card"
-              isSelected={isUseAllNodes}
-              isSelectable
-              id="all-nodes"
-              isDisabled={isDisabled}
-            >
-              <CardHeader
-                selectableActions={{
-                  onChange: handleAllNodesClick,
-                  selectableActionId: 'use-all-nodes',
-                  variant: 'single',
-                  name: 'node-selector',
-                  selectableActionAriaLabelledby: 'all-nodes',
-                }}
-              >
-                <CardTitle>{t('All Nodes (Default)')}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                {allNodesDescription || defaultAllNodesDescription}
-              </CardBody>
-            </Card>
-          </FlexItem>
-          <FlexItem>
-            <Card
-              className="odf-nodes-section__card"
-              isSelected={!isUseAllNodes}
-              isSelectable
-              id="selected-nodes"
-              isDisabled={isDisabled}
-            >
-              <CardHeader
-                selectableActions={{
-                  onChange: handleSelectNodesClick,
-                  selectableActionId: 'use-selected-nodes',
-                  variant: 'single',
-                  name: 'node-selector',
-                  selectableActionAriaLabelledby: 'selected-nodes',
-                }}
-              >
-                <CardTitle>{t('Select Nodes')}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                {selectNodesDescription || defaultSelectNodesDescription}
-              </CardBody>
-            </Card>
-          </FlexItem>
-        </Flex>
-        {!isUseAllNodes && (
-          <SelectNodesTable
-            nodes={selectedNodes}
-            onRowSelected={onNodeSelect}
-            systemNamespace={''}
-          />
-        )}
+        <SelectLocalClusterNodesTable
+          nodes={selectedNodes}
+          onRowSelected={onNodeSelect}
+          onLocalClusterRoleChange={onLocalClusterRoleChange}
+          includeControlPlane={includeControlPlane}
+          enableStretchCluster={enableStretchCluster}
+        />
         {isDisabled && (
           <Alert
             variant="info"

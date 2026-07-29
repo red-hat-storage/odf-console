@@ -32,7 +32,10 @@ import {
   ContentVariants,
 } from '@patternfly/react-core';
 import { useIsLocalClusterConfigured } from '../common/hooks';
-import { NodesSection } from '../common/NodesSection';
+import {
+  IncludeControlPlaneCheckbox,
+  SANNodesSection,
+} from '../common/NodesSection';
 import type { ExternalKMMRegistryConfig } from '../common/payload';
 import {
   configureMetricsNamespaceLabels,
@@ -239,9 +242,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           <Content component={ContentVariants.p}>
             {t('Select at least 3 nodes for the local cluster.')}
           </Content>
-          <Checkbox
-            id="include-control-plane-nodes"
-            label={t('Include control plane nodes')}
+          <IncludeControlPlaneCheckbox
             isChecked={includeControlPlane || enableStretchCluster}
             isDisabled={
               isLocalClusterConfigured ||
@@ -265,7 +266,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
             onChange={(_event, checked) => setEnableStretchCluster(checked)}
             className="pf-v6-u-mb-md"
           />
-          <NodesSection
+          <SANNodesSection
             isDisabled={isLocalClusterConfigured}
             selectedNodes={componentState.selectedNodes}
             setSelectedNodes={(nodes) =>
@@ -273,7 +274,6 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
             }
             includeControlPlane={includeControlPlane}
             enableStretchCluster={enableStretchCluster}
-            hideAllNodesSelection
           />
         </FormGroup>
       </FormSection>
