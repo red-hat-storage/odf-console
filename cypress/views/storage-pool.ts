@@ -48,10 +48,12 @@ export const showAvailablePoolsInSCForm = (poolType: PoolType) => {
 
   cy.log('Selecting provisioner');
   cy.byTestID('storage-class-provisioner-dropdown').click();
-  cy.byTestID('console-select-search-input').type(
+  cy.byLegacyTestID('dropdown-text-filter').type(
     `openshift-storage.${provisioner}.csi.ceph.com`
   );
-  cy.contains(`openshift-storage.${provisioner}.csi.ceph.com`).click();
+  cy.byTestID('dropdown-menu-item-link')
+    .contains(`openshift-storage.${provisioner}.csi.ceph.com`)
+    .click();
   cy.log('Show Storage pool list.');
   cy.byTestID('pool-dropdown-toggle', { timeout: 5 * SECOND })
     .should('be.visible')
