@@ -8,6 +8,7 @@ import { ClusterKind, EncryptionConfigKind } from '@odf/core/types/scale';
 import { getName, useCustomTranslation } from '@odf/shared';
 import { NodeModel } from '@odf/shared/models';
 import { ClusterModel, EncryptionConfigModel } from '@odf/shared/models/scale';
+import { useModalWrapper } from '@odf/shared/sdk-wrapper/useModalWrapper';
 import { NodeKind } from '@odf/shared/types';
 import {
   isNotFoundError,
@@ -16,7 +17,6 @@ import {
 } from '@odf/shared/utils';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useParams } from 'react-router';
 import {
   Card,
   CardBody,
@@ -27,7 +27,13 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
   Skeleton,
+  Button,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
+import { PencilAltIcon } from '@patternfly/react-icons';
+import { ENCRYPTION_CONFIG_NAME } from '../scale-encryption/enableScaleEncryption';
+import EncryptionConfigModal from './EncryptionConfigModal';
 
 const nodesHref = `${resourcePathFromModel(NodeModel)}?label=${encodeURIComponent(
   `${SCALE_DAEMON_NODE_LABEL}=`
@@ -35,7 +41,7 @@ const nodesHref = `${resourcePathFromModel(NodeModel)}?label=${encodeURIComponen
 
 const LocalStorageClusterCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const { systemName } = useParams<{ systemName: string }>();
+  const launchModal = useModalWrapper();
 
   const watchResources = React.useMemo(
     () => ({
@@ -57,11 +63,11 @@ const LocalStorageClusterCard: React.FC = () => {
       encryptionConfig: {
         kind: referenceForModel(EncryptionConfigModel),
         namespace: IBM_SCALE_NAMESPACE,
-        name: `${systemName}-encryption-config`,
+        name: ENCRYPTION_CONFIG_NAME,
         isList: false,
       },
     }),
-    [systemName]
+    []
   );
 
   const resources = useK8sWatchResources<{
@@ -82,10 +88,21 @@ const LocalStorageClusterCard: React.FC = () => {
     ?.data as EncryptionConfigKind;
   const encryptionConfigLoaded = resources.encryptionConfig?.loaded;
   const encryptionConfigLoadError = resources.encryptionConfig?.loadError;
+  const encryptionConfigNotFound = isNotFoundError(encryptionConfigLoadError);
 
   const clusterName = getName(cluster);
   const isEncrypted = !!getName(encryptionConfig);
-  const encryptionConfigNotFound = isNotFoundError(encryptionConfigLoadError);
+  const canEnableEncryption =
+    clusterLoaded &&
+    !clusterLoadError &&
+    !!clusterName &&
+    !isEncrypted &&
+    (encryptionConfigLoaded || encryptionConfigNotFound);
+
+  const openEncryptionConfig = React.useCallback(
+    () => launchModal(EncryptionConfigModal, { isOpen: true }),
+    [launchModal]
+  );
 
   return (
     <Card>
@@ -119,15 +136,29 @@ const LocalStorageClusterCard: React.FC = () => {
           <DescriptionListGroup>
             <DescriptionListTerm>{t('Encryption')}</DescriptionListTerm>
             <DescriptionListDescription>
-              {encryptionConfigLoadError && !encryptionConfigNotFound ? (
-                t('N/A')
-              ) : !encryptionConfigLoaded && !encryptionConfigNotFound ? (
-                <Skeleton width="35%" />
-              ) : isEncrypted ? (
-                t('Enabled')
-              ) : (
-                t('Disabled')
-              )}
+              <Flex alignItems={{ default: 'alignItemsCenter' }}>
+                <FlexItem>
+                  {encryptionConfigLoadError && !encryptionConfigNotFound ? (
+                    t('N/A')
+                  ) : !encryptionConfigLoaded && !encryptionConfigNotFound ? (
+                    <Skeleton width="35%" />
+                  ) : isEncrypted ? (
+                    t('Enabled')
+                  ) : (
+                    t('Disabled')
+                  )}
+                </FlexItem>
+                {canEnableEncryption && (
+                  <FlexItem>
+                    <Button
+                      variant="plain"
+                      aria-label={t('Edit encryption')}
+                      onClick={openEncryptionConfig}
+                      icon={<PencilAltIcon />}
+                    />
+                  </FlexItem>
+                )}
+              </Flex>
             </DescriptionListDescription>
           </DescriptionListGroup>
         </DescriptionList>

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Resolver } from 'react-hook-form';
+import { FieldValues, Resolver } from 'react-hook-form';
 import { AnySchema, ValidationError, setLocale } from 'yup';
 
 export type ValidationErrorMessage = { type: string; field?: string };
@@ -11,7 +11,9 @@ export type ValidationErrorMessages = {
   messages?: Record<string, ValidationErrorMessage>;
 };
 
-const useYupValidationResolver = <T>(validationSchema: AnySchema): Resolver => {
+const useYupValidationResolver = <T extends FieldValues>(
+  validationSchema: AnySchema
+): Resolver<T> => {
   const { t } = useCustomTranslation();
 
   React.useEffect(() => {
