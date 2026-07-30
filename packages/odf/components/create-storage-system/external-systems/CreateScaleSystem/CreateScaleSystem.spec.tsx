@@ -3,10 +3,12 @@ import { DOC_VERSION } from '@odf/shared';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { enableScaleEncryption } from '../../../scale-encryption/enableScaleEncryption';
 import { CreateScaleSystem } from './CreateScaleSystem';
 import { useKernelDevelEligibility } from './hooks/useKernelDevelEligibility';
 
 let mockWatchedValue = '';
+let mockFormValues: Record<string, string> = {};
 
 // Mock all external dependencies
 jest.mock('react-router', () => ({
@@ -71,8 +73,9 @@ jest.mock('./useFormValidation', () => {
         control: form.control,
         handleSubmit: form.handleSubmit,
         formState: form.formState,
+        isEncryptionValid: true,
         watch: jest.fn((_fieldName) => mockWatchedValue),
-        getValues: form.getValues,
+        getValues: () => mockFormValues,
       };
     }),
   };
@@ -135,16 +138,20 @@ jest.mock('../common/hooks', () => ({
 }));
 
 jest.mock('./payload', () => ({
-  createScaleCaCertSecretPayload: jest.fn(() => Promise.resolve({})),
-  createScaleRemoteClusterPayload: jest.fn(() => Promise.resolve({})),
-  createFileSystem: jest.fn(() => Promise.resolve({})),
-  createConfigMapPayload: jest.fn(() => Promise.resolve({})),
-  createEncryptionConfigPayload: jest.fn(() => Promise.resolve({})),
-  createUserDetailsSecretPayload: jest.fn(() => Promise.resolve({})),
+  createScaleCaCertSecretPayload: jest.fn(() => () => Promise.resolve({})),
+  createScaleRemoteClusterPayload: jest.fn(() => () => Promise.resolve({})),
+  createFileSystem: jest.fn(() => () => Promise.resolve({})),
+}));
+
+jest.mock('../../../scale-encryption/enableScaleEncryption', () => ({
+  enableScaleEncryption: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('../common/payload', () => ({
+  configureMetricsNamespaceLabels: jest.fn(() => Promise.resolve()),
+  createConfigMapPayload: jest.fn(() => () => Promise.resolve({})),
   createScaleLocalClusterPayload: jest.fn(() => () => Promise.resolve({})),
+  createUserDetailsSecretPayload: jest.fn(() => () => Promise.resolve({})),
   labelNodes: jest.fn(() => () => Promise.resolve({})),
 }));
 
@@ -195,6 +202,7 @@ describe('CreateScaleSystem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWatchedValue = '';
+    mockFormValues = {};
     (useKernelDevelEligibility as jest.Mock).mockReturnValue({
       areSelectedNodesEligible: true,
       isLoading: false,
@@ -314,20 +322,63 @@ describe('CreateScaleSystem', () => {
     it('should not render encryption fields by default', () => {
       render(<CreateScaleSystem />);
 
-      // Encryption fields should not be visible initially
       expect(
         screen.queryByTestId('encryption-username')
       ).not.toBeInTheDocument();
-      expect(
-        screen.queryByTestId('encryption-password')
-      ).not.toBeInTheDocument();
-      expect(screen.queryByTestId('encryption-port')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('client')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('remote-rkm')).not.toBeInTheDocument();
-      expect(
-        screen.queryByTestId('server-information')
-      ).not.toBeInTheDocument();
-      expect(screen.queryByTestId('tenant-id')).not.toBeInTheDocument();
+    });
+
+    it('submits the shared encryption configuration', async () => {
+      const user = userEvent.setup();
+      mockWatchedValue = 'valid';
+      const { container } = render(<CreateScaleSystem />);
+
+      act(() => {
+        capturedSetSelectedNodes([
+          { name: 'node1' },
+          { name: 'node2' },
+          { name: 'node3' },
+        ]);
+      });
+
+      mockFormValues = {
+        name: 'scale-system',
+        'mandatory-endpoint-host': 'scale.example.com',
+        'mandatory-endpoint-port': '8843',
+        userName: 'admin',
+        password: 'secret',
+        fileSystemName: 'filesystem',
+        encryptionUserName: 'encryption-user',
+        encryptionPassword: 'encryption-password',
+        encryptionPort: '9444',
+        client: 'client',
+        remoteRKM: 'rkm.example.com',
+        serverInformation: 'server.example.com',
+        tenantId: 'tenant',
+      };
+      await user.click(screen.getByLabelText('Enable data encryption'));
+      await user.upload(
+        container.querySelectorAll('input[type="file"]')[1] as HTMLInputElement,
+        new File(['certificate'], 'ca.crt')
+      );
+
+      const submitButton = screen.getByRole('button', {
+        name: 'Connect and create',
+      });
+      await waitFor(() => expect(submitButton).toBeEnabled());
+      await user.click(submitButton);
+
+      await waitFor(() =>
+        expect(enableScaleEncryption).toHaveBeenCalledWith({
+          certificate: 'Y2VydGlmaWNhdGU=',
+          client: 'client',
+          password: 'encryption-password',
+          port: '9444',
+          remoteRKM: 'rkm.example.com',
+          server: 'server.example.com',
+          tenant: 'tenant',
+          username: 'encryption-user',
+        })
+      );
     });
   });
 

@@ -40,7 +40,9 @@ jest.mock('@odf/shared/utils/validation', () => ({
 
 describe('useScaleSystemFormValidation', () => {
   const getHookResult = () => {
-    const { result } = renderHook(() => useScaleSystemFormValidation());
+    const { result } = renderHook(() =>
+      useScaleSystemFormValidation(undefined, false)
+    );
     return result.current;
   };
 
@@ -87,9 +89,6 @@ describe('useScaleSystemFormValidation', () => {
         'username',
         'password',
         'fileSystemName',
-        'tenantId',
-        'client',
-        'serverInfo',
       ];
 
       expectedFieldTypes.forEach((fieldType) => {
@@ -639,9 +638,6 @@ describe('useScaleSystemFormValidation', () => {
       expect(fieldRequirements.username).toBeDefined();
       expect(fieldRequirements.password).toBeDefined();
       expect(fieldRequirements.fileSystemName).toBeDefined();
-      expect(fieldRequirements.tenantId).toBeDefined();
-      expect(fieldRequirements.client).toBeDefined();
-      expect(fieldRequirements.serverInfo).toBeDefined();
 
       // Check that requirements are arrays of strings
       Object.values(fieldRequirements).forEach((requirements) => {
@@ -800,7 +796,7 @@ describe('useScaleSystemFormValidation', () => {
 
     it('should not recreate field requirements unnecessarily', () => {
       const { result: hookResult, rerender } = renderHook(() =>
-        useScaleSystemFormValidation()
+        useScaleSystemFormValidation(undefined, false)
       );
       const initialFieldRequirements = hookResult.current.fieldRequirements;
 
@@ -824,7 +820,9 @@ describe('useScaleSystemFormValidation', () => {
     });
 
     it('should initialize form with default values', () => {
-      const { result } = renderHook(() => useScaleSystemFormValidation());
+      const { result } = renderHook(() =>
+        useScaleSystemFormValidation(undefined, false)
+      );
 
       // The form should be initialized with empty default values
       expect(result.current.control).toBeDefined();

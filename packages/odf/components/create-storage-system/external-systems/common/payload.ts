@@ -7,9 +7,13 @@ import {
 import { ClusterKind } from '@odf/core/types/scale';
 import {
   ClusterModel,
+  ConfigMapKind,
+  ConfigMapModel,
   NamespaceModel,
   NodeModel,
   OPENSHIFT_USER_WORKLOAD_MONITORING_NAMESPACE,
+  SecretKind,
+  SecretModel,
 } from '@odf/shared';
 import { k8sPatchByName } from '@odf/shared/utils';
 import {
@@ -27,6 +31,34 @@ export type ExternalKMMRegistryConfig = {
   secretKey: string;
   caCertificateSecret?: string;
   privateKeySecret?: string;
+};
+
+export const createUserDetailsSecretPayload = (
+  name: string,
+  username: string,
+  password: string
+) => {
+  const secret: SecretKind = {
+    apiVersion: 'v1',
+    kind: SecretModel.kind,
+    metadata: { name, namespace: IBM_SCALE_NAMESPACE },
+    type: 'Opaque',
+    stringData: { username, password },
+  };
+  return () => k8sCreate({ model: SecretModel, data: secret });
+};
+
+export const createConfigMapPayload = (
+  name: string,
+  data: Record<string, string>
+) => {
+  const configMap: ConfigMapKind = {
+    apiVersion: 'v1',
+    kind: ConfigMapModel.kind,
+    metadata: { name, namespace: IBM_SCALE_NAMESPACE },
+    data,
+  };
+  return () => k8sCreate({ model: ConfigMapModel, data: configMap });
 };
 
 export const labelNodes = (nodes: WizardNodeState[]) => {

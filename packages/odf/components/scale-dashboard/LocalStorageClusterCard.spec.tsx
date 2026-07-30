@@ -8,8 +8,12 @@ import { ClusterKind, EncryptionConfigKind } from '@odf/core/types/scale';
 import { NodeKind } from '@odf/shared/types';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
+import { ENCRYPTION_CONFIG_NAME } from '../scale-encryption/enableScaleEncryption';
 import LocalStorageClusterCard from './LocalStorageClusterCard';
+
+const launchModal = jest.fn();
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
@@ -42,6 +46,10 @@ jest.mock('@odf/shared/useCustomTranslationHook', () => ({
       return key;
     },
   }),
+}));
+
+jest.mock('@odf/shared/sdk-wrapper/useModalWrapper', () => ({
+  useModalWrapper: () => launchModal,
 }));
 
 const makeNode = (name: string, labels: Record<string, string>): NodeKind =>
@@ -249,14 +257,27 @@ describe('LocalStorageClusterCard', () => {
   });
 
   describe('Encryption field', () => {
-    it('should watch the single remote cluster encryption config', () => {
+    it('should open encryption enablement', async () => {
+      setupMocks();
+      renderCard();
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Edit encryption' })
+      );
+
+      expect(launchModal).toHaveBeenCalledWith(expect.anything(), {
+        isOpen: true,
+      });
+    });
+
+    it('should watch the singleton EncryptionConfig', () => {
       setupMocks();
       renderCard();
 
       expect(useK8sWatchResources).toHaveBeenCalledWith(
         expect.objectContaining({
           encryptionConfig: expect.objectContaining({
-            name: `${systemName}-encryption-config`,
+            name: ENCRYPTION_CONFIG_NAME,
             namespace: IBM_SCALE_NAMESPACE,
             isList: false,
           }),
@@ -266,7 +287,6 @@ describe('LocalStorageClusterCard', () => {
 
     it('should show Disabled when no EncryptionConfig exists', () => {
       setupMocks({
-        encryptionConfig: null,
         encryptionConfigLoaded: false,
         encryptionConfigLoadError: { response: { status: 404 } },
       });
@@ -291,6 +311,9 @@ describe('LocalStorageClusterCard', () => {
       });
       renderCard();
       expect(screen.getByText('Enabled')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Edit encryption' })
+      ).not.toBeInTheDocument();
     });
 
     it('should show a skeleton while loading', () => {
