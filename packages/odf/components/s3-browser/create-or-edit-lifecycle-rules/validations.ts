@@ -96,10 +96,20 @@ export const isInvalidDeleteMultiparts = (state: RuleState) =>
   state.actions.deleteIncompleteMultiparts.isChecked &&
   state.actions.deleteIncompleteMultiparts.days < 1;
 
+export const isInvalidTransitionCurrent = (state: RuleState) =>
+  state.actions.transitionCurrent.isChecked &&
+  state.actions.transitionCurrent.days < 1;
+
+export const isInvalidTransitionNonCurrent = (state: RuleState) =>
+  state.actions.transitionNonCurrent.isChecked &&
+  state.actions.transitionNonCurrent.days < 1;
+
 export const areInvalidActions = (state: RuleState) =>
   isInvalidDeleteCurrent(state) ||
   isInvalidDeleteNonCurrent(state) ||
-  isInvalidDeleteMultiparts(state);
+  isInvalidDeleteMultiparts(state) ||
+  isInvalidTransitionCurrent(state) ||
+  isInvalidTransitionNonCurrent(state);
 
 // Cummulative validations
 export const isInvalidLifecycleRule = (

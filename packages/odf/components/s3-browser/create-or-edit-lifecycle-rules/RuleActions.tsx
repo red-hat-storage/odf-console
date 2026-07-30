@@ -18,13 +18,18 @@ import {
   Label,
   Alert,
   AlertVariant,
+  Button,
+  ButtonVariant,
 } from '@patternfly/react-core';
+import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { StateAndDispatchProps, RuleActionType, FuncType } from './reducer';
 import {
   isInvalidActionsCount,
   isInvalidDeleteCurrent,
   isInvalidDeleteNonCurrent,
   isInvalidDeleteMultiparts,
+  isInvalidTransitionCurrent,
+  isInvalidTransitionNonCurrent,
 } from './validations';
 import './create-lifecycle-rules.scss';
 
@@ -33,6 +38,8 @@ enum Actions {
   NONCURRENT_OBJECTS = 'NONCURRENT_OBJECTS',
   INCOMPLETE_UPLOADS = 'INCOMPLETE_UPLOADS',
   EXPIRED_MARKERS = 'EXPIRED_MARKERS',
+  TRANSITION_CURRENT = 'TRANSITION_CURRENT',
+  TRANSITION_NONCURRENT = 'TRANSITION_NONCURRENT',
 }
 
 type DaysInputProps = {
@@ -353,6 +360,182 @@ const CurrentObjects: React.FC<StateAndDispatchProps> = ({
   );
 };
 
+const TransitionCurrentObjects: React.FC<StateAndDispatchProps> = ({
+  state,
+  dispatch,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const transitionCurrent = state.actions.transitionCurrent;
+
+  const invalidTransitionCurrent =
+    state.triggerInlineValidations && isInvalidTransitionCurrent(state);
+
+  return (
+    <Checkbox
+      id="current-object-transition"
+      label={t('Transition storage class')}
+      description={t(
+        'Move current object versions to IBM Deep Archive storage class after a specified number of days.'
+      )}
+      className="pf-v6-u-ml-xl"
+      isChecked={transitionCurrent.isChecked}
+      onChange={(_e, checked) =>
+        dispatch({
+          type: RuleActionType.RULE_TRANSITION_CURRENT_ACTION,
+          payload: { ...transitionCurrent, isChecked: checked },
+        })
+      }
+      body={
+        transitionCurrent.isChecked ? (
+          <>
+            <Content className="pf-v6-u-mb-md">
+              <Content component={ContentVariants.p}>
+                {t('Storage class: ')}{' '}
+                <Label color="blue">{t('IBM Deep Archive Standard')}</Label>
+              </Content>
+            </Content>
+            <DaysInput
+              id="current-object-transition-days"
+              days={transitionCurrent.days}
+              onDaysChange={(days) =>
+                dispatch({
+                  type: RuleActionType.RULE_TRANSITION_CURRENT_ACTION,
+                  payload: { ...transitionCurrent, days },
+                })
+              }
+              isInvalid={invalidTransitionCurrent}
+              helperText={t(
+                'Period of time (in days) after which an object would be transitioned since its creation.'
+              )}
+            />
+          </>
+        ) : null
+      }
+    />
+  );
+};
+
+const TransitionNonCurrentObjects: React.FC<StateAndDispatchProps> = ({
+  state,
+  dispatch,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const transitionNonCurrent = state.actions.transitionNonCurrent;
+
+  const onNumberInputAction = (
+    funcType: FuncType,
+    event?: React.FormEvent<HTMLInputElement>
+  ) => {
+    let newRetention: number;
+    switch (funcType) {
+      case FuncType.ON_CHANGE: {
+        newRetention = Math.max(
+          Math.min(
+            Math.round(+(event?.target as HTMLInputElement)?.value) || 0,
+            100
+          ),
+          0
+        );
+        break;
+      }
+      case FuncType.ON_MINUS: {
+        newRetention = Math.max(transitionNonCurrent.retention - 1, 0);
+        break;
+      }
+      case FuncType.ON_PLUS: {
+        newRetention = Math.min(transitionNonCurrent.retention + 1, 100);
+        break;
+      }
+    }
+    dispatch({
+      type: RuleActionType.RULE_TRANSITION_NON_CURRENT_ACTION,
+      payload: {
+        ...transitionNonCurrent,
+        retention: newRetention,
+      },
+    });
+  };
+
+  const invalidTransitionNonCurrent =
+    state.triggerInlineValidations && isInvalidTransitionNonCurrent(state);
+
+  return (
+    <Checkbox
+      id="noncurrent-object-transition"
+      label={t('Transition storage class')}
+      description={t(
+        'Move noncurrent object versions to IBM Deep Archive storage class after they become noncurrent.'
+      )}
+      className="pf-v6-u-ml-xl"
+      isChecked={transitionNonCurrent.isChecked}
+      onChange={(_e, checked) =>
+        dispatch({
+          type: RuleActionType.RULE_TRANSITION_NON_CURRENT_ACTION,
+          payload: { ...transitionNonCurrent, isChecked: checked },
+        })
+      }
+      body={
+        transitionNonCurrent.isChecked ? (
+          <>
+            <Content className="pf-v6-u-mb-md">
+              <Content component={ContentVariants.p}>
+                {t('Storage class: ')}{' '}
+                <Label color="blue">{t('IBM Deep Archive Standard')}</Label>
+              </Content>
+            </Content>
+            <DaysInput
+              id="noncurrent-object-transition-days"
+              days={transitionNonCurrent.days}
+              onDaysChange={(days) =>
+                dispatch({
+                  type: RuleActionType.RULE_TRANSITION_NON_CURRENT_ACTION,
+                  payload: { ...transitionNonCurrent, days },
+                })
+              }
+              isInvalid={invalidTransitionNonCurrent}
+              helperText={t(
+                'Period of time (in days) after which a noncurrent version of object would be transitioned since turning noncurrent.'
+              )}
+            />
+
+            <Content className="pf-v6-u-mt-lg">
+              <Content component={ContentVariants.p}>
+                {t('Preserve object version history (Optional)')}
+              </Content>
+              <Content
+                component={ContentVariants.small}
+                className="s3-lifecycle-action--margin"
+              >
+                {t(
+                  'Keep up to 100 noncurrent versions of objects for version management and rollback. Excess versions will be automatically transitioned.'
+                )}
+              </Content>
+            </Content>
+            <NumberInput
+              value={transitionNonCurrent.retention}
+              min={0}
+              max={100}
+              onMinus={() => onNumberInputAction(FuncType.ON_MINUS)}
+              onPlus={() => onNumberInputAction(FuncType.ON_PLUS)}
+              onChange={(e) => onNumberInputAction(FuncType.ON_CHANGE, e)}
+              className="pf-v6-u-mt-md"
+            />
+            <FormHelperText>
+              <HelperText>
+                <HelperTextItem>
+                  {t('Number of noncurrent versions of object.')}
+                </HelperTextItem>
+              </HelperText>
+            </FormHelperText>
+          </>
+        ) : null
+      }
+    />
+  );
+};
+
 export const RuleActions: React.FC<StateAndDispatchProps> = ({
   state,
   dispatch,
@@ -374,6 +557,10 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
   const invalidDeleteCurrent = validate && isInvalidDeleteCurrent(state);
   const invalidDeleteNonCurrent = validate && isInvalidDeleteNonCurrent(state);
   const invalidDeleteMultiparts = validate && isInvalidDeleteMultiparts(state);
+  const invalidTransitionCurrent =
+    validate && isInvalidTransitionCurrent(state);
+  const invalidTransitionNonCurrent =
+    validate && isInvalidTransitionNonCurrent(state);
 
   return (
     <>
@@ -572,6 +759,128 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
           </AccordionToggle>
           <AccordionContent id={Actions.EXPIRED_MARKERS}>
             <ExpiredDeleteMarkers state={state} dispatch={dispatch} />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem isExpanded={expanded === Actions.TRANSITION_CURRENT}>
+          <AccordionToggle
+            onClick={() => {
+              onToggle(Actions.TRANSITION_CURRENT);
+            }}
+            id={Actions.TRANSITION_CURRENT}
+          >
+            <Content
+              component={ContentVariants.h3}
+              className="pf-v6-u-text-align-left"
+            >
+              <span>
+                {t(
+                  'Transition current versions of objects to IBM Deep archive'
+                )}
+                {state.actions.transitionCurrent.isChecked && (
+                  <Label
+                    variant="outline"
+                    color="blue"
+                    className="pf-v6-u-mx-xs"
+                  >
+                    {t('Selected')}
+                  </Label>
+                )}
+                {invalidTransitionCurrent && (
+                  <Label
+                    variant="outline"
+                    color="red"
+                    className="pf-v6-u-mx-xs"
+                  >
+                    {t('Details needed')}
+                  </Label>
+                )}
+              </span>
+            </Content>
+            <Content
+              component={ContentVariants.small}
+              className={`s3-lifecycle-action-description ${invalidTransitionCurrent ? 's3-lifecycle--margin' : ''}`}
+            >
+              {t(
+                'Move current versions of objects to IBM Deep archive storage class for cheaper cold storage. These transitions start from when the objects are created and are consecutively applied.'
+              )}{' '}
+              <Button
+                variant={ButtonVariant.link}
+                isInline
+                icon={<ExternalLinkAltIcon />}
+                iconPosition="end"
+                component="a"
+                href="https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-archive"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('Know more')}
+              </Button>
+            </Content>
+          </AccordionToggle>
+          <AccordionContent id={Actions.TRANSITION_CURRENT}>
+            <TransitionCurrentObjects state={state} dispatch={dispatch} />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem isExpanded={expanded === Actions.TRANSITION_NONCURRENT}>
+          <AccordionToggle
+            onClick={() => {
+              onToggle(Actions.TRANSITION_NONCURRENT);
+            }}
+            id={Actions.TRANSITION_NONCURRENT}
+          >
+            <Content
+              component={ContentVariants.h3}
+              className="pf-v6-u-text-align-left"
+            >
+              <span>
+                {t(
+                  'Transition noncurrent versions of objects to IBM Deep archive'
+                )}
+                {state.actions.transitionNonCurrent.isChecked && (
+                  <Label
+                    variant="outline"
+                    color="blue"
+                    className="pf-v6-u-mx-xs"
+                  >
+                    {t('Selected')}
+                  </Label>
+                )}
+                {invalidTransitionNonCurrent && (
+                  <Label
+                    variant="outline"
+                    color="red"
+                    className="pf-v6-u-mx-xs"
+                  >
+                    {t('Details needed')}
+                  </Label>
+                )}
+              </span>
+            </Content>
+            <Content
+              component={ContentVariants.small}
+              className={`s3-lifecycle-action-description ${invalidTransitionNonCurrent ? 's3-lifecycle--margin' : ''}`}
+            >
+              {t(
+                'Move noncurrent versions of objects to IBM Deep archive storage class for cheaper cold storage. These transitions start from when the objects become non-current and are consecutively applied.'
+              )}{' '}
+              <Button
+                variant={ButtonVariant.link}
+                isInline
+                icon={<ExternalLinkAltIcon />}
+                iconPosition="end"
+                component="a"
+                href="https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-archive"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('Know more')}
+              </Button>
+            </Content>
+          </AccordionToggle>
+          <AccordionContent id={Actions.TRANSITION_NONCURRENT}>
+            <TransitionNonCurrentObjects state={state} dispatch={dispatch} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

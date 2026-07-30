@@ -4,6 +4,7 @@ import {
   GetBucketLifecycleConfigurationCommandOutput,
   ExpirationStatus,
   LifecycleRuleFilter,
+  TransitionStorageClass,
 } from '@aws-sdk/client-s3';
 import {
   S3Provider,
@@ -82,6 +83,8 @@ const getRuleConfig = (state: RuleState): LifecycleRule => {
   const conditionalFilters = state.conditionalFilters;
   const deleteNonCurrent = state.actions.deleteNonCurrent;
   const deleteIncompleteMultiparts = state.actions.deleteIncompleteMultiparts;
+  const transitionCurrent = state.actions.transitionCurrent;
+  const transitionNonCurrent = state.actions.transitionNonCurrent;
 
   const expirationConfig = {
     ...(deleteCurrent.isChecked ? { Days: deleteCurrent.days } : {}),
@@ -103,6 +106,27 @@ const getRuleConfig = (state: RuleState): LifecycleRule => {
       : {}),
   };
 
+  const transitionsConfig = transitionCurrent.isChecked
+    ? [
+        {
+          Days: transitionCurrent.days,
+          StorageClass: TransitionStorageClass.DEEP_ARCHIVE,
+        },
+      ]
+    : [];
+
+  const nonCurrentTransitionsConfig = transitionNonCurrent.isChecked
+    ? [
+        {
+          NoncurrentDays: transitionNonCurrent.days,
+          StorageClass: TransitionStorageClass.DEEP_ARCHIVE,
+          ...(transitionNonCurrent.retention > 0
+            ? { NewerNoncurrentVersions: transitionNonCurrent.retention }
+            : {}),
+        },
+      ]
+    : [];
+
   return {
     ...(!_.isEmpty(expirationConfig) ? { Expiration: expirationConfig } : {}),
     ID: state.name,
@@ -115,6 +139,10 @@ const getRuleConfig = (state: RuleState): LifecycleRule => {
       : {}),
     ...(!_.isEmpty(multipartConfig)
       ? { AbortIncompleteMultipartUpload: multipartConfig }
+      : {}),
+    ...(transitionsConfig.length > 0 ? { Transitions: transitionsConfig } : {}),
+    ...(nonCurrentTransitionsConfig.length > 0
+      ? { NoncurrentVersionTransitions: nonCurrentTransitionsConfig }
       : {}),
   };
 };

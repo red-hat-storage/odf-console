@@ -120,6 +120,31 @@ const convertLifecycleRuleToRuleState = (rule: LifecycleRule): RuleState => {
     }
   }
 
+  // Parse Transitions (current versions)
+  if (rule.Transitions?.length > 0) {
+    const deepArchiveTransition = rule.Transitions.find(
+      (t) => t.StorageClass === 'DEEP_ARCHIVE'
+    );
+    if (deepArchiveTransition?.Days) {
+      ruleState.actions.transitionCurrent.isChecked = true;
+      ruleState.actions.transitionCurrent.days = deepArchiveTransition.Days;
+    }
+  }
+
+  // Parse NoncurrentVersionTransitions
+  if (rule.NoncurrentVersionTransitions?.length > 0) {
+    const deepArchiveTransition = rule.NoncurrentVersionTransitions.find(
+      (t) => t.StorageClass === 'DEEP_ARCHIVE'
+    );
+    if (deepArchiveTransition?.NoncurrentDays) {
+      ruleState.actions.transitionNonCurrent.isChecked = true;
+      ruleState.actions.transitionNonCurrent.days =
+        deepArchiveTransition.NoncurrentDays;
+      ruleState.actions.transitionNonCurrent.retention =
+        deepArchiveTransition.NewerNoncurrentVersions || 0;
+    }
+  }
+
   return ruleState;
 };
 

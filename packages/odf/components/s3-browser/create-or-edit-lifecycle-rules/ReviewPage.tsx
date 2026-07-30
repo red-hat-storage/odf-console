@@ -121,6 +121,8 @@ const RuleActionsReview: React.FC<ReviewPageProps> = ({ state }) => {
     deleteNonCurrent,
     deleteIncompleteMultiparts,
     deleteExpiredMarkers,
+    transitionCurrent,
+    transitionNonCurrent,
   } = state.actions;
 
   const actions: { label: string; description: string }[] = [];
@@ -158,6 +160,26 @@ const RuleActionsReview: React.FC<ReviewPageProps> = ({ state }) => {
     actions.push({
       label: t('Delete expired object delete markers'),
       description: t('Enabled'),
+    });
+  }
+
+  if (transitionCurrent.isChecked) {
+    actions.push({
+      label: t('Transition current versions to IBM Deep Archive'),
+      description: t('After {{days}} days', { days: transitionCurrent.days }),
+    });
+  }
+
+  if (transitionNonCurrent.isChecked) {
+    let description = t('After {{days}} days', {
+      days: transitionNonCurrent.days,
+    });
+    if (transitionNonCurrent.retention > 0) {
+      description += `, ${t('retain {{count}} newer versions', { count: transitionNonCurrent.retention })}`;
+    }
+    actions.push({
+      label: t('Transition noncurrent versions to IBM Deep Archive'),
+      description,
     });
   }
 
