@@ -5,36 +5,33 @@ import { DRPolicyListPage } from './drpolicy-list-page';
 
 let testCase = 1;
 
-jest.mock(
-  '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api',
-  () => ({
-    ...jest.requireActual(
-      '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api'
-    ),
-    useListPageFilter: jest.fn(() => {
-      if ([1, 2, 3].includes(testCase)) {
-        return [[], [], jest.fn()];
-      }
-    }),
-    useK8sWatchResource: jest.fn(() => {
-      if (testCase === 1) {
-        return [[], true, ''];
-      } else if (testCase === 2) {
-        return [
-          [],
-          true,
-          {
-            response: {
-              status: 404,
-            },
+jest.mock('@openshift-console/dynamic-plugin-sdk/lib/api/core-api', () => ({
+  ...jest.requireActual(
+    '@openshift-console/dynamic-plugin-sdk/lib/api/core-api'
+  ),
+  useListPageFilter: jest.fn(() => {
+    if ([1, 2, 3].includes(testCase)) {
+      return [[], [], jest.fn()];
+    }
+  }),
+  useK8sWatchResource: jest.fn(() => {
+    if (testCase === 1) {
+      return [[], true, ''];
+    } else if (testCase === 2) {
+      return [
+        [],
+        true,
+        {
+          response: {
+            status: 404,
           },
-        ];
-      } else if (testCase === 3) {
-        return [[], false, ''];
-      }
-    }),
-  })
-);
+        },
+      ];
+    } else if (testCase === 3) {
+      return [[], false, ''];
+    }
+  }),
+}));
 
 jest.mock('@odf/mco/hooks/protected-applications', () => ({
   useProtectedApplicationsWatch: jest.fn(() => {
@@ -53,8 +50,8 @@ jest.mock('react-router', () => ({
   useHistory: jest.fn(() => []),
 }));
 
-jest.mock('react-router-dom-v5-compat', () => ({
-  ...jest.requireActual('react-router-dom-v5-compat'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useNavigate: () => null,
   useLocation: () => ({ pathname: '/' }),
 }));

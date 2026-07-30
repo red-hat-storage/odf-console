@@ -6,6 +6,7 @@ const config = {
       '<rootDir>/jest/mocks/console-pane-body.tsx',
     '^@console': 'identity-obj-proxy',
     '^@odf/shared(.*)': '<rootDir>/packages/shared/src$1',
+    '^@odf/core/(.*)': '<rootDir>/packages/odf/$1',
     '^@odf/(mco|odf|ocs)/(.*)': '<rootDir>/packages/$1/$2',
     '^lodash-es$': 'lodash',
     '\\.(css|scss)$': 'identity-obj-proxy',
@@ -19,7 +20,7 @@ const config = {
     '\\.[m]js?$': '@swc/jest',
   },
   transformIgnorePatterns: [
-    '<rootDir>/node_modules/(?!(@openshift-console|@patternfly/react-core/dist|@patternfly/react-icons/dist|@patternfly/react-topology|@patternfly/react-styles|d3|delaunator|internmap|robust-predicates))',
+    '<rootDir>/node_modules/(?!(@openshift-console|@patternfly/react-core/dist|@patternfly/react-icons/dist|@patternfly/react-topology|@patternfly/react-styles|d3|delaunator|internmap|robust-predicates|react-dnd|react-dnd-html5-backend|dnd-core|@react-dnd))',
   ],
   testPathIgnorePatterns: ['/node_modules/', '/build/'],
   testRegex: '.*\\.spec\\.tsx?$',

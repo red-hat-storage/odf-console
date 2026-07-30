@@ -31,7 +31,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import ExclamationCircleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon';
 import * as _ from 'lodash-es';
-import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
+import { useNavigate, useLocation } from 'react-router';
 import {
   EmptyStateActions,
   EmptyStateBody,

@@ -1,3 +1,4 @@
+export * from './useClusterNodes';
 export * from './useNodesData';
 export * from './useRawCapacity';
 export * from './useSafeK8sGet';

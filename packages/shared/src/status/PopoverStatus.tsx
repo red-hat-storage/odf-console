@@ -11,6 +11,7 @@ type PopoverStatusProps = {
   shouldClose?: (hideFunction: any) => void;
   popoverPosition?: PopoverPosition;
   hasAutoWidth?: boolean;
+  children?: React.ReactNode;
 };
 
 const PopoverStatus: React.FC<PopoverStatusProps> = ({

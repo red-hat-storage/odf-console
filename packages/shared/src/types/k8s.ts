@@ -34,6 +34,20 @@ export type K8sResourceKind = K8sResourceCommon & {
   data?: { [key: string]: any };
 };
 
+export type MachineConfigNodeKind = K8sResourceCommon & {
+  status?: {
+    configVersion?: {
+      current?: string;
+    };
+  };
+};
+
+export type MachineConfigKind = K8sResourceCommon & {
+  spec?: {
+    extensions?: string[];
+  };
+};
+
 export type Selector = {
   matchLabels?: MatchLabels;
   matchExpressions?: MatchExpression[];

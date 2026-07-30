@@ -15,7 +15,7 @@ import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import {
   Card,
   CardBody,

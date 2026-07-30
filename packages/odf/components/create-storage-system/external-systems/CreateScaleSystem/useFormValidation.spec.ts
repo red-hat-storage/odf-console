@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import * as Yup from 'yup';
 import useScaleSystemFormValidation from './useFormValidation';
 

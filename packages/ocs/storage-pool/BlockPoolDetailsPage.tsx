@@ -9,7 +9,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useParams, useLocation } from 'react-router-dom-v5-compat';
+import { useParams, useLocation } from 'react-router';
 import { BlockPoolDashboard } from '../dashboards/block-pool/block-pool-dashboard';
 import { StoragePoolKind } from '../types';
 import { isErasureCodedStoragePool } from '../utils';

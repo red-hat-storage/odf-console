@@ -34,7 +34,7 @@ import {
   useFlag,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import {
   Card,
   CardBody,

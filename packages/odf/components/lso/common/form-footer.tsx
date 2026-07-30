@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ButtonBar, useCustomTranslation } from '@odf/shared';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { ActionGroup, Button } from '@patternfly/react-core';
 
 export const FormFooter: React.FC<FormFooterProps> = ({

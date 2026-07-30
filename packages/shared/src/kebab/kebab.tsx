@@ -3,9 +3,9 @@ import { useCallback, useEffect } from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   Dropdown,
   DropdownItem,
@@ -272,7 +272,10 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
         }
         return acc;
       },
-      { overrides: {}, custom: {} }
+      {
+        overrides: {} as Record<string, React.ReactNode>,
+        custom: {} as Record<string, React.ReactNode>,
+      }
     );
     const defaultItems = Object.values(
       Object.assign(filteredDefaultItems, overrides)

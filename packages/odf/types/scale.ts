@@ -1,3 +1,4 @@
+import { ReclaimPolicy, VolumeBindingMode } from '@odf/shared';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 export type LabelMap = Record<string, string>;
@@ -223,6 +224,7 @@ export type FileSystemKind = K8sResourceCommon & {
   apiVersion: 'scale.spectrum.ibm.com/v1beta1';
   kind: 'Filesystem';
   spec: {
+    storageClasses?: StorageClassSpec[];
     local?: {
       blockSize?:
         | '64k'
@@ -330,6 +332,23 @@ export type FileSystemKind = K8sResourceCommon & {
     version?: string;
   };
 };
+interface StorageClassSpec {
+  /** Name of the StorageClass to create. Max 253 chars. */
+  name: string;
+  /** What happens to volumes when their claim is released. Default: "Delete". */
+  reclaimPolicy?: ReclaimPolicy;
+  /** Whether volumes can be expanded. Default: true. */
+  allowVolumeExpansion?: boolean;
+  /** How PersistentVolumeClaims should be bound. Default: "Immediate". */
+  volumeBindingMode?: VolumeBindingMode;
+  /**
+   * CSI driver parameters. volBackendFs is set automatically.
+   * Allowed keys: volBackendFs, uid, gid, nodeClass, volDirBasePath,
+   * clusterId, parentFileset, inodeLimit, compression, tier, volumeType.
+   * Max 20 properties.
+   */
+  parameters?: Record<string, string>;
+}
 
 export type RemoteClusterKind = K8sResourceCommon & {
   apiVersion: 'scale.spectrum.ibm.com/v1beta1';

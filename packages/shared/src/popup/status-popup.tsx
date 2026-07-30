@@ -54,6 +54,7 @@ type StatusProps = {
 type StatusPopupSectionProps = {
   firstColumn: string;
   secondColumn?: string;
+  children?: React.ReactNode;
 };
 
 export default Status;

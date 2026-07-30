@@ -2,7 +2,7 @@ import * as React from 'react';
 import { getDRStatus } from '@odf/mco/utils/dr-status';
 import { DASH } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   Title,
   Label,
@@ -29,6 +29,7 @@ const getOperationStatus = (op: DROperationInfo) =>
     phase: op.phase,
     progression: op.progression,
     action: op.action,
+    dryRun: op.drpc?.spec?.dryRun,
   });
 
 type OperationSidebarProps = {

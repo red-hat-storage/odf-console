@@ -30,6 +30,7 @@ export const ModalBody: React.FC<ModalBoxBodyProps> = ({
 
 type ModalHeaderProps = {
   className?: string;
+  children?: React.ReactNode;
 };
 
 export const ModalHeader: React.FC<ModalHeaderProps> = ({

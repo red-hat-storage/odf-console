@@ -5,7 +5,6 @@ import {
   createLocalDisks,
   createLocalFileSystem,
   updateLocalFileSystem,
-  createStorageClass,
 } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/payload';
 import { useDeviceFinder } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useDeviceFinder';
 import useSANSystemFormValidation from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useFormValidation';
@@ -31,14 +30,20 @@ type AddLunGroupModalProps = {
   onSubmit: () => void;
   inProgress: boolean;
   error: string;
+  shouldShowExpand?: boolean;
   extraProps: {
     resource?: FileSystemKind;
   };
 };
 
+export const ExpandLUNGroupModal: React.FC<AddLunGroupModalProps> = (props) => {
+  return <AddLunGroupModal {...props} shouldShowExpand={true} />;
+};
+
 const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   isOpen,
   closeModal: onClose,
+  shouldShowExpand,
   extraProps: { resource: existingLUNGroup },
 }) => {
   const { t } = useCustomTranslation();
@@ -49,7 +54,7 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   const [error, setError] = React.useState<Error>(undefined);
   const { deviceFinderLoading, sharedDevices } = useDeviceFinder();
 
-  const isUpdateOperation = !_.isEmpty(existingLUNGroup);
+  const isUpdateOperation = !!shouldShowExpand;
 
   const [disks] = useK8sWatchResource<LocalDiskKind[]>({
     groupVersionKind: {
@@ -101,12 +106,7 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
     );
     try {
       const localDisks = await createLocalDisks(selectedLUNsData, t);
-      const fileSystem = await createLocalFileSystem(
-        lunGroupName,
-        localDisks,
-        t
-      );
-      await createStorageClass(fileSystem, t);
+      await createLocalFileSystem(lunGroupName, localDisks, t);
       setInProgress(false);
       onClose();
     } catch (err) {

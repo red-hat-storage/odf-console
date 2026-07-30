@@ -27,7 +27,13 @@ import {
 import { WizardState } from '../../reducer';
 import './review-and-create-step.scss';
 
-export const ReviewItem = ({ children, title }) => (
+export const ReviewItem = ({
+  children,
+  title,
+}: {
+  children?: React.ReactNode;
+  title: React.ReactNode;
+}) => (
   <div className="odf-review-and-create__review-item">
     <Content>
       <Content component={ContentVariants.h4}>{title}</Content>

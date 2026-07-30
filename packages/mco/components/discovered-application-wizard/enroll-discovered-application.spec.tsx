@@ -233,8 +233,8 @@ jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   }),
 }));
 
-jest.mock('react-router-dom-v5-compat', () => ({
-  ...jest.requireActual('react-router-dom-v5-compat'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useNavigate: () => null,
 }));
 
@@ -243,26 +243,23 @@ jest.mock('@odf/shared/heading/page-heading', () => ({
   default: jest.fn(() => null),
 }));
 
-jest.mock(
-  '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api',
-  () => ({
-    ...jest.requireActual(
-      '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api'
-    ),
-    useListPageFilter: jest.fn((userNamespaces) => {
-      if (testCase >= 3) return [userNamespaces, userNamespaces, jest.fn()];
-      else return [[], [], jest.fn()];
-    }),
-    ListPageFilter: jest.fn(() => null),
-    useK8sWatchResource: jest.fn(() => {
-      return [drPlacements, true, undefined];
-    }),
-    k8sCreate: jest.fn(({ data }) => {
-      drpcObj = data;
-      return Promise.resolve({ data: {} });
-    }),
-  })
-);
+jest.mock('@openshift-console/dynamic-plugin-sdk/lib/api/core-api', () => ({
+  ...jest.requireActual(
+    '@openshift-console/dynamic-plugin-sdk/lib/api/core-api'
+  ),
+  useListPageFilter: jest.fn((userNamespaces) => {
+    if (testCase >= 3) return [userNamespaces, userNamespaces, jest.fn()];
+    else return [[], [], jest.fn()];
+  }),
+  ListPageFilter: jest.fn(() => null),
+  useK8sWatchResource: jest.fn(() => {
+    return [drPlacements, true, undefined];
+  }),
+  k8sCreate: jest.fn(({ data }) => {
+    drpcObj = data;
+    return Promise.resolve({ data: {} });
+  }),
+}));
 
 // Mocking as "Popover" is throwing warning for FieldLevelHelp & TextInputWithFieldRequirements
 jest.mock('@patternfly/react-core', () => ({

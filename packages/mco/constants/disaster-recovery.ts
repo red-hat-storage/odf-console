@@ -1,4 +1,4 @@
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 
 // VRG annotations
 export const DRPC_NAME_ANNOTATION =
@@ -16,6 +16,10 @@ export const DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH =
   'drplacementcontrol.ramendr.openshift.io~1do-not-delete-pvc';
 export const IS_CG_ENABLED_ANNOTATION =
   'drplacementcontrol.ramendr.openshift.io/is-cg-enabled';
+export const LAST_ACTION_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/last-action';
+export const TEST_FAILOVER_DRYRUN_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/test-failover-dryrun';
 
 // Maximum cluster per DRPolicy
 export const MAX_ALLOWED_CLUSTERS = 2;

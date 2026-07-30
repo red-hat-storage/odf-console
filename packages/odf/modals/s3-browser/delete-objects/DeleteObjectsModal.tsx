@@ -13,7 +13,7 @@ import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import {
   Button,
@@ -55,9 +55,9 @@ type DeleteObjectsModalProps = {
 };
 
 const getTextInputLabel = (t: TFunction) => (
-  <Trans t={t as any}>
+  <Trans t={t as any} values={{ delete: DELETE }}>
     <b>
-      To confirm deletion, type <i>{{ delete: DELETE }}</i>:
+      To confirm deletion, type <i>{'{{delete}}'}</i>:
     </b>
   </Trans>
 );

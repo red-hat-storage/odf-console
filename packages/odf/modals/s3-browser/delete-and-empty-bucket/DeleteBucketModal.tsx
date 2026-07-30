@@ -11,7 +11,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import useSWR from 'swr';
 import {
   Button,

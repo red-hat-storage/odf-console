@@ -4,7 +4,7 @@ import { NooBaaNamespaceStoreModel } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import { useParams, useNavigate } from 'react-router-dom-v5-compat';
+import { useParams, useNavigate } from 'react-router';
 import { Title } from '@patternfly/react-core';
 import NamespaceStoreForm from './namespace-store-form';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';

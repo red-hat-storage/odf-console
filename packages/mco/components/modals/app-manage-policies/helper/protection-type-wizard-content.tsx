@@ -11,7 +11,8 @@ import {
 import NameInputWithValidation from '@odf/shared/input-with-requirements/NameInputWithValidation';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction, Trans } from 'react-i18next';
+import { TFunction } from 'i18next';
+import { Trans } from 'react-i18next';
 import {
   Alert,
   AlertVariant,
@@ -280,11 +281,11 @@ export const ProtectionTypeWizardContent: React.FC<
                 <DrawerActions>
                   <DrawerCloseButton onClick={() => toggleDrawer()} />
                 </DrawerActions>
-                <Trans t={t}>
+                <Trans t={t} values={{ sharedGroupName }}>
                   <span>
                     Showing all VMs grouped under{' '}
                     <ResourceIcon resourceModel={DRPlacementControlModel} />
-                    {{ sharedGroupName }}
+                    {'{{sharedGroupName}}'}
                   </span>
                 </Trans>
               </DrawerHead>

@@ -13,8 +13,8 @@ import {
 import { getResourceProfileRequirements } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import classNames from 'classnames';
-import { TFunction } from 'react-i18next';
-import { Link } from 'react-router-dom-v5-compat';
+import { TFunction } from 'i18next';
+import { Link } from 'react-router';
 import {
   Alert,
   AlertVariant,

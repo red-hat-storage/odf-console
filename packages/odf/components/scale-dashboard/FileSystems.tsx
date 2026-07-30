@@ -1,16 +1,23 @@
 import * as React from 'react';
+import { SCALE_QUERIES, ScaleQueries } from '@odf/core/queries/system-list';
 import { FileSystemKind } from '@odf/core/types/scale';
-import { getName } from '@odf/shared';
+import { DASH, getName } from '@odf/shared';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { FileSystemModel } from '@odf/shared/models/scale';
 import { GreenCheckCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
+import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import {
+  PrometheusEndpoint,
+  PrometheusResponse,
   useK8sWatchResource,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import {
   Card,
   CardBody,
@@ -21,6 +28,7 @@ import {
   ContentVariants,
   EmptyState,
   EmptyStateVariant,
+  Skeleton,
   Title,
 } from '@patternfly/react-core';
 import { CubesIcon } from '@patternfly/react-icons';
@@ -36,6 +44,20 @@ const isConnected = (fileSystem: FileSystemKind) => {
   return fileSystem.status?.conditions?.some(
     (condition) => condition.type === 'Success' && condition.status === 'True'
   );
+};
+
+export const getFileSystemCapacity = (
+  response: PrometheusResponse,
+  fileSystemName: string
+): string => {
+  const values = response?.data?.result
+    ?.filter((result) => result.metric?.gpfs_fs_name === fileSystemName)
+    .map((result) => Number(result.value?.[1]))
+    .filter(Number.isFinite);
+
+  return values?.length
+    ? humanizeBinaryBytes(values.reduce((sum, value) => sum + value, 0)).string
+    : DASH;
 };
 
 const FileSystemStatusIcon: React.FC<{
@@ -73,6 +95,19 @@ const FileSystemsTable: React.FC = () => {
   const externalSystemName = params['systemName'];
   const [fileSystems, fileSystemsLoaded, fileSystemsLoadError] =
     useK8sWatchResource<FileSystemKind[]>(resource);
+  const prometheusBasePath = usePrometheusBasePath();
+  const [usedCapacity, usedCapacityError, usedCapacityLoading] =
+    useCustomPrometheusPoll({
+      query: SCALE_QUERIES[ScaleQueries.USED_CAPACITY],
+      endpoint: PrometheusEndpoint.QUERY,
+      basePath: prometheusBasePath,
+    });
+  const [totalCapacity, totalCapacityError, totalCapacityLoading] =
+    useCustomPrometheusPoll({
+      query: SCALE_QUERIES[ScaleQueries.RAW_CAPACITY],
+      endpoint: PrometheusEndpoint.QUERY,
+      basePath: prometheusBasePath,
+    });
   const filteredFileSystems = filterScaleFileSystems(
     fileSystems,
     externalSystemName
@@ -105,6 +140,8 @@ const FileSystemsTable: React.FC = () => {
             <Tr>
               <Th>{t('Name')}</Th>
               <Th>{t('Connection status')}</Th>
+              <Th>{t('Used capacity')}</Th>
+              <Th>{t('Total capacity')}</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -113,6 +150,24 @@ const FileSystemsTable: React.FC = () => {
                 <Td>{getName(fileSystem)}</Td>
                 <Td>
                   {isConnected(fileSystem) ? t('Connected') : t('Disconnected')}
+                </Td>
+                <Td>
+                  {usedCapacityLoading ? (
+                    <Skeleton width="35%" />
+                  ) : usedCapacityError ? (
+                    DASH
+                  ) : (
+                    getFileSystemCapacity(usedCapacity, getName(fileSystem))
+                  )}
+                </Td>
+                <Td>
+                  {totalCapacityLoading ? (
+                    <Skeleton width="35%" />
+                  ) : totalCapacityError ? (
+                    DASH
+                  ) : (
+                    getFileSystemCapacity(totalCapacity, getName(fileSystem))
+                  )}
                 </Td>
               </Tr>
             ))}

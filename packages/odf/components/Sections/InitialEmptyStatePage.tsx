@@ -11,9 +11,10 @@ import {
 import { useModalWrapper } from '@odf/shared';
 import { DOC_VERSION } from '@odf/shared/hooks/use-doc-version';
 import { ViewDocumentation } from '@odf/shared/utils';
+import { TFunction } from 'i18next';
 import { Helmet } from 'react-helmet';
-import { TFunction, Trans } from 'react-i18next';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { Trans } from 'react-i18next';
+import { useLocation } from 'react-router';
 import {
   Button,
   ButtonVariant,

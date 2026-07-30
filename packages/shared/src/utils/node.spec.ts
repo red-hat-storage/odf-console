@@ -1,6 +1,11 @@
 import { RACK_LABEL } from '../constants';
 import { NodeKind } from '../types';
-import { getProviderID, getRack } from './node';
+import {
+  getProviderID,
+  getRack,
+  isOcsLabeledNode,
+  OCS_CLUSTER_NODE_LABEL_PREFIX,
+} from './node';
 
 describe('getProviderID', () => {
   it('should return empty string when providerID does not exist', () => {
@@ -53,5 +58,34 @@ describe('getRack function', () => {
 
     const result = getRack(mockNode);
     expect(result).toBeUndefined();
+  });
+});
+
+describe('isOcsLabeledNode', () => {
+  it('should match any namespace under the OCS cluster label prefix', () => {
+    expect(
+      isOcsLabeledNode({
+        labels: {
+          [`${OCS_CLUSTER_NODE_LABEL_PREFIX}openshift-storage`]: '',
+        },
+      })
+    ).toBe(true);
+    expect(
+      isOcsLabeledNode({
+        labels: {
+          [`${OCS_CLUSTER_NODE_LABEL_PREFIX}custom-ns`]: '',
+        },
+      })
+    ).toBe(true);
+  });
+
+  it('should return false when no OCS cluster label is present', () => {
+    expect(
+      isOcsLabeledNode({
+        labels: { 'node-role.kubernetes.io/worker': '' },
+      })
+    ).toBe(false);
+    expect(isOcsLabeledNode({ labels: {} })).toBe(false);
+    expect(isOcsLabeledNode({})).toBe(false);
   });
 });

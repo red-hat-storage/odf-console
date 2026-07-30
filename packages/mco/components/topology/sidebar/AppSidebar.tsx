@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   Title,
   Label,
@@ -148,6 +148,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
         protectedCondition,
         volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
         action: op.action,
+        dryRun: op.drpc?.spec?.dryRun,
       }),
       drPolicy: op.pav ? getPAVDRPolicyName(op.pav) : '',
     };

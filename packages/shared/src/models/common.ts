@@ -204,6 +204,36 @@ export const MachineModel: K8sModel = {
   crd: true,
 };
 
+export const MachineConfigModel: K8sModel = {
+  label: 'MachineConfig',
+  labelKey: 'MachineConfig',
+  labelPlural: 'MachineConfigs',
+  labelPluralKey: 'MachineConfigs',
+  apiVersion: 'v1',
+  apiGroup: 'machineconfiguration.openshift.io',
+  plural: 'machineconfigs',
+  abbr: 'MC',
+  namespaced: false,
+  kind: 'MachineConfig',
+  id: 'machineconfig',
+  crd: true,
+};
+
+export const MachineConfigNodeModel: K8sModel = {
+  label: 'MachineConfigNode',
+  labelKey: 'MachineConfigNode',
+  labelPlural: 'MachineConfigNodes',
+  labelPluralKey: 'MachineConfigNodes',
+  apiVersion: 'v1',
+  apiGroup: 'machineconfiguration.openshift.io',
+  plural: 'machineconfignodes',
+  abbr: 'MCN',
+  namespaced: false,
+  kind: 'MachineConfigNode',
+  id: 'machineconfignode',
+  crd: true,
+};
+
 export const ReplicaSetModel: K8sKind = {
   label: 'ReplicaSet',
   labelKey: 'ReplicaSet',

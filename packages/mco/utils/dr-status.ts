@@ -41,6 +41,9 @@ export enum DRStatus {
   Protecting = DRProtectionStatus.Protecting,
   ProtectionError = DRProtectionStatus.ProtectionError,
 
+  // DryRun testing failover
+  TestingFailover = Progression.TestingFailover,
+
   // Additional statuses
   Unknown = 'Unknown',
   Available = 'Available',
@@ -179,6 +182,7 @@ export const getDRStatus = ({
   schedulingInterval,
   actionStartTime,
   action,
+  dryRun,
 }: {
   isCleanupRequired?: boolean;
   phase: Phase;
@@ -190,12 +194,17 @@ export const getDRStatus = ({
   schedulingInterval?: string;
   actionStartTime?: string;
   action?: DRActionType;
+  dryRun?: boolean;
 }): DRStatus => {
   // Check if cleanup is required — this has the highest priority.
   // If not explicitly provided, derive from progression.
   const cleanupRequired =
     isCleanupRequired ?? progression === Progression.WaitOnUserToCleanUp;
   if (cleanupRequired) return DRStatus.WaitOnUserToCleanUp;
+
+  // DryRun test failover in hold state — test workload is running on secondary.
+  if (dryRun && progression === Progression.TestingFailover)
+    return DRStatus.TestingFailover;
 
   // WaitForUser is always treated as action required
   if (phase === Phase.WaitForUser) return DRStatus.WaitForUser;

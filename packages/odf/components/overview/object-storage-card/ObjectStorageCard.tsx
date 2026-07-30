@@ -13,7 +13,7 @@ import { QueryWithDescription } from '@openshift-console/dynamic-plugin-sdk';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   Button,
   ButtonVariant,

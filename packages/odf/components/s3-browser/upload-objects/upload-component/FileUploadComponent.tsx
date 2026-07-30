@@ -8,7 +8,7 @@ import * as _ from 'lodash-es';
 import { observer } from 'mobx-react-lite';
 import { useDropzone } from 'react-dropzone';
 import { Trans } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom-v5-compat';
+import { useSearchParams } from 'react-router';
 import { Icon, FlexItem, Flex, Title, Button } from '@patternfly/react-core';
 import { uploadStore } from '../store';
 import { UploadStatus } from '../types';

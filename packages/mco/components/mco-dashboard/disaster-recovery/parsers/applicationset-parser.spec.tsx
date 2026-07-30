@@ -6,7 +6,7 @@ import {
   DRPlacementControlModel,
   DRPolicyModel,
 } from '@odf/shared';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { PLACEMENT_REF_LABEL } from '../../../../constants';
 import { ArgoApplicationSetResourceKind } from '../../../../hooks';
 import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';

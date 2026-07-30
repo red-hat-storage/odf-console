@@ -11,7 +11,7 @@ import {
 } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isClientPlugin } from '@odf/shared/utils';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import useSWR from 'swr';
 import { Alert, AlertActionLink } from '@patternfly/react-core';
 import { IAction } from '@patternfly/react-table';

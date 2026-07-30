@@ -6,7 +6,7 @@ import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   Button,
@@ -34,9 +34,9 @@ type EmptyBucketModalProps = {
 };
 
 export const getTextInputLabel = (t: TFunction, bucketName: string) => (
-  <Trans t={t}>
+  <Trans t={t} values={{ bucketName }}>
     <b>
-      To confirm deletion, type <i>{{ bucketName }}</i>:
+      To confirm deletion, type <i>{'{{bucketName}}'}</i>:
     </b>
   </Trans>
 );

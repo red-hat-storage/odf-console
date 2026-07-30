@@ -12,7 +12,7 @@ import {
   PrometheusResult,
   PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { HealthBody as HealthBodyBase } from '@openshift-console/dynamic-plugin-sdk-internal';
 import {
   Flex,
   FlexItem,
@@ -30,6 +30,8 @@ import {
   CSVStatusMap,
 } from './storage-system-popup';
 import './status-card.scss';
+
+const HealthBody = HealthBodyBase as React.FC<React.PropsWithChildren<{}>>;
 
 type SubSystemMap = {
   [key: string]: string;

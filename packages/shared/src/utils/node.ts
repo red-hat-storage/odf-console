@@ -42,6 +42,14 @@ export const getNodeRoles = (node: NodeKind): string[] => {
   );
 };
 
+export const isControlPlaneNode = (node: NodeKind): boolean => {
+  const roles = getNodeRoles(node);
+  return roles.includes('control-plane') || roles.includes('master');
+};
+
+export const isWorkerNode = (node: NodeKind): boolean =>
+  getNodeRoles(node).includes('worker') && !isControlPlaneNode(node);
+
 export const getNodeZone = (node: NodeKind): string =>
   node.metadata.labels?.['topology.kubernetes.io/zone'];
 
@@ -50,3 +58,12 @@ export const getRack = (node: NodeKind) => node.metadata.labels?.[RACK_LABEL];
 export const getNodeArchitecture = (node: NodeKind): string =>
   (node?.status?.nodeInfo as { architecture?: string } | undefined)
     ?.architecture ?? '';
+
+export const OCS_CLUSTER_NODE_LABEL_PREFIX = 'cluster.ocs.openshift.io/';
+
+export const isOcsLabeledNode = (node: {
+  labels?: { [key: string]: string };
+}): boolean =>
+  Object.keys(node?.labels || {}).some((key) =>
+    key.startsWith(OCS_CLUSTER_NODE_LABEL_PREFIX)
+  );

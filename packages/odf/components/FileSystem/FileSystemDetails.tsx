@@ -13,7 +13,7 @@ import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 
 type FileSystemDetailsProps = {
   obj: FileSystemKind;

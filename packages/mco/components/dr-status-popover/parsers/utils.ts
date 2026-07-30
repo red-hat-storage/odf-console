@@ -13,6 +13,7 @@ type ProgressionFields = Pick<
   | 'actionStartTime'
   | 'progressionDetails'
   | 'applicationName'
+  | 'dryRun'
 >;
 
 const parseTime = (value?: string): number => {
@@ -84,6 +85,7 @@ export const getProgressionFields = (
     progression: drPlacementControl.status?.progression,
     actionStartTime: drPlacementControl.status?.actionStartTime,
     action: drPlacementControl.spec?.action,
+    dryRun: drPlacementControl.spec?.dryRun,
     progressionDetails: detailMessages.length ? detailMessages : undefined,
     applicationName,
     isDiscoveredApp,

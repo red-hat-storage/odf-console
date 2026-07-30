@@ -19,8 +19,8 @@ import { S3VectorsCommands } from '@odf/shared/s3-vectors';
 import { sortRows } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction } from 'react-i18next';
-import { Link } from 'react-router-dom-v5-compat';
+import { TFunction } from 'i18next';
+import { Link } from 'react-router';
 import {
   ActionsColumn,
   IAction,

@@ -16,11 +16,7 @@ import {
   NodeKind,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  NavigateFunction,
-  useNavigate,
-  useParams,
-} from 'react-router-dom-v5-compat';
+import { NavigateFunction, useNavigate, useParams } from 'react-router';
 import { Form, FormGroup } from '@patternfly/react-core';
 import { FormFooter } from '../common/form-footer';
 import { LocalVolumeDiscoveryBody } from './body';

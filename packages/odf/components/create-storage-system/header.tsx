@@ -30,7 +30,7 @@ export const CreateStorageSystemHeader: React.FC<
             <Trans t={t} values={{ systemNamespace }}>
               Namespace:{' '}
               <span className="pf-v6-u-font-weight-bold">
-                {{ systemNamespace }}
+                {'{{systemNamespace}}'}
               </span>
             </Trans>
           </Content>

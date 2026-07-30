@@ -766,6 +766,14 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~storagecluster/:resourceName/~configureperformanceprofile",
+      "exact": false,
+      "component": { "$codeRef": "configurePerformanceProfile.default" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/object-storage/:providerType/vector-buckets/:vectorBucketName/vector-index/:indexName",
       "exact": false,
       "component": {

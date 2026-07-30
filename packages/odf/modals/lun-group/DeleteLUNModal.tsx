@@ -28,7 +28,7 @@ import {
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import {
   ActionGroup,
   Alert,
@@ -275,11 +275,11 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
               </div>
             ) : deletionStatus === DeletionStatus.BOUNDED ? (
               <div>
-                <Trans t={t}>
+                <Trans t={t} values={{ fsName }}>
                   <p data-test="lun-bound-message">
-                    <strong>{{ fsName }}</strong> cannot be deleted. When a LUN
-                    group is being used by PVCs, it cannot be deleted. Please
-                    delete all PVCs using this LUN group:
+                    <strong>{'{{fsName}}'}</strong> cannot be deleted. When a
+                    LUN group is being used by PVCs, it cannot be deleted.
+                    Please delete all PVCs using this LUN group:
                   </p>
                 </Trans>
                 <strong>
@@ -288,9 +288,9 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
               </div>
             ) : (
               <>
-                <Trans t={t}>
+                <Trans t={t} values={{ fsName }}>
                   <p>
-                    Deleting <strong>{{ fsName }}</strong> will remove the LUN
+                    Deleting <strong>{'{{fsName}}'}</strong> will remove the LUN
                     group along with its associated StorageClass and LocalDisks.
                     All saved data of this LUN group will be removed. Are you
                     sure you want to delete?

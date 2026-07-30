@@ -30,14 +30,9 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { TFunction } from 'i18next';
 import { murmur3 } from 'murmurhash-js';
-import { TFunction } from 'react-i18next';
-import {
-  Link,
-  NavigateFunction,
-  useNavigate,
-  useParams,
-} from 'react-router-dom-v5-compat';
+import { Link, NavigateFunction, useNavigate, useParams } from 'react-router';
 import useSWR, { KeyedMutator } from 'swr';
 import { sortable, ActionsColumn, IAction } from '@patternfly/react-table';
 import { pluralize } from '../../utils';

@@ -68,4 +68,5 @@ type ButtonBarProps = {
   infoMessage?: string;
   inProgress?: boolean;
   className?: string;
+  children?: React.ReactNode;
 };

@@ -9,10 +9,11 @@ import {
   ButtonBar,
   TextInputWithFieldRequirements,
   LocalDiskModel,
+  TechPreviewBadge,
 } from '@odf/shared';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   Form,
   FormGroup,
@@ -26,9 +27,15 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
+  Checkbox,
+  Content,
+  ContentVariants,
 } from '@patternfly/react-core';
 import { useIsLocalClusterConfigured } from '../common/hooks';
-import { NodesSection } from '../common/NodesSection';
+import {
+  IncludeControlPlaneCheckbox,
+  SANNodesSection,
+} from '../common/NodesSection';
 import type { ExternalKMMRegistryConfig } from '../common/payload';
 import {
   configureMetricsNamespaceLabels,
@@ -42,9 +49,8 @@ import {
   createCSIDriver,
   createLocalDisks,
   createLocalFileSystem,
-  createStorageClass,
 } from './payload';
-import { SANSystemComponentState, initialComponentState } from './types';
+import { initialComponentState, SANSystemComponentState } from './types';
 import { useDeviceFinder } from './useDeviceFinder';
 import useSANSystemFormValidation from './useFormValidation';
 import {
@@ -67,6 +73,8 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
   const navigate = useNavigate();
   const [error, setError] = React.useState<string>('');
   const [loading, setLoading] = React.useState(false);
+  const [includeControlPlane, setIncludeControlPlane] = React.useState(false);
+  const [enableStretchCluster, setEnableStretchCluster] = React.useState(false);
 
   const localCluster = useIsLocalClusterConfigured();
   const isLocalClusterConfigured = !_.isEmpty(localCluster);
@@ -193,12 +201,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
       }
       if (lunGroupName && mappedLuns.length > 0) {
         const localDisks = await createLocalDisks(mappedLuns, t);
-        const fileSystem = await createLocalFileSystem(
-          lunGroupName,
-          localDisks,
-          t
-        );
-        await createStorageClass(fileSystem, t);
+        await createLocalFileSystem(lunGroupName, localDisks, t);
       }
       navigate('/odf/external-systems');
     } catch (err) {
@@ -223,29 +226,54 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
   ]);
 
   return (
-    <Form isWidthLimited>
+    <Form>
       <FormSection title={t('General configuration')}>
         <FormGroup label={t('Connection name')} fieldId="connectionName">
           <div data-test="san-connection-name">{t('SAN-based storage')}</div>
         </FormGroup>
-        <ExternalRegistryFormSection
-          control={control}
-          fieldRequirements={fieldRequirements}
-          showImageRegistryFields={showRegistrySection}
-        />
-        <FormGroup label={t('Select local cluster nodes')} isRequired>
-          <NodesSection
+        <div className="pf-v6-u-w-50">
+          <ExternalRegistryFormSection
+            control={control}
+            fieldRequirements={fieldRequirements}
+            showImageRegistryFields={showRegistrySection}
+          />
+        </div>
+        <FormGroup label={t('Local cluster nodes')} isRequired>
+          <Content component={ContentVariants.p}>
+            {t('Select at least 3 nodes for the local cluster.')}
+          </Content>
+          <IncludeControlPlaneCheckbox
+            isChecked={includeControlPlane || enableStretchCluster}
+            isDisabled={
+              isLocalClusterConfigured ||
+              (enableStretchCluster && !includeControlPlane)
+            }
+            onChange={(_event, checked) => setIncludeControlPlane(checked)}
+            className="pf-v6-u-mb-md"
+          />
+          <Checkbox
+            id="stretch-cluster"
+            label={
+              <>
+                {t('Stretch cluster')}
+                <span className="pf-v6-u-ml-sm">
+                  <TechPreviewBadge />
+                </span>
+              </>
+            }
+            isChecked={enableStretchCluster}
+            isDisabled={isLocalClusterConfigured}
+            onChange={(_event, checked) => setEnableStretchCluster(checked)}
+            className="pf-v6-u-mb-md"
+          />
+          <SANNodesSection
             isDisabled={isLocalClusterConfigured}
             selectedNodes={componentState.selectedNodes}
             setSelectedNodes={(nodes) =>
               setComponentState((prev) => ({ ...prev, selectedNodes: nodes }))
             }
-            allNodesDescription={t(
-              'All non control plane nodes are selected to handle requests to IBM Scale'
-            )}
-            selectNodesDescription={t(
-              'Select a minimum of 3 nodes to handle requests to IBM Scale'
-            )}
+            includeControlPlane={includeControlPlane}
+            enableStretchCluster={enableStretchCluster}
           />
         </FormGroup>
       </FormSection>
@@ -269,6 +297,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           formGroupProps={{
             label: t('Name'),
             fieldId: 'lunGroupName',
+            className: 'pf-v6-u-w-50',
           }}
           textInputProps={{
             id: 'lunGroupName',
