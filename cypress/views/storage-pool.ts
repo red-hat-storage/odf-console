@@ -88,7 +88,15 @@ export const checkStoragePoolIsSelectableInSCForm = (poolName: string) => {
   cy.byTestID(poolName).should('be.visible');
 };
 
+export const waitForStoragePoolForm = () => {
+  cy.log('Wait for storage pool form to finish loading');
+  cy.byTestID('storage-pool-body-loading').should('not.exist');
+  cy.byTestID('type-block').should('be.visible');
+  cy.byTestID('type-filesystem').should('be.visible');
+};
+
 export const fillStoragePoolForm = (poolType: PoolType, poolName: string) => {
+  waitForStoragePoolForm();
   cy.byTestID(`type-${poolType.toLowerCase()}`).click();
   cy.byTestID('new-pool-name-textbox').clear();
   cy.byTestID('new-pool-name-textbox').type(poolName);
@@ -165,6 +173,7 @@ export const verifyBlockPoolJSON = (
 
 export const createStoragePool = (poolType: PoolType, poolName: string) => {
   cy.byTestID('item-create', { timeout: 10000 }).should('be.visible').click();
+  waitForStoragePoolForm();
   fillStoragePoolForm(poolType, poolName);
   triggerPoolFormFooterAction('create');
 };
