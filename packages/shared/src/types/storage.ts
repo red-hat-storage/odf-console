@@ -1,4 +1,4 @@
-import { ResourceProfile } from '@odf/core/types';
+import { McgPerformanceProfile, ResourceProfile } from '@odf/core/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 export type ErasureCodedPoolSpec = {
@@ -106,6 +106,7 @@ export type StorageClusterKind = K8sResourceCommon & {
     monDataDirHostPath?: string;
     multiCloudGateway?: {
       reconcileStrategy?: string;
+      performanceProfile?: McgPerformanceProfile;
       dbStorageClassName?: string;
       externalPgConfig?: {
         pgSecretName?: string;
@@ -166,6 +167,9 @@ export type DeviceSet = {
 export type StorageClusterResource = {
   mds?: ResourceConstraints;
   rgw?: ResourceConstraints;
+  'noobaa-core'?: ResourceConstraints;
+  'noobaa-db'?: ResourceConstraints;
+  'noobaa-endpoint'?: ResourceConstraints;
 };
 
 export type ResourceConstraints = {
