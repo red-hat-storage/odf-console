@@ -57,13 +57,16 @@ Cypress.Commands.add('install', () => {
       cy.byTestID('create-wizard-empty-state').should('not.exist');
       cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();
+      // Select the lowest OSD size (512Gi / 0.5 TiB) for CI installs.
+      cy.byTestID('requested-capacity-dropdown').find('button').click();
+      cy.byTestDropDownMenu('0.5 TiB').click();
       cy.get('table').get('input[type="checkbox"]').first().check();
-      // Select Lean performance mode for resource-efficient CI installs.
+      // Select Balanced performance mode.
       cy.get(
         '[aria-label="Select a performance mode from the list"]'
       ).scrollIntoView();
       cy.get('[aria-label="Select a performance mode from the list"]').click();
-      cy.byLegacyTestID('Lean mode').find('button').click();
+      cy.byLegacyTestID('Balanced mode').find('button').click();
       cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();
       cy.get('button')
