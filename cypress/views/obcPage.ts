@@ -33,6 +33,8 @@ export class CreateOBCHandler {
       `Project: ${this.namespace}`
     );
     cy.byTestID('item-create').click();
+    app.waitForLoad();
+    cy.byTestID('obc-name', { timeout: 30000 }).should('be.visible');
     cy.byTestID('obc-name').type(this.name);
     cy.byTestID('loading-indicator').should('not.exist');
     cy.byTestID('sc-dropdown').should('be.visible').click();
@@ -54,8 +56,10 @@ export class CreateOBCHandler {
 
   deleteBucketClaim() {
     obcNavigate.navigateToOBC();
+    app.waitForLoad();
     cy.byTestID('loading-indicator').should('not.exist');
     cy.log('Deleting Object Bucket Claim');
+    listPage.rows.shouldBeLoaded();
     listPage.rows.clickKebabAction(this.name, 'Delete Object Bucket Claim');
     cy.byTestID('delete-action').click();
   }
