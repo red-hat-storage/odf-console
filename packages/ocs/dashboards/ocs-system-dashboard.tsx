@@ -47,6 +47,7 @@ import RawCapacityCard from './persistent-internal/raw-capacity-card/raw-capacit
 import { default as StatusCard } from './persistent-internal/status-card/status-card';
 import storageEfficiencyCard from './persistent-internal/storage-efficiency-card/storage-efficiency-card';
 import UtilizationCard from './persistent-internal/utilization-card/utilization-card';
+import VolumeHealthCard from './persistent-internal/volume-health-card/volume-health-card';
 
 const convertToCard = (Card: React.ComponentType): OverviewGridCard => ({
   Card,
@@ -86,6 +87,7 @@ const PersistentInternalDashboard: React.FC = () => {
     RawCapacityCard,
     CapacityTrendCard,
     BreakdownCard,
+    VolumeHealthCard,
     PoolUtilizationCard,
     CephFSSubvolumeCard,
     UtilizationCard,
@@ -110,6 +112,7 @@ const PersistentExternalDashboard: React.FC = () => {
   const mainCards: React.ComponentType[] = [
     ExtStatusCard,
     ExtBreakdownCard,
+    VolumeHealthCard,
     ExtUtilizationCard,
   ];
   const leftCards: React.ComponentType[] = [ExtDetailsCard, InventoryCard];
