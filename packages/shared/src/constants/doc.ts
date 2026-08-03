@@ -48,3 +48,7 @@ export const tnfHomePage = (odfDocVersion: string): string =>
 
 export const scalingStorageDoc = (odfDocVersion: string): string =>
   `${odfDocBasePath(odfDocVersion)}/scaling_storage/index`;
+export const iamUserDoc = (odfDocVersion: string): string =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/managing_hybrid_and_multicloud_resources/index#creating_and_managing_iam_user`;

@@ -95,14 +95,18 @@ export const CreateUserFormContent = () => {
       });
 
       const allTags: KeyValuePair[] = [...pairsArg];
-      allTags.push({
-        Key: accessKeyResponse.AccessKey.AccessKeyId,
-        Value: descriptionTagValueArg,
-      });
-      await iamClient.tagUser({
-        UserName: userNameArg,
-        Tags: allTags,
-      });
+      if (descriptionTagValueArg.trim() && accessKeyResponse.AccessKey) {
+        allTags.push({
+          Key: accessKeyResponse.AccessKey.AccessKeyId,
+          Value: descriptionTagValueArg.trim(),
+        });
+      }
+      if (allTags.length > 0) {
+        await iamClient.tagUser({
+          UserName: userNameArg,
+          Tags: allTags,
+        });
+      }
 
       await iamClient.putUserPolicy({
         UserName: userNameArg,
@@ -272,7 +276,11 @@ export const CreateUserFormContent = () => {
               }}
             />
 
-            <AddKeyValuePairs pairs={pairs} setPairs={setPairs} />
+            <AddKeyValuePairs
+              pairs={pairs}
+              setPairs={setPairs}
+              descriptionTagValue={descriptionTagValue}
+            />
 
             <FormGroup>
               <label className="pf-v6-u-pt-sm">
