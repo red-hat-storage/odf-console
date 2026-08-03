@@ -4,6 +4,7 @@ import { ReplicationType, STORAGE_ID_LABEL_KEY } from '@odf/mco/constants';
 import { getDRPolicyResourceObj, useACMSafeFetch } from '@odf/mco/hooks';
 import {
   DRPolicyKind,
+  ManagedClusterInfoType,
   MirrorPeerKind,
   SearchResult,
   SearchResultItemType,
@@ -35,13 +36,9 @@ import {
   ContentVariants,
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
-import {
-  DRPolicyAction,
-  DRPolicyActionType,
-  ManagedClusterInfoType,
-} from './utils/reducer';
-import './create-dr-policy.scss';
-import '../../style.scss';
+import { DRPolicyAction, DRPolicyActionType } from '../../utils/reducer';
+import '../../create-dr-policy.scss';
+import '../../../../style.scss';
 
 const PROVISIONER = 'provisioner';
 const EXTERNAL_DEPLOYMENT_TYPE = 'external';
@@ -87,7 +84,7 @@ const validateClusterSelection = (
 ): ValidationType => {
   // Third-party storage path: all clusters lack ODF.
   // ODF-specific checks (version, cephFSID, storage class provisioners)
-  // do not apply — replication is managed by the external storage provider.
+  // do not apply; replication is managed by the external storage provider.
   const isThirdPartyPath = clusters.every(
     (cluster) =>
       !cluster?.odfInfo || cluster?.odfInfo?.storageClusterCount === 0
@@ -229,7 +226,7 @@ const ClusterValidationMessage: React.FC<ClusterValidationMessageProps> = ({
       {isClusterWithoutODF ? (
         <Alert
           data-test="odf-not-found-alert"
-          className="odf-alert mco-create-data-policy__alert"
+          className="odf-alert mco-create-data-policy__alert pf-v6-u-mb-xs"
           title={t(
             'We could not retrieve any information about the managed cluster {{clusterName}}',
             { clusterName }
@@ -241,7 +238,7 @@ const ClusterValidationMessage: React.FC<ClusterValidationMessageProps> = ({
         errorMessages.map((errorMessage, index) => (
           <StatusIconAndText
             className="pf-v6-u-ml-sm"
-            icon={<TimesIcon color="var(--pf-global--danger-color--100)" />}
+            icon={<TimesIcon className="pf-v6-u-icon-color-status-danger" />}
             title={errorMessage}
             key={`${clusterName}-error-${index}`}
           />
@@ -260,7 +257,7 @@ const PeeringValidationMessage: React.FC<PeeringValidationMessageProps> = ({
   return (
     <Alert
       data-test="odf-not-found-alert"
-      className="odf-alert mco-create-data-policy__alert"
+      className="odf-alert mco-create-data-policy__alert pf-v6-u-mb-xs"
       title={peeringValidationMessage.title}
       variant={AlertVariant.danger}
       isInline
@@ -288,6 +285,8 @@ const fetchProvisionerIfMissing = async (
   return viewResponse;
 };
 
+type ClusterSCMapEntry = { clusterName: string; scString: string };
+
 // Build cluster-to-SC map with provisioner validation
 export const getClusterToSCMap = async (
   searchResult: SearchResult,
@@ -299,9 +298,10 @@ export const getClusterToSCMap = async (
 
   if (searchLoaded && !searchError) {
     const allSCs =
-      searchResult.data.searchResult?.flatMap((result) => result.items) || [];
-    const provisionerResults = await Promise.all(
-      allSCs.map(async (sc) => {
+      searchResult?.data?.searchResult?.flatMap((result) => result?.items) ||
+      [];
+    const provisionerResults = await Promise.allSettled(
+      allSCs.map(async (sc): Promise<ClusterSCMapEntry | null> => {
         const clusterName = sc.cluster;
         let provisioner: string = sc?.[PROVISIONER] ?? '';
 
@@ -324,22 +324,23 @@ export const getClusterToSCMap = async (
           const scString = formatStorageClassString(sc.name, provisioner);
 
           return { clusterName, scString };
-        } else {
-          // eslint-disable-next-line no-console
-          console.warn(`Skipping invalid provisioner: ${provisioner}`);
-          return null; // Return null for skipped ones
         }
+        // eslint-disable-next-line no-console
+        console.warn(`Skipping invalid provisioner: ${provisioner}`);
+        return null;
       })
     );
 
-    // Populate the map from the results
-    provisionerResults
-      .filter(Boolean) // Remove null entries from invalid provisioners
-      .forEach(({ clusterName, scString }) => {
-        const existingSCs = clusterToSCMap.get(clusterName) ?? [];
-        existingSCs.push(scString);
-        clusterToSCMap.set(clusterName, existingSCs);
-      });
+    // Populate the map from fulfilled results; one SC failure must not discard others.
+    provisionerResults.forEach((result) => {
+      if (result.status !== 'fulfilled' || !result.value) {
+        return;
+      }
+      const { clusterName, scString } = result.value;
+      const existingSCs = clusterToSCMap.get(clusterName) ?? [];
+      existingSCs.push(scString);
+      clusterToSCMap.set(clusterName, existingSCs);
+    });
   }
 
   return clusterToSCMap;
@@ -394,6 +395,7 @@ const useStorageClassValidation = (
   React.useEffect(() => {
     if (!allExternal) {
       setCompleted(false);
+      setClusterSCMapError(null);
       if (searchLoaded && !searchError) {
         getClusterToSCMap(searchResult, searchLoaded, searchError, t)
           .then((clusterToSCMap) => {
@@ -413,6 +415,7 @@ const useStorageClassValidation = (
       }
     } else {
       // Ignore validation for external clusters
+      setClusterSCMapError(null);
       setResult(true);
       setCompleted(true);
     }
@@ -523,7 +526,7 @@ export const SelectedClusterValidation: React.FC<
         <>
           <Alert
             data-test="odf-not-found-alert"
-            className="odf-alert mco-create-data-policy__alert"
+            className="odf-alert mco-create-data-policy__alert pf-v6-u-mb-xs"
             title={t(
               'All disaster recovery prerequisites met for both clusters.'
             )}
@@ -533,7 +536,7 @@ export const SelectedClusterValidation: React.FC<
           {isVersionMismatch && (
             <Alert
               data-test="odf-not-found-alert"
-              className="odf-alert mco-create-data-policy__alert"
+              className="odf-alert mco-create-data-policy__alert pf-v6-u-mb-xs"
               title={t('Version mismatch across selected clusters')}
               variant={AlertVariant.warning}
               isInline
@@ -550,7 +553,7 @@ export const SelectedClusterValidation: React.FC<
         <>
           <Alert
             data-test="odf-not-found-alert"
-            className="odf-alert mco-create-data-policy__alert"
+            className="odf-alert mco-create-data-policy__alert pf-v6-u-mb-xs"
             title={t(
               '1 or more clusters do not meet disaster recovery cluster prerequisites.'
             )}

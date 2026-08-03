@@ -32,7 +32,11 @@ import {
 } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getStorageAutoScalerName, isNotFoundError } from '@odf/shared/utils';
+import {
+  getStorageAutoScalerName,
+  isNotFoundError,
+  isValidCIDRFormat,
+} from '@odf/shared/utils';
 import {
   k8sDelete,
   K8sResourceCommon,
@@ -48,7 +52,6 @@ import {
   VolumeTypeValidation,
 } from '../../types';
 import { createClusterKmsResources } from '../kms-config/utils';
-import { isValidCIDRFormat } from '../utils/cidr-utils';
 import './create-storage-system.scss';
 import {
   createNoobaaExternalPostgresResources,

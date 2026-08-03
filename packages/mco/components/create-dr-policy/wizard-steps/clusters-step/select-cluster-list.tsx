@@ -36,22 +36,22 @@ import {
   BackendType,
   MCO_CREATED_BY_LABEL_KEY,
   MCO_CREATED_BY_MC_CONTROLLER,
-} from '../../constants';
-import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
+} from '../../../../constants';
+import {
+  ACMManagedClusterKind,
+  ACMManagedClusterViewKind,
+  ManagedClusterInfoType,
+} from '../../../../types';
+import { getManagedClusterInfoTypes } from '../../../../utils/managed-cluster-info';
+import { DRPolicyAction, DRPolicyActionType } from '../../utils/reducer';
 import {
   ClusterListColumns,
   COUNT_PER_PAGE_NUMBER,
   getColumnHelper,
   getColumns,
-  getManagedClusterInfoTypes,
   INITIAL_PAGE_NUMBER,
   isRowSelectable,
-} from './utils/cluster-list-utils';
-import {
-  DRPolicyAction,
-  DRPolicyActionType,
-  ManagedClusterInfoType,
-} from './utils/reducer';
+} from './cluster-list-columns';
 
 const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
   row: cluster,
@@ -233,6 +233,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   dispatch,
   preSelectedClusterNames = [],
   showOnlyPreselected = false,
+  onSelectedClustersChange,
 }) => {
   const [managedClusters, loaded, loadError] = useK8sWatchResource<
     ACMManagedClusterKind[]
@@ -296,6 +297,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
 
   const onChange = React.useCallback(
     (selectedClusterList: ManagedClusterInfoType[]) => {
+      onSelectedClustersChange?.();
       dispatch({
         type: DRPolicyActionType.SET_SELECTED_CLUSTERS,
         payload: selectedClusterList,
@@ -329,7 +331,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
         });
       }
     },
-    [dispatch]
+    [dispatch, onSelectedClustersChange]
   );
 
   // Handle pre-selection from topology view
@@ -358,7 +360,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       selectedClusters={selectedClusters}
       clusters={clusters}
       isLoaded={clustersLoaded}
-      error={loadError}
+      error={anyError}
       onChange={onChange}
     />
   );
@@ -374,6 +376,7 @@ type SelectClusterListProps = {
    * Used in modal view to limit cluster selection
    */
   showOnlyPreselected?: boolean;
+  onSelectedClustersChange?: () => void;
 };
 
 type PaginatedClusterTableProps = {
