@@ -1,27 +1,18 @@
 import * as React from 'react';
-import { parseSyncInterval } from '@odf/mco/utils';
+import { ManagedClusterInfoType } from '@odf/mco/types';
+import { normalizeSyncTimeValue, parseSyncInterval } from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
 import { FormGroup, SelectOption } from '@patternfly/react-core';
 import {
+  MIN_VALUE,
   ReplicationType,
   REPLICATION_DISPLAY_TEXT,
   SYNC_SCHEDULE_DISPLAY_TEXT,
-} from '../../constants';
-import {
-  DRPolicyAction,
-  DRPolicyActionType,
-  ManagedClusterInfoType,
-} from './utils/reducer';
-import './create-dr-policy.scss';
-
-export const MIN_VALUE = 0;
-
-export const normalizeSyncTimeValue = (value: number) => {
-  const syncTimeValue = isNaN(Number(value)) ? MIN_VALUE : Number(value);
-  return syncTimeValue < MIN_VALUE ? MIN_VALUE : syncTimeValue;
-};
+} from '../../../../constants';
+import { DRPolicyAction, DRPolicyActionType } from '../../utils/reducer';
+import '../../create-dr-policy.scss';
 
 const SyncSchedule: React.FC<SyncScheduleProps> = ({
   syncIntervalTime,

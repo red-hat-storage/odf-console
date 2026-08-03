@@ -34,11 +34,15 @@ export const APPLICATION_TYPE_DISPLAY_TEXT = (
   [DRApplication.DISCOVERED]: t('Discovered'),
 });
 
-// Condition types
+// ACM ManagedCluster / ManagedClusterView / ManagedClusterAction condition name constants
 export const MANAGED_CLUSTER_CONDITION_AVAILABLE =
   'ManagedClusterConditionAvailable';
 export const MANAGED_CLUSTER_JOINED = 'ManagedClusterJoined';
 export const MANAGED_CLUSTER_VIEW_PROCESSING = 'Processing';
+export const MANAGED_CLUSTER_VIEW_REASON_GET_RESOURCE_PROCESSING =
+  'GetResourceProcessing';
+export const MANAGED_CLUSTER_ACTION_COMPLETED = 'Completed';
+export const MANAGED_CLUSTER_ACTION_REASON_ACTION_DONE = 'ActionDone';
 
 // Search result labels
 export const LABEL = 'label';

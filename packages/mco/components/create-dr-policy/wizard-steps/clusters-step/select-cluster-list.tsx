@@ -36,22 +36,22 @@ import {
   BackendType,
   MCO_CREATED_BY_LABEL_KEY,
   MCO_CREATED_BY_MC_CONTROLLER,
-} from '../../constants';
-import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
+} from '../../../../constants';
+import {
+  ACMManagedClusterKind,
+  ACMManagedClusterViewKind,
+  ManagedClusterInfoType,
+} from '../../../../types';
+import { getManagedClusterInfoTypes } from '../../../../utils/managed-cluster-info';
+import { DRPolicyAction, DRPolicyActionType } from '../../utils/reducer';
 import {
   ClusterListColumns,
   COUNT_PER_PAGE_NUMBER,
   getColumnHelper,
   getColumns,
-  getManagedClusterInfoTypes,
   INITIAL_PAGE_NUMBER,
   isRowSelectable,
-} from './utils/cluster-list-utils';
-import {
-  DRPolicyAction,
-  DRPolicyActionType,
-  ManagedClusterInfoType,
-} from './utils/reducer';
+} from './cluster-list-columns';
 
 const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
   row: cluster,
@@ -306,7 +306,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
           (cluster) => cluster?.odfInfo?.isValidODFVersion
         );
         dispatch({
-          type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
+          type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_VALID_ODF,
           payload: doClustersHaveODF,
         });
 
@@ -324,7 +324,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
         });
 
         dispatch({
-          type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
+          type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_VALID_ODF,
           payload: false,
         });
       }
@@ -358,7 +358,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       selectedClusters={selectedClusters}
       clusters={clusters}
       isLoaded={clustersLoaded}
-      error={loadError}
+      error={anyError}
       onChange={onChange}
     />
   );
