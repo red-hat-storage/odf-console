@@ -16,6 +16,7 @@ import {
   CardBody,
   DescriptionList,
 } from '@patternfly/react-core';
+
 const CRON_TO_LABEL: Record<string, string> = {
   '0 0 * * *': 'Daily',
   '0 0 * * 6': 'Weekly',
