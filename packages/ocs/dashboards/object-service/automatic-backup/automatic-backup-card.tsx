@@ -16,6 +16,11 @@ import {
   CardBody,
   DescriptionList,
 } from '@patternfly/react-core';
+const CRON_TO_LABEL: Record<string, string> = {
+  '0 0 * * *': 'Daily',
+  '0 0 * * 6': 'Weekly',
+  '0 0 1-7 * 6': 'Monthly',
+};
 
 const storageClusterResource = {
   kind: referenceForModel(StorageClusterModel),
@@ -49,7 +54,7 @@ const AutomaticBackupCard: React.FC = () => {
               isLoading={!ocsLoaded}
               error={ocsError}
             >
-              {dbBackup.schedule}
+              {t(CRON_TO_LABEL[dbBackup.schedule] || dbBackup.schedule)}
             </DetailItem>
 
             <DetailItem
