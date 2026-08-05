@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { CRON_MAP } from '@odf/core/components/create-storage-system/create-storage-system-steps/optional-settings-step/automatic-backup/automatic-backup';
 import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import {
@@ -17,11 +18,13 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 
-const CRON_TO_LABEL: Record<string, string> = {
-  '0 0 * * *': 'Daily',
-  '0 0 * * 6': 'Weekly',
-  '0 0 1-7 * 6': 'Monthly',
-};
+const CRON_TO_LABEL: Record<string, string> = Object.entries(CRON_MAP).reduce(
+  (acc, [key, value]) => {
+    acc[value] = key.charAt(0).toUpperCase() + key.slice(1);
+    return acc;
+  },
+  {} as Record<string, string>
+);
 
 const storageClusterResource = {
   kind: referenceForModel(StorageClusterModel),
