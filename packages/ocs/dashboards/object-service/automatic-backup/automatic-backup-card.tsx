@@ -20,7 +20,9 @@ import {
 
 const getReadableSchedule = (schedule: string): string => {
   const match = Object.entries(CRON_MAP).find(([, cron]) => cron === schedule);
-  return match ? match[0].charAt(0).toUpperCase() + match[0].slice(1) : schedule;
+  return match
+    ? match[0].charAt(0).toUpperCase() + match[0].slice(1)
+    : schedule;
 };
 
 const storageClusterResource = {
