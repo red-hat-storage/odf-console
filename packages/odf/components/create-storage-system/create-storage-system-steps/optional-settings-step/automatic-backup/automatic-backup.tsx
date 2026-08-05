@@ -19,7 +19,7 @@ import {
 import { QuestionCircleIcon } from '@patternfly/react-icons';
 import { WizardDispatch, WizardState } from '../../../reducer';
 
-export enum CronTime {
+enum CronTime {
   DAILY = 'daily',
   WEEKLY = 'weekly',
   MONTHLY = 'monthly',

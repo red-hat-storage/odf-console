@@ -18,13 +18,10 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 
-const CRON_TO_LABEL: Record<string, string> = Object.entries(CRON_MAP).reduce(
-  (acc, [key, value]) => {
-    acc[value] = key.charAt(0).toUpperCase() + key.slice(1);
-    return acc;
-  },
-  {} as Record<string, string>
-);
+const getReadableSchedule = (schedule: string): string => {
+  const match = Object.entries(CRON_MAP).find(([, cron]) => cron === schedule);
+  return match ? match[0].charAt(0).toUpperCase() + match[0].slice(1) : schedule;
+};
 
 const storageClusterResource = {
   kind: referenceForModel(StorageClusterModel),
@@ -58,7 +55,7 @@ const AutomaticBackupCard: React.FC = () => {
               isLoading={!ocsLoaded}
               error={ocsError}
             >
-              {t(CRON_TO_LABEL[dbBackup.schedule] || dbBackup.schedule)}
+              {t(getReadableSchedule(dbBackup.schedule))}
             </DetailItem>
 
             <DetailItem
