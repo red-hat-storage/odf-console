@@ -28,8 +28,8 @@ import {
 } from '@patternfly/react-core';
 import { NodesTable } from '../../../nodes-table/NodesTable';
 import { WizardNodeState } from '../../reducer';
-import { SelectLocalClusterNodesTable } from '../../select-nodes-table/select-local-cluster-nodes-table';
 import { KernelDevelEligibility } from '../CreateScaleSystem/types';
+import { SelectLocalClusterNodesTable } from './select-local-cluster-nodes-table/select-local-cluster-nodes-table';
 
 type IncludeControlPlaneCheckboxProps = {
   isChecked: boolean;
@@ -264,10 +264,17 @@ export const SANNodesSection: React.FC<SANNodesSectionProps> = React.memo(
     const onNodeSelect = React.useCallback(
       (nodes: NodeData[]) => {
         setSelectedNodes(
-          createWizardNodeState(nodes, { enableStretchCluster })
+          createWizardNodeState(nodes, { enableStretchCluster }).map((node) => {
+            const previousRole = selectedNodes.find(
+              (n) => n.name === node.name
+            )?.localClusterRole;
+            return previousRole && node.localClusterRole !== NodeType.ARBITER
+              ? { ...node, localClusterRole: previousRole }
+              : node;
+          })
         );
       },
-      [enableStretchCluster, setSelectedNodes]
+      [enableStretchCluster, setSelectedNodes, selectedNodes]
     );
 
     const onLocalClusterRoleChange = React.useCallback(
