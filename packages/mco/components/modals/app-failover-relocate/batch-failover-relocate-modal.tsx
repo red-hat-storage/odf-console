@@ -7,6 +7,7 @@ import {
 } from '@odf/shared/modals/Modal';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getErrorMessage } from '@odf/shared/utils';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { chunk } from 'lodash-es';
@@ -28,9 +29,14 @@ import { getPrimaryClusterName } from '../../../utils';
 
 const BATCH_SIZE = 6;
 
+export type FailedDRPCItem = {
+  drpc: DRPlacementControlKind;
+  errorMessage: string;
+};
+
 export type BatchFailureResult = {
   action: DRActionType;
-  failedDRPCs: DRPlacementControlKind[];
+  failedItems: FailedDRPCItem[];
   totalCount: number;
 };
 
@@ -84,7 +90,7 @@ export const BatchFailoverRelocateModal: React.FC<
     setShowProgress(true);
     setCompletedCount(0);
 
-    const failedDRPCs: DRPlacementControlKind[] = [];
+    const failedItems: FailedDRPCItem[] = [];
     const batches = chunk(selectedDRPCs, BATCH_SIZE);
 
     for (const batch of batches) {
@@ -101,8 +107,11 @@ export const BatchFailoverRelocateModal: React.FC<
             },
             data: buildDRPCPatch(drpc, selectedAction),
           })
-            .catch(() => {
-              failedDRPCs.push(drpc);
+            .catch((error) => {
+              failedItems.push({
+                drpc,
+                errorMessage: getErrorMessage(error) || t('Unknown error'),
+              });
             })
             .finally(() => {
               setCompletedCount((prev) => prev + 1);
@@ -111,10 +120,10 @@ export const BatchFailoverRelocateModal: React.FC<
       );
     }
 
-    if (failedDRPCs.length > 0) {
+    if (failedItems.length > 0) {
       onPartialFailure({
         action: selectedAction,
-        failedDRPCs,
+        failedItems,
         totalCount,
       });
     }
@@ -147,7 +156,7 @@ export const BatchFailoverRelocateModal: React.FC<
     },
   ];
 
-  if (showProgress) {
+  if (showProgress && selectedAction) {
     const { label, request } = actionLabels[selectedAction];
     return (
       <Modal
