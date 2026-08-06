@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getDiscoveredDeviceKey } from '@odf/core/components/utils';
 import { NodeType } from '@odf/core/constants';
 import {
   DiscoveredDevice,
@@ -42,15 +43,22 @@ const getSharedDiscoveredDevicesRepresentatives = (
   const grouped: Record<string, DiscoveredDevice[]> = {};
 
   for (const dd of discovered) {
-    if (!grouped[dd.WWN]) {
-      grouped[dd.WWN] = [];
+    const key = getDiscoveredDeviceKey(dd);
+    if (key) {
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(dd);
     }
-    grouped[dd.WWN].push(dd);
   }
 
-  const sharedGroups = Object.entries(grouped).filter(
-    ([, dds]) => Array.isArray(dds) && dds.length === allNodes.length
-  ) as [string, DiscoveredDevice[]][];
+  const sharedGroups = Object.entries(grouped).filter(([, dds]) => {
+    if (!Array.isArray(dds) || dds.length === 0) {
+      return false;
+    }
+    const uniqueNodes = new Set(dds.map((dd) => dd.nodeName));
+    return uniqueNodes.size === allNodes.length;
+  }) as [string, DiscoveredDevice[]][];
 
   return sharedGroups.map(([, dds]) => dds[0]);
 };
