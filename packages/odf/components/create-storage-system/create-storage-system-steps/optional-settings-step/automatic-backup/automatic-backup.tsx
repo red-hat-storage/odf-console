@@ -25,7 +25,7 @@ enum CronTime {
   MONTHLY = 'monthly',
 }
 
-const CRON_MAP: Record<CronTime, string> = {
+export const CRON_MAP: Record<CronTime, string> = {
   [CronTime.DAILY]: '0 0 * * *', // Every day at 12:00 AM
   [CronTime.WEEKLY]: '0 0 * * 6', // Every Saturday at 12:00 AM
   [CronTime.MONTHLY]: '0 0 1-7 * 6', // First Saturday of each month at 12:00 AM

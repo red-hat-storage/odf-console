@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { CRON_MAP } from '@odf/core/components/create-storage-system/create-storage-system-steps/optional-settings-step/automatic-backup/automatic-backup';
 import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import {
@@ -16,6 +17,13 @@ import {
   CardBody,
   DescriptionList,
 } from '@patternfly/react-core';
+
+const getReadableSchedule = (schedule: string): string => {
+  const match = Object.entries(CRON_MAP).find(([, cron]) => cron === schedule);
+  return match
+    ? match[0].charAt(0).toUpperCase() + match[0].slice(1)
+    : schedule;
+};
 
 const storageClusterResource = {
   kind: referenceForModel(StorageClusterModel),
@@ -49,7 +57,7 @@ const AutomaticBackupCard: React.FC = () => {
               isLoading={!ocsLoaded}
               error={ocsError}
             >
-              {dbBackup.schedule}
+              {t(getReadableSchedule(dbBackup.schedule))}
             </DetailItem>
 
             <DetailItem
