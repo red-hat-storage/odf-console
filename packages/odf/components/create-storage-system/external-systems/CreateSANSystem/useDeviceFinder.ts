@@ -13,13 +13,28 @@ import { WizardNodeState } from '../../reducer';
 
 const DEVICE_FINDER_ENDPOINT = `${UX_BACKEND_PROXY_ROOT_PATH}/cnsa/devicefinder`;
 
-const initiateDeviceFinder = async () => {
+// Starts devicefinder on disk-node hostnames only.
+const initiateDeviceFinder = async (selectedHostnames: string[]) => {
   await consoleFetch(DEVICE_FINDER_ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify({
+      nodeSelector: {
+        nodeSelectorTerms: [
+          {
+            matchExpressions: [
+              {
+                key: 'kubernetes.io/hostname',
+                operator: 'In',
+                values: selectedHostnames,
+              },
+            ],
+          },
+        ],
+      },
+    }),
   });
 };
 
@@ -71,6 +86,9 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
   const [deviceFinderLoading, setDeviceFinderLoading] = React.useState(true);
 
   const memoizedSelectedNodes = useDeepCompareMemoize(selectedNodes, true);
+  const discoveryStartedRef = React.useRef(false);
+  const [pollingEnabled, setPollingEnabled] = React.useState(false);
+
   React.useEffect(() => {
     // LUN discovery runs on disk nodes only.
     const diskNodes =
@@ -86,8 +104,20 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
         diskNodes
           ?.map((node) => node.labels?.['kubernetes.io/hostname'])
           .filter(Boolean) || [];
-      // Call devicefinder with a PUT request to update selected hostnames
       if (selectedHostnames.length > 0) {
+        if (!discoveryStartedRef.current) {
+          discoveryStartedRef.current = true;
+          initiateDeviceFinder(selectedHostnames)
+            .then(() => setPollingEnabled(true))
+            .catch((error) => {
+              discoveryStartedRef.current = false;
+              setDeviceFinderError(error as Error);
+              setDeviceFinderLoading(false);
+            });
+          return;
+        }
+
+        // Call devicefinder with a PUT request to update selected hostnames
         const payload = {
           nodeSelector: {
             nodeSelectorTerms: [
@@ -115,6 +145,7 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
         });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedSelectedNodes]);
 
   // NEW: expose shared devices
@@ -124,54 +155,41 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
 
   // Initialize device finder and wait for completion before starting polling
   React.useEffect(() => {
+    if (!pollingEnabled) {
+      return;
+    }
+
     let intervalId: NodeJS.Timeout | null = null;
     let isMounted = true;
 
-    const init = async () => {
+    const fetchDeviceFinder = async () => {
       try {
-        await initiateDeviceFinder();
+        const response = await consoleFetch(DEVICE_FINDER_ENDPOINT);
+        const data = await response.json();
+        if (isMounted) {
+          setDeviceFinderResponse(data);
+
+          const shared = getSharedDiscoveredDevicesRepresentatives(data);
+          setSharedDevices(shared);
+        }
       } catch (error) {
         if (isMounted) {
           setDeviceFinderError(error as Error);
+        }
+      } finally {
+        if (isMounted) {
           setDeviceFinderLoading(false);
         }
-        return;
       }
-
-      if (!isMounted) return;
-
-      // Start polling after successful initialization
-      const fetchDeviceFinder = async () => {
-        try {
-          const response = await consoleFetch(DEVICE_FINDER_ENDPOINT);
-          const data = await response.json();
-          if (isMounted) {
-            setDeviceFinderResponse(data);
-
-            const shared = getSharedDiscoveredDevicesRepresentatives(data);
-            setSharedDevices(shared);
-          }
-        } catch (error) {
-          if (isMounted) {
-            setDeviceFinderError(error as Error);
-          }
-        } finally {
-          if (isMounted) {
-            setDeviceFinderLoading(false);
-          }
-        }
-      };
-
-      // Fetch immediately after initialization
-      fetchDeviceFinder();
-
-      // Then set up interval for subsequent polls
-      intervalId = setInterval(() => {
-        fetchDeviceFinder();
-      }, 5000);
     };
 
-    init();
+    // Fetch immediately after initialization
+    fetchDeviceFinder();
+
+    // Then set up interval for subsequent polls
+    intervalId = setInterval(() => {
+      fetchDeviceFinder();
+    }, 5000);
 
     return () => {
       isMounted = false;
@@ -179,7 +197,7 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
         clearInterval(intervalId);
       }
     };
-  }, []);
+  }, [pollingEnabled]);
 
   return {
     deviceFinderResponse,
