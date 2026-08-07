@@ -15,11 +15,13 @@ import { KeyValuePair } from '../../../types/s3-iam';
 export type AddKeyValuePairsProps = {
   pairs: KeyValuePair[];
   setPairs: React.Dispatch<React.SetStateAction<KeyValuePair[]>>;
+  descriptionTagValue?: string;
 };
 
 export const AddKeyValuePairs: React.FC<AddKeyValuePairsProps> = ({
   pairs,
   setPairs,
+  descriptionTagValue = '',
 }) => {
   const { t } = useCustomTranslation();
 
@@ -49,9 +51,9 @@ export const AddKeyValuePairs: React.FC<AddKeyValuePairsProps> = ({
     setPairs([]);
   }, [setPairs]);
 
-  // Count valid tags (non-empty keys)
-  const numberOfTagsAdded = pairs?.length;
-  const remainingTags = MAX_TAGS - numberOfTagsAdded;
+  // Description tag counts toward the IAM tag limit when present
+  const descriptionTagCount = descriptionTagValue.trim() ? 1 : 0;
+  const remainingTags = MAX_TAGS - pairs.length - descriptionTagCount;
 
   return (
     <div>
@@ -88,6 +90,7 @@ export const AddKeyValuePairs: React.FC<AddKeyValuePairsProps> = ({
           secrets={{}}
           addConfigMapSecret={false}
           alwaysAllowRemove={true}
+          isAddDisabled={remainingTags <= 0}
         />
       </FormGroup>
       <Divider className="pf-v6-u-mt-2xl" />
