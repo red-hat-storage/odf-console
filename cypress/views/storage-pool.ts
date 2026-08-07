@@ -4,7 +4,7 @@ import {
   PoolProgress,
   PoolType,
 } from '../constants/storage-pool-const';
-import { SECOND, STORAGE_SYSTEM_NAME } from '../consts';
+import { SECOND } from '../consts';
 import { NS } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
 import { modal } from './modals';
@@ -32,10 +32,7 @@ export const poolMessage = (
 };
 
 export const navigateToStoragePoolList = () => {
-  ODFCommon.visitStorageDashboard();
-  cy.byLegacyTestID('horizontal-link-Storage Systems').click();
-  cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
-  cy.byTestRows('resource-row').get('td a').first().click();
+  ODFCommon.visitStorageCluster();
   cy.byTestID('horizontal-link-Storage pools').click();
 };
 
