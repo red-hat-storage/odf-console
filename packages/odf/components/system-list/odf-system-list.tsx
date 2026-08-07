@@ -296,9 +296,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
         value: t('Configure performance'),
         component: React.lazy(
           () =>
-            import(
-              '@odf/core/modals/configure-performance/configure-performance-modal'
-            )
+            import('@odf/core/modals/configure-performance/configure-performance-modal')
         ),
       }
     );
@@ -316,9 +314,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
       value: t('Automatic capacity scaling'),
       component: React.lazy(
         () =>
-          import(
-            '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal'
-          )
+          import('@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal')
       ),
     });
   }
