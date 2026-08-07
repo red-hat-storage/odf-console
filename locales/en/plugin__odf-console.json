@@ -594,6 +594,7 @@
   "Cluster: {{clusters}}": "Cluster: {{clusters}}",
   "Clusters": "Clusters",
   "Clusters:": "Clusters:",
+  "Collapse all": "Collapse all",
   "Complete": "Complete",
   "Completed": "Completed",
   "Completion time: {{totalTimeElapsed}}": "Completion time: {{totalTimeElapsed}}",

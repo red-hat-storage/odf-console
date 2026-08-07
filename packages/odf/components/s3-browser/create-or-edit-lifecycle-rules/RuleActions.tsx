@@ -547,14 +547,21 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const [expanded, setExpanded] = React.useState<Actions>(null);
+  // All accordions open by default
+  const [expanded, setExpanded] = React.useState<Set<Actions>>(
+    () => new Set(Object.values(Actions))
+  );
 
   const onToggle = (id: Actions) => {
-    if (id === expanded) {
-      setExpanded(null);
-    } else {
-      setExpanded(id);
-    }
+    setExpanded((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   };
 
   const validate = state.triggerInlineValidations;
@@ -587,6 +594,14 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
             <strong>{'{{actionsCount}}'} lifecycle rules.</strong>
           </Trans>
         </Content>
+        <Button
+          variant={ButtonVariant.link}
+          isInline
+          onClick={() => setExpanded(new Set())}
+          className="pf-v6-u-font-size-sm"
+        >
+          {t('Collapse all')}
+        </Button>
       </Content>
       {validate && invalidActionsCount && (
         <Alert
@@ -599,7 +614,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
       )}
 
       <Accordion togglePosition="start" className="s3-lifecycle--margin">
-        <AccordionItem isExpanded={expanded === Actions.CURRENT_OBJECTS}>
+        <AccordionItem isExpanded={expanded.has(Actions.CURRENT_OBJECTS)}>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.CURRENT_OBJECTS);
@@ -644,7 +659,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded === Actions.NONCURRENT_OBJECTS}>
+        <AccordionItem isExpanded={expanded.has(Actions.NONCURRENT_OBJECTS)}>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.NONCURRENT_OBJECTS);
@@ -691,7 +706,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded === Actions.INCOMPLETE_UPLOADS}>
+        <AccordionItem isExpanded={expanded.has(Actions.INCOMPLETE_UPLOADS)}>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.INCOMPLETE_UPLOADS);
@@ -738,7 +753,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded === Actions.EXPIRED_MARKERS}>
+        <AccordionItem isExpanded={expanded.has(Actions.EXPIRED_MARKERS)}>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.EXPIRED_MARKERS);
@@ -771,7 +786,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
         </AccordionItem>
 
         {isDeepArchiveEnabled && (
-          <AccordionItem isExpanded={expanded === Actions.TRANSITION_CURRENT}>
+          <AccordionItem isExpanded={expanded.has(Actions.TRANSITION_CURRENT)}>
             <AccordionToggle
               onClick={() => {
                 onToggle(Actions.TRANSITION_CURRENT);
@@ -835,7 +850,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
 
         {isDeepArchiveEnabled && (
           <AccordionItem
-            isExpanded={expanded === Actions.TRANSITION_NONCURRENT}
+            isExpanded={expanded.has(Actions.TRANSITION_NONCURRENT)}
           >
             <AccordionToggle
               onClick={() => {
