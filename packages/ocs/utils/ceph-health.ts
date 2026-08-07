@@ -1,3 +1,4 @@
+import { isClusterDeleting } from '@odf/core/utils/odf';
 import { odfDocBasePath } from '@odf/shared/constants';
 import { STATE_PRIORITY } from '@odf/shared/dashboards/status-card/states';
 import { DOC_VERSION } from '@odf/shared/hooks';
@@ -107,6 +108,24 @@ export const getCephHealthState: ResourceHealthHandler<WatchCephResource> = (
     return { state: HealthState.NOT_AVAILABLE };
   }
   return parseCephHealthStatus(status, t);
+};
+
+export const getStorageClusterHealthState = (
+  data: K8sResourceKind | undefined,
+  loaded: boolean,
+  loadError: unknown,
+  t: TFunction
+): SubsystemHealth | undefined => {
+  if (loadError) {
+    return undefined;
+  }
+  if (!loaded) {
+    return { state: HealthState.LOADING, message: t('Loading') };
+  }
+  if (isClusterDeleting(data)) {
+    return { state: HealthState.PROGRESS, message: t('Deleting') };
+  }
+  return undefined;
 };
 
 export const getCephsHealthState: ResourceHealthHandler<WatchCephResources> = (
