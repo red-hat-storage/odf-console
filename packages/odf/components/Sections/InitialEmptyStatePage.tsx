@@ -7,6 +7,7 @@ import {
   externalSystemsDoc,
   PageHeading,
   useCustomTranslation,
+  planDeploymentDoc,
 } from '@odf/shared';
 import { useModalWrapper } from '@odf/shared';
 import { DOC_VERSION } from '@odf/shared/hooks/use-doc-version';
@@ -176,9 +177,10 @@ const InitialEmptyStatePage: React.FC = () => {
             <EmptyStateActions>
               <Button
                 variant={ButtonVariant.link}
-                onClick={() => {
-                  return null;
-                }}
+                component={'a'}
+                href={planDeploymentDoc(DOC_VERSION)}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 {t('Documentation link')}
               </Button>
