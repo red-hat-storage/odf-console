@@ -1,11 +1,12 @@
 import { ClusterProviders } from '@odf/mco/hooks/use-storage-provisioner';
-import { ConnectedClient, ODFInfoYamlObject } from '@odf/mco/types';
 import {
-  getMajorVersion,
-  validateManagedClusterCondition,
-  isMinimumSupportedODFVersion,
-  getNameNamespace,
-} from '@odf/mco/utils';
+  ACMManagedClusterKind,
+  ACMManagedClusterViewKind,
+  ConnectedClient,
+  ManagedClusterInfoType,
+  ODFConfigInfoType,
+  ODFInfoYamlObject,
+} from '@odf/mco/types';
 import {
   getLabel,
   getName,
@@ -13,75 +14,23 @@ import {
   getResourceCondition,
 } from '@odf/shared/selectors';
 import { ConfigMapKind } from '@odf/shared/types';
-import { sortRows } from '@odf/shared/utils';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
 import { load } from 'js-yaml';
 import * as _ from 'lodash-es';
 import {
-  MAX_ALLOWED_CLUSTERS,
-  MANAGED_CLUSTER_JOINED,
-  MANAGED_CLUSTER_CONDITION_AVAILABLE,
   CLUSTER_ID,
+  MANAGED_CLUSTER_CONDITION_AVAILABLE,
+  MANAGED_CLUSTER_JOINED,
   MANAGED_CLUSTER_VIEW_PROCESSING,
-} from '../../../constants';
+} from '../constants';
+import { getMajorVersion } from './common';
 import {
-  ACMManagedClusterKind,
-  ACMManagedClusterViewKind,
-} from '../../../types';
-import { ManagedClusterInfoType, ODFConfigInfoType } from '../utils/reducer';
+  getNameNamespace,
+  isMinimumSupportedODFVersion,
+  validateManagedClusterCondition,
+} from './disaster-recovery';
 
-export const INITIAL_PAGE_NUMBER = 1;
-export const COUNT_PER_PAGE_NUMBER = 10;
-
-export enum ClusterListColumns {
-  ManagedCluster,
-  AvailabilityStatus,
-  DataFoundation,
-  StorageProvisioners,
-  StorageClients,
-}
-
-export const getColumns = (t: TFunction<string>) => [
-  {
-    columnName: t('Managed Cluster'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'metadata.name'),
-  },
-  {
-    columnName: t('Availability status'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'isManagedClusterAvailable'),
-  },
-  {
-    columnName: t('Data Foundation'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'odfInfo.odfVersion'),
-  },
-  {
-    columnName: t('Storage provisioners'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'storageProvisionersCount'),
-  },
-  {
-    columnName: t('Storage clients'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'metadata.name'),
-  },
-];
-
-export const getColumnHelper = (
-  name: ClusterListColumns,
-  t: TFunction<string>
-) => {
-  const columns = getColumns(t);
-  switch (name) {
-    case ClusterListColumns.ManagedCluster:
-      return columns[0];
-    case ClusterListColumns.AvailabilityStatus:
-      return columns[1];
-    case ClusterListColumns.DataFoundation:
-      return columns[2];
-    case ClusterListColumns.StorageProvisioners:
-      return columns[3];
-    case ClusterListColumns.StorageClients:
-      return columns[4];
-  }
+type ClusterToODFInfoMap = {
+  [clusterId in string]: ODFConfigInfoType;
 };
 
 const getODFInfo = (
@@ -153,6 +102,11 @@ const getManagedClusterInfo = (
 ): ManagedClusterInfoType => {
   const clusterId = getLabel(cluster, CLUSTER_ID);
   const clusterName = getName(cluster);
+  const odfInfo =
+    clusterToODFInfoMap?.[clusterId] || clusterToODFInfoMap?.[clusterName];
+  const providers = providersByCluster?.find(
+    (provider) => provider.cluster === clusterName
+  )?.providers;
   return {
     id: clusterId,
     metadata: cluster.metadata,
@@ -160,11 +114,11 @@ const getManagedClusterInfo = (
       cluster,
       MANAGED_CLUSTER_CONDITION_AVAILABLE
     ),
-    odfInfo:
-      clusterToODFInfoMap?.[clusterId] || clusterToODFInfoMap?.[clusterName],
-    providers: providersByCluster?.find(
-      (provider) => provider.cluster === clusterName
-    )?.providers,
+    odfInfo,
+    providers,
+    storageProvisionersCount:
+      providers?.reduce((acc, provider) => acc + provider.count, 0) ?? 0,
+    storageClientsCount: odfInfo?.storageClusterInfo?.clientInfo ? 1 : 0,
   };
 };
 
@@ -214,7 +168,7 @@ export const getManagedClusterInfoTypes = (
     requiredODFVersion
   );
 
-  return managedClusters?.reduce((acc, cluster) => {
+  return (managedClusters ?? []).reduce((acc, cluster) => {
     if (validateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED))
       return [
         ...acc,
@@ -226,17 +180,4 @@ export const getManagedClusterInfoTypes = (
       ];
     return acc;
   }, []);
-};
-
-export const isRowSelectable = (
-  cluster: K8sResourceCommon,
-  selectedClusters: ManagedClusterInfoType[]
-) =>
-  selectedClusters.length < MAX_ALLOWED_CLUSTERS ||
-  !!selectedClusters.find(
-    (selectedCluster) => getName(selectedCluster) === getName(cluster)
-  );
-
-type ClusterToODFInfoMap = {
-  [clusterId in string]: ODFConfigInfoType;
 };

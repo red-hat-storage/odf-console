@@ -7,12 +7,12 @@ import { useLocation, useNavigate } from 'react-router';
 import { Content, ContentVariants } from '@patternfly/react-core';
 import '../../style.scss';
 import './create-dr-policy.scss';
-import { CreateDRPolicyForm } from './CreateDRPolicyForm';
+import { CreateDRPolicyWizard } from './create-dr-policy-wizard';
 
 const getDRPolicyListPageLink = (url: string) =>
   url.replace(`/${referenceForModel(DRPolicyModel)}/~new`, '');
 
-const CreateDRPolicy: React.FC<{}> = () => {
+const CreateDRPolicy: React.FC = () => {
   const { t } = useCustomTranslation();
   const { pathname: url, search } = useLocation();
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
           </Content>
         </Content>
       </PageHeading>
-      <CreateDRPolicyForm
+      <CreateDRPolicyWizard
         preSelectedClusters={preSelectedClusters}
         onSuccess={handleSuccess}
         onCancel={handleCancel}

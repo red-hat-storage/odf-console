@@ -11,6 +11,12 @@ export type ClusterClaim = {
   value: string;
 };
 
+export type ManagedClusterNetworkInfo = {
+  clusterName: string;
+  clusterClaims?: ClusterClaim[];
+  loaded: boolean;
+};
+
 export type ACMManagedClusterKind = K8sResourceCommon & {
   status?: {
     clusterClaims?: ClusterClaim[];
@@ -198,13 +204,7 @@ export type ACMManagedClusterActionKind = K8sResourceCommon & {
     };
   };
   status?: {
-    conditions?: Array<{
-      lastTransitionTime: Date;
-      message: string;
-      reason: string;
-      status: string;
-      type: string;
-    }>;
+    conditions?: K8sResourceCondition[];
     result?: K8sResourceCommon;
   };
 };

@@ -1,5 +1,10 @@
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { MirrorPeerPhase, MirrorPeerPhaseMessage } from '@odf/mco/constants';
+import {
+  K8sResourceCommon,
+  K8sResourceCondition,
+} from '@openshift-console/dynamic-plugin-sdk';
 
+// Keep in sync with odf-multicluster-orchestrator/api/v1alpha1/mirrorpeer_types.go
 export type MirrorPeerKind = K8sResourceCommon & {
   spec?: {
     items: {
@@ -11,6 +16,11 @@ export type MirrorPeerKind = K8sResourceCommon & {
     }[];
     manageS3: boolean;
     type: string;
+  };
+  status?: {
+    phase?: MirrorPeerPhase;
+    message?: MirrorPeerPhaseMessage | string;
+    conditions?: K8sResourceCondition[];
   };
 };
 
