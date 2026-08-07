@@ -536,9 +536,14 @@ const TransitionNonCurrentObjects: React.FC<StateAndDispatchProps> = ({
   );
 };
 
-export const RuleActions: React.FC<StateAndDispatchProps> = ({
+type RuleActionsProps = StateAndDispatchProps & {
+  isDeepArchiveEnabled: boolean;
+};
+
+export const RuleActions: React.FC<RuleActionsProps> = ({
   state,
   dispatch,
+  isDeepArchiveEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -553,14 +558,17 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
   };
 
   const validate = state.triggerInlineValidations;
-  const [invalidActionsCount, actionsCount] = isInvalidActionsCount(state);
+  const [invalidActionsCount, actionsCount] = isInvalidActionsCount(
+    state,
+    isDeepArchiveEnabled
+  );
   const invalidDeleteCurrent = validate && isInvalidDeleteCurrent(state);
   const invalidDeleteNonCurrent = validate && isInvalidDeleteNonCurrent(state);
   const invalidDeleteMultiparts = validate && isInvalidDeleteMultiparts(state);
   const invalidTransitionCurrent =
-    validate && isInvalidTransitionCurrent(state);
+    isDeepArchiveEnabled && validate && isInvalidTransitionCurrent(state);
   const invalidTransitionNonCurrent =
-    validate && isInvalidTransitionNonCurrent(state);
+    isDeepArchiveEnabled && validate && isInvalidTransitionNonCurrent(state);
 
   return (
     <>
@@ -762,127 +770,133 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded === Actions.TRANSITION_CURRENT}>
-          <AccordionToggle
-            onClick={() => {
-              onToggle(Actions.TRANSITION_CURRENT);
-            }}
-            id={Actions.TRANSITION_CURRENT}
-          >
-            <Content
-              component={ContentVariants.h3}
-              className="pf-v6-u-text-align-left"
+        {isDeepArchiveEnabled && (
+          <AccordionItem isExpanded={expanded === Actions.TRANSITION_CURRENT}>
+            <AccordionToggle
+              onClick={() => {
+                onToggle(Actions.TRANSITION_CURRENT);
+              }}
+              id={Actions.TRANSITION_CURRENT}
             >
-              <span>
-                {t(
-                  'Transition current versions of objects to IBM Deep archive'
-                )}
-                {state.actions.transitionCurrent.isChecked && (
-                  <Label
-                    variant="outline"
-                    color="blue"
-                    className="pf-v6-u-mx-xs"
-                  >
-                    {t('Selected')}
-                  </Label>
-                )}
-                {invalidTransitionCurrent && (
-                  <Label
-                    variant="outline"
-                    color="red"
-                    className="pf-v6-u-mx-xs"
-                  >
-                    {t('Details needed')}
-                  </Label>
-                )}
-              </span>
-            </Content>
-            <Content
-              component={ContentVariants.small}
-              className={`s3-lifecycle-action-description ${invalidTransitionCurrent ? 's3-lifecycle--margin' : ''}`}
-            >
-              {t(
-                'Move current versions of objects to IBM Deep archive storage class for cheaper cold storage. These transitions start from when the objects are created and are consecutively applied.'
-              )}{' '}
-              <Button
-                variant={ButtonVariant.link}
-                isInline
-                icon={<ExternalLinkAltIcon />}
-                iconPosition="end"
-                component="a"
-                href="https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-archive"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Content
+                component={ContentVariants.h3}
+                className="pf-v6-u-text-align-left"
               >
-                {t('Know more')}
-              </Button>
-            </Content>
-          </AccordionToggle>
-          <AccordionContent id={Actions.TRANSITION_CURRENT}>
-            <TransitionCurrentObjects state={state} dispatch={dispatch} />
-          </AccordionContent>
-        </AccordionItem>
+                <span>
+                  {t(
+                    'Transition current versions of objects to IBM Deep archive'
+                  )}
+                  {state.actions.transitionCurrent.isChecked && (
+                    <Label
+                      variant="outline"
+                      color="blue"
+                      className="pf-v6-u-mx-xs"
+                    >
+                      {t('Selected')}
+                    </Label>
+                  )}
+                  {invalidTransitionCurrent && (
+                    <Label
+                      variant="outline"
+                      color="red"
+                      className="pf-v6-u-mx-xs"
+                    >
+                      {t('Details needed')}
+                    </Label>
+                  )}
+                </span>
+              </Content>
+              <Content
+                component={ContentVariants.small}
+                className={`s3-lifecycle-action-description ${invalidTransitionCurrent ? 's3-lifecycle--margin' : ''}`}
+              >
+                {t(
+                  'Move current versions of objects to IBM Deep archive storage class for cheaper cold storage. These transitions start from when the objects are created and are consecutively applied.'
+                )}{' '}
+                <Button
+                  variant={ButtonVariant.link}
+                  isInline
+                  icon={<ExternalLinkAltIcon />}
+                  iconPosition="end"
+                  component="a"
+                  href="https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-archive"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('Know more')}
+                </Button>
+              </Content>
+            </AccordionToggle>
+            <AccordionContent id={Actions.TRANSITION_CURRENT}>
+              <TransitionCurrentObjects state={state} dispatch={dispatch} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
 
-        <AccordionItem isExpanded={expanded === Actions.TRANSITION_NONCURRENT}>
-          <AccordionToggle
-            onClick={() => {
-              onToggle(Actions.TRANSITION_NONCURRENT);
-            }}
-            id={Actions.TRANSITION_NONCURRENT}
+        {isDeepArchiveEnabled && (
+          <AccordionItem
+            isExpanded={expanded === Actions.TRANSITION_NONCURRENT}
           >
-            <Content
-              component={ContentVariants.h3}
-              className="pf-v6-u-text-align-left"
+            <AccordionToggle
+              onClick={() => {
+                onToggle(Actions.TRANSITION_NONCURRENT);
+              }}
+              id={Actions.TRANSITION_NONCURRENT}
             >
-              <span>
-                {t(
-                  'Transition noncurrent versions of objects to IBM Deep archive'
-                )}
-                {state.actions.transitionNonCurrent.isChecked && (
-                  <Label
-                    variant="outline"
-                    color="blue"
-                    className="pf-v6-u-mx-xs"
-                  >
-                    {t('Selected')}
-                  </Label>
-                )}
-                {invalidTransitionNonCurrent && (
-                  <Label
-                    variant="outline"
-                    color="red"
-                    className="pf-v6-u-mx-xs"
-                  >
-                    {t('Details needed')}
-                  </Label>
-                )}
-              </span>
-            </Content>
-            <Content
-              component={ContentVariants.small}
-              className={`s3-lifecycle-action-description ${invalidTransitionNonCurrent ? 's3-lifecycle--margin' : ''}`}
-            >
-              {t(
-                'Move noncurrent versions of objects to IBM Deep archive storage class for cheaper cold storage. These transitions start from when the objects become non-current and are consecutively applied.'
-              )}{' '}
-              <Button
-                variant={ButtonVariant.link}
-                isInline
-                icon={<ExternalLinkAltIcon />}
-                iconPosition="end"
-                component="a"
-                href="https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-archive"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Content
+                component={ContentVariants.h3}
+                className="pf-v6-u-text-align-left"
               >
-                {t('Know more')}
-              </Button>
-            </Content>
-          </AccordionToggle>
-          <AccordionContent id={Actions.TRANSITION_NONCURRENT}>
-            <TransitionNonCurrentObjects state={state} dispatch={dispatch} />
-          </AccordionContent>
-        </AccordionItem>
+                <span>
+                  {t(
+                    'Transition noncurrent versions of objects to IBM Deep archive'
+                  )}
+                  {state.actions.transitionNonCurrent.isChecked && (
+                    <Label
+                      variant="outline"
+                      color="blue"
+                      className="pf-v6-u-mx-xs"
+                    >
+                      {t('Selected')}
+                    </Label>
+                  )}
+                  {invalidTransitionNonCurrent && (
+                    <Label
+                      variant="outline"
+                      color="red"
+                      className="pf-v6-u-mx-xs"
+                    >
+                      {t('Details needed')}
+                    </Label>
+                  )}
+                </span>
+              </Content>
+              <Content
+                component={ContentVariants.small}
+                className={`s3-lifecycle-action-description ${invalidTransitionNonCurrent ? 's3-lifecycle--margin' : ''}`}
+              >
+                {t(
+                  'Move noncurrent versions of objects to IBM Deep archive storage class for cheaper cold storage. These transitions start from when the objects become non-current and are consecutively applied.'
+                )}{' '}
+                <Button
+                  variant={ButtonVariant.link}
+                  isInline
+                  icon={<ExternalLinkAltIcon />}
+                  iconPosition="end"
+                  component="a"
+                  href="https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-archive"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('Know more')}
+                </Button>
+              </Content>
+            </AccordionToggle>
+            <AccordionContent id={Actions.TRANSITION_NONCURRENT}>
+              <TransitionNonCurrentObjects state={state} dispatch={dispatch} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
       </Accordion>
     </>
   );

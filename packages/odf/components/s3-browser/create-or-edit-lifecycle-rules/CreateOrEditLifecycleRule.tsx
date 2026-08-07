@@ -11,6 +11,7 @@ import {
   S3Context,
 } from '@odf/core/components/s3-browser/s3-context';
 import { StatusBox } from '@odf/shared/generic/status-box';
+import { STORAGE_CLASS_DEEP_ARCHIVE } from '@odf/shared/s3';
 import { isNoLifecycleRuleError } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
@@ -24,7 +25,10 @@ import {
   Wizard,
   WizardStep,
 } from '@patternfly/react-core';
-import { BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX } from '../../../constants';
+import {
+  BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX,
+  BUCKET_HEAD_CACHE_KEY_SUFFIX,
+} from '../../../constants';
 import { ConditionalFiltersStep } from './ConditionalFiltersStep';
 import { GeneralConfigStep } from './GeneralConfigStep';
 import { LifecycleRuleWizardFooter } from './LifecycleRuleWizardFooter';
@@ -208,6 +212,16 @@ const CreateOrEditLifecycleRuleWizard: React.FC<IsEditProp> = ({ isEdit }) => {
     }
   );
 
+  // Fetch bucket info to check Deep Archive support
+  const { data: bucketInfo } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_HEAD_CACHE_KEY_SUFFIX}`,
+    () => s3Client.headBucket({ Bucket: bucketName })
+  );
+
+  const isDeepArchiveEnabled =
+    bucketInfo?.supportedStorageClasses?.includes(STORAGE_CLASS_DEEP_ARCHIVE) ??
+    false;
+
   const noRuleExistsError = isNoLifecycleRuleError(getError);
   // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
   const existingRules = noRuleExistsError ? undefined : data;
@@ -278,6 +292,7 @@ const CreateOrEditLifecycleRuleWizard: React.FC<IsEditProp> = ({ isEdit }) => {
             existingRules={existingRules}
             isEdit={isEdit}
             editingRuleName={ruleName}
+            isDeepArchiveEnabled={isDeepArchiveEnabled}
             onSave={onSave}
           />
         }
@@ -306,10 +321,18 @@ const CreateOrEditLifecycleRuleWizard: React.FC<IsEditProp> = ({ isEdit }) => {
           name={t('Lifecycle rule actions')}
           id={LifecycleRuleStep.ACTIONS}
         >
-          <RuleActions state={state} dispatch={dispatch} />
+          <RuleActions
+            state={state}
+            dispatch={dispatch}
+            isDeepArchiveEnabled={isDeepArchiveEnabled}
+          />
         </WizardStep>
         <WizardStep name={t('Review')} id={LifecycleRuleStep.REVIEW}>
-          <ReviewPage state={state} isEdit={isEdit} />
+          <ReviewPage
+            state={state}
+            isEdit={isEdit}
+            isDeepArchiveEnabled={isDeepArchiveEnabled}
+          />
         </WizardStep>
       </Wizard>
     </div>

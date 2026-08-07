@@ -31,6 +31,7 @@ type LifecycleRuleWizardFooterProps = {
   existingRules: GetBucketLifecycleConfigurationCommandOutput;
   isEdit?: boolean;
   editingRuleName?: string;
+  isDeepArchiveEnabled?: boolean;
   onSave: () => Promise<void>;
 };
 
@@ -39,7 +40,8 @@ const canProceedFromStep = (
   state: RuleState,
   existingRules: GetBucketLifecycleConfigurationCommandOutput,
   isEdit: boolean,
-  editingRuleName: string
+  editingRuleName: string,
+  isDeepArchiveEnabled: boolean
 ): boolean => {
   switch (stepId) {
     case LifecycleRuleStep.GENERAL:
@@ -51,7 +53,10 @@ const canProceedFromStep = (
         !isInvalidObjectSize(state)[0]
       );
     case LifecycleRuleStep.ACTIONS:
-      return !isInvalidActionsCount(state)[0] && !areInvalidActions(state);
+      return (
+        !isInvalidActionsCount(state, isDeepArchiveEnabled)[0] &&
+        !areInvalidActions(state, isDeepArchiveEnabled)
+      );
     case LifecycleRuleStep.REVIEW:
       return true;
     default:
@@ -61,7 +66,15 @@ const canProceedFromStep = (
 
 export const LifecycleRuleWizardFooter: React.FC<
   LifecycleRuleWizardFooterProps
-> = ({ state, dispatch, existingRules, isEdit, editingRuleName, onSave }) => {
+> = ({
+  state,
+  dispatch,
+  existingRules,
+  isEdit,
+  editingRuleName,
+  isDeepArchiveEnabled,
+  onSave,
+}) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
   const { activeStep, goToNextStep, goToPrevStep } = useWizardContext();
@@ -79,7 +92,8 @@ export const LifecycleRuleWizardFooter: React.FC<
     state,
     existingRules,
     isEdit,
-    editingRuleName
+    editingRuleName,
+    isDeepArchiveEnabled
   );
 
   const handleError = (errorMessage: string, showError: boolean) => {

@@ -17,6 +17,7 @@ import { RuleState, RuleScope } from './reducer';
 type ReviewPageProps = {
   state: RuleState;
   isEdit?: boolean;
+  isDeepArchiveEnabled?: boolean;
 };
 
 const GeneralConfigReview: React.FC<ReviewPageProps> = ({ state }) => {
@@ -113,7 +114,10 @@ const ConditionalFiltersReview: React.FC<ReviewPageProps> = ({ state }) => {
   );
 };
 
-const RuleActionsReview: React.FC<ReviewPageProps> = ({ state }) => {
+const RuleActionsReview: React.FC<ReviewPageProps> = ({
+  state,
+  isDeepArchiveEnabled,
+}) => {
   const { t } = useCustomTranslation();
 
   const {
@@ -163,14 +167,14 @@ const RuleActionsReview: React.FC<ReviewPageProps> = ({ state }) => {
     });
   }
 
-  if (transitionCurrent.isChecked) {
+  if (isDeepArchiveEnabled && transitionCurrent.isChecked) {
     actions.push({
       label: t('Transition current versions to IBM Deep Archive'),
       description: t('After {{days}} days', { days: transitionCurrent.days }),
     });
   }
 
-  if (transitionNonCurrent.isChecked) {
+  if (isDeepArchiveEnabled && transitionNonCurrent.isChecked) {
     let description = t('After {{days}} days', {
       days: transitionNonCurrent.days,
     });
@@ -208,7 +212,11 @@ const RuleActionsReview: React.FC<ReviewPageProps> = ({ state }) => {
   );
 };
 
-export const ReviewPage: React.FC<ReviewPageProps> = ({ state, isEdit }) => {
+export const ReviewPage: React.FC<ReviewPageProps> = ({
+  state,
+  isEdit,
+  isDeepArchiveEnabled,
+}) => {
   const { t } = useCustomTranslation();
 
   return (
@@ -234,7 +242,10 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ state, isEdit }) => {
         </>
       )}
 
-      <RuleActionsReview state={state} />
+      <RuleActionsReview
+        state={state}
+        isDeepArchiveEnabled={isDeepArchiveEnabled}
+      />
     </>
   );
 };
