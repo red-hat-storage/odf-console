@@ -1,4 +1,4 @@
-import { SECOND, testBucket } from '../utils/consts';
+import { testBucket } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
 
 describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Providers Cards', () => {
