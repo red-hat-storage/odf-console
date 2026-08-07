@@ -33,6 +33,7 @@ const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
             onCancel={closeModal}
             redirectHandler={closeModal}
             isVector={extraProps?.isVector}
+            isDeepArchive={extraProps?.isDeepArchive}
           />
         </ModalBody>
       </div>
@@ -42,6 +43,8 @@ const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
 
 type NamespaceStoreModalProps = CommonModalProps<{
   isVector?: boolean;
+  /** IBM Deep Archive flow: Archive checkbox is pre-selected and disabled. */
+  isDeepArchive?: boolean;
 }>;
 
 export default NamespaceStoreModal;
