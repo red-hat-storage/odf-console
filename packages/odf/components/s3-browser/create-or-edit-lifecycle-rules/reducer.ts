@@ -18,6 +18,12 @@ export enum FuncType {
   ON_MINUS = 'MINUS',
   ON_CHANGE = 'CHANGE',
 }
+export enum LifecycleRuleStep {
+  GENERAL = 'GENERAL',
+  FILTERS = 'FILTERS',
+  ACTIONS = 'ACTIONS',
+  REVIEW = 'REVIEW',
+}
 
 export type StateAndDispatchProps = {
   state: RuleState;
@@ -31,6 +37,8 @@ export type ObjectSize = {
 };
 type DeleteObject = { isChecked: boolean; days: number };
 type DeleteNonCurrent = DeleteObject & { retention: number };
+type TransitionObject = { isChecked: boolean; days: number };
+type TransitionNonCurrent = TransitionObject & { retention: number };
 
 export type RuleState = {
   name: string;
@@ -46,6 +54,8 @@ export type RuleState = {
     deleteNonCurrent: DeleteNonCurrent;
     deleteIncompleteMultiparts: DeleteObject;
     deleteExpiredMarkers: boolean;
+    transitionCurrent: TransitionObject;
+    transitionNonCurrent: TransitionNonCurrent;
   };
   triggerInlineValidations: boolean;
 };
@@ -84,6 +94,15 @@ export const ruleInitialState: RuleState = {
       days: 1,
     },
     deleteExpiredMarkers: false,
+    transitionCurrent: {
+      isChecked: false,
+      days: 1,
+    },
+    transitionNonCurrent: {
+      isChecked: false,
+      days: 1,
+      retention: 0,
+    },
   },
   triggerInlineValidations: false,
 };
@@ -100,6 +119,8 @@ export enum RuleActionType {
   RULE_DELETE_NON_CURRENT_ACTION = 'RULE_DELETE_NON_CURRENT_ACTION',
   RULE_DELETE_MULTIPARTS_ACTION = 'RULE_DELETE_MULTIPARTS_ACTION',
   RULE_DELETE_MARKERS_ACTION = 'RULE_DELETE_MARKERS_ACTION',
+  RULE_TRANSITION_CURRENT_ACTION = 'RULE_TRANSITION_CURRENT_ACTION',
+  RULE_TRANSITION_NON_CURRENT_ACTION = 'RULE_TRANSITION_NON_CURRENT_ACTION',
   TRIGGER_INLINE_VALIDATIONS = 'TRIGGER_INLINE_VALIDATIONS',
 }
 
@@ -121,6 +142,14 @@ export type RuleAction =
       payload: DeleteObject;
     }
   | { type: RuleActionType.RULE_DELETE_MARKERS_ACTION; payload: boolean }
+  | {
+      type: RuleActionType.RULE_TRANSITION_CURRENT_ACTION;
+      payload: TransitionObject;
+    }
+  | {
+      type: RuleActionType.RULE_TRANSITION_NON_CURRENT_ACTION;
+      payload: TransitionNonCurrent;
+    }
   | { type: RuleActionType.TRIGGER_INLINE_VALIDATIONS; payload: boolean };
 
 export const ruleReducer = (
@@ -171,6 +200,14 @@ export const ruleReducer = (
     }
     case RuleActionType.RULE_DELETE_MARKERS_ACTION: {
       newState.actions.deleteExpiredMarkers = action.payload;
+      break;
+    }
+    case RuleActionType.RULE_TRANSITION_CURRENT_ACTION: {
+      newState.actions.transitionCurrent = action.payload;
+      break;
+    }
+    case RuleActionType.RULE_TRANSITION_NON_CURRENT_ACTION: {
+      newState.actions.transitionNonCurrent = action.payload;
       break;
     }
     case RuleActionType.TRIGGER_INLINE_VALIDATIONS: {

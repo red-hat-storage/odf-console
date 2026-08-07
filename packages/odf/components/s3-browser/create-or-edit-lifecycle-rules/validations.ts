@@ -74,10 +74,20 @@ export const areInvalidFilters = (state: RuleState) =>
   !state.conditionalFilters.maxObjectSize.isChecked;
 
 // Rule actions validations
-export const isInvalidActionsCount = (state: RuleState) => {
+export const isInvalidActionsCount = (
+  state: RuleState,
+  isDeepArchiveEnabled = false
+) => {
   let actionsCount = 0;
   const ruleActions = state.actions;
   Object.keys(ruleActions).forEach((action) => {
+    // Skip transition actions if Deep Archive is not enabled
+    if (
+      !isDeepArchiveEnabled &&
+      (action === 'transitionCurrent' || action === 'transitionNonCurrent')
+    ) {
+      return;
+    }
     if (ruleActions[action]?.isChecked || ruleActions[action] === true) {
       actionsCount++;
     }
@@ -96,21 +106,35 @@ export const isInvalidDeleteMultiparts = (state: RuleState) =>
   state.actions.deleteIncompleteMultiparts.isChecked &&
   state.actions.deleteIncompleteMultiparts.days < 1;
 
-export const areInvalidActions = (state: RuleState) =>
+export const isInvalidTransitionCurrent = (state: RuleState) =>
+  state.actions.transitionCurrent.isChecked &&
+  state.actions.transitionCurrent.days < 1;
+
+export const isInvalidTransitionNonCurrent = (state: RuleState) =>
+  state.actions.transitionNonCurrent.isChecked &&
+  state.actions.transitionNonCurrent.days < 1;
+
+export const areInvalidActions = (
+  state: RuleState,
+  isDeepArchiveEnabled = false
+) =>
   isInvalidDeleteCurrent(state) ||
   isInvalidDeleteNonCurrent(state) ||
-  isInvalidDeleteMultiparts(state);
+  isInvalidDeleteMultiparts(state) ||
+  (isDeepArchiveEnabled && isInvalidTransitionCurrent(state)) ||
+  (isDeepArchiveEnabled && isInvalidTransitionNonCurrent(state));
 
 // Cummulative validations
 export const isInvalidLifecycleRule = (
   state: RuleState,
   existingRules: GetBucketLifecycleConfigurationCommandOutput,
   isEdit = false,
-  editingRuleName = ''
+  editingRuleName = '',
+  isDeepArchiveEnabled = false
 ) =>
   isInvalidName(state, existingRules, isEdit, editingRuleName)[0] ||
   isInvalidObjectSize(state)[0] ||
   areInvalidObjectTags(state) ||
   areInvalidFilters(state) ||
-  isInvalidActionsCount(state)[0] ||
-  areInvalidActions(state);
+  isInvalidActionsCount(state, isDeepArchiveEnabled)[0] ||
+  areInvalidActions(state, isDeepArchiveEnabled);
