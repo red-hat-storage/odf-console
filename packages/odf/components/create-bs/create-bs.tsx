@@ -34,6 +34,7 @@ import {
   PROVIDERS_NOOBAA_MAP,
   StoreType,
   providerSchema,
+  getTargetBucketFieldRequirements,
 } from '../../constants';
 import { ODF_MODEL_FLAG } from '../../features';
 import { BackingStoreKind, MCGPayload } from '../../types';
@@ -108,7 +109,16 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         ),
     });
 
-    const schema = baseSchema.concat(providerSchema(showSecret));
+    const [minChars, maxChars, startAndEnd, alphaNumeric] =
+      getTargetBucketFieldRequirements(t);
+    const schema = baseSchema.concat(
+      providerSchema(showSecret, {
+        minChars,
+        maxChars,
+        startAndEnd,
+        alphaNumeric,
+      })
+    );
 
     return { schema, fieldRequirements };
   }, [data, loadError, loaded, showSecret, t]);
