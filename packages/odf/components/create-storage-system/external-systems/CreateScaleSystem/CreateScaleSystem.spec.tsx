@@ -1,5 +1,4 @@
 import React from 'react';
-import { DOC_VERSION } from '@odf/shared';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
@@ -103,14 +102,7 @@ let capturedSetSelectedNodes: ((nodes: any[]) => void) | null = null;
 
 jest.mock('../common/NodesSection', () => ({
   ScaleNodesSection: jest.fn(
-    ({
-      setSelectedNodes,
-      statusContent,
-    }: {
-      selectedNodes: any[];
-      setSelectedNodes: (nodes: any[]) => void;
-      statusContent: React.ReactNode;
-    }) => {
+    ({ setSelectedNodes }: { setSelectedNodes: (nodes: any[]) => void }) => {
       capturedSetSelectedNodes = setSelectedNodes;
       return (
         <div data-testid="mock-nodes-section">
@@ -119,7 +111,6 @@ jest.mock('../common/NodesSection', () => ({
           </label>
           <input id="include-control-plane-nodes" type="checkbox" />
           <div data-test-id="select-nodes-table" />
-          {statusContent}
         </div>
       );
     }
@@ -392,67 +383,6 @@ describe('CreateScaleSystem', () => {
       expect(screen.getByTestId('select-nodes-table')).toBeInTheDocument();
     });
 
-    it('does not show kernel-devel status when no nodes are selected', () => {
-      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
-        areSelectedNodesEligible: false,
-        isLoading: false,
-        error: '',
-        nodesWithoutKernelDevel: [],
-      });
-
-      const { container } = render(<CreateScaleSystem />);
-
-      expect(
-        container.querySelector('[data-test^="kernel-devel-status"]')
-      ).not.toBeInTheDocument();
-    });
-
-    it('shows the kernel-devel warning when hook reports nodes without kernel-devel', async () => {
-      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
-        areSelectedNodesEligible: false,
-        isLoading: false,
-        error: '',
-        nodesWithoutKernelDevel: ['node1', 'node2'],
-      });
-
-      const { container } = render(<CreateScaleSystem />);
-      act(() => {
-        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
-      });
-
-      await waitFor(() => {
-        const warning = container.querySelector(
-          '[data-test="kernel-devel-status-warning"]'
-        );
-        expect(warning).toHaveTextContent(
-          'Kernel-devel packages are missing on some selected nodes. Please apply the Machine Config Operator (MCO) update to install them before connecting to the remote cluster.'
-        );
-        expect(
-          screen.getByRole('link', { name: 'Learn more' })
-        ).toHaveAttribute('href', expect.stringContaining(`/${DOC_VERSION}/`));
-      });
-    });
-
-    it('shows success when kernel-devel is verified on all selected nodes', async () => {
-      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
-        areSelectedNodesEligible: true,
-        isLoading: false,
-        error: '',
-        nodesWithoutKernelDevel: [],
-      });
-
-      const { container } = render(<CreateScaleSystem />);
-      act(() => {
-        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
-      });
-
-      await waitFor(() => {
-        expect(
-          container.querySelector('[data-test="kernel-devel-status-success"]')
-        ).toHaveTextContent('Kernel-devel packages verified');
-      });
-    });
-
     it('requires at least three selected nodes', async () => {
       mockWatchedValue = 'valid';
       (useKernelDevelEligibility as jest.Mock).mockReturnValue({
@@ -472,41 +402,6 @@ describe('CreateScaleSystem', () => {
           screen.getByRole('button', { name: 'Connect and create' })
         ).toBeDisabled()
       );
-    });
-
-    it('shows checking status while loading and hides it when done', async () => {
-      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
-        areSelectedNodesEligible: false,
-        isLoading: true,
-        error: '',
-        nodesWithoutKernelDevel: [],
-      });
-
-      const { container, rerender } = render(<CreateScaleSystem />);
-      act(() => {
-        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
-      });
-
-      await waitFor(() => {
-        expect(
-          container.querySelector('[data-test="kernel-devel-status-pending"]')
-        ).toBeInTheDocument();
-      });
-
-      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
-        areSelectedNodesEligible: true,
-        isLoading: false,
-        error: '',
-        nodesWithoutKernelDevel: [],
-      });
-
-      rerender(<CreateScaleSystem />);
-
-      await waitFor(() => {
-        expect(
-          container.querySelector('[data-test="kernel-devel-status-pending"]')
-        ).not.toBeInTheDocument();
-      });
     });
   });
 
