@@ -48,9 +48,9 @@ import {
 } from '@patternfly/react-icons';
 import { Td } from '@patternfly/react-table';
 import { SortByDirection } from '@patternfly/react-table';
-import { WizardNodeState } from '../reducer';
-import { SelectNodesTableFooter } from './select-nodes-table-footer';
-import './select-nodes-table.scss';
+import { WizardNodeState } from '../../../reducer';
+import { SelectLocalClusterNodesTableFooter } from './select-local-cluster-nodes-table-footer';
+import './select-local-cluster-nodes-table.scss';
 
 const tableColumnClasses = {
   name: classNames('pf-v6-u-w-33-on-md', 'pf-v6-u-w-50-on-sm'),
@@ -88,30 +88,15 @@ const getLocalClusterRole = (
   );
 
 const LocalClusterRoleDropdown: React.FC<{
-  node: NodeData;
   role: NodeType;
-  enableStretchCluster?: boolean;
   onRoleChange: (role: NodeType) => void;
-}> = ({ node, role, enableStretchCluster, onRoleChange }) => {
+}> = ({ role, onRoleChange }) => {
   const { t } = useCustomTranslation();
-  const showArbiterNode = enableStretchCluster && isArbiterNode(node);
-
   return (
     <SingleSelectDropdown
       className="dropdown--full-width"
       selectedKey={role}
       selectOptions={[
-        ...(showArbiterNode
-          ? [
-              <SelectOption
-                key={NodeType.ARBITER}
-                value={NodeType.ARBITER}
-                isDisabled
-              >
-                {t('Arbiter node')}
-              </SelectOption>,
-            ]
-          : []),
         <SelectOption key={NodeType.CLUSTER} value={NodeType.CLUSTER}>
           {t('Cluster node')}
         </SelectOption>,
@@ -133,6 +118,7 @@ const NodeRow: React.FC<RowComponentType<NodeData>> = ({
   const { enableStretchCluster, nodes, onLocalClusterRoleChange } = extraProps;
   const nodeName = getName(node);
   const role = getLocalClusterRole(node, nodes, enableStretchCluster);
+  const showArbiterNode = enableStretchCluster && isArbiterNode(node);
 
   return (
     <>
@@ -147,14 +133,16 @@ const NodeRow: React.FC<RowComponentType<NodeData>> = ({
         {getNodeRoles(node).sort().join(', ') || '-'}
       </Td>
       <Td dataLabel={t('Local cluster role')}>
-        <LocalClusterRoleDropdown
-          node={node}
-          role={role}
-          enableStretchCluster={enableStretchCluster}
-          onRoleChange={(newRole) =>
-            onLocalClusterRoleChange(nodeName, newRole)
-          }
-        />
+        {showArbiterNode ? (
+          t('Arbiter node')
+        ) : (
+          <LocalClusterRoleDropdown
+            role={role}
+            onRoleChange={(newRole) =>
+              onLocalClusterRoleChange(nodeName, newRole)
+            }
+          />
+        )}
       </Td>
       <Td dataLabel={t('CPU')}>
         {humanizeCpuCores(getNodeCPUCapacity(node)).string || '-'}
@@ -297,14 +285,24 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
   ]);
 
   // Initialize with all nodes selected (only once on first load, not when user deselects all)
-  const [selectedRows, setSelectedRows] = React.useState<NodeData[]>(
-    () => filteredData
-  );
+  const [selectedRows, setSelectedRows] = React.useState<NodeData[]>([]);
+  const hasInitializedSelection = React.useRef(false);
 
   React.useEffect(() => {
-    onRowSelected(selectedRows);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    hasInitializedSelection.current = false;
+  }, [includeControlPlane, enableStretchCluster]);
+
+  React.useEffect(() => {
+    if (hasInitializedSelection.current) return;
+    if (!filteredData.length) {
+      setSelectedRows([]);
+      onRowSelected([]);
+      return;
+    }
+    setSelectedRows(filteredData);
+    onRowSelected(filteredData);
+    hasInitializedSelection.current = true;
+  }, [filteredData, onRowSelected]);
 
   const handleRowSelection = React.useCallback(
     (selected: NodeData[]) => {
@@ -325,7 +323,6 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
         setSelectedRows={handleRowSelection}
         loaded={true}
         variant={TableVariant.COMPACT}
-        initialSortColumnIndex={2}
       />
     </div>
   );
@@ -405,7 +402,7 @@ export const SelectLocalClusterNodesTable: React.FC<
           />
         </StatusBox>
       </ListPageBody>
-      {!!nodes.length && <SelectNodesTableFooter nodes={nodes} />}
+      {!!nodes.length && <SelectLocalClusterNodesTableFooter nodes={nodes} />}
     </div>
   );
 };

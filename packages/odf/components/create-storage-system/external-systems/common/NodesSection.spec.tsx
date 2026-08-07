@@ -15,11 +15,14 @@ jest.mock('@odf/core/components/utils', () => ({
   ),
 }));
 
-jest.mock('../../select-nodes-table/select-local-cluster-nodes-table', () => ({
-  SelectLocalClusterNodesTable: () => (
-    <div data-test-id="local-cluster-nodes-table" />
-  ),
-}));
+jest.mock(
+  './select-local-cluster-nodes-table/select-local-cluster-nodes-table',
+  () => ({
+    SelectLocalClusterNodesTable: () => (
+      <div data-test-id="local-cluster-nodes-table" />
+    ),
+  })
+);
 
 jest.mock('../../../nodes-table/NodesTable', () => ({
   NodesTable: ({ nodes, selectedNodes, loaded, isRowSelectable }) => (
