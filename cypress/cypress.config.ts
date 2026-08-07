@@ -8,6 +8,8 @@ export default defineConfig({
     setupNodeEvents,
     specPattern: 'cypress/tests/**/*.ts',
     supportFile: 'cypress/support.ts',
+    // Disables GuidedTour (INTERNAL_DO_NOT_USE.guided-tour) via INTEGRATION_TEST flag.
+    userAgent: 'ConsoleIntegrationTestEnvironment',
   },
   fixturesFolder: false,
   reporter: 'node_modules/cypress-multi-reporters',
