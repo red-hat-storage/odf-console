@@ -3,7 +3,6 @@ import {
   CLUSTER_NAMESPACE,
   STORAGE_SYSTEM_NAME,
   OCS_SC_STATE,
-  ODF_OPERATOR_NAME,
   SECOND,
   MINUTE,
 } from './consts';
@@ -49,21 +48,12 @@ Cypress.Commands.add('install', () => {
     }
   ).then(({ code }) => {
     if (code !== 0) {
-      cy.clickNavLink(['Operators', 'Installed Operators']);
-      cy.byLegacyTestID('item-filter').type(ODF_OPERATOR_NAME);
-      // data-test-operator-row="OpenShift Data Foundation"
-      cy.byTestOperatorRow(ODF_OPERATOR_NAME).click();
-      cy.byLegacyTestID('horizontal-link-Storage System').click();
-      cy.byTestID('item-create').click();
-
-      // Wait for the StorageSystem page to load.
-      cy.contains('Create StorageSystem', { timeout: 15 * SECOND }).should(
-        'be.visible'
-      );
-
-      // Uncomment next line only if the cluster has enough resources.
-      // cy.get('label[for="enable-nfs"]').click();
-
+      cy.clickNavLink(['Storage', 'Storage cluster']);
+      cy.byTestID('configure-data-foundation').click();
+      cy.byTestID('create-storage-cluster').click();
+      cy.byTestID('create-wizard-empty-state').should('exist');
+      cy.byTestID('create-wizard-empty-state').should('not.exist');
+      cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();
       // @TODO: Do we still want to uncheck the already unchecked 'Taint nodes' checkbox?
       // If yes, we should scroll down (needed after adding the performance profile selection)
@@ -75,24 +65,24 @@ Cypress.Commands.add('install', () => {
       cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();
       cy.get('button')
-        .contains('Create StorageSystem')
-        .as('Create StorageSystem Button');
-      cy.get('@Create StorageSystem Button').click();
+        .contains('Create storage system')
+        .as('Create storage system Button');
+      cy.get('@Create storage system Button').click();
       // Wait for the storage system to be created.
-      cy.get('@Create StorageSystem Button', { timeout: 10 * SECOND }).should(
+      cy.get('@Create storage system Button', { timeout: 10 * SECOND }).should(
         'not.exist'
       );
 
       cy.log('Check if storage system was created and is listed as expected.');
-      cy.clickNavLink(['Storage', 'Data Foundation']);
-      cy.byLegacyTestID('horizontal-link-Storage Systems').click();
-      cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
-      cy.get('a').contains(STORAGE_SYSTEM_NAME);
-      cy.get('[data-label="status"]').contains('Ready', {
-        timeout: 25 * MINUTE,
-      });
+      cy.clickNavLink(['Storage', 'Storage cluster']);
       // Verify that the OCS SC is in READY state.
       cy.exec(OCS_SC_STATE, { timeout: 25 * MINUTE });
+      cy.byTestID('success-icon', {
+        timeout: 25 * MINUTE,
+      })
+        .first()
+        .should('be.visible');
+      cy.get('[data-label="status"]').contains('Ready', {});
       cy.visit('/');
     } else {
       cy.log(

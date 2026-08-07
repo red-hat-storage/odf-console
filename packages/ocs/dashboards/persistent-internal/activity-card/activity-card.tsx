@@ -169,9 +169,9 @@ const OngoingActivity = () => {
     prometheusActivities.push({
       results: resiliencyMetric,
       loader: () =>
-        import(
-          '@odf/shared/dashboards/data-resiliency/data-resiliency-activity'
-        ).then((m) => m.DataResiliency),
+        import('@odf/shared/dashboards/data-resiliency/data-resiliency-activity').then(
+          (m) => m.DataResiliency
+        ),
     });
   }
 
