@@ -77,7 +77,7 @@ export const getAttachOBCPatch = (
 };
 
 export const getPhase = (obj: K8sResourceKind): string => {
-  return _.get(obj, 'status.phase', 'Lost');
+  return _.get(obj, 'status.phase', 'Unknown');
 };
 
 export const isBound = (obj: K8sResourceKind): boolean =>
