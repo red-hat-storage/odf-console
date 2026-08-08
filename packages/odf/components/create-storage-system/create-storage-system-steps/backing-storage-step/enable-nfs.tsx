@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import {
   Alert,
@@ -7,6 +8,7 @@ import {
   Checkbox,
   AlertVariant,
 } from '@patternfly/react-core';
+import { FDF_FLAG } from '../../../../redux';
 import { BackingStorageType } from '../../../../types';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
@@ -39,6 +41,7 @@ export const EnableNFS: React.FC<EnableNFSProps> = ({
   backingStorageType,
 }) => {
   const { t } = useCustomTranslation();
+  const isFDF = useFlag(FDF_FLAG);
   const [showAlert, variant, title] = getValidationAlert(
     backingStorageType,
     nfsEnabled,
@@ -56,7 +59,8 @@ export const EnableNFS: React.FC<EnableNFSProps> = ({
           dispatch({ type: 'backingStorage/enableNFS', payload: !nfsEnabled })
         }
         isDisabled={
-          backingStorageType === BackingStorageType.EXTERNAL && !nfsEnabled
+          isFDF ||
+          (backingStorageType === BackingStorageType.EXTERNAL && !nfsEnabled)
         }
         className="odf-backing-store__radio--margin-bottom"
       />
