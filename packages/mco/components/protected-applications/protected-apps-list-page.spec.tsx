@@ -707,7 +707,12 @@ describe('Test batch failover/relocate (RHSTOR-6407, RHSTOR-6408)', () => {
       expect(onPartialFailure).toHaveBeenCalledWith(
         expect.objectContaining({
           action: DRActionType.RELOCATE,
-          failedDRPCs: [relocatedDRPC],
+          failedItems: [
+            expect.objectContaining({
+              drpc: relocatedDRPC,
+              errorMessage: 'patch failed',
+            }),
+          ],
           totalCount: 1,
         })
       );
