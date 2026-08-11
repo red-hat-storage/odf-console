@@ -23,5 +23,9 @@ FROM registry.access.redhat.com/ubi9/nginx-120
 
 COPY --from=builder /dist /opt/app-root/src
 COPY --from=builder /dist /opt/app-root/src/compatibility
+
+USER root
 RUN ln -sf /opt/app-root/etc/nginx.d/nginx.conf /etc/nginx/nginx.conf
+USER default
+
 CMD ["/usr/libexec/s2i/run"]
