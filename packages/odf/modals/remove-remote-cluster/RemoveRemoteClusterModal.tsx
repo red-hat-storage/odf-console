@@ -90,7 +90,6 @@ const RemoveRemoteClusterModal: React.FC<RemoveRemoteClusterModalProps> = ({
           localCluster = (await k8sGet({
             model: ClusterModel,
             name: IBM_SCALE_LOCAL_CLUSTER_NAME,
-            ns: IBM_SCALE_NAMESPACE,
           })) as ClusterKind;
         } catch (getError) {
           if (!isNotFoundError(getError)) {

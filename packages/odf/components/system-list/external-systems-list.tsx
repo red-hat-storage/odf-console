@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IBM_SCALE_NAMESPACE, LSO_OPERATOR } from '@odf/core/constants';
+import { LSO_OPERATOR } from '@odf/core/constants';
 import useIsSANSystemDeletable from '@odf/core/hooks/useIsSANSystemDeletable';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
 import { FDF_FLAG, useODFSystemFlagsSelector } from '@odf/core/redux';
@@ -575,7 +575,6 @@ export const StorageSystemListPage: React.FC = () => {
       {
         kind: referenceForModel(ClusterModel),
         isList: true,
-        namespace: IBM_SCALE_NAMESPACE,
       },
       isFDF
     )

@@ -342,7 +342,7 @@ describe('CreateScaleSystem', () => {
         encryptionPassword: 'encryption-password',
         encryptionPort: '9444',
         client: 'client',
-        remoteRKM: 'rkm.example.com',
+        remoteRKM: 'remote_rkm_1',
         serverInformation: 'server.example.com',
         tenantId: 'tenant',
       };
@@ -360,11 +360,11 @@ describe('CreateScaleSystem', () => {
 
       await waitFor(() =>
         expect(enableScaleEncryption).toHaveBeenCalledWith({
-          certificate: 'Y2VydGlmaWNhdGU=',
+          certificate: 'certificate',
           client: 'client',
           password: 'encryption-password',
           port: '9444',
-          remoteRKM: 'rkm.example.com',
+          remoteRKM: 'remote_rkm_1',
           server: 'server.example.com',
           tenant: 'tenant',
           username: 'encryption-user',

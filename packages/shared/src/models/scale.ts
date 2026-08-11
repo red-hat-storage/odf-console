@@ -9,7 +9,7 @@ export const ClusterModel: K8sModel = {
   labelPlural: 'Clusters',
   crd: true,
   abbr: 'Cl',
-  namespaced: true,
+  namespaced: false,
 };
 
 export const EncryptionConfigModel: K8sModel = {

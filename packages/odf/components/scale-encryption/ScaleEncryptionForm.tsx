@@ -43,6 +43,8 @@ const CLIENT_MAX_LENGTH = 16;
 const REMOTE_RKM_MAX_LENGTH = 21;
 const SERVER_INFO_MAX_LENGTH = 255;
 const TENANT_ID_MAX_LENGTH = 16;
+const REMOTE_RKM_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const TENANT_ID_PATTERN = /^[A-Za-z0-9_]+$/;
 
 export const isValidHostnameOrIP = (value: string): boolean => {
   const parts = value.split('.');
@@ -77,10 +79,15 @@ export const getScaleEncryptionValidationFields = (
     min: PORT_MIN,
     max: PORT_MAX,
   });
+  const remoteRKMRequirement = t(
+    'Must start with a letter or underscore and contain only letters, numbers, or underscores'
+  );
+  const serverRequirement = t('Must be a valid hostname or IP address');
 
   return {
     encryptionUserName: optional(
       Yup.string()
+        .transform((value: string) => value?.trim())
         .max(
           USERNAME_MAX_LENGTH,
           fieldRequirementsTranslations.maxChars(t, USERNAME_MAX_LENGTH)
@@ -98,34 +105,46 @@ export const getScaleEncryptionValidationFields = (
         })
     ),
     client: optional(
-      Yup.string().max(
-        CLIENT_MAX_LENGTH,
-        fieldRequirementsTranslations.maxChars(t, CLIENT_MAX_LENGTH)
-      )
+      Yup.string()
+        .transform((value: string) => value?.trim())
+        .max(
+          CLIENT_MAX_LENGTH,
+          fieldRequirementsTranslations.maxChars(t, CLIENT_MAX_LENGTH)
+        )
     ),
     remoteRKM: optional(
       Yup.string()
+        .transform((value: string) => value?.trim())
         .max(
           REMOTE_RKM_MAX_LENGTH,
           fieldRequirementsTranslations.maxChars(t, REMOTE_RKM_MAX_LENGTH)
         )
+        .matches(REMOTE_RKM_PATTERN, remoteRKMRequirement)
+    ),
+    serverInformation: optional(
+      Yup.string()
+        .transform((value: string) => value?.trim())
+        .max(
+          SERVER_INFO_MAX_LENGTH,
+          fieldRequirementsTranslations.maxChars(t, SERVER_INFO_MAX_LENGTH)
+        )
         .test(
           'valid-hostname-or-ip',
-          t('Must be a valid hostname or IP address'),
+          serverRequirement,
           (value) => !value || isValidHostnameOrIP(value)
         )
     ),
-    serverInformation: optional(
-      Yup.string().max(
-        SERVER_INFO_MAX_LENGTH,
-        fieldRequirementsTranslations.maxChars(t, SERVER_INFO_MAX_LENGTH)
-      )
-    ),
     tenantId: optional(
-      Yup.string().max(
-        TENANT_ID_MAX_LENGTH,
-        fieldRequirementsTranslations.maxChars(t, TENANT_ID_MAX_LENGTH)
-      )
+      Yup.string()
+        .transform((value: string) => value?.trim())
+        .max(
+          TENANT_ID_MAX_LENGTH,
+          fieldRequirementsTranslations.maxChars(t, TENANT_ID_MAX_LENGTH)
+        )
+        .matches(
+          TENANT_ID_PATTERN,
+          t('Must contain only letters, numbers, or underscores')
+        )
     ),
   };
 };
@@ -160,14 +179,18 @@ export const ScaleEncryptionForm: React.FC<ScaleEncryptionFormProps> = ({
       remoteRKM: [
         fieldRequirementsTranslations.maxChars(t, REMOTE_RKM_MAX_LENGTH),
         fieldRequirementsTranslations.minChars(t, 1),
-        t('Must be a valid hostname or IP address'),
+        t(
+          'Must start with a letter or underscore and contain only letters, numbers, or underscores'
+        ),
       ],
       serverInfo: [
         fieldRequirementsTranslations.maxChars(t, SERVER_INFO_MAX_LENGTH),
+        t('Must be a valid hostname or IP address'),
         fieldRequirementsTranslations.cannotBeEmpty(t),
       ],
       tenantId: [
         fieldRequirementsTranslations.maxChars(t, TENANT_ID_MAX_LENGTH),
+        t('Must contain only letters, numbers, or underscores'),
         fieldRequirementsTranslations.cannotBeEmpty(t),
       ],
       username: [
@@ -275,7 +298,7 @@ export const ScaleEncryptionForm: React.FC<ScaleEncryptionFormProps> = ({
         fieldRequirements={fieldRequirements.remoteRKM}
         popoverProps={{
           headerContent: t('Remote RKM requirements'),
-          footerContent: `${t('Example')}: rkm.example.com`,
+          footerContent: `${t('Example')}: remote_rkm_1`,
         }}
         formGroupProps={{
           label: t('Remote RKM'),
@@ -292,7 +315,7 @@ export const ScaleEncryptionForm: React.FC<ScaleEncryptionFormProps> = ({
           isDisabled,
         }}
       />
-      <FormGroup label={t('Encryption CA certificate')} isRequired>
+      <FormGroup label={t('Encryption CA certificate')}>
         <FileUpload
           placeholder={t('Upload encryption CA certificate')}
           id="file-upload"
@@ -305,7 +328,7 @@ export const ScaleEncryptionForm: React.FC<ScaleEncryptionFormProps> = ({
             setCertificateReadError('');
             const reader = new FileReader();
             reader.onload = (event) =>
-              onCertificateChange(btoa(event.target?.result as string));
+              onCertificateChange(event.target?.result as string);
             reader.onerror = () =>
               setCertificateReadError(t('Unable to read certificate file'));
             reader.readAsText(file);
@@ -331,7 +354,7 @@ export const ScaleEncryptionForm: React.FC<ScaleEncryptionFormProps> = ({
         fieldRequirements={fieldRequirements.serverInfo}
         popoverProps={{
           headerContent: t('Server information requirements'),
-          footerContent: `${t('Example')}: server.example.com:443`,
+          footerContent: `${t('Example')}: server.example.com`,
         }}
         formGroupProps={{
           label: t('Server information'),
@@ -353,7 +376,7 @@ export const ScaleEncryptionForm: React.FC<ScaleEncryptionFormProps> = ({
         fieldRequirements={fieldRequirements.tenantId}
         popoverProps={{
           headerContent: t('Tenant ID requirements'),
-          footerContent: `${t('Example')}: tenant-123`,
+          footerContent: `${t('Example')}: tenant_123`,
         }}
         formGroupProps={{
           label: t('Tenant ID'),

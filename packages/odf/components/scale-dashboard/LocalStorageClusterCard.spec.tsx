@@ -158,15 +158,14 @@ describe('LocalStorageClusterCard', () => {
       setupMocks();
       renderCard();
 
-      expect(useK8sWatchResources).toHaveBeenCalledWith(
+      const watchResources = jest.mocked(useK8sWatchResources).mock.calls[0][0];
+      expect(watchResources.cluster).toEqual(
         expect.objectContaining({
-          cluster: expect.objectContaining({
-            name: IBM_SCALE_LOCAL_CLUSTER_NAME,
-            namespace: IBM_SCALE_NAMESPACE,
-            isList: false,
-          }),
+          name: IBM_SCALE_LOCAL_CLUSTER_NAME,
+          isList: false,
         })
       );
+      expect(watchResources.cluster).not.toHaveProperty('namespace');
     });
 
     it('should display the cluster name', () => {

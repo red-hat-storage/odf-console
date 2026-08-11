@@ -48,7 +48,6 @@ const LocalStorageClusterCard: React.FC = () => {
     () => ({
       cluster: {
         kind: referenceForModel(ClusterModel),
-        namespace: IBM_SCALE_NAMESPACE,
         name: IBM_SCALE_LOCAL_CLUSTER_NAME,
         isList: false,
       },
