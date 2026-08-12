@@ -186,7 +186,7 @@ export const StorageClusterCreateModal: React.FC<
         </Content>
         <Content component="small">
           {t(
-            'This selection determines the storage capabilities of your cluster. Once configured it cannot be changed.'
+            'This selection determines the storage capabilities of your cluster.'
           )}
         </Content>
       </Content>

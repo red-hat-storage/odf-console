@@ -59,7 +59,7 @@ const AddLocalScaleNodesModal: React.FC<AddLocalScaleNodesModalProps> = ({
       <ModalHeader
         title={t('Add nodes to local cluster')}
         description={t(
-          'Select nodes to add them to the local cluster that handle requests to IBM Scale remote cluster.'
+          'Select nodes to add them to the local cluster that handle requests to IBM Storage Scale remote cluster.'
         )}
       />
       <ModalBody>
