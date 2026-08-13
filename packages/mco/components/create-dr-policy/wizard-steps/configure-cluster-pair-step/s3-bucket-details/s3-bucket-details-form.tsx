@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { MAX_ALLOWED_CLUSTERS } from '@odf/mco/constants';
+import { ManagedClusterInfoType, S3Details } from '@odf/mco/types';
 import { getName, useCustomTranslation } from '@odf/shared';
 import {
   Button,
@@ -14,25 +15,18 @@ import {
   TextInput,
 } from '@patternfly/react-core';
 import { EyeIcon, EyeSlashIcon } from '@patternfly/react-icons';
-import { DRPolicyActionType, ManagedClusterInfoType } from '../utils/reducer';
-import { isValidBucketName, isValidEndpoint } from '../utils/s3-validators';
-
-export type S3Details = {
-  clusterName: string;
-  bucketName: string;
-  endpoint: string;
-  accessKeyId: string;
-  secretKey: string;
-  region: string;
-  s3ProfileName: string;
-};
+import { DRPolicyAction, DRPolicyActionType } from '../../../utils/reducer';
+import {
+  isValidBucketName,
+  isValidEndpoint,
+} from '../../../utils/s3-validators';
 
 type ClusterS3BucketDetailsFormProps = {
   selectedClusters: ManagedClusterInfoType[];
   cluster1Details: S3Details;
   cluster2Details: S3Details;
   useSameConnection: boolean;
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<DRPolicyAction>;
   existingDRClusterNames: Set<string>;
 };
 
@@ -69,7 +63,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
 
   React.useEffect(() => {
     if (useSameConnection) {
-      // Copy connection details but preserve cluster2's own s3ProfileName —
+      // Copy connection details but preserve cluster2's own s3ProfileName;
       // each DRCluster must reference a unique profile.
       dispatch({
         type: DRPolicyActionType.SET_CLUSTER2_S3_DETAILS,
@@ -180,8 +174,8 @@ export const ClusterS3BucketDetailsForm: React.FC<
       <ExpandableSection
         toggleText={
           cluster1Exists
-            ? t(`Previously used S3 bucket for {{name}}`, { name: name1 })
-            : t(`S3 bucket for {{name}}`, { name: name1 })
+            ? t('Previously used S3 bucket for {{name}}', { name: name1 })
+            : t('S3 bucket for {{name}}', { name: name1 })
         }
         isExpanded={expanded1}
         onToggle={(_, exp) => setExpanded1(exp)}
@@ -246,8 +240,8 @@ export const ClusterS3BucketDetailsForm: React.FC<
       <ExpandableSection
         toggleText={
           cluster2Exists
-            ? t(`Previously used S3 bucket for {{name}}`, { name: name2 })
-            : t(`S3 bucket for {{name}}`, { name: name2 })
+            ? t('Previously used S3 bucket for {{name}}', { name: name2 })
+            : t('S3 bucket for {{name}}', { name: name2 })
         }
         isExpanded={expanded2}
         onToggle={(_, exp) => setExpanded2(exp)}

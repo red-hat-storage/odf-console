@@ -1,13 +1,14 @@
 import * as React from 'react';
 import {
   MIN_VALUE,
-  normalizeSyncTimeValue,
-} from '@odf/mco/components/create-dr-policy/select-replication-type';
-import {
   REPLICATION_DISPLAY_TEXT,
   SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '@odf/mco/constants';
-import { getDRPolicyStatus, parseSyncInterval } from '@odf/mco/utils';
+import {
+  getDRPolicyStatus,
+  normalizeSyncTimeValue,
+  parseSyncInterval,
+} from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
