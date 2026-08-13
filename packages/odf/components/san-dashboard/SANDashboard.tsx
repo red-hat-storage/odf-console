@@ -49,7 +49,7 @@ const SANDashboard: React.FC = () => {
   return (
     <>
       <PageHeading
-        title={t('Scale Dashboard')}
+        title={t('SAN-based storage')}
         hasUnderline={false}
         breadcrumbs={[
           {
@@ -57,7 +57,7 @@ const SANDashboard: React.FC = () => {
             path: '/odf/external-systems',
           },
           {
-            name: t('IBM SAN'),
+            name: t('SAN-based storage'),
             path: '',
           },
         ]}
