@@ -91,7 +91,8 @@ export const getTotalMemoryInGiB = (nodes: WizardNodeState[]): number =>
 export const isTNFRunnable = (nodes: WizardNodeState[]): boolean =>
   nodes.length === 2 &&
   getTotalCpu(nodes) >= TNF_MIN_CPU &&
-  getTotalMemoryInGiB(nodes) >= TNF_MIN_MEMORY_GIB;
+  // 3% leeway: MemTotal can report slightly under nominal size (e.g. 23.4 GiB for a 24 GiB node)
+  getTotalMemoryInGiB(nodes) >= TNF_MIN_MEMORY_GIB * 0.97;
 
 export const getVendorDashboardLinkFromMetrics = (
   systemKind: string,
