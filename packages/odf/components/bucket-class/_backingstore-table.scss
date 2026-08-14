@@ -6,19 +6,17 @@
   .pf-v6-c-table {
     border: var(--pf-t--global--border--width--regular) solid
       var(--pf-t--global--border--color--100);
-
-    &__check {
-      width: 8.333% !important;
-
-      @media screen and (max-width: 768px) {
-        width: 16.66% !important;
-      }
-    }
   }
 
   .odf-m-pane__body {
     padding: 0;
   }
+}
+
+.nb-bs-table__checkbox-col {
+  width: 45px !important;
+  min-width: 45px !important;
+  max-width: 45px !important;
 }
 
 .nb-bc-step-page-form {

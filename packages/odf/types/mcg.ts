@@ -41,6 +41,8 @@ export type NamespaceStoreKind = K8sResourceCommon & {
     };
   } & {
     type: NsSpecType;
+    /** Marks the store for cold-storage archive use (e.g., IBM Deep Archive) */
+    archive?: boolean;
   };
   status: {
     conditions: K8sResourceCondition[];
@@ -98,6 +100,10 @@ export type BucketClassKind = K8sResourceCommon & {
     vectorPolicy: {
       resource: string;
       vectorDBType: 'lance';
+    };
+    /** IBM Deep Archive policy for long-term data storage */
+    archivePolicy?: {
+      deepArchiveResource: string;
     };
   };
   status: {
