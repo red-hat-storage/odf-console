@@ -13,6 +13,8 @@ import {
   PutBucketVersioningCommandInput,
   GetBucketVersioningCommandOutput,
   PutBucketVersioningCommandOutput,
+  HeadBucketCommandInput,
+  HeadBucketCommandOutput,
   ListBucketsCommandInput,
   ListBucketsCommandOutput,
   ListObjectsV2CommandInput,
@@ -95,6 +97,15 @@ export type GetBucketVersioning = (
 export type PutBucketVersioning = (
   input: PutBucketVersioningCommandInput
 ) => Promise<PutBucketVersioningCommandOutput>;
+
+// Extended HeadBucket output to include supported storage classes from response header
+export type HeadBucketOutput = HeadBucketCommandOutput & {
+  supportedStorageClasses?: string[];
+};
+
+export type HeadBucket = (
+  input: HeadBucketCommandInput
+) => Promise<HeadBucketOutput>;
 
 export type ListBuckets = (
   input: ListBucketsCommandInput

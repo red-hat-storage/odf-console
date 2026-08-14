@@ -1,18 +1,13 @@
 import * as React from 'react';
-import {
-  GetBucketLifecycleConfigurationCommandOutput,
-  Tag,
-} from '@aws-sdk/client-s3';
+import { Tag } from '@aws-sdk/client-s3';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { dehumanize } from '@odf/shared/utils';
 import {
   ContentVariants,
   Content,
-  Divider,
   FormGroup,
   TextInput,
-  Radio,
   Alert,
   AlertVariant,
   ValidatedOptions,
@@ -29,20 +24,17 @@ import {
   StateAndDispatchProps,
   RuleState,
   RuleActionType,
-  RuleScope,
   ObjectSize,
   SizeUnit,
   FuncType,
 } from './reducer';
 import {
-  isInvalidName,
   areInvalidFilters,
   isInvalidObjectTag,
   isInvalidObjectSize,
 } from './validations';
 import './create-lifecycle-rules.scss';
 
-const RADIO_GROUP_NAME = 'lifecycle-rule-scope-radio';
 const MAX_OBJ_SIZE = 'maxObjectSize';
 const MIN_OBJ_SIZE = 'minObjectSize';
 const UNITS_TYPE = 'binaryBytes';
@@ -285,13 +277,10 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
         );
 
         return (
-          <>
-            <span
-              key={index}
-              className="pf-v6-u-display-flex pf-v6-u-flex-direction-row pf-v6-u-mb-xs"
-            >
+          <React.Fragment key={index}>
+            <span className="pf-v6-u-display-flex pf-v6-u-flex-direction-row pf-v6-u-mb-xs">
               <TextInput
-                id="object-tags-key"
+                id={`object-tags-key-${index}`}
                 value={tag.Key}
                 onChange={(_e, value) => onTagChange(index, 'Key', value)}
                 placeholder={t('Key')}
@@ -301,7 +290,7 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
                 }
               />
               <TextInput
-                id="object-tags-value"
+                id={`object-tags-value-${index}`}
                 value={tag.Value}
                 onChange={(_e, value) => onTagChange(index, 'Value', value)}
                 placeholder={t('Value (Optional)')}
@@ -328,7 +317,7 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
                 </HelperText>
               </FormHelperText>
             )}
-          </>
+          </React.Fragment>
         );
       })}
       <Button
@@ -348,7 +337,7 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
   );
 };
 
-const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
+export const ConditionalFiltersStep: React.FC<StateAndDispatchProps> = ({
   state,
   dispatch,
 }) => {
@@ -441,122 +430,6 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
           />
         )}
       </FormGroup>
-      <Divider className="pf-v6-u-my-md" />
-    </>
-  );
-};
-
-export const GeneralConfigAndFilters: React.FC<
-  StateAndDispatchProps & {
-    existingRules: GetBucketLifecycleConfigurationCommandOutput;
-    isEdit?: boolean;
-    editingRuleName?: string;
-  }
-> = ({ state, dispatch, existingRules, isEdit, editingRuleName }) => {
-  const { t } = useCustomTranslation();
-
-  const [invalidName, emptyName, alreadyUsedName, exceedingLengthName] =
-    isInvalidName(state, existingRules, isEdit, editingRuleName);
-
-  return (
-    <>
-      <Content className="pf-v6-u-mb-lg">
-        <Content component={ContentVariants.h2}>
-          {t('General configuration')}
-        </Content>
-      </Content>
-
-      <FormGroup
-        label={t('Lifecycle rule name')}
-        fieldId="name"
-        className="pf-v6-u-mb-lg"
-      >
-        <TextInput
-          id="name"
-          value={state.generalConfig.name}
-          onChange={(_e, value) =>
-            dispatch({
-              type: RuleActionType.GENERAL_CONFIG_NAME,
-              payload: value,
-            })
-          }
-          placeholder={t('Enter a valid rule name')}
-          className="pf-v6-u-w-50"
-          validated={
-            invalidName ? ValidatedOptions.error : ValidatedOptions.default
-          }
-        />
-        {invalidName && (
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem variant={ValidatedOptions.error}>
-                {emptyName && t('A rule name is required.')}
-                {alreadyUsedName &&
-                  t(
-                    'A rule with this name already exists. Type a different name.'
-                  )}
-                {exceedingLengthName && t('No more than 255 characters')}
-              </HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        )}
-      </FormGroup>
-
-      <FormGroup label={t('Rule scope')} fieldId="scope">
-        <span className="pf-v6-u-display-flex pf-v6-u-flex-direction-row">
-          <Radio
-            label={t('Targeted')}
-            description={t(
-              'Applies to a specific subset of objects within a bucket, based on defined criteria. Allows for more granular control over which objects the rule targets.'
-            )}
-            name={RADIO_GROUP_NAME}
-            value={RuleScope.TARGETED}
-            isChecked={state.generalConfig.scope === RuleScope.TARGETED}
-            onChange={(event) =>
-              dispatch({
-                type: RuleActionType.GENERAL_CONFIG_SCOPE,
-                payload: (event.target as HTMLInputElement).value as RuleScope,
-              })
-            }
-            id={`scope-${RuleScope.TARGETED}`}
-            className="pf-v6-u-mr-md pf-v6-u-w-50"
-          />
-          <Radio
-            label={t('Global (Bucket-wide)')}
-            description={t(
-              'Applies to all objects in the bucket without any filters. Uses the same lifecycle action for every object in the bucket.'
-            )}
-            name={RADIO_GROUP_NAME}
-            value={RuleScope.GLOBAL}
-            isChecked={state.generalConfig.scope === RuleScope.GLOBAL}
-            onChange={(event) =>
-              dispatch({
-                type: RuleActionType.GENERAL_CONFIG_SCOPE,
-                payload: (event.target as HTMLInputElement).value as RuleScope,
-              })
-            }
-            id={`scope-${RuleScope.GLOBAL}`}
-            className="pf-v6-u-ml-md pf-v6-u-w-50"
-          />
-        </span>
-      </FormGroup>
-
-      {state.generalConfig.scope === RuleScope.GLOBAL && (
-        <Alert
-          title={t('Global rule scope selected')}
-          variant={AlertVariant.info}
-          className="pf-v6-u-mt-md"
-          isInline
-        >
-          {t(
-            'You have selected to apply this lifecycle rule to all objects in the bucket. This may impact objects that do not require the specified expirations. If your bucket contains a mix of object types, consider using filters like prefixes or tags to target specific objects.'
-          )}
-        </Alert>
-      )}
-      <Divider className="pf-v6-u-my-md" />
-      {state.generalConfig.scope === RuleScope.TARGETED && (
-        <ConditionalFilters state={state} dispatch={dispatch} />
-      )}
     </>
   );
 };
