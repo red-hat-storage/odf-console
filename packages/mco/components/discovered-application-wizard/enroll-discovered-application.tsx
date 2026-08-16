@@ -6,8 +6,8 @@ import {
 } from '@odf/mco/constants';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { TFunction } from 'i18next';
+import { useNavigate } from 'react-router';
 import {
   Content,
   ContentVariants,

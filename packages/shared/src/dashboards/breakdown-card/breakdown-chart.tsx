@@ -11,7 +11,7 @@ import {
   ChartThemeColor,
   ChartTooltip,
 } from '@patternfly/react-charts/victory';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import { Tooltip } from '@patternfly/react-core';
 import { BUCKETCLASSKIND, CLUSTERWIDE, OTHER } from './consts';
 import { getBarRadius, StackDataPoint } from './utils';

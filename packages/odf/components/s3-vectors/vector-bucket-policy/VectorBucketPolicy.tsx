@@ -11,7 +11,7 @@ import { S3ProviderType } from '@odf/core/types';
 import { useModalWrapper } from '@odf/shared';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import useSWRMutation from 'swr/mutation';
 import { S3VectorsContext } from '../s3-vectors-context';
 

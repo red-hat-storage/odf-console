@@ -26,11 +26,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
-import {
-  useParams,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom-v5-compat';
+import { useParams, useLocation, useNavigate } from 'react-router';
 import {
   S3_CREDENTIALS_SESSION_STORE_KEY,
   S3_CREDENTIALS_LOCAL_STORE_KEY,

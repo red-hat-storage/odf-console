@@ -10,7 +10,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { murmur3 } from 'murmurhash-js';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { KeyedMutator } from 'swr';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 

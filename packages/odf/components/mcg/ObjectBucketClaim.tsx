@@ -32,7 +32,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import {
   DescriptionList,
   DescriptionListDescription,

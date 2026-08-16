@@ -38,7 +38,7 @@ import {
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { useODFNamespaceSelector } from '../../redux';

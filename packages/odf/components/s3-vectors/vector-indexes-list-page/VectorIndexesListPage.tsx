@@ -10,7 +10,7 @@ import {
   OnFilterChange,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useNavigate, useParams } from 'react-router-dom-v5-compat';
+import { useNavigate, useParams } from 'react-router';
 import {
   Alert,
   AlertActionCloseButton,

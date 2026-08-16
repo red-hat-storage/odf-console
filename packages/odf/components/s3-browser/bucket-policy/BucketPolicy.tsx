@@ -11,7 +11,7 @@ import SaveBucketPolicyModal from '@odf/core/modals/s3-common/bucket-policy/Save
 import { useModalWrapper } from '@odf/shared';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import useSWRMutation from 'swr/mutation';
 import { PreConfiguredPolicies } from './PreConfiguredPolicies';
 

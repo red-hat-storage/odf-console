@@ -20,7 +20,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   HorizontalNavProps as DashboardTabProps,

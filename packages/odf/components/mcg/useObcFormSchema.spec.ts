@@ -1,6 +1,6 @@
 import { NOOBAA_PROVISIONER } from '@odf/shared/constants';
 import * as selectors from '@odf/shared/selectors';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { State } from './state';
 import useObcFormSchema from './useObcFormSchema';
 

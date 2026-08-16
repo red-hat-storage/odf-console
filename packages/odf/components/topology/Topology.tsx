@@ -35,7 +35,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import {
   Button,
   ButtonVariant,

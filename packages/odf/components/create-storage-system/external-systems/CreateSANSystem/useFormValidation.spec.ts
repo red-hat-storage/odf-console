@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import useSANSystemFormValidation from './useFormValidation';
 
 jest.mock('@odf/shared/useCustomTranslationHook', () => ({

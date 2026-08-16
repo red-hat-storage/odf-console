@@ -5,7 +5,7 @@ import {
   PrometheusResult,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { createFakeNodes } from '../../../jest/helpers';
 import { useNodesData } from './useNodesData';
 

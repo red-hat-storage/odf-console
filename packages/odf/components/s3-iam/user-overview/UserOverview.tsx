@@ -7,7 +7,7 @@ import { BlueSyncIcon } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ActionsColumn } from '@patternfly/react-table';
 import { DeleteIamUserModal } from '../../../modals/s3-iam/DeleteIamUserModal';

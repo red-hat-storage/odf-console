@@ -8,8 +8,9 @@ import { StepsCountBadge } from '@odf/shared/badges';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel, ViewDocumentation } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { Trans, TFunction } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { TFunction } from 'i18next';
+import { Trans } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import './getting-started-card.scss';
 

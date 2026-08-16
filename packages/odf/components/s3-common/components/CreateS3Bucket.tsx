@@ -17,6 +17,7 @@ type CreateS3BucketProps = {
   description: string;
   showNamespaceSelector?: boolean;
   bucketType?: BucketType;
+  children?: React.ReactNode;
 };
 
 export const CreateS3Bucket: React.FC<CreateS3BucketProps> = ({

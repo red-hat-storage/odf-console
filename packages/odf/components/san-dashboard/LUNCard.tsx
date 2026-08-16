@@ -30,7 +30,7 @@ import {
   HealthState,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import {
   Card,
   CardBody,
@@ -250,8 +250,10 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
       {
         key: 'EXPAND_LUN_GROUP',
         value: t('Add disks'),
-        component: React.lazy(
-          () => import('../../modals/lun-group/AddLunGroupModal')
+        component: React.lazy(() =>
+          import('../../modals/lun-group/AddLunGroupModal').then((module) => ({
+            default: module.ExpandLUNGroupModal,
+          }))
         ),
       },
       {

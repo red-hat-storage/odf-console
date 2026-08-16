@@ -5,8 +5,8 @@ import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { TFunction } from 'i18next';
+import { useNavigate } from 'react-router';
 import {
   Button,
   ButtonVariant,

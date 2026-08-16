@@ -18,7 +18,7 @@ import { NamespaceModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { k8sCreate, K8sModel } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import {
   Content,
   ContentVariants,

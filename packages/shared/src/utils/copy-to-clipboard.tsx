@@ -10,6 +10,7 @@ import '../style.scss';
 type CopyToClipboardWrapperProps = {
   visibleValue: React.ReactNode;
   iconOnly?: boolean;
+  children?: React.ReactNode;
 };
 
 const CopyToClipboardWrapper: React.FC<CopyToClipboardWrapperProps> = ({

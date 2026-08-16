@@ -19,7 +19,7 @@ import {
 } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 import useSWR from 'swr';
 import {
   Label,

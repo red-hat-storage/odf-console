@@ -9,7 +9,7 @@ import {
   K8sResourceCommon,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import {
   Dropdown,
   DropdownItem,
@@ -99,6 +99,7 @@ type PopoverProps = {
   }[];
   namespace?: string;
   description?: string;
+  children?: React.ReactNode;
 };
 
 type PopoverBodyProps = PopoverProps & {
@@ -129,6 +130,7 @@ const ListItem: React.FC<ListItemProps> = ({ children, value }) => (
 
 type ListItemProps = {
   value: React.ReactText;
+  children?: React.ReactNode;
 };
 
 export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(

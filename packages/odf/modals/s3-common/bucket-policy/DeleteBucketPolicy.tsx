@@ -3,7 +3,8 @@ import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import { TFunction, Trans } from 'react-i18next';
+import { TFunction } from 'i18next';
+import { Trans } from 'react-i18next';
 import {
   Button,
   ButtonVariant,
@@ -21,10 +22,9 @@ export type DeleteBucketPolicyModalProps = {
 };
 
 const getTextInputLabel = (t: TFunction) => (
-  <Trans t={t as any}>
+  <Trans t={t as any} values={{ delete: DELETE }}>
     <b>
-      confirm this action, type <i>{{ delete: DELETE }}</i> in the text input
-      field.
+      confirm this action, type <i>{'{{delete}}'}</i> in the text input field.
     </b>
   </Trans>
 );

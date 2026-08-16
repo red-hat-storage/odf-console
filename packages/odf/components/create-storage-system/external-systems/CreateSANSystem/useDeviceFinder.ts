@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NodeType } from '@odf/core/constants';
 import {
   DiscoveredDevice,
   GetDevicefinderResponse,
@@ -63,13 +64,18 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
 
   const memoizedSelectedNodes = useDeepCompareMemoize(selectedNodes, true);
   React.useEffect(() => {
-    if (!_.isEmpty(memoizedSelectedNodes)) {
+    // LUN discovery runs on disk nodes only.
+    const diskNodes =
+      memoizedSelectedNodes?.filter(
+        (node) => node.localClusterRole === NodeType.DISK
+      ) ?? [];
+    if (!_.isEmpty(diskNodes)) {
       // Get hostname label values from selected nodes
       const selectedHostnames =
         // The filter(Boolean) is required to remove any undefined or falsy hostnames
         // from the array, in case some selected nodes do not have the 'kubernetes.io/hostname' label.
         // This ensures only valid hostnames are included in the device finder request payload.
-        memoizedSelectedNodes
+        diskNodes
           ?.map((node) => node.labels?.['kubernetes.io/hostname'])
           .filter(Boolean) || [];
       // Call devicefinder with a PUT request to update selected hostnames

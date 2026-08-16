@@ -31,7 +31,7 @@ import {
   k8sDelete,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate } from 'react-router';
 import {
   HUB_CLUSTER_NAME,
   ODFMCO_OPERATOR_NAMESPACE,

@@ -8,12 +8,12 @@ import {
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { Trans } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router';
 import { Alert, Button, FormGroup, TextInput } from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 import { LoadingInline } from '../generic/Loading';
 import { ClusterServiceVersionModel } from '../models';
-import { getName } from '../selectors';
+import { getName, getNamespace } from '../selectors';
 import { ClusterServiceVersionKind } from '../types/console-types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForOwnerRef, findOwner } from '../utils';
@@ -138,21 +138,21 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
     >
       <ModalBody>
         {isNamespaced ? (
-          <Trans t={t}>
+          <Trans
+            t={t}
+            values={{
+              resourceName: getName(resource),
+              namespace: getNamespace(resource),
+            }}
+          >
             Are you sure you want to delete{' '}
-            <strong className="co-break-word">
-              {{ resourceName: resource.metadata.name }}
-            </strong>{' '}
-            in namespace{' '}
-            <strong>{{ namespace: resource.metadata.namespace }}</strong>?
+            <strong className="co-break-word">{'{{resourceName}}'}</strong> in
+            namespace <strong>{'{{namespace}}'}</strong>?
           </Trans>
         ) : (
-          <Trans t={t}>
+          <Trans t={t} values={{ resourceName: resource.metadata.name }}>
             Are you sure you want to delete{' '}
-            <strong className="co-break-word">
-              {{ resourceName: resource.metadata.name }}
-            </strong>
-            ?
+            <strong className="co-break-word">{'{{resourceName}}'}</strong>?
           </Trans>
         )}
         {isPropagative && (

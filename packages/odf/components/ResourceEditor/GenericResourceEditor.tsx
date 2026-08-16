@@ -7,7 +7,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router';
 
 const GenericResourceEditor: React.FC = () => {
   const { kind, name, namespace, cluster } = useParams();

@@ -14,6 +14,7 @@ import {
 import {
   humanizeCpuCores,
   convertToBaseValue,
+  getNodeRoles,
   getRack,
 } from '@odf/shared/utils';
 import {
@@ -23,6 +24,7 @@ import {
 import * as _ from 'lodash-es';
 import {
   ARCHITECTURE_S390X,
+  CONTROL_PLANE,
   HOSTNAME_LABEL_KEY,
   LABEL_OPERATOR,
   MINIMUM_NODES,
@@ -56,6 +58,9 @@ const hasOCSTaint = (node: NodeKind) => {
   const taints: Taint[] = node.spec?.taints || [];
   return taints.some((taint: Taint) => _.isEqual(taint, ocsTaint));
 };
+
+export const hasControlPlaneRole = (node: NodeKind) =>
+  getNodeRoles(node).includes(CONTROL_PLANE);
 
 const getNodeInfo = (nodes: NodeKind[]) =>
   nodes.reduce(
@@ -215,6 +220,14 @@ export const getAssociatedNodes = (pvs: K8sResourceKind[]): string[] => {
 
 export const nodesWithoutTaints = (nodes: NodeData[] = []): NodeData[] =>
   nodes.filter((node: NodeData) => hasOCSTaint(node) || hasNoTaints(node));
+
+export const nodesIncludingControlPlane = (
+  nodes: NodeData[] = []
+): NodeData[] =>
+  nodes.filter(
+    (node: NodeData) =>
+      hasOCSTaint(node) || hasNoTaints(node) || hasControlPlaneRole(node)
+  );
 
 export const getNodeCPUCapacity = (node: NodeKind): string =>
   _.get(node.status, 'capacity.cpu');

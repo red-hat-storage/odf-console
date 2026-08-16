@@ -8,7 +8,7 @@ import { ClusterKind, EncryptionConfigKind } from '@odf/core/types/scale';
 import { NodeKind } from '@odf/shared/types';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom-v5-compat';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import LocalStorageClusterCard from './LocalStorageClusterCard';
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({

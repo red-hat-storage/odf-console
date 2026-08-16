@@ -38,7 +38,8 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
     status === DRStatus.FailingOver ||
     status === DRStatus.Relocating ||
     status === DRStatus.Deleting ||
-    status === DRStatus.Protecting
+    status === DRStatus.Protecting ||
+    status === DRStatus.TestingFailover
   ) {
     return NodeStatus.info;
   }
@@ -107,7 +108,8 @@ export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
     status === DRStatus.FailingOver ||
     status === DRStatus.Relocating ||
     status === DRStatus.Deleting ||
-    status === DRStatus.Protecting
+    status === DRStatus.Protecting ||
+    status === DRStatus.TestingFailover
   ) {
     return (
       <>

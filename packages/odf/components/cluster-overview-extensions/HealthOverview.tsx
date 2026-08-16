@@ -15,7 +15,7 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router';
 import { Stack, StackItem } from '@patternfly/react-core';
 import '@odf/shared/popup/status-popup.scss';
 

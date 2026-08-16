@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 
 export const requestedCapacityTooltip = (t: TFunction) =>
@@ -19,8 +19,8 @@ export const arbiterText = (t: TFunction) =>
 
 export const attachDevices = (t: TFunction, scName: string) => {
   return (
-    <Trans t={t} ns="plugin__odf-console">
-      Selected nodes are based on the StorageClass <em>{{ scName }}</em> and
+    <Trans t={t} ns="plugin__odf-console" values={{ scName }}>
+      Selected nodes are based on the StorageClass <em>{'{{scName}}'}</em> and
       with a recommended requirement of 14 CPU and 34 GiB RAM per node.
     </Trans>
   );
@@ -28,8 +28,8 @@ export const attachDevices = (t: TFunction, scName: string) => {
 
 export const attachDevicesWithArbiter = (t: TFunction, scName: string) => {
   return (
-    <Trans t={t} ns="plugin__odf-console">
-      Selected nodes are based on the StorageClass <em>{{ scName }}</em> and
+    <Trans t={t} ns="plugin__odf-console" values={{ scName }}>
+      Selected nodes are based on the StorageClass <em>{'{{scName}}'}</em> and
       fulfill the stretch cluster requirements with a recommended requirement of
       14 CPU and 34 GiB RAM per node.
     </Trans>

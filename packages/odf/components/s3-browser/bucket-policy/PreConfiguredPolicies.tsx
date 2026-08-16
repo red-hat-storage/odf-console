@@ -1,8 +1,8 @@
 import * as React from 'react';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { TFunction } from 'react-i18next';
 import {
   Switch,
   FormGroup,

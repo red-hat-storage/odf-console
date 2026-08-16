@@ -9,7 +9,7 @@ import { useModalWrapper } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { useForm, Resolver } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom-v5-compat';
+import { Link, useNavigate } from 'react-router';
 import useSWRMutation from 'swr/mutation';
 import {
   Form,

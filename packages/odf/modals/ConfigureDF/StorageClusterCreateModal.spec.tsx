@@ -8,10 +8,10 @@ import {
   StorageClusterCreateModal,
 } from './StorageClusterCreateModal';
 
-// Mock react-router-dom-v5-compat
+// Mock react-router
 const mockNavigate = jest.fn();
-jest.mock('react-router-dom-v5-compat', () => ({
-  ...jest.requireActual('react-router-dom-v5-compat'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useNavigate: () => mockNavigate,
   useLocation: jest.fn(() => ({ pathname: '/overview', search: '' })),
 }));

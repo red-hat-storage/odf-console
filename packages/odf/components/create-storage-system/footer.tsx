@@ -37,8 +37,8 @@ import {
   k8sDelete,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { TFunction } from 'i18next';
+import { useNavigate } from 'react-router';
 import { useWizardContext, WizardFooterWrapper } from '@patternfly/react-core';
 import { Button, Alert, AlertActionCloseButton } from '@patternfly/react-core';
 import {

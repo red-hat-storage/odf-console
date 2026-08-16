@@ -166,9 +166,8 @@ const RemoveDisasterRecoveryModal: React.FC<
       hasNoBodyWrapper={true}
     >
       <ModalBody>
-        <Trans t={t}>
-          Your application{' '}
-          <strong>{{ resourceName: getName(application) }}</strong> will lose
+        <Trans t={t} values={{ resourceName: getName(application) }}>
+          Your application <strong>{'{{resourceName}}'}</strong> will lose
           disaster recovery protection, preventing volume synchronization
           (replication) between clusters.
         </Trans>
