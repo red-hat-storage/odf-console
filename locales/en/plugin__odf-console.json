@@ -2038,6 +2038,7 @@
   "Selected Disks": "Selected Disks",
   "Selected nodes": "Selected nodes",
   "Selected nodes are based on the StorageClass <1>{{scName}}</1> and fulfill the stretch cluster requirements with a recommended requirement of 14 CPU and 34 GiB RAM per node.": "Selected nodes are based on the StorageClass <1>{{scName}}</1> and fulfill the stretch cluster requirements with a recommended requirement of 14 CPU and 34 GiB RAM per node.",
+  "Selected nodes are based on the StorageClass <1>{{scName}}</1> and require at least {{minCpuPerNode}} CPU and {{minMemPerNode}} GiB RAM per node.": "Selected nodes are based on the StorageClass <1>{{scName}}</1> and require at least {{minCpuPerNode}} CPU and {{minMemPerNode}} GiB RAM per node.",
   "Selected nodes are based on the StorageClass <1>{{scName}}</1> and with a recommended requirement of 14 CPU and 34 GiB RAM per node.": "Selected nodes are based on the StorageClass <1>{{scName}}</1> and with a recommended requirement of 14 CPU and 34 GiB RAM per node.",
   "Selected nodes will be dedicated to Data Foundation use only": "Selected nodes will be dedicated to Data Foundation use only",
   "Selected nodes: {{nodeCount, number}} node_one": "Selected nodes: {{nodeCount, number}} node",
