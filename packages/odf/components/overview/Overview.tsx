@@ -4,11 +4,13 @@ import { ExternalSystemsCard } from '@odf/core/components/overview/external-syst
 import { ObjectStorageCard } from '@odf/core/components/overview/object-storage-card/ObjectStorageCard';
 import { StorageClusterCard } from '@odf/core/components/overview/storage-cluster-card/StorageClusterCard';
 import { StorageClusterCreateModal } from '@odf/core/modals/ConfigureDF/StorageClusterCreateModal';
+import { useODFSystemFlagsSelector } from '@odf/core/redux/selectors';
 import { PageHeading, useCustomTranslation } from '@odf/shared';
 import { useModalWrapper } from '@odf/shared';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router-dom-v5-compat';
 import { Grid, GridItem } from '@patternfly/react-core';
+import { hasAnyInternalCeph } from '../../utils';
 import { HealthOverviewCard } from './health-overview-card/HealthOverviewCard';
 import './Overview.scss';
 
@@ -20,6 +22,12 @@ const Overview: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const showWelcomeModal = searchParams.get('show-welcome-modal');
   const launchModal = useModalWrapper();
+
+  // Show health card only for internal Ceph clusters.
+  // Can't use hasAnyInternalOCS because MCG standalone is also internal mode,
+  // but it has no Ceph, so ocs_health_score metric won't exist.
+  const { systemFlags, areFlagsSafe } = useODFSystemFlagsSelector();
+  const showHealthCard = areFlagsSafe && hasAnyInternalCeph(systemFlags);
 
   React.useEffect(() => {
     if (showWelcomeModal === 'true') {
@@ -37,9 +45,11 @@ const Overview: React.FC = () => {
         <GridItem xl2={5}>
           <StorageClusterCard />
         </GridItem>
-        <GridItem xl2={3}>
-          <HealthOverviewCard />
-        </GridItem>
+        {showHealthCard && (
+          <GridItem xl2={3}>
+            <HealthOverviewCard />
+          </GridItem>
+        )}
         <GridItem xl2={4} xl2RowSpan={3} order={{ '2xl': '0', default: '3' }}>
           <GeneralOverviewActivityCard />
         </GridItem>

@@ -10,6 +10,7 @@ import { BrowserRouter } from 'react-router-dom-v5-compat';
 import Overview from './Overview';
 
 const odfNamespace = 'test-ns';
+
 jest.mock('@odf/core/redux/selectors', () => ({
   useODFNamespaceSelector: () => ({
     odfNamespace,
@@ -17,6 +18,16 @@ jest.mock('@odf/core/redux/selectors', () => ({
     odfNsLoadError: null,
     isNsSafe: true,
     isFallbackSafe: true,
+  }),
+  useODFSystemFlagsSelector: () => ({
+    systemFlags: {
+      [odfNamespace]: {
+        isInternalMode: true,
+        isExternalMode: false,
+        isNoobaaStandalone: false,
+      },
+    },
+    areFlagsSafe: true,
   }),
 }));
 
