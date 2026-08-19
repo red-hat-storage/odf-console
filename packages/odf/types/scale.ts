@@ -398,9 +398,19 @@ export type GetDevicefinderResponse = {
   devices: {
     [nodeName: string]: {
       discoveredDevices: Array<{
+        /**
+         * Persistent device identifier (by-id path, or DASD UID on IBM Z).
+         * Empty when the persistent ID could not be resolved.
+         */
+        deviceID?: string;
         path: string;
         type: string;
         size: number;
+        /**
+         * WWN of the device.
+         * Empty for DASD devices on IBM Z, which use channel-based addressing
+         * and are identified by deviceID (DASD UID) instead.
+         */
         WWN: string;
       }>;
     };
@@ -1062,65 +1072,57 @@ export type Condition = {
   type: string;
 };
 
+export type ThinDiskType =
+  | 'no'
+  | 'nvme'
+  | 'nvme-thin'
+  | 'scsi'
+  | 'scsi-recl'
+  | 'auto';
+
+export type LocalDiskType = 'shared' | 'partially-shared' | 'unshared';
+
+export type DeviceOnNode = {
+  node: string;
+  device: string;
+};
+
 export type LocalDiskKind = K8sResourceCommon & {
   spec: {
-    /** Device path at creation time (e.g. /dev/sdb) */
     device: string;
-
-    /** Kubernetes node name where the device path was discovered */
     node: string;
-
-    /** Skip verification of existing Spectrum Scale data */
-    existingDataSkipVerify?: boolean;
-
-    /** Failure group number (stringified integer) */
+    skipVerify?: boolean;
     failureGroup?: string;
-
-    /**
-     * Selects nodes expected to have physical access to the disk.
-     * Must not be set for unshared disks.
-     */
     nodeConnectionSelector?: LabelSelector;
-
-    /** Space reclaim disk type */
-    thinDiskType?: 'no' | 'nvme' | 'scsi' | 'auto';
+    thinDiskType?: ThinDiskType;
   };
-
   status?: {
     conditions?: Condition[];
-
-    /** Assigned failure group number */
     failuregroup: string;
-
-    /** Mapping target for automatic failure group assignment */
-    failuregroupMapping?: string;
-
-    /** Filesystem using this disk (empty if unused) */
     filesystem: string;
-
-    /** Nodes that have a physical connection to the disk */
     nodeConnections: string;
-
-    /** Filesystem pool using this disk (empty if unused) */
     pool: string;
-
-    /** Size of the local disk */
     size: string;
-
-    /**
-     * Disk connectivity type
-     * - shared
-     * - partially-shared
-     * - unshared
-     */
-    type: 'shared' | 'partially-shared' | 'unshared';
+    type: LocalDiskType;
+    devices?: DeviceOnNode[];
+    diskCreated?: boolean;
   };
 };
 
 export type DiscoveredDevice = {
+  /**
+   * Persistent device identifier (by-id path, or DASD UID on IBM Z).
+   * Empty when the persistent ID could not be resolved.
+   */
+  deviceID?: string;
   path: string;
   type: string;
   size: number;
+  /**
+   * WWN of the device.
+   * Empty for DASD devices on IBM Z, which use channel-based addressing
+   * and are identified by deviceID (DASD UID) instead.
+   */
   WWN: string;
   nodeName: string;
 };
