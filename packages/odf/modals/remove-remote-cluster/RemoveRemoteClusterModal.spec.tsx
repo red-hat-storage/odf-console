@@ -62,7 +62,6 @@ const localCluster: ClusterKind = {
   kind: 'Cluster',
   metadata: {
     name: 'ibm-spectrum-scale',
-    namespace: 'ibm-spectrum-scale',
     uid: 'local-cluster-uid',
   },
   spec: {
@@ -148,9 +147,8 @@ describe('RemoveRemoteClusterModal', () => {
       mockK8sDelete.mock.invocationCallOrder[1]
     );
     expect(mockK8sGet).toHaveBeenCalledWith({
-      model: expect.objectContaining({ kind: 'Cluster' }),
+      model: expect.objectContaining({ kind: 'Cluster', namespaced: false }),
       name: 'ibm-spectrum-scale',
-      ns: 'ibm-spectrum-scale',
     });
     expect(closeModal).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('/odf/external-systems');

@@ -105,10 +105,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     kernelDevelEligibility.areSelectedNodesEligible
   );
 
-  const isFormValid =
-    mandatoryFieldsValid &&
-    isEncryptionValid &&
-    (!componentState.encryptionEnabled || !!componentState.encryptionCert);
+  const isFormValid = mandatoryFieldsValid && isEncryptionValid;
 
   const handleGeneralCAFileInputChange = React.useCallback(
     (_ev, file: File) => {

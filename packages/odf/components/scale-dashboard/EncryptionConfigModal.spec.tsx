@@ -39,11 +39,7 @@ const fillAndSubmit = async () => {
   );
   await userEvent.type(
     screen.getByLabelText(/Remote RKM/, { selector: 'input' }),
-    'rkm.example.com'
-  );
-  await userEvent.upload(
-    document.querySelector('input[type="file"]') as HTMLInputElement,
-    new File(['certificate'], 'ca.crt')
+    'remote_rkm_1'
   );
   await userEvent.type(
     screen.getByLabelText(/Server information/, { selector: 'input' }),
@@ -72,11 +68,11 @@ describe('EncryptionConfigModal', () => {
 
     await waitFor(() => expect(closeModal).toHaveBeenCalled());
     expect(enableScaleEncryption).toHaveBeenCalledWith({
-      certificate: 'Y2VydGlmaWNhdGU=',
+      certificate: '',
       client: 'scale-client',
       password: 'password',
       port: '9444',
-      remoteRKM: 'rkm.example.com',
+      remoteRKM: 'remote_rkm_1',
       server: 'keyserver.example.com',
       tenant: 'tenant',
       username: 'encryption-user',

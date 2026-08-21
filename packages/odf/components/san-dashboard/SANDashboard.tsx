@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import useIsSANSystemDeletable from '@odf/core/hooks/useIsSANSystemDeletable';
 import { ClusterKind } from '@odf/core/types/scale';
 import {
@@ -71,7 +70,6 @@ const SANDashboard: React.FC = () => {
   const [localClusters] = useK8sWatchResource<ClusterKind[]>({
     kind: referenceForModel(ClusterModel),
     isList: true,
-    namespace: IBM_SCALE_NAMESPACE,
   });
   const localCluster = localClusters?.[0];
 

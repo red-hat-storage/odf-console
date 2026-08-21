@@ -16,6 +16,7 @@ import {
   SecretModel,
 } from '@odf/shared';
 import { k8sPatchByName } from '@odf/shared/utils';
+import { createOrUpdate } from '@odf/shared/utils/k8s';
 import {
   K8sKind,
   Patch,
@@ -45,7 +46,13 @@ export const createUserDetailsSecretPayload = (
     type: 'Opaque',
     stringData: { username, password },
   };
-  return () => k8sCreate({ model: SecretModel, data: secret });
+  return () =>
+    createOrUpdate<SecretKind>({
+      model: SecretModel,
+      name,
+      namespace: IBM_SCALE_NAMESPACE,
+      mutate: () => secret,
+    });
 };
 
 export const createConfigMapPayload = (
@@ -58,7 +65,13 @@ export const createConfigMapPayload = (
     metadata: { name, namespace: IBM_SCALE_NAMESPACE },
     data,
   };
-  return () => k8sCreate({ model: ConfigMapModel, data: configMap });
+  return () =>
+    createOrUpdate<ConfigMapKind>({
+      model: ConfigMapModel,
+      name,
+      namespace: IBM_SCALE_NAMESPACE,
+      mutate: () => configMap,
+    });
 };
 
 export const labelNodes = (
