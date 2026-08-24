@@ -5,6 +5,7 @@ import {
   CreateBucketCommand,
   PutBucketTaggingCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   GetObjectTaggingCommand,
   DeleteObjectsCommand,
   GetBucketEncryptionCommand,
@@ -34,6 +35,7 @@ import {
   PutBucketTags,
   GetSignedUrl,
   GetObject,
+  HeadObject,
   GetObjectTagging,
   DeleteObjects,
   DeleteBucket,
@@ -140,6 +142,8 @@ export class S3Commands extends S3Client {
     );
 
   getObject: GetObject = (input) => this.send(new GetObjectCommand(input));
+
+  headObject: HeadObject = (input) => this.send(new HeadObjectCommand(input));
 
   getObjectTagging: GetObjectTagging = (input) =>
     this.send(new GetObjectTaggingCommand(input));
