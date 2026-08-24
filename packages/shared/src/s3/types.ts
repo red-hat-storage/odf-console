@@ -21,6 +21,8 @@ import {
   DeleteObjectsCommandOutput,
   GetObjectCommandInput,
   GetObjectCommandOutput,
+  HeadObjectCommandInput,
+  HeadObjectCommandOutput,
   GetObjectTaggingCommandInput,
   GetObjectTaggingCommandOutput,
   ListObjectVersionsCommandInput,
@@ -74,6 +76,10 @@ export type DeleteObjects = (
 export type GetObject = (
   input: GetObjectCommandInput
 ) => Promise<GetObjectCommandOutput>;
+
+export type HeadObject = (
+  input: HeadObjectCommandInput
+) => Promise<HeadObjectCommandOutput>;
 
 export type GetObjectTagging = (
   input: GetObjectTaggingCommandInput
