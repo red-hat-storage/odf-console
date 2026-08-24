@@ -73,7 +73,7 @@ const ObjectDetailsSidebarContent: React.FC<ObjectDetailsSidebarContentProps> =
     const { data: objectData, isLoading: isObjectDataLoading } = useSWR(
       `${objectKey}-${OBJECT_CACHE_KEY_SUFFIX}`,
       () =>
-        noobaaS3.getObject({
+        noobaaS3.headObject({
           Bucket: bucketName,
           Key: objectKey,
         })
