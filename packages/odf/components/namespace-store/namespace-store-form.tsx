@@ -40,6 +40,7 @@ import {
   StoreType,
   NAMESPACE_STORE_FILESYSTEM,
   providerSchema,
+  getTargetBucketFieldRequirements,
 } from '../../constants';
 import { NamespaceStoreKind } from '../../types';
 import {
@@ -188,7 +189,16 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         ),
     });
 
-    const schema = baseSchema.concat(providerSchema(showSecret));
+    const [minChars, maxChars, startAndEnd, alphaNumeric] =
+      getTargetBucketFieldRequirements(t);
+    const schema = baseSchema.concat(
+      providerSchema(showSecret, {
+        minChars,
+        maxChars,
+        startAndEnd,
+        alphaNumeric,
+      })
+    );
 
     return { schema, fieldRequirements };
   }, [data, loadError, loaded, showSecret, t]);
