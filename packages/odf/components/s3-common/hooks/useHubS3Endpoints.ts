@@ -128,11 +128,15 @@ export const useHubS3Endpoints: UseHubS3Endpoints = () => {
   const isLoaded = !isClientCluster || (isODFNsLoaded && configMapsLoaded);
 
   const hubS3EndpointsError = React.useMemo(() => {
+    if (!isClientCluster) {
+      return undefined;
+    }
+
     if (odfNsLoadError || configMapsError) {
       return odfNsLoadError || configMapsError;
     }
 
-    if (isClientCluster && isLoaded && !hubS3EndpointsData.noobaaS3Endpoint) {
+    if (isLoaded && !hubS3EndpointsData.noobaaS3Endpoint) {
       return new Error('NooBaa S3 hub endpoint is not available');
     }
 
