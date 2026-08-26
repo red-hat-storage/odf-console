@@ -75,9 +75,7 @@ export const PerformanceHeaderText: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <Content id="configure-performance" component={ContentVariants.h4}>
-      <span className="pf-v6-u-mr-sm">
-        {t('Core storage performance profile')}
-      </span>
+      <span className="pf-v6-u-mr-sm">{t('Configure performance')}</span>
       <FieldLevelHelp>{resourceProfileTooltip(t)}</FieldLevelHelp>
     </Content>
   );

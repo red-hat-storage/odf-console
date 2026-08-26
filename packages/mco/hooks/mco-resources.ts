@@ -8,7 +8,6 @@ import {
   DRClusterModel,
   DRPlacementControlModel,
   DRPolicyModel,
-  MirrorPeerModel,
 } from '@odf/shared';
 import {
   ApplicationModel,
@@ -16,12 +15,7 @@ import {
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  HUB_CLUSTER_NAME,
-  SUBMARINER_ADDON_KIND,
-  SUBMARINER_BROKER_KIND,
-  SUBMARINER_CLUSTER_KIND,
-} from '../constants';
+import { HUB_CLUSTER_NAME } from '../constants';
 
 export const getDRClusterResourceObj = (props?: ClusterScopeObjectType) => ({
   cluster: HUB_CLUSTER_NAME,
@@ -36,15 +30,6 @@ export const getDRPolicyResourceObj = (props?: ClusterScopeObjectType) => ({
   cluster: HUB_CLUSTER_NAME,
   ...(!!props?.name ? { name: props?.name } : {}),
   kind: referenceForModel(DRPolicyModel),
-  ...(!props?.name ? { isList: true } : {}),
-  namespaced: false,
-  optional: true,
-});
-
-export const getMirrorPeerResourceObj = (props?: ClusterScopeObjectType) => ({
-  cluster: HUB_CLUSTER_NAME,
-  ...(!!props?.name ? { name: props?.name } : {}),
-  kind: referenceForModel(MirrorPeerModel),
   ...(!props?.name ? { isList: true } : {}),
   namespaced: false,
   optional: true,
@@ -162,23 +147,6 @@ export const getApplicationResourceObj = (props?: NamespacedObjectType) => ({
   namespaced: !!props?.namespace ? true : false,
   optional: true,
 });
-
-const getSubmarinerHubListResourceObj = (kind: string) => ({
-  cluster: HUB_CLUSTER_NAME,
-  kind,
-  isList: true,
-  namespaced: false,
-  optional: true,
-});
-
-export const getSubmarinerAddonListResourceObj = () =>
-  getSubmarinerHubListResourceObj(SUBMARINER_ADDON_KIND);
-
-export const getSubmarinerBrokerListResourceObj = () =>
-  getSubmarinerHubListResourceObj(SUBMARINER_BROKER_KIND);
-
-export const getSubmarinerClusterListResourceObj = () =>
-  getSubmarinerHubListResourceObj(SUBMARINER_CLUSTER_KIND);
 
 type ClusterScopeObjectType = {
   name?: string;

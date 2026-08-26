@@ -11,16 +11,13 @@ export const isInvalidName = (
   isEdit = false,
   editingRuleName = ''
 ) => {
-  const emptyName = !state.generalConfig.name;
+  const emptyName = !state.name;
   const alreadyUsedName = isEdit
     ? existingRules?.Rules?.some(
-        (rule) =>
-          rule.ID === state.generalConfig.name && rule.ID !== editingRuleName
+        (rule) => rule.ID === state.name && rule.ID !== editingRuleName
       )
-    : existingRules?.Rules?.some(
-        (rule) => rule.ID === state.generalConfig.name
-      );
-  const exceedingLengthName = state.generalConfig.name.length > 255;
+    : existingRules?.Rules?.some((rule) => rule.ID === state.name);
+  const exceedingLengthName = state.name.length > 255;
   const invalidName =
     emptyName || alreadyUsedName || exceedingLengthName || false;
   return [invalidName, emptyName, alreadyUsedName, exceedingLengthName];
@@ -42,7 +39,7 @@ export const isInvalidObjectSize = (state: RuleState) => {
     state.conditionalFilters.minObjectSize.sizeInB >=
       state.conditionalFilters.maxObjectSize.sizeInB;
   const invalidObjectSize =
-    state.generalConfig.scope === RuleScope.TARGETED &&
+    state.scope === RuleScope.TARGETED &&
     (invalidMinSize || invalidMaxSize || invalidSize);
   return [invalidObjectSize, invalidMinSize, invalidMaxSize, invalidSize];
 };
@@ -57,8 +54,7 @@ export const isInvalidObjectTag = (
   const alreadyUsedKey =
     !emptyKey && tags.some((t, idx) => idx !== index && t.Key === tag.Key);
   const invalidTag =
-    state.generalConfig.scope === RuleScope.TARGETED &&
-    (emptyKey || alreadyUsedKey);
+    state.scope === RuleScope.TARGETED && (emptyKey || alreadyUsedKey);
   return [invalidTag, emptyKey, alreadyUsedKey];
 };
 
@@ -71,27 +67,17 @@ export const areInvalidObjectTags = (state: RuleState) => {
 };
 
 export const areInvalidFilters = (state: RuleState) =>
-  state.generalConfig.scope === RuleScope.TARGETED &&
+  state.scope === RuleScope.TARGETED &&
   !state.conditionalFilters.prefix &&
   !state.conditionalFilters.objectTags.length &&
   !state.conditionalFilters.minObjectSize.isChecked &&
   !state.conditionalFilters.maxObjectSize.isChecked;
 
 // Rule actions validations
-export const isInvalidActionsCount = (
-  state: RuleState,
-  isDeepArchiveEnabled = false
-) => {
+export const isInvalidActionsCount = (state: RuleState) => {
   let actionsCount = 0;
-  const ruleActions = state.ruleActions;
+  const ruleActions = state.actions;
   Object.keys(ruleActions).forEach((action) => {
-    // Skip transition actions if Deep Archive is not enabled
-    if (
-      !isDeepArchiveEnabled &&
-      (action === 'transitionCurrent' || action === 'transitionNonCurrent')
-    ) {
-      return;
-    }
     if (ruleActions[action]?.isChecked || ruleActions[action] === true) {
       actionsCount++;
     }
@@ -100,46 +86,31 @@ export const isInvalidActionsCount = (
 };
 
 export const isInvalidDeleteCurrent = (state: RuleState) =>
-  state.ruleActions.deleteCurrent.isChecked &&
-  state.ruleActions.deleteCurrent.days < 1;
+  state.actions.deleteCurrent.isChecked && state.actions.deleteCurrent.days < 1;
 
 export const isInvalidDeleteNonCurrent = (state: RuleState) =>
-  state.ruleActions.deleteNonCurrent.isChecked &&
-  state.ruleActions.deleteNonCurrent.days < 1;
+  state.actions.deleteNonCurrent.isChecked &&
+  state.actions.deleteNonCurrent.days < 1;
 
 export const isInvalidDeleteMultiparts = (state: RuleState) =>
-  state.ruleActions.deleteIncompleteMultiparts.isChecked &&
-  state.ruleActions.deleteIncompleteMultiparts.days < 1;
+  state.actions.deleteIncompleteMultiparts.isChecked &&
+  state.actions.deleteIncompleteMultiparts.days < 1;
 
-export const isInvalidTransitionCurrent = (state: RuleState) =>
-  state.ruleActions.transitionCurrent.isChecked &&
-  state.ruleActions.transitionCurrent.days < 1;
-
-export const isInvalidTransitionNonCurrent = (state: RuleState) =>
-  state.ruleActions.transitionNonCurrent.isChecked &&
-  state.ruleActions.transitionNonCurrent.days < 1;
-
-export const areInvalidActions = (
-  state: RuleState,
-  isDeepArchiveEnabled = false
-) =>
+export const areInvalidActions = (state: RuleState) =>
   isInvalidDeleteCurrent(state) ||
   isInvalidDeleteNonCurrent(state) ||
-  isInvalidDeleteMultiparts(state) ||
-  (isDeepArchiveEnabled && isInvalidTransitionCurrent(state)) ||
-  (isDeepArchiveEnabled && isInvalidTransitionNonCurrent(state));
+  isInvalidDeleteMultiparts(state);
 
 // Cummulative validations
 export const isInvalidLifecycleRule = (
   state: RuleState,
   existingRules: GetBucketLifecycleConfigurationCommandOutput,
   isEdit = false,
-  editingRuleName = '',
-  isDeepArchiveEnabled = false
+  editingRuleName = ''
 ) =>
   isInvalidName(state, existingRules, isEdit, editingRuleName)[0] ||
   isInvalidObjectSize(state)[0] ||
   areInvalidObjectTags(state) ||
   areInvalidFilters(state) ||
-  isInvalidActionsCount(state, isDeepArchiveEnabled)[0] ||
-  areInvalidActions(state, isDeepArchiveEnabled);
+  isInvalidActionsCount(state)[0] ||
+  areInvalidActions(state);

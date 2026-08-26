@@ -51,7 +51,6 @@ import {
 import {
   DRPC_NAMESPACE_ANNOTATION,
   DRPC_NAME_ANNOTATION,
-  MIN_VALUE,
   ReplicationType,
   TimeUnits,
   PROTECTED_APP_ANNOTATION,
@@ -418,11 +417,6 @@ export const parseSyncInterval = (
   const interval = Number(splittedArray?.[0] || 0);
   const unit = (splittedArray?.[1] || TimeUnits.Minutes) as TimeUnits;
   return [unit, interval];
-};
-
-export const normalizeSyncTimeValue = (value: number) => {
-  const syncTimeValue = isNaN(Number(value)) ? MIN_VALUE : Number(value);
-  return syncTimeValue < MIN_VALUE ? MIN_VALUE : syncTimeValue;
 };
 
 export const convertSyncIntervalToSeconds = (

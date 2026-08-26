@@ -38,7 +38,7 @@ jest.mock('../../hooks', () => ({
   useActiveDROperations: jest.fn(() => [{}, true, null]),
 }));
 
-jest.mock('../../utils/managed-cluster-info', () => ({
+jest.mock('../create-dr-policy/utils/cluster-list-utils', () => ({
   getManagedClusterInfoTypes: jest.fn((clusters) => {
     // Mock implementation that marks all clusters as having valid ODF
     return clusters.map((cluster: any) => ({

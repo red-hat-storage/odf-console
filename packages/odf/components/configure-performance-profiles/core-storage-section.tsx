@@ -23,13 +23,16 @@ import { getOcsLabeledWizardNodes } from './utils';
 
 type SubmitCoreStorageProfileParams = {
   storageCluster: StorageClusterKind;
-  resourceProfile: ResourceProfile;
+  resourceProfile: ResourceProfile | null;
 };
 
 export const patchCoreStorageProfile = async ({
   storageCluster,
   resourceProfile,
 }: SubmitCoreStorageProfileParams): Promise<void> => {
+  if (!resourceProfile) {
+    return;
+  }
   const patch: Patch = {
     op: 'replace',
     path: '/spec/resourceProfile',

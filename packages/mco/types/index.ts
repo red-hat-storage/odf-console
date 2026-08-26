@@ -3,6 +3,4 @@ export * from './acm';
 export * from './odf-mco';
 export * from './argo-cd';
 export * from './dashboard';
-export * from './dr-policy';
 export * from './pav';
-export * from './submariner';

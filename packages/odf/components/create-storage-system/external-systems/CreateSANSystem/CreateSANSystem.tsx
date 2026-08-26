@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { useExistingFileSystemNames } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
-import {
-  filterUsedDiscoveredDevices,
-  getDiscoveredDeviceKey,
-} from '@odf/core/components/utils';
+import { filterUsedDiscoveredDevices } from '@odf/core/components/utils';
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
 import {
@@ -165,14 +162,14 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
       }
     }
     const mappedLuns: DiscoveredDevice[] = sharedDevices.filter((lun) =>
-      componentState.selectedLUNs.has(getDiscoveredDeviceKey(lun))
+      componentState.selectedLUNs.has(lun.WWN)
     );
     const { cpuRequest, memoryRequest } = getOptimalResourceRequests(
       componentState.selectedNodes
     );
     try {
       if (!isLocalClusterConfigured) {
-        await labelNodes(componentState.selectedNodes, true)();
+        await labelNodes(componentState.selectedNodes)();
         const buildExternalKmmRegistry = ():
           | ExternalKMMRegistryConfig
           | undefined => {

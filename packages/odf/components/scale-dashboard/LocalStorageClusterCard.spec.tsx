@@ -8,12 +8,8 @@ import { ClusterKind, EncryptionConfigKind } from '@odf/core/types/scale';
 import { NodeKind } from '@odf/shared/types';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
-import { ENCRYPTION_CONFIG_NAME } from '../scale-encryption/enableScaleEncryption';
 import LocalStorageClusterCard from './LocalStorageClusterCard';
-
-const launchModal = jest.fn();
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
@@ -46,10 +42,6 @@ jest.mock('@odf/shared/useCustomTranslationHook', () => ({
       return key;
     },
   }),
-}));
-
-jest.mock('@odf/shared/sdk-wrapper/useModalWrapper', () => ({
-  useModalWrapper: () => launchModal,
 }));
 
 const makeNode = (name: string, labels: Record<string, string>): NodeKind =>
@@ -158,14 +150,15 @@ describe('LocalStorageClusterCard', () => {
       setupMocks();
       renderCard();
 
-      const watchResources = jest.mocked(useK8sWatchResources).mock.calls[0][0];
-      expect(watchResources.cluster).toEqual(
+      expect(useK8sWatchResources).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: IBM_SCALE_LOCAL_CLUSTER_NAME,
-          isList: false,
+          cluster: expect.objectContaining({
+            name: IBM_SCALE_LOCAL_CLUSTER_NAME,
+            namespace: IBM_SCALE_NAMESPACE,
+            isList: false,
+          }),
         })
       );
-      expect(watchResources.cluster).not.toHaveProperty('namespace');
     });
 
     it('should display the cluster name', () => {
@@ -199,44 +192,6 @@ describe('LocalStorageClusterCard', () => {
   });
 
   describe('Node inventory', () => {
-    it('should open node expansion for the local Scale cluster', async () => {
-      setupMocks();
-      renderCard();
-
-      await userEvent.click(
-        screen.getByRole('button', { name: 'Edit node inventory' })
-      );
-
-      expect(launchModal).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({ isOpen: true })
-      );
-    });
-
-    it.each([
-      { cluster: null, clusterLoaded: true, clusterLoadError: null },
-      {
-        cluster: makeCluster(IBM_SCALE_LOCAL_CLUSTER_NAME),
-        clusterLoaded: false,
-        clusterLoadError: null,
-      },
-      {
-        cluster: makeCluster(IBM_SCALE_LOCAL_CLUSTER_NAME),
-        clusterLoaded: false,
-        clusterLoadError: new Error('failed'),
-      },
-    ])(
-      'should hide node expansion until the local cluster is available',
-      ({ cluster, clusterLoaded, clusterLoadError }) => {
-        setupMocks({ cluster, clusterLoaded, clusterLoadError });
-        renderCard();
-
-        expect(
-          screen.queryByRole('button', { name: 'Edit node inventory' })
-        ).not.toBeInTheDocument();
-      }
-    );
-
     it('should watch only nodes selected for the local cluster', () => {
       setupMocks();
       renderCard();
@@ -256,15 +211,12 @@ describe('LocalStorageClusterCard', () => {
       );
     });
 
-    it('should count assigned labels without waiting for Scale pod readiness', () => {
+    it('should display the count of nodes returned by the label-selector watch', () => {
       setupMocks({
         nodes: [scaleNode('node-1'), scaleNode('node-2'), scaleNode('node-3')],
       });
       renderCard();
       expect(screen.getByText('3 Nodes')).toBeInTheDocument();
-      expect(
-        (useK8sWatchResources as jest.Mock).mock.calls[0][0]
-      ).not.toHaveProperty('corePods');
     });
 
     it('should show 0 nodes when the watch returns an empty list', () => {
@@ -297,27 +249,14 @@ describe('LocalStorageClusterCard', () => {
   });
 
   describe('Encryption field', () => {
-    it('should open encryption enablement', async () => {
-      setupMocks();
-      renderCard();
-
-      await userEvent.click(
-        screen.getByRole('button', { name: 'Edit encryption' })
-      );
-
-      expect(launchModal).toHaveBeenCalledWith(expect.anything(), {
-        isOpen: true,
-      });
-    });
-
-    it('should watch the singleton EncryptionConfig', () => {
+    it('should watch the single remote cluster encryption config', () => {
       setupMocks();
       renderCard();
 
       expect(useK8sWatchResources).toHaveBeenCalledWith(
         expect.objectContaining({
           encryptionConfig: expect.objectContaining({
-            name: ENCRYPTION_CONFIG_NAME,
+            name: `${systemName}-encryption-config`,
             namespace: IBM_SCALE_NAMESPACE,
             isList: false,
           }),
@@ -327,6 +266,7 @@ describe('LocalStorageClusterCard', () => {
 
     it('should show Disabled when no EncryptionConfig exists', () => {
       setupMocks({
+        encryptionConfig: null,
         encryptionConfigLoaded: false,
         encryptionConfigLoadError: { response: { status: 404 } },
       });
@@ -351,9 +291,6 @@ describe('LocalStorageClusterCard', () => {
       });
       renderCard();
       expect(screen.getByText('Enabled')).toBeInTheDocument();
-      expect(
-        screen.queryByRole('button', { name: 'Edit encryption' })
-      ).not.toBeInTheDocument();
     });
 
     it('should show a skeleton while loading', () => {

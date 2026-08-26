@@ -11,12 +11,6 @@ export type ClusterClaim = {
   value: string;
 };
 
-export type ManagedClusterNetworkInfo = {
-  clusterName: string;
-  clusterClaims?: ClusterClaim[];
-  loaded: boolean;
-};
-
 export type ACMManagedClusterKind = K8sResourceCommon & {
   status?: {
     clusterClaims?: ClusterClaim[];

@@ -27,7 +27,6 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   creatorDisabled,
   launchModal,
   filterFilesystem,
-  filterArchive,
 }) => {
   const { t } = useCustomTranslation();
   const [isOpen, setOpen] = React.useState(false);
@@ -42,23 +41,15 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
     true
   );
 
-  const { noobaaNamespaceStores, hasNoFilesystemStores } = React.useMemo(() => {
-    const filesystemStores = nnsData.filter(
-      (nns) => getNamespaceStoreType(nns) === StoreProviders.FILESYSTEM
-    );
+  const nnsfsData = React.useMemo(
+    () =>
+      nnsData.filter(
+        (nns) => getNamespaceStoreType(nns) === StoreProviders.FILESYSTEM
+      ),
+    [nnsData]
+  );
 
-    let stores = nnsData;
-    if (filterArchive) {
-      stores = nnsData.filter((nns) => nns.spec?.archive === true);
-    } else if (filterFilesystem) {
-      stores = filesystemStores;
-    }
-
-    return {
-      noobaaNamespaceStores: stores,
-      hasNoFilesystemStores: filesystemStores.length === 0,
-    };
-  }, [nnsData, filterArchive, filterFilesystem]);
+  const noobaaNamespaceStores = filterFilesystem ? nnsfsData : nnsData;
 
   React.useEffect(() => {
     const nnsDropdownItems = noobaaNamespaceStores.reduce(
@@ -128,7 +119,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
         !!nnsLoadErr ||
         (namespacePolicy === NamespacePolicyType.MULTI &&
           enabledItems?.length === 0) ||
-        (filterFilesystem && hasNoFilesystemStores)
+        (filterFilesystem && nnsfsData.length === 0)
       }
       isFullWidth
     >
@@ -171,5 +162,4 @@ type NamespaceStoreDropdownProps = {
   creatorDisabled?: boolean;
   launchModal?: () => void;
   filterFilesystem?: boolean;
-  filterArchive?: boolean;
 };

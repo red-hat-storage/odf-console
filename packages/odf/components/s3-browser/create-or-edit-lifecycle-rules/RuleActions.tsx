@@ -25,8 +25,6 @@ import {
   isInvalidDeleteCurrent,
   isInvalidDeleteNonCurrent,
   isInvalidDeleteMultiparts,
-  isInvalidTransitionCurrent,
-  isInvalidTransitionNonCurrent,
 } from './validations';
 import './create-lifecycle-rules.scss';
 
@@ -35,66 +33,7 @@ enum Actions {
   NONCURRENT_OBJECTS = 'NONCURRENT_OBJECTS',
   INCOMPLETE_UPLOADS = 'INCOMPLETE_UPLOADS',
   EXPIRED_MARKERS = 'EXPIRED_MARKERS',
-  TRANSITION_CURRENT = 'TRANSITION_CURRENT',
-  TRANSITION_NONCURRENT = 'TRANSITION_NONCURRENT',
 }
-
-type DaysInputProps = {
-  id: string;
-  days: number;
-  onDaysChange: (days: number) => void;
-  isInvalid: boolean;
-  helperText: string;
-};
-
-const DaysInput: React.FC<DaysInputProps> = ({
-  id,
-  days,
-  onDaysChange,
-  isInvalid,
-  helperText,
-}) => {
-  const { t } = useCustomTranslation();
-
-  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (['-', '+', 'e', 'E', '.'].includes(event.key)) {
-      event.preventDefault();
-    }
-  };
-
-  return (
-    <div className="pf-v6-u-w-25">
-      <TextInput
-        id={id}
-        value={days}
-        onChange={(_e, value) => onDaysChange(Math.round(+value || 0))}
-        onKeyDown={onKeyDown}
-        onBlur={() => {
-          if (days < 1) {
-            onDaysChange(1);
-          }
-        }}
-        placeholder={t('Enter number of days')}
-        type="number"
-        min={1}
-        validated={
-          isInvalid ? ValidatedOptions.error : ValidatedOptions.default
-        }
-      />
-      <FormHelperText>
-        <HelperText>
-          <HelperTextItem
-            variant={
-              isInvalid ? ValidatedOptions.error : ValidatedOptions.default
-            }
-          >
-            {isInvalid ? t('Must be an integer greater than 0.') : helperText}
-          </HelperTextItem>
-        </HelperText>
-      </FormHelperText>
-    </div>
-  );
-};
 
 const ExpiredDeleteMarkers: React.FC<StateAndDispatchProps> = ({
   state,
@@ -102,8 +41,8 @@ const ExpiredDeleteMarkers: React.FC<StateAndDispatchProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const deleteExpiredMarkers = state.ruleActions.deleteExpiredMarkers;
-  const deleteCurrent = state.ruleActions.deleteCurrent;
+  const deleteExpiredMarkers = state.actions.deleteExpiredMarkers;
+  const deleteCurrent = state.actions.deleteCurrent;
 
   return (
     <div className="pf-v6-u-ml-xl">
@@ -115,7 +54,7 @@ const ExpiredDeleteMarkers: React.FC<StateAndDispatchProps> = ({
         isDisabled={deleteCurrent.isChecked}
         onChange={(_e, checked) =>
           dispatch({
-            type: RuleActionType.RULE_ACTIONS_DELETE_MARKERS,
+            type: RuleActionType.RULE_DELETE_MARKERS_ACTION,
             payload: checked,
           })
         }
@@ -148,10 +87,10 @@ const IncompleteMultipartUploads: React.FC<StateAndDispatchProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const deleteIncompleteMultiparts =
-    state.ruleActions.deleteIncompleteMultiparts;
+  const deleteIncompleteMultiparts = state.actions.deleteIncompleteMultiparts;
 
-  const invalidDeleteMultiparts = isInvalidDeleteMultiparts(state);
+  const invalidDeleteMultiparts =
+    state.triggerInlineValidations && isInvalidDeleteMultiparts(state);
 
   return (
     <div className="pf-v6-u-ml-xl">
@@ -162,24 +101,49 @@ const IncompleteMultipartUploads: React.FC<StateAndDispatchProps> = ({
         isChecked={deleteIncompleteMultiparts.isChecked}
         onChange={(_e, checked) =>
           dispatch({
-            type: RuleActionType.RULE_ACTIONS_DELETE_MULTIPARTS,
+            type: RuleActionType.RULE_DELETE_MULTIPARTS_ACTION,
             payload: { ...deleteIncompleteMultiparts, isChecked: checked },
           })
         }
         body={
           deleteIncompleteMultiparts.isChecked ? (
-            <DaysInput
-              id="incomplete-multiparts-delete-days"
-              days={deleteIncompleteMultiparts.days}
-              onDaysChange={(days) =>
-                dispatch({
-                  type: RuleActionType.RULE_ACTIONS_DELETE_MULTIPARTS,
-                  payload: { ...deleteIncompleteMultiparts, days },
-                })
-              }
-              isInvalid={invalidDeleteMultiparts}
-              helperText={t('Period of time (in days).')}
-            />
+            <div className="pf-v6-u-w-25">
+              <TextInput
+                id="incomplete-multiparts-delete-days"
+                value={deleteIncompleteMultiparts.days}
+                onChange={(_e, value) =>
+                  dispatch({
+                    type: RuleActionType.RULE_DELETE_MULTIPARTS_ACTION,
+                    payload: {
+                      ...deleteIncompleteMultiparts,
+                      days: Math.round(+value || 0),
+                    },
+                  })
+                }
+                placeholder={t('Enter number of days')}
+                type="number"
+                validated={
+                  invalidDeleteMultiparts
+                    ? ValidatedOptions.error
+                    : ValidatedOptions.default
+                }
+              />
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem
+                    variant={
+                      invalidDeleteMultiparts
+                        ? ValidatedOptions.error
+                        : ValidatedOptions.default
+                    }
+                  >
+                    {invalidDeleteMultiparts
+                      ? t('Must be an integer greater than 0.')
+                      : t('Period of time (in days).')}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
+            </div>
           ) : null
         }
       />
@@ -198,7 +162,7 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const deleteNonCurrent = state.ruleActions.deleteNonCurrent;
+  const deleteNonCurrent = state.actions.deleteNonCurrent;
   const onNumberInputAction = (
     funcType: FuncType,
     event?: React.FormEvent<HTMLInputElement>
@@ -225,7 +189,7 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
       }
     }
     dispatch({
-      type: RuleActionType.RULE_ACTIONS_DELETE_NON_CURRENT,
+      type: RuleActionType.RULE_DELETE_NON_CURRENT_ACTION,
       payload: {
         ...deleteNonCurrent,
         retention: newRetention,
@@ -233,7 +197,8 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
     });
   };
 
-  const invalidDeleteNonCurrent = isInvalidDeleteNonCurrent(state);
+  const invalidDeleteNonCurrent =
+    state.triggerInlineValidations && isInvalidDeleteNonCurrent(state);
 
   return (
     <Checkbox
@@ -246,27 +211,52 @@ const NonCurrentObjects: React.FC<StateAndDispatchProps> = ({
       isChecked={deleteNonCurrent.isChecked}
       onChange={(_e, checked) =>
         dispatch({
-          type: RuleActionType.RULE_ACTIONS_DELETE_NON_CURRENT,
+          type: RuleActionType.RULE_DELETE_NON_CURRENT_ACTION,
           payload: { ...deleteNonCurrent, isChecked: checked },
         })
       }
       body={
         deleteNonCurrent.isChecked ? (
           <>
-            <DaysInput
-              id="noncurrent-object-delete-days"
-              days={deleteNonCurrent.days}
-              onDaysChange={(days) =>
-                dispatch({
-                  type: RuleActionType.RULE_ACTIONS_DELETE_NON_CURRENT,
-                  payload: { ...deleteNonCurrent, days },
-                })
-              }
-              isInvalid={invalidDeleteNonCurrent}
-              helperText={t(
-                'Period of time (in days) after which a noncurrent version of an object would be deleted since turning noncurrent.'
-              )}
-            />
+            <div className="pf-v6-u-w-25">
+              <TextInput
+                id="noncurrent-object-delete-days"
+                value={deleteNonCurrent.days}
+                onChange={(_e, value) =>
+                  dispatch({
+                    type: RuleActionType.RULE_DELETE_NON_CURRENT_ACTION,
+                    payload: {
+                      ...deleteNonCurrent,
+                      days: Math.round(+value || 0),
+                    },
+                  })
+                }
+                placeholder={t('Enter number of days')}
+                type="number"
+                validated={
+                  invalidDeleteNonCurrent
+                    ? ValidatedOptions.error
+                    : ValidatedOptions.default
+                }
+              />
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem
+                    variant={
+                      invalidDeleteNonCurrent
+                        ? ValidatedOptions.error
+                        : ValidatedOptions.default
+                    }
+                  >
+                    {invalidDeleteNonCurrent
+                      ? t('Must be an integer greater than 0.')
+                      : t(
+                          'Period of time (in days) after which a noncurrent versions of object would be deleted since turning noncurrent.'
+                        )}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
+            </div>
 
             <Content className="pf-v6-u-mt-lg">
               <Content component={ContentVariants.p}>
@@ -310,9 +300,10 @@ const CurrentObjects: React.FC<StateAndDispatchProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const deleteCurrent = state.ruleActions.deleteCurrent;
+  const deleteCurrent = state.actions.deleteCurrent;
 
-  const invalidDeleteCurrent = isInvalidDeleteCurrent(state);
+  const invalidDeleteCurrent =
+    state.triggerInlineValidations && isInvalidDeleteCurrent(state);
 
   return (
     <Checkbox
@@ -325,249 +316,79 @@ const CurrentObjects: React.FC<StateAndDispatchProps> = ({
       isChecked={deleteCurrent.isChecked}
       onChange={(_e, checked) => {
         dispatch({
-          type: RuleActionType.RULE_ACTIONS_DELETE_CURRENT,
+          type: RuleActionType.RULE_DELETE_CURRENT_ACTION,
           payload: { ...deleteCurrent, isChecked: checked },
         });
         dispatch({
-          type: RuleActionType.RULE_ACTIONS_DELETE_MARKERS,
+          type: RuleActionType.RULE_DELETE_MARKERS_ACTION,
           payload: false,
         });
       }}
       body={
         deleteCurrent.isChecked ? (
-          <DaysInput
-            id="current-object-delete-days"
-            days={deleteCurrent.days}
-            onDaysChange={(days) =>
-              dispatch({
-                type: RuleActionType.RULE_ACTIONS_DELETE_CURRENT,
-                payload: { ...deleteCurrent, days },
-              })
-            }
-            isInvalid={invalidDeleteCurrent}
-            helperText={t(
-              'Period of time (in days) after which an object would be deleted since its creation.'
-            )}
-          />
-        ) : null
-      }
-    />
-  );
-};
-
-const TransitionCurrentObjects: React.FC<StateAndDispatchProps> = ({
-  state,
-  dispatch,
-}) => {
-  const { t } = useCustomTranslation();
-
-  const transitionCurrent = state.ruleActions.transitionCurrent;
-
-  const invalidTransitionCurrent = isInvalidTransitionCurrent(state);
-
-  return (
-    <Checkbox
-      id="current-object-transition"
-      label={t('Transition storage class')}
-      description={t(
-        'Move current object versions to IBM Deep Archive storage class after a specified number of days.'
-      )}
-      className="pf-v6-u-ml-xl"
-      isChecked={transitionCurrent.isChecked}
-      onChange={(_e, checked) =>
-        dispatch({
-          type: RuleActionType.RULE_ACTIONS_TRANSITION_CURRENT,
-          payload: { ...transitionCurrent, isChecked: checked },
-        })
-      }
-      body={
-        transitionCurrent.isChecked ? (
-          <>
-            <Content className="pf-v6-u-mb-md">
-              <Content component={ContentVariants.p}>
-                {t('Storage class: ')}{' '}
-                <Label color="blue">{t('IBM Deep Archive Standard')}</Label>
-              </Content>
-            </Content>
-            <DaysInput
-              id="current-object-transition-days"
-              days={transitionCurrent.days}
-              onDaysChange={(days) =>
+          <div className="pf-v6-u-w-25">
+            <TextInput
+              id="current-object-delete-days"
+              value={deleteCurrent.days}
+              onChange={(_e, value) =>
                 dispatch({
-                  type: RuleActionType.RULE_ACTIONS_TRANSITION_CURRENT,
-                  payload: { ...transitionCurrent, days },
+                  type: RuleActionType.RULE_DELETE_CURRENT_ACTION,
+                  payload: { ...deleteCurrent, days: Math.round(+value || 0) },
                 })
               }
-              isInvalid={invalidTransitionCurrent}
-              helperText={t(
-                'Period of time (in days) after which an object would be transitioned since its creation.'
-              )}
-            />
-          </>
-        ) : null
-      }
-    />
-  );
-};
-
-const TransitionNonCurrentObjects: React.FC<StateAndDispatchProps> = ({
-  state,
-  dispatch,
-}) => {
-  const { t } = useCustomTranslation();
-
-  const transitionNonCurrent = state.ruleActions.transitionNonCurrent;
-
-  const onNumberInputAction = (
-    funcType: FuncType,
-    event?: React.FormEvent<HTMLInputElement>
-  ) => {
-    let newRetention: number;
-    switch (funcType) {
-      case FuncType.ON_CHANGE: {
-        newRetention = Math.max(
-          Math.min(
-            Math.round(+(event?.target as HTMLInputElement)?.value) || 0,
-            100
-          ),
-          0
-        );
-        break;
-      }
-      case FuncType.ON_MINUS: {
-        newRetention = Math.max(transitionNonCurrent.retention - 1, 0);
-        break;
-      }
-      case FuncType.ON_PLUS: {
-        newRetention = Math.min(transitionNonCurrent.retention + 1, 100);
-        break;
-      }
-    }
-    dispatch({
-      type: RuleActionType.RULE_ACTIONS_TRANSITION_NON_CURRENT,
-      payload: {
-        ...transitionNonCurrent,
-        retention: newRetention,
-      },
-    });
-  };
-
-  const invalidTransitionNonCurrent = isInvalidTransitionNonCurrent(state);
-
-  return (
-    <Checkbox
-      id="noncurrent-object-transition"
-      label={t('Transition storage class')}
-      description={t(
-        'Move noncurrent object versions to IBM Deep Archive storage class after they become noncurrent.'
-      )}
-      className="pf-v6-u-ml-xl"
-      isChecked={transitionNonCurrent.isChecked}
-      onChange={(_e, checked) =>
-        dispatch({
-          type: RuleActionType.RULE_ACTIONS_TRANSITION_NON_CURRENT,
-          payload: { ...transitionNonCurrent, isChecked: checked },
-        })
-      }
-      body={
-        transitionNonCurrent.isChecked ? (
-          <>
-            <Content className="pf-v6-u-mb-md">
-              <Content component={ContentVariants.p}>
-                {t('Storage class: ')}{' '}
-                <Label color="blue">{t('IBM Deep Archive Standard')}</Label>
-              </Content>
-            </Content>
-            <DaysInput
-              id="noncurrent-object-transition-days"
-              days={transitionNonCurrent.days}
-              onDaysChange={(days) =>
-                dispatch({
-                  type: RuleActionType.RULE_ACTIONS_TRANSITION_NON_CURRENT,
-                  payload: { ...transitionNonCurrent, days },
-                })
+              placeholder={t('Enter number of days')}
+              type="number"
+              validated={
+                invalidDeleteCurrent
+                  ? ValidatedOptions.error
+                  : ValidatedOptions.default
               }
-              isInvalid={invalidTransitionNonCurrent}
-              helperText={t(
-                'Period of time (in days) after which a noncurrent version of an object would be transitioned since turning noncurrent.'
-              )}
-            />
-
-            <Content className="pf-v6-u-mt-lg">
-              <Content component={ContentVariants.p}>
-                {t('Preserve object version history (Optional)')}
-              </Content>
-              <Content
-                component={ContentVariants.small}
-                className="s3-lifecycle-action--margin"
-              >
-                {t(
-                  'Keep up to 100 noncurrent versions of objects for version management and rollback. Excess versions will be automatically transitioned.'
-                )}
-              </Content>
-            </Content>
-            <NumberInput
-              value={transitionNonCurrent.retention}
-              min={0}
-              max={100}
-              onMinus={() => onNumberInputAction(FuncType.ON_MINUS)}
-              onPlus={() => onNumberInputAction(FuncType.ON_PLUS)}
-              onChange={(e) => onNumberInputAction(FuncType.ON_CHANGE, e)}
-              className="pf-v6-u-mt-md"
             />
             <FormHelperText>
               <HelperText>
-                <HelperTextItem>
-                  {t('Number of noncurrent versions of object.')}
+                <HelperTextItem
+                  variant={
+                    invalidDeleteCurrent
+                      ? ValidatedOptions.error
+                      : ValidatedOptions.default
+                  }
+                >
+                  {invalidDeleteCurrent
+                    ? t('Must be an integer greater than 0.')
+                    : t(
+                        'Period of time (in days) after which an object would be deleted since its creation.'
+                      )}
                 </HelperTextItem>
               </HelperText>
             </FormHelperText>
-          </>
+          </div>
         ) : null
       }
     />
   );
 };
 
-type RuleActionsProps = StateAndDispatchProps & {
-  isDeepArchiveEnabled: boolean;
-};
-
-export const RuleActions: React.FC<RuleActionsProps> = ({
+export const RuleActions: React.FC<StateAndDispatchProps> = ({
   state,
   dispatch,
-  isDeepArchiveEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
-  // All accordions open by default
-  const [expanded, setExpanded] = React.useState<Set<Actions>>(
-    () => new Set(Object.values(Actions))
-  );
+  const [expanded, setExpanded] = React.useState<Actions>(null);
 
   const onToggle = (id: Actions) => {
-    setExpanded((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
+    if (id === expanded) {
+      setExpanded(null);
+    } else {
+      setExpanded(id);
+    }
   };
 
-  const [invalidActionsCount, actionsCount] = isInvalidActionsCount(
-    state,
-    isDeepArchiveEnabled
-  );
-  const invalidDeleteCurrent = isInvalidDeleteCurrent(state);
-  const invalidDeleteNonCurrent = isInvalidDeleteNonCurrent(state);
-  const invalidDeleteMultiparts = isInvalidDeleteMultiparts(state);
-  const invalidTransitionCurrent =
-    isDeepArchiveEnabled && isInvalidTransitionCurrent(state);
-  const invalidTransitionNonCurrent =
-    isDeepArchiveEnabled && isInvalidTransitionNonCurrent(state);
+  const validate = state.triggerInlineValidations;
+  const [invalidActionsCount, actionsCount] = isInvalidActionsCount(state);
+  const invalidDeleteCurrent = validate && isInvalidDeleteCurrent(state);
+  const invalidDeleteNonCurrent = validate && isInvalidDeleteNonCurrent(state);
+  const invalidDeleteMultiparts = validate && isInvalidDeleteMultiparts(state);
 
   return (
     <>
@@ -587,7 +408,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
           </Trans>
         </Content>
       </Content>
-      {invalidActionsCount && (
+      {validate && invalidActionsCount && (
         <Alert
           variant={AlertVariant.danger}
           isInline
@@ -598,7 +419,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
       )}
 
       <Accordion togglePosition="start" className="s3-lifecycle--margin">
-        <AccordionItem isExpanded={expanded.has(Actions.CURRENT_OBJECTS)}>
+        <AccordionItem isExpanded={expanded === Actions.CURRENT_OBJECTS}>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.CURRENT_OBJECTS);
@@ -611,7 +432,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
             >
               <span>
                 {t('Objects')}
-                {state.ruleActions.deleteCurrent.isChecked && (
+                {state.actions.deleteCurrent.isChecked && (
                   <Label
                     variant="outline"
                     color="blue"
@@ -633,7 +454,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
             </Content>
             <Content
               component={ContentVariants.small}
-              className={`s3-lifecycle-action-description ${invalidDeleteCurrent ? 's3-lifecycle--margin' : ''}`}
+              className={invalidDeleteCurrent && 's3-lifecycle--margin'}
             >
               {t('Delete an object after a specified time.')}
             </Content>
@@ -643,7 +464,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded.has(Actions.NONCURRENT_OBJECTS)}>
+        <AccordionItem isExpanded={expanded === Actions.NONCURRENT_OBJECTS}>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.NONCURRENT_OBJECTS);
@@ -656,7 +477,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
             >
               <span>
                 {t('Noncurrent versions of objects')}
-                {state.ruleActions.deleteNonCurrent.isChecked && (
+                {state.actions.deleteNonCurrent.isChecked && (
                   <Label
                     variant="outline"
                     color="blue"
@@ -676,10 +497,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
                 )}
               </span>
             </Content>
-            <Content
-              component={ContentVariants.small}
-              className="s3-lifecycle-action-description"
-            >
+            <Content component={ContentVariants.small}>
               {t(
                 'Delete older versions of objects after they become noncurrent (e.g., a new version overwrites them). Applies only to versioned buckets.'
               )}
@@ -690,7 +508,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded.has(Actions.INCOMPLETE_UPLOADS)}>
+        <AccordionItem isExpanded={expanded === Actions.INCOMPLETE_UPLOADS}>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.INCOMPLETE_UPLOADS);
@@ -703,7 +521,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
             >
               <span>
                 {t('Incomplete multipart uploads')}
-                {state.ruleActions.deleteIncompleteMultiparts.isChecked && (
+                {state.actions.deleteIncompleteMultiparts.isChecked && (
                   <Label
                     variant="outline"
                     color="blue"
@@ -723,10 +541,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
                 )}
               </span>
             </Content>
-            <Content
-              component={ContentVariants.small}
-              className="s3-lifecycle-action-description"
-            >
+            <Content component={ContentVariants.small}>
               {t(
                 'Clean up abandoned uploads to prevent accruing unnecessary storage costs. Targets multipart uploads that were initiated but never completed.'
               )}
@@ -737,7 +552,7 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem isExpanded={expanded.has(Actions.EXPIRED_MARKERS)}>
+        <AccordionItem isExpanded={expanded === Actions.EXPIRED_MARKERS}>
           <AccordionToggle
             onClick={() => {
               onToggle(Actions.EXPIRED_MARKERS);
@@ -749,16 +564,13 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
               className="pf-v6-u-text-align-left"
             >
               {t('Expired object delete markers')}
-              {state.ruleActions.deleteExpiredMarkers && (
+              {state.actions.deleteExpiredMarkers && (
                 <Label variant="outline" color="blue" className="pf-v6-u-mx-xs">
                   {t('Selected')}
                 </Label>
               )}
             </Content>
-            <Content
-              component={ContentVariants.small}
-              className="s3-lifecycle-action-description"
-            >
+            <Content component={ContentVariants.small}>
               {t(
                 'Remove unnecessary delete markers that clutter bucket listings and do not serve a purpose. Targets delete markers in versioned buckets that do not have any associated object versions (orphaned delete markers).'
               )}
@@ -768,110 +580,6 @@ export const RuleActions: React.FC<RuleActionsProps> = ({
             <ExpiredDeleteMarkers state={state} dispatch={dispatch} />
           </AccordionContent>
         </AccordionItem>
-
-        {isDeepArchiveEnabled && (
-          <AccordionItem isExpanded={expanded.has(Actions.TRANSITION_CURRENT)}>
-            <AccordionToggle
-              onClick={() => {
-                onToggle(Actions.TRANSITION_CURRENT);
-              }}
-              id={Actions.TRANSITION_CURRENT}
-            >
-              <Content
-                component={ContentVariants.h3}
-                className="pf-v6-u-text-align-left"
-              >
-                <span>
-                  {t(
-                    'Transition current versions of objects to IBM Deep Archive'
-                  )}
-                  {state.ruleActions.transitionCurrent.isChecked && (
-                    <Label
-                      variant="outline"
-                      color="blue"
-                      className="pf-v6-u-mx-xs"
-                    >
-                      {t('Selected')}
-                    </Label>
-                  )}
-                  {invalidTransitionCurrent && (
-                    <Label
-                      variant="outline"
-                      color="red"
-                      className="pf-v6-u-mx-xs"
-                    >
-                      {t('Details needed')}
-                    </Label>
-                  )}
-                </span>
-              </Content>
-              <Content
-                component={ContentVariants.small}
-                className={`s3-lifecycle-action-description ${invalidTransitionCurrent ? 's3-lifecycle--margin' : ''}`}
-              >
-                {t(
-                  'Move current versions of objects to IBM Deep Archive storage class for cheaper cold storage. These transitions start from when the objects are created and are consecutively applied.'
-                )}
-              </Content>
-            </AccordionToggle>
-            <AccordionContent id={Actions.TRANSITION_CURRENT}>
-              <TransitionCurrentObjects state={state} dispatch={dispatch} />
-            </AccordionContent>
-          </AccordionItem>
-        )}
-
-        {isDeepArchiveEnabled && (
-          <AccordionItem
-            isExpanded={expanded.has(Actions.TRANSITION_NONCURRENT)}
-          >
-            <AccordionToggle
-              onClick={() => {
-                onToggle(Actions.TRANSITION_NONCURRENT);
-              }}
-              id={Actions.TRANSITION_NONCURRENT}
-            >
-              <Content
-                component={ContentVariants.h3}
-                className="pf-v6-u-text-align-left"
-              >
-                <span>
-                  {t(
-                    'Transition noncurrent versions of objects to IBM Deep Archive'
-                  )}
-                  {state.ruleActions.transitionNonCurrent.isChecked && (
-                    <Label
-                      variant="outline"
-                      color="blue"
-                      className="pf-v6-u-mx-xs"
-                    >
-                      {t('Selected')}
-                    </Label>
-                  )}
-                  {invalidTransitionNonCurrent && (
-                    <Label
-                      variant="outline"
-                      color="red"
-                      className="pf-v6-u-mx-xs"
-                    >
-                      {t('Details needed')}
-                    </Label>
-                  )}
-                </span>
-              </Content>
-              <Content
-                component={ContentVariants.small}
-                className={`s3-lifecycle-action-description ${invalidTransitionNonCurrent ? 's3-lifecycle--margin' : ''}`}
-              >
-                {t(
-                  'Move noncurrent versions of objects to IBM Deep Archive storage class for cheaper cold storage. These transitions start from when the objects become non-current and are consecutively applied.'
-                )}
-              </Content>
-            </AccordionToggle>
-            <AccordionContent id={Actions.TRANSITION_NONCURRENT}>
-              <TransitionNonCurrentObjects state={state} dispatch={dispatch} />
-            </AccordionContent>
-          </AccordionItem>
-        )}
       </Accordion>
     </>
   );

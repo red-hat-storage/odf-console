@@ -8,7 +8,6 @@ import { ClusterKind, EncryptionConfigKind } from '@odf/core/types/scale';
 import { getName, useCustomTranslation } from '@odf/shared';
 import { NodeModel } from '@odf/shared/models';
 import { ClusterModel, EncryptionConfigModel } from '@odf/shared/models/scale';
-import { useModalWrapper } from '@odf/shared/sdk-wrapper/useModalWrapper';
 import { NodeKind } from '@odf/shared/types';
 import {
   isNotFoundError,
@@ -17,6 +16,7 @@ import {
 } from '@odf/shared/utils';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { useParams } from 'react-router';
 import {
   Card,
   CardBody,
@@ -27,14 +27,7 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
   Skeleton,
-  Button,
-  Flex,
-  FlexItem,
 } from '@patternfly/react-core';
-import { PencilAltIcon } from '@patternfly/react-icons';
-import { ENCRYPTION_CONFIG_NAME } from '../scale-encryption/enableScaleEncryption';
-import AddLocalScaleNodesModal from './AddLocalScaleNodesModal';
-import EncryptionConfigModal from './EncryptionConfigModal';
 
 const nodesHref = `${resourcePathFromModel(NodeModel)}?label=${encodeURIComponent(
   `${SCALE_DAEMON_NODE_LABEL}=`
@@ -42,12 +35,13 @@ const nodesHref = `${resourcePathFromModel(NodeModel)}?label=${encodeURIComponen
 
 const LocalStorageClusterCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const launchModal = useModalWrapper();
+  const { systemName } = useParams<{ systemName: string }>();
 
   const watchResources = React.useMemo(
     () => ({
       cluster: {
         kind: referenceForModel(ClusterModel),
+        namespace: IBM_SCALE_NAMESPACE,
         name: IBM_SCALE_LOCAL_CLUSTER_NAME,
         isList: false,
       },
@@ -63,11 +57,11 @@ const LocalStorageClusterCard: React.FC = () => {
       encryptionConfig: {
         kind: referenceForModel(EncryptionConfigModel),
         namespace: IBM_SCALE_NAMESPACE,
-        name: ENCRYPTION_CONFIG_NAME,
+        name: `${systemName}-encryption-config`,
         isList: false,
       },
     }),
-    []
+    [systemName]
   );
 
   const resources = useK8sWatchResources<{
@@ -88,21 +82,10 @@ const LocalStorageClusterCard: React.FC = () => {
     ?.data as EncryptionConfigKind;
   const encryptionConfigLoaded = resources.encryptionConfig?.loaded;
   const encryptionConfigLoadError = resources.encryptionConfig?.loadError;
-  const encryptionConfigNotFound = isNotFoundError(encryptionConfigLoadError);
 
   const clusterName = getName(cluster);
   const isEncrypted = !!getName(encryptionConfig);
-  const canEditLocalCluster =
-    clusterLoaded && !clusterLoadError && !!clusterName;
-  const canEnableEncryption =
-    canEditLocalCluster &&
-    !isEncrypted &&
-    (encryptionConfigLoaded || encryptionConfigNotFound);
-
-  const openNodeExpansion = () =>
-    launchModal(AddLocalScaleNodesModal, { isOpen: true });
-  const openEncryptionConfig = () =>
-    launchModal(EncryptionConfigModal, { isOpen: true });
+  const encryptionConfigNotFound = isNotFoundError(encryptionConfigLoadError);
 
   return (
     <Card>
@@ -124,55 +107,27 @@ const LocalStorageClusterCard: React.FC = () => {
             </DescriptionListDescription>
           </DescriptionListGroup>
         </DescriptionList>
-        <Flex alignItems={{ default: 'alignItemsCenter' }}>
-          <FlexItem>
-            <ResourceInventoryItem
-              dataTest="inventory-nodes"
-              isLoading={!nodesLoaded}
-              error={!!nodesLoadError}
-              kind={NodeModel as any}
-              resources={nodes}
-              basePath={nodesHref}
-            />
-          </FlexItem>
-          {canEditLocalCluster && (
-            <FlexItem>
-              <Button
-                variant="plain"
-                aria-label={t('Edit node inventory')}
-                onClick={openNodeExpansion}
-                icon={<PencilAltIcon />}
-              />
-            </FlexItem>
-          )}
-        </Flex>
+        <ResourceInventoryItem
+          dataTest="inventory-nodes"
+          isLoading={!nodesLoaded}
+          error={!!nodesLoadError}
+          kind={NodeModel as any}
+          resources={nodes}
+          basePath={nodesHref}
+        />
         <DescriptionList className="pf-v6-u-mt-md">
           <DescriptionListGroup>
             <DescriptionListTerm>{t('Encryption')}</DescriptionListTerm>
             <DescriptionListDescription>
-              <Flex alignItems={{ default: 'alignItemsCenter' }}>
-                <FlexItem>
-                  {encryptionConfigLoadError && !encryptionConfigNotFound ? (
-                    t('N/A')
-                  ) : !encryptionConfigLoaded && !encryptionConfigNotFound ? (
-                    <Skeleton width="35%" />
-                  ) : isEncrypted ? (
-                    t('Enabled')
-                  ) : (
-                    t('Disabled')
-                  )}
-                </FlexItem>
-                {canEnableEncryption && (
-                  <FlexItem>
-                    <Button
-                      variant="plain"
-                      aria-label={t('Edit encryption')}
-                      onClick={openEncryptionConfig}
-                      icon={<PencilAltIcon />}
-                    />
-                  </FlexItem>
-                )}
-              </Flex>
+              {encryptionConfigLoadError && !encryptionConfigNotFound ? (
+                t('N/A')
+              ) : !encryptionConfigLoaded && !encryptionConfigNotFound ? (
+                <Skeleton width="35%" />
+              ) : isEncrypted ? (
+                t('Enabled')
+              ) : (
+                t('Disabled')
+              )}
             </DescriptionListDescription>
           </DescriptionListGroup>
         </DescriptionList>

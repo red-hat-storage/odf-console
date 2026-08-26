@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useGetClusterDetails } from '@odf/core/redux/utils';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import {
   StorageClusterKind,
@@ -24,14 +24,14 @@ const storageClusterResource = {
 
 const AutomaticBackupCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const { clusterNamespace: clusterNs } = useGetClusterDetails();
+  const { odfNamespace } = useODFNamespaceSelector();
   const [ocsData, ocsLoaded, ocsError] = useK8sWatchResource<
     StorageClusterKind[]
   >(storageClusterResource);
 
   const storageCluster: StorageClusterKind = getStorageClusterInNs(
     ocsData,
-    clusterNs
+    odfNamespace
   );
   const dbBackup = storageCluster?.spec?.multiCloudGateway?.dbBackup;
 

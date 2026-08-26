@@ -11,12 +11,7 @@ import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
-import {
-  Alert,
-  AlertVariant,
-  Content,
-  ContentVariants,
-} from '@patternfly/react-core';
+import { Content, ContentVariants } from '@patternfly/react-core';
 import { ConfigurePerformanceProfileFormFooter } from './configure-performance-profile-footer';
 import {
   CoreStorageSection,
@@ -32,7 +27,7 @@ import {
   initProfileStates,
 } from './state';
 import {
-  isSaveDisabled,
+  checkRequiredValues,
   shouldShowCoreStorageSection,
   shouldShowMcgPerformanceSection,
 } from './utils';
@@ -59,7 +54,7 @@ const ConfigurePerformanceProfilePage: React.FC<
   const onClose = () => navigate(-1);
 
   const onConfirm = async () => {
-    if (isSaveDisabled(state, showCoreStorage, showMcgPerformance)) {
+    if (checkRequiredValues(state, showCoreStorage, showMcgPerformance)) {
       return;
     }
 
@@ -79,11 +74,8 @@ const ConfigurePerformanceProfilePage: React.FC<
           resourceProfile: state.resourceProfile,
         });
       }
-      if (showMcgPerformance && state.mcgPerformanceProfile) {
-        await patchMcgPerformanceProfile({
-          storageCluster,
-          mcgPerformanceProfile: state.mcgPerformanceProfile,
-        });
+      if (showMcgPerformance) {
+        await patchMcgPerformanceProfile();
       }
       onClose();
     } catch (error) {
@@ -107,18 +99,6 @@ const ConfigurePerformanceProfilePage: React.FC<
       label={t('Configure performance profile')}
     >
       <div className="odf-m-pane__body odf-m-pane__form configure-performance-profile__content pf-v6-u-mt-xl">
-        {!isSaveDisabled(state, showCoreStorage, showMcgPerformance) && (
-          <Alert
-            className="pf-v6-u-mb-2xl"
-            variant={AlertVariant.info}
-            isInline
-            title={t('Saving will schedule pod and service restarts')}
-          >
-            {t(
-              'Changes to core storage or Multicloud Object Gateway profiles trigger service and pod restarts. Storage may be unavailable for a few minutes.'
-            )}
-          </Alert>
-        )}
         {showCoreStorage && (
           <CoreStorageSection
             state={state}
@@ -127,14 +107,7 @@ const ConfigurePerformanceProfilePage: React.FC<
             clusterNodes={clusterNodes}
           />
         )}
-        {showMcgPerformance && (
-          <McgPerformanceSection
-            state={state}
-            dispatch={dispatch}
-            storageCluster={storageCluster}
-            clusterNodes={clusterNodes}
-          />
-        )}
+        {showMcgPerformance && <McgPerformanceSection />}
       </div>
       <div className="odf-m-pane__body configure-performance-profile__footer">
         <ConfigurePerformanceProfileFormFooter
@@ -169,9 +142,9 @@ const ConfigurePerformanceProfile: React.FC = () => {
   const showCoreStorage = shouldShowCoreStorageSection(
     configurePerformanceProfileParams
   );
-  const showMcgPerformance = shouldShowMcgPerformanceSection(
-    configurePerformanceProfileParams
-  );
+  // ToDo: remove false once MCG performance profile is implemented
+  const showMcgPerformance =
+    shouldShowMcgPerformanceSection(configurePerformanceProfileParams) && false;
 
   const isLoaded = areFlagsLoaded && storageClusterLoaded;
   const isLoadError = flagsLoadError || storageClusterLoadError;

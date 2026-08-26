@@ -185,7 +185,7 @@ describe('StorageClusterCreateModal', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'This selection determines the storage capabilities of your cluster.'
+        'This selection determines the storage capabilities of your cluster. Once configured it cannot be changed.'
       )
     ).toBeInTheDocument();
   });

@@ -13,11 +13,6 @@ export const odfDRDocHome = (odfDocVersion) =>
 export const ocpDocHome = (ocpDocVersion) =>
   `https://access.redhat.com/documentation/en-us/openshift_container_platform/${ocpDocVersion}/html/`;
 
-export const kernelDevelDoc = (ocpDocVersion: string): string =>
-  `${ocpDocHome(
-    ocpDocVersion
-  )}machine_configuration/machine-configs-configure#rhcos-add-extensions_machine-configs-configure`;
-
 export const odfDRDocApplyPolicy = (odfDocVersion) =>
   `${odfDRDocHome(
     odfDocVersion

@@ -112,24 +112,16 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               selectableActionId: 'ceph-cluster',
             }}
           >
-            <CardTitle>
-              {isFDF
-                ? t('External IBM Storage Ceph cluster')
-                : t('Red Hat/IBM Ceph Cluster')}
-            </CardTitle>
+            <CardTitle>{t('Red Hat/IBM Ceph Cluster')}</CardTitle>
           </CardHeader>
           <CardBody>
             <Flex direction={{ default: 'row' }}>
               <FlexItem>
                 <Content>
                   <Content component="small">
-                    {isFDF
-                      ? t(
-                          'Connect to an external IBM Storage Ceph cluster to use its storage.'
-                        )
-                      : t(
-                          'Connect to an external Red Hat or IBM Ceph cluster to use its storage.'
-                        )}
+                    {t(
+                      'Provision a storage cluster using local devices on your OpenShift nodes.'
+                    )}
                   </Content>
                 </Content>
               </FlexItem>
@@ -169,7 +161,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                 <Content>
                   <Content component="small">
                     {t(
-                      'Connect to an IBM FlashSystem to deploy Data Foundation using FlashSystem-backed storage.'
+                      'Connect to an IBM FlashSystem to power Data Foundation with fast reliable block storage optimized for enterprise performance.'
                     )}
                   </Content>
                 </Content>
@@ -204,7 +196,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                     setSelectedOption(ExternalSystemOption.Scale),
                 }}
               >
-                <CardTitle>{t('IBM Storage Scale')}</CardTitle>
+                <CardTitle>{t('IBM Scale')}</CardTitle>
               </CardHeader>
               <CardBody>
                 <Flex direction={{ default: 'row' }}>
@@ -212,7 +204,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                     <Content>
                       <Content component="small">
                         {t(
-                          'Connect to IBM Storage Scale to deliver fast, scalable file storage for Data Foundation via remote mount.'
+                          'Connect to IBM Storage Scale to deliver fast, scalable file storage for Data Foundation'
                         )}
                       </Content>
                     </Content>
@@ -253,7 +245,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                     <Content>
                       <Content component="small">
                         {t(
-                          'Use groups of shared LUNs from local cluster nodes to create StorageClasses with Fusion Data Foundation Access for SAN.'
+                          'Use groups of shared LUNs from local cluster nodes to create StorageClases with Fusion Data Foundation Access for SAN.'
                         )}
                       </Content>
                     </Content>
@@ -363,7 +355,7 @@ export const ExternalSystemsSelectModal: ModalComponent = ({ closeModal }) => {
         </Content>
         <Content component="small">
           {t(
-            'This selection determines the storage capabilities of your cluster.'
+            'This selection determines the storage capabilities of your cluster. Once configured it cannot be changed.'
           )}
         </Content>
       </Content>
