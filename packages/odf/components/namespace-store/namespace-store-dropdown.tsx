@@ -11,10 +11,9 @@ import {
   MenuToggleElement,
   Alert,
 } from '@patternfly/react-core';
-import { NamespacePolicyType, StoreProviders } from '../../constants';
+import { NamespacePolicyType } from '../../constants';
 import { namespaceStoreResource } from '../../resources';
 import { NamespaceStoreKind } from '../../types';
-import { getNamespaceStoreType } from '../../utils';
 import '../../style.scss';
 
 export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
@@ -26,7 +25,6 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   namespacePolicy,
   creatorDisabled,
   launchModal,
-  filterFilesystem,
   filterArchive,
 }) => {
   const { t } = useCustomTranslation();
@@ -42,23 +40,16 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
     true
   );
 
-  const { noobaaNamespaceStores, hasNoFilesystemStores } = React.useMemo(() => {
-    const filesystemStores = nnsData.filter(
-      (nns) => getNamespaceStoreType(nns) === StoreProviders.FILESYSTEM
-    );
-
+  const { noobaaNamespaceStores } = React.useMemo(() => {
     let stores = nnsData;
     if (filterArchive) {
       stores = nnsData.filter((nns) => nns.spec?.archive === true);
-    } else if (filterFilesystem) {
-      stores = filesystemStores;
     }
 
     return {
       noobaaNamespaceStores: stores,
-      hasNoFilesystemStores: filesystemStores.length === 0,
     };
-  }, [nnsData, filterArchive, filterFilesystem]);
+  }, [nnsData, filterArchive]);
 
   React.useEffect(() => {
     const nnsDropdownItems = noobaaNamespaceStores.reduce(
@@ -127,8 +118,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
       isDisabled={
         !!nnsLoadErr ||
         (namespacePolicy === NamespacePolicyType.MULTI &&
-          enabledItems?.length === 0) ||
-        (filterFilesystem && hasNoFilesystemStores)
+          enabledItems?.length === 0)
       }
       isFullWidth
     >
@@ -170,6 +160,5 @@ type NamespaceStoreDropdownProps = {
   namespacePolicy?: NamespacePolicyType;
   creatorDisabled?: boolean;
   launchModal?: () => void;
-  filterFilesystem?: boolean;
   filterArchive?: boolean;
 };
