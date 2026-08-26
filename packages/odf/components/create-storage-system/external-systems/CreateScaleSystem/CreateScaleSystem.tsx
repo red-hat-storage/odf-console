@@ -5,12 +5,8 @@ import {
   useCustomTranslation,
   TextInputWithFieldRequirements,
   ButtonBar,
-  DOC_VERSION,
-  ocpDocHome,
 } from '@odf/shared';
 import { ValidatedPasswordInput } from '@odf/shared/text-inputs/password-input';
-import { ExternalLink } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router';
 import {
@@ -27,17 +23,19 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
-  HelperTextItemProps,
   AlertVariant,
   ButtonType,
   ButtonVariant,
-  Spinner,
 } from '@patternfly/react-core';
+import { enableScaleEncryption } from '../../../scale-encryption/enableScaleEncryption';
+import { ScaleEncryptionForm } from '../../../scale-encryption/ScaleEncryptionForm';
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { ScaleNodesSection } from '../common/NodesSection';
 import {
   configureMetricsNamespaceLabels,
+  createConfigMapPayload,
   createScaleLocalClusterPayload,
+  createUserDetailsSecretPayload,
   labelNodes,
 } from '../common/payload';
 import { getOptimalResourceRequests } from '../common/utils';
@@ -46,64 +44,10 @@ import {
   createScaleCaCertSecretPayload,
   createScaleRemoteClusterPayload,
   createFileSystem,
-  createConfigMapPayload,
-  createEncryptionConfigPayload,
-  createUserDetailsSecretPayload,
 } from './payload';
-import {
-  KernelDevelEligibility,
-  ScaleSystemComponentState,
-  initialComponentState,
-} from './types';
+import { ScaleSystemComponentState, initialComponentState } from './types';
 import useScaleSystemFormValidation from './useFormValidation';
 import './CreateScaleSystem.scss';
-
-const KERNEL_DEVEL_DOC_URL =
-  `${ocpDocHome(DOC_VERSION)}machine_configuration/machine-configs-configure` +
-  '#rhcos-add-extensions_machine-configs-configure';
-
-const getKernelDevelStatus = (
-  kernelDevelEligibility: KernelDevelEligibility,
-  t: TFunction
-): {
-  kind: string;
-  variant: HelperTextItemProps['variant'];
-  message: string;
-  details?: string;
-} => {
-  if (kernelDevelEligibility.error) {
-    return {
-      kind: 'danger',
-      variant: 'error',
-      message: t('Unable to verify kernel-devel package status'),
-      details: kernelDevelEligibility.error,
-    };
-  }
-
-  if (kernelDevelEligibility.isLoading) {
-    return {
-      kind: 'pending',
-      variant: 'default',
-      message: t('Checking kernel-devel packages on selected nodes'),
-    };
-  }
-
-  if (kernelDevelEligibility.nodesWithoutKernelDevel.length > 0) {
-    return {
-      kind: 'warning',
-      variant: 'warning',
-      message: t(
-        'Kernel-devel packages are missing on some selected nodes. Please apply the Machine Config Operator (MCO) update to install them before connecting to the remote cluster.'
-      ),
-    };
-  }
-
-  return {
-    kind: 'success',
-    variant: 'success',
-    message: t('Kernel-devel packages verified'),
-  };
-};
 
 type CreateScaleSystemFormProps = {
   componentState: ScaleSystemComponentState;
@@ -118,7 +62,6 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const [generalCAFileName, setGeneralCAFileName] = React.useState('');
-  const [encryptionCAFileName, setEncryptionCAFileName] = React.useState('');
   const navigate = useNavigate();
   const [error, setError] = React.useState<string>('');
   const [loading, setLoading] = React.useState(false);
@@ -135,9 +78,13 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     control,
     handleSubmit,
     formState: { isSubmitted },
+    isEncryptionValid,
     watch,
     getValues,
-  } = useScaleSystemFormValidation(existingFileSystemNames);
+  } = useScaleSystemFormValidation(
+    existingFileSystemNames,
+    componentState.encryptionEnabled
+  );
 
   // Watch only specific fields instead of all form values to prevent excessive re-renders
   const name = watch('name');
@@ -146,18 +93,6 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const userName = watch('userName');
   const password = watch('password');
   const fileSystemName = watch('fileSystemName');
-  const encryptionUserName = watch('encryptionUserName');
-  const encryptionPassword = watch('encryptionPassword');
-  const encryptionPort = watch('encryptionPort');
-  const client = watch('client');
-  const remoteRKM = watch('remoteRKM');
-  const serverInformation = watch('serverInformation');
-  const tenantId = watch('tenantId');
-
-  const hasSelectedNodes = componentState.selectedNodes.length > 0;
-  const kernelDevelStatus = hasSelectedNodes
-    ? getKernelDevelStatus(kernelDevelEligibility, t)
-    : null;
 
   const mandatoryFieldsValid = !!(
     name &&
@@ -170,19 +105,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     kernelDevelEligibility.areSelectedNodesEligible
   );
 
-  const encryptionFieldsValid =
-    !componentState.encryptionEnabled ||
-    !!(
-      encryptionUserName &&
-      encryptionPassword &&
-      encryptionPort &&
-      client &&
-      remoteRKM &&
-      serverInformation &&
-      tenantId
-    );
-
-  const isFormValid = mandatoryFieldsValid && encryptionFieldsValid;
+  const isFormValid = mandatoryFieldsValid && isEncryptionValid;
 
   const handleGeneralCAFileInputChange = React.useCallback(
     (_ev, file: File) => {
@@ -195,24 +118,6 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         setComponentState((prev) => ({
           ...prev,
           caCertificate: base64Content,
-        }));
-      };
-      reader.readAsText(file);
-    },
-    [setComponentState]
-  );
-
-  const handleEncryptionCAFileInputChange = React.useCallback(
-    (_ev, file: File) => {
-      setEncryptionCAFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        // Convert the file content to base64
-        const base64Content = btoa(result);
-        setComponentState((prev) => ({
-          ...prev,
-          encryptionCert: base64Content,
         }));
       };
       reader.readAsText(file);
@@ -275,27 +180,6 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         userDetailsSecretName,
         componentState.caCertificate ? remoteClusterCaCert : undefined
       );
-      const encryptionSecretName = `${formData.name}-encryption-secret`;
-      const encryptionSecretPromise = createUserDetailsSecretPayload(
-        encryptionSecretName,
-        formData.encryptionUserName,
-        formData.encryptionPassword
-      );
-      const encryptionConfigMapName = `${formData.name}-encryption-config`;
-      const encryptionConfigMapPromise = createConfigMapPayload(
-        encryptionConfigMapName,
-        {
-          'enc-ca.crt': componentState.encryptionCert,
-        }
-      );
-      const encryptionConfigPromise = createEncryptionConfigPayload(
-        `${formData.name}-encryption-config`,
-        formData.serverInformation,
-        formData.tenantId,
-        formData.client,
-        formData.encryptionPassword,
-        encryptionConfigMapName
-      );
       const fileSystemPromise = createFileSystem(
         formData.name,
         formData.fileSystemName
@@ -311,9 +195,16 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
       await remoteClusterPromise();
       await fileSystemPromise();
       if (componentState.encryptionEnabled) {
-        await encryptionConfigMapPromise();
-        await encryptionSecretPromise();
-        await encryptionConfigPromise();
+        await enableScaleEncryption({
+          certificate: componentState.encryptionCert,
+          client: formData.client,
+          password: formData.encryptionPassword,
+          port: formData.encryptionPort,
+          remoteRKM: formData.remoteRKM,
+          server: formData.serverInformation,
+          tenant: formData.tenantId,
+          username: formData.encryptionUserName,
+        });
       }
       navigate(
         `/odf/external-systems/scale.spectrum.ibm.com~v1beta1~remotecluster/${formData.name}`
@@ -364,7 +255,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
             <HelperText>
               <HelperTextItem>
                 {t(
-                  'Select at least 3 nodes to create the local cluster used for IBM Scale (CNSA) connections.'
+                  'Select at least 3 nodes to create the local cluster used for IBM Storage Scale connections.'
                 )}
               </HelperTextItem>
             </HelperText>
@@ -375,34 +266,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
             setSelectedNodes={(nodes) =>
               setComponentState((prev) => ({ ...prev, selectedNodes: nodes }))
             }
-            statusContent={
-              kernelDevelStatus ? (
-                <HelperText className="pf-v6-u-mt-md">
-                  <HelperTextItem
-                    data-test={`kernel-devel-status-${kernelDevelStatus.kind}`}
-                    variant={kernelDevelStatus.variant}
-                    icon={
-                      kernelDevelStatus.kind === 'pending' ? (
-                        <Spinner size="sm" />
-                      ) : undefined
-                    }
-                  >
-                    {kernelDevelStatus.message}
-                    {kernelDevelStatus.details
-                      ? ` ${kernelDevelStatus.details}`
-                      : ''}
-                    {kernelDevelStatus.kind === 'warning' && (
-                      <>
-                        {' '}
-                        <ExternalLink href={KERNEL_DEVEL_DOC_URL}>
-                          {t('Learn more')}
-                        </ExternalLink>
-                      </>
-                    )}
-                  </HelperTextItem>
-                </HelperText>
-              ) : null
-            }
+            kernelDevelEligibility={kernelDevelEligibility}
           />
         </FormGroup>
       </FormSection>
@@ -411,7 +275,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           <HelperText>
             <HelperTextItem>
               {t(
-                'Enter at least one IBM Scale management endpoint to authenticate and configure the remote cluster (For high availability, define 2 or more endpoints). Use valid credentials to verify and establish a connection to the remote cluster.'
+                'Enter at least one IBM Storage Scale management endpoint to authenticate and configure the remote cluster (For high availability, define 2 or more endpoints). Use valid credentials to verify and establish a connection to the remote cluster.'
               )}
             </HelperTextItem>
           </HelperText>
@@ -652,164 +516,13 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           />
         </FormGroup>
         {componentState.encryptionEnabled && (
-          <>
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.username}
-              popoverProps={{
-                headerContent: t('Encryption username requirements'),
-                footerContent: `${t('Example')}: encryption-user`,
-              }}
-              formGroupProps={{
-                label: t('Username'),
-                fieldId: 'encryptionUserName',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'encryptionUserName',
-                name: 'encryptionUserName',
-                type: 'text',
-                placeholder: t('Enter username'),
-                'data-test': 'encryption-username',
-              }}
-            />
-            <ValidatedPasswordInput
-              control={control}
-              fieldRequirements={fieldRequirements.password}
-              popoverProps={{
-                headerContent: t('Encryption password requirements'),
-                footerContent: `${t('Example')}: mypassword123`,
-              }}
-              formGroupProps={{
-                label: t('Password'),
-                fieldId: 'encryptionPassword',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'encryptionPassword',
-                name: 'encryptionPassword',
-                placeholder: t('Enter password'),
-                'data-test': 'encryption-password',
-              }}
-              helperText={t('Password is required')}
-            />
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.port}
-              popoverProps={{
-                headerContent: t('Port requirements'),
-                footerContent: `${t('Example')}: 443`,
-              }}
-              formGroupProps={{
-                label: t('Port'),
-                fieldId: 'encryptionPort',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'encryptionPort',
-                name: 'encryptionPort',
-                type: 'text',
-                placeholder: t('Enter port'),
-                'data-test': 'encryption-port',
-              }}
-            />
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.client}
-              popoverProps={{
-                headerContent: t('Client requirements'),
-                footerContent: `${t('Example')}: my-client`,
-              }}
-              formGroupProps={{
-                label: t('Client'),
-                fieldId: 'client',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'client',
-                name: 'client',
-                type: 'text',
-                placeholder: t('Enter client'),
-                'data-test': 'client',
-              }}
-            />
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.hostname}
-              popoverProps={{
-                headerContent: t('Remote RKM requirements'),
-                footerContent: `${t('Example')}: rkm.example.com`,
-              }}
-              formGroupProps={{
-                label: t('Remote RKM'),
-                fieldId: 'remoteRKM',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'remoteRKM',
-                name: 'remoteRKM',
-                type: 'text',
-                placeholder: t('Enter remote RKM'),
-                'data-test': 'remote-rkm',
-              }}
-            />
-            <FormGroup label={t('Encryption CA certificate')} isRequired>
-              <FileUpload
-                placeholder={t('Upload encryption CA certificate')}
-                id="file-upload"
-                value={componentState.encryptionCert}
-                filename={encryptionCAFileName}
-                onFileInputChange={handleEncryptionCAFileInputChange}
-                onClearClick={() => {
-                  setEncryptionCAFileName('');
-                  setComponentState((prev) => ({
-                    ...prev,
-                    encryptionCert: '',
-                  }));
-                }}
-              />
-            </FormGroup>
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.serverInfo}
-              popoverProps={{
-                headerContent: t('Server information requirements'),
-                footerContent: `${t('Example')}: server.example.com:443`,
-              }}
-              formGroupProps={{
-                label: t('Server information'),
-                fieldId: 'serverInformation',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'serverInformation',
-                name: 'serverInformation',
-                type: 'text',
-                placeholder: t('Enter server information'),
-                'data-test': 'server-information',
-              }}
-            />
-            <TextInputWithFieldRequirements
-              control={control}
-              fieldRequirements={fieldRequirements.tenantId}
-              popoverProps={{
-                headerContent: t('Tenant ID requirements'),
-                footerContent: `${t('Example')}: tenant-123`,
-              }}
-              formGroupProps={{
-                label: t('Tenant ID'),
-                fieldId: 'tenantId',
-                isRequired: true,
-              }}
-              textInputProps={{
-                id: 'tenantId',
-                name: 'tenantId',
-                type: 'text',
-                placeholder: t('Enter tenant ID'),
-                'data-test': 'tenant-id',
-              }}
-            />
-          </>
+          <ScaleEncryptionForm
+            certificate={componentState.encryptionCert}
+            control={control}
+            onCertificateChange={(encryptionCert) =>
+              setComponentState((prev) => ({ ...prev, encryptionCert }))
+            }
+          />
         )}
       </FormSection>
       {!isFormValid && isSubmitted && (
@@ -856,7 +569,7 @@ export const CreateScaleSystem: React.FC = () => {
   return (
     <>
       <PageHeading
-        title={t('Connect IBM Scale (CNSA)')}
+        title={t('Connect IBM Storage Scale')}
         hasUnderline={false}
         breadcrumbs={[
           {
@@ -864,13 +577,13 @@ export const CreateScaleSystem: React.FC = () => {
             path: '/odf/external-systems',
           },
           {
-            name: t('Create IBM Scale (CNSA)'),
+            name: t('Create IBM Storage Scale'),
             path: '/odf/external-systems/scale/~create',
           },
         ]}
       >
         {t(
-          'Connect to IBM Scale (CNSA) to power Data Foundation with fast, reliable file storage optimized for enterprise performance.'
+          'Connect to IBM Storage Scale to power Data Foundation with fast, reliable file storage optimized for enterprise performance.'
         )}
       </PageHeading>
       <div className="odf-m-pane__body">

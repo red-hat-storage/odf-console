@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IBM_SCALE_NAMESPACE, LSO_OPERATOR } from '@odf/core/constants';
+import { LSO_OPERATOR } from '@odf/core/constants';
 import useIsSANSystemDeletable from '@odf/core/hooks/useIsSANSystemDeletable';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
 import { FDF_FLAG, useODFSystemFlagsSelector } from '@odf/core/redux';
@@ -477,7 +477,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const isRemoteClusterDeletable =
     isRemoteCluster && !(filesystemsByRemoteCluster[obj.spec.name]?.length > 0);
   const storageCluster = isStorageClusterSystem
-    ? storageClustersByName[obj.spec.name]
+    ? storageClustersByName[`${obj.spec.namespace}%${obj.spec.name}`]
     : undefined;
   const { customActions, hiddenActions } = getActions(
     obj,
@@ -575,7 +575,6 @@ export const StorageSystemListPage: React.FC = () => {
       {
         kind: referenceForModel(ClusterModel),
         isList: true,
-        namespace: IBM_SCALE_NAMESPACE,
       },
       isFDF
     )
@@ -679,7 +678,7 @@ export const StorageSystemListPage: React.FC = () => {
     () =>
       (storageClusters ?? []).reduce<Record<string, StorageClusterKind>>(
         (acc, cluster) => {
-          acc[getName(cluster)] = cluster;
+          acc[`${getNamespace(cluster)}%${getName(cluster)}`] = cluster;
           return acc;
         },
         {}

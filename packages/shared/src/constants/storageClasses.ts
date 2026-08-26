@@ -13,7 +13,8 @@ export const IBM_PROVISIONERS = [
   'fusionaccess.storage.ibm.com/csi',
 ];
 
-// Block and file storage provisioners
+// Block and file storage provisioners only
+// Do not include other provisioners without specific reason.
 export const CEPH_PROVISIONERS = [
   'ceph.rook.io/block',
   'cephfs.csi.ceph.com',

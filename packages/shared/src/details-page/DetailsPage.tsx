@@ -49,6 +49,7 @@ type DetailsPageProps = {
   breadcrumbs?: { name: string; path: string }[];
   loaded?: boolean;
   loadError?: any;
+  titleBadge?: React.ReactNode;
 };
 
 type DetailsPageTitleProps = {
@@ -89,6 +90,7 @@ const DetailsPage: React.FC<DetailsPageProps> = ({
   resourceModel,
   loaded = true,
   loadError = null,
+  titleBadge,
 }) => (
   <>
     {!loaded && <LoadingBox />}
@@ -106,6 +108,7 @@ const DetailsPage: React.FC<DetailsPageProps> = ({
           actions={actions}
           resource={resource}
           className="odf-resource-details"
+          titleBadge={titleBadge}
         />
         <HorizontalNav pages={pages} resource={resource} />{' '}
       </>

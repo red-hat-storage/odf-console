@@ -1,58 +1,8 @@
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
-import {
-  EncryptionConfigKind,
-  FileSystemKind,
-  RemoteClusterKind,
-} from '@odf/core/types/scale';
-import {
-  ConfigMapKind,
-  ConfigMapModel,
-  SecretKind,
-  SecretModel,
-} from '@odf/shared';
-import {
-  EncryptionConfigModel,
-  FileSystemModel,
-  RemoteClusterModel,
-} from '@odf/shared/models/scale';
+import { FileSystemKind, RemoteClusterKind } from '@odf/core/types/scale';
+import { SecretKind, SecretModel } from '@odf/shared';
+import { FileSystemModel, RemoteClusterModel } from '@odf/shared/models/scale';
 import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
-
-export const createUserDetailsSecretPayload = (
-  name: string,
-  username: string,
-  password: string
-) => {
-  const mySecret: SecretKind = {
-    apiVersion: 'v1',
-    kind: SecretModel.kind,
-    metadata: {
-      name: name,
-      namespace: IBM_SCALE_NAMESPACE,
-    },
-    type: 'Opaque',
-    stringData: {
-      username,
-      password,
-    },
-  };
-  return () => k8sCreate({ model: SecretModel, data: mySecret });
-};
-
-export const createConfigMapPayload = (
-  name: string,
-  data: Record<string, string>
-) => {
-  const myConfigMap: ConfigMapKind = {
-    apiVersion: 'v1',
-    kind: ConfigMapModel.kind,
-    metadata: {
-      name,
-      namespace: IBM_SCALE_NAMESPACE,
-    },
-    data,
-  };
-  return () => k8sCreate({ model: ConfigMapModel, data: myConfigMap });
-};
 
 export const createScaleRemoteClusterPayload = (
   name: string,
@@ -144,30 +94,4 @@ export const createFileSystem = (
     },
   };
   return () => k8sCreate({ model: FileSystemModel, data: payload });
-};
-
-export const createEncryptionConfigPayload = (
-  name: string,
-  server: string,
-  tenant: string,
-  client: string,
-  secret: string,
-  configMapName: string
-) => {
-  const payload: EncryptionConfigKind = {
-    apiVersion: 'scale.spectrum.ibm.com/v1beta1',
-    kind: 'EncryptionConfig',
-    metadata: {
-      name: name,
-      namespace: IBM_SCALE_NAMESPACE,
-    },
-    spec: {
-      ...(configMapName && { cacert: configMapName }),
-      server,
-      tenant,
-      client,
-      secret,
-    },
-  };
-  return () => k8sCreate({ model: EncryptionConfigModel, data: payload });
 };

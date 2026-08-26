@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { NetworkType } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared';
+import { isValidCIDRFormat } from '@odf/shared/utils';
 import {
   FormGroup,
   TextInput,
@@ -9,7 +10,6 @@ import {
   HelperTextItem,
   Checkbox,
 } from '@patternfly/react-core';
-import { isValidCIDRFormat } from '../../../utils/cidr-utils';
 import './nic.scss';
 
 type NICSelectComponentProps = {
