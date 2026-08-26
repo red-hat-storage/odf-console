@@ -39,7 +39,7 @@ import './_backingstore-table.scss';
 import '../../style.scss';
 
 const tableColumnInfo = [
-  { className: '', id: 'checkbox' },
+  { className: 'nb-bs-table__checkbox-col', id: 'checkbox' },
   { className: '', id: 'name' },
   {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-sm'),

@@ -7,11 +7,16 @@ import {
 import { ClusterKind } from '@odf/core/types/scale';
 import {
   ClusterModel,
+  ConfigMapKind,
+  ConfigMapModel,
   NamespaceModel,
   NodeModel,
   OPENSHIFT_USER_WORKLOAD_MONITORING_NAMESPACE,
+  SecretKind,
+  SecretModel,
 } from '@odf/shared';
 import { k8sPatchByName } from '@odf/shared/utils';
+import { createOrUpdate } from '@odf/shared/utils/k8s';
 import {
   K8sKind,
   Patch,
@@ -29,11 +34,59 @@ export type ExternalKMMRegistryConfig = {
   privateKeySecret?: string;
 };
 
-export const labelNodes = (nodes: WizardNodeState[]) => {
+export const createUserDetailsSecretPayload = (
+  name: string,
+  username: string,
+  password: string
+) => {
+  const secret: SecretKind = {
+    apiVersion: 'v1',
+    kind: SecretModel.kind,
+    metadata: { name, namespace: IBM_SCALE_NAMESPACE },
+    type: 'Opaque',
+    stringData: { username, password },
+  };
+  return () =>
+    createOrUpdate<SecretKind>({
+      model: SecretModel,
+      name,
+      namespace: IBM_SCALE_NAMESPACE,
+      mutate: () => secret,
+    });
+};
+
+export const createConfigMapPayload = (
+  name: string,
+  data: Record<string, string>
+) => {
+  const configMap: ConfigMapKind = {
+    apiVersion: 'v1',
+    kind: ConfigMapModel.kind,
+    metadata: { name, namespace: IBM_SCALE_NAMESPACE },
+    data,
+  };
+  return () =>
+    createOrUpdate<ConfigMapKind>({
+      model: ConfigMapModel,
+      name,
+      namespace: IBM_SCALE_NAMESPACE,
+      mutate: () => configMap,
+    });
+};
+
+export const labelNodes = (
+  nodes: WizardNodeState[],
+  patchNodeRoleLabel = false
+) => {
   const labelPath = `/metadata/labels/${SCALE_DAEMON_NODE_LABEL.replace('/', '~1')}`;
   const nodeRoleLabelPath = `/metadata/labels/${LOCAL_CLUSTER_NODE_ROLE_LABEL}`;
   const requests: Promise<K8sKind>[] = [];
+
   nodes.forEach((node) => {
+    if (!patchNodeRoleLabel && node.labels?.[SCALE_DAEMON_NODE_LABEL]) {
+      return;
+    }
+
     const patch: Patch[] = [];
     if (!node.labels) {
       patch.push({
@@ -42,31 +95,23 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
         value: {},
       });
     }
-    patch.push({
-      op: 'add',
-      path: labelPath,
-      value: '',
-    });
     if (!node.labels?.[SCALE_DAEMON_NODE_LABEL]) {
-      requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
-    }
-  });
-  nodes.forEach((node) => {
-    const rolePatch: Patch[] = [];
-    if (!node.labels) {
-      rolePatch.push({
+      patch.push({
         op: 'add',
-        path: '/metadata/labels',
-        value: {},
+        path: labelPath,
+        value: '',
       });
     }
-    rolePatch.push({
-      op: node.labels?.[LOCAL_CLUSTER_NODE_ROLE_LABEL] ? 'replace' : 'add',
-      path: nodeRoleLabelPath,
-      value: node.localClusterRole,
-    });
-    requests.push(k8sPatchByName(NodeModel, node.name, null, rolePatch));
+    if (patchNodeRoleLabel) {
+      patch.push({
+        op: node.labels?.[LOCAL_CLUSTER_NODE_ROLE_LABEL] ? 'replace' : 'add',
+        path: nodeRoleLabelPath,
+        value: node.localClusterRole,
+      });
+    }
+    requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
   });
+
   return () => Promise.all(requests);
 };
 

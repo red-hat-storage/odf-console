@@ -27,6 +27,7 @@ import {
 import {
   BackingStoreKind,
   BucketClassKind,
+  BucketClassType,
   NamespaceStoreKind,
   PlacementPolicy,
 } from '../types';
@@ -341,4 +342,50 @@ export const createNewObjectBucketClaim = (
       },
     },
   };
+};
+
+export const getBucketClassTypeDisplayTextFromBucketClassType = (
+  bcType: BucketClassType,
+  isArchive: boolean,
+  t: TFunction
+): string => {
+  if (bcType === BucketClassType.STANDARD && isArchive) {
+    return t('Standard + Deep archive');
+  }
+  switch (bcType) {
+    case BucketClassType.STANDARD:
+      return t('Standard');
+    case BucketClassType.NAMESPACE:
+      return t('Namespace');
+    case BucketClassType.VECTOR:
+      return t('Vector');
+    default:
+      return bcType;
+  }
+};
+
+export const getBucketClassType = (bc: BucketClassKind): BucketClassType => {
+  if (bc.spec?.vectorPolicy) {
+    return BucketClassType.VECTOR;
+  }
+  if (bc.spec?.namespacePolicy) {
+    return BucketClassType.NAMESPACE;
+  }
+  return BucketClassType.STANDARD;
+};
+
+export const isArchiveEnabled = (bc: BucketClassKind): boolean => {
+  return !!bc.spec?.archivePolicy;
+};
+
+export const getBucketClassTypeDisplayText = (
+  bc: BucketClassKind,
+  t: TFunction
+): string => {
+  const type = getBucketClassType(bc);
+  return getBucketClassTypeDisplayTextFromBucketClassType(
+    type,
+    isArchiveEnabled(bc),
+    t
+  );
 };

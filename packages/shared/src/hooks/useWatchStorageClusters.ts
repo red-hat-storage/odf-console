@@ -60,7 +60,6 @@ const resources = (isFDF: boolean): WatchK8sResources<AllClusters> => ({
             kind: ClusterModel.kind,
           },
           isList: true,
-          namespace: IBM_SCALE_NAMESPACE,
         },
         daemons: {
           groupVersionKind: {

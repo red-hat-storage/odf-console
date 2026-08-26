@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
+import { TNF_MIN_CPU, TNF_MIN_MEMORY_GIB } from './common';
 
 export const requestedCapacityTooltip = (t: TFunction) =>
   t(
@@ -22,6 +23,23 @@ export const attachDevices = (t: TFunction, scName: string) => {
     <Trans t={t} ns="plugin__odf-console" values={{ scName }}>
       Selected nodes are based on the StorageClass <em>{'{{scName}}'}</em> and
       with a recommended requirement of 14 CPU and 34 GiB RAM per node.
+    </Trans>
+  );
+};
+
+export const attachDevicesTNF = (t: TFunction, scName: string) => {
+  const minCpuPerNode = TNF_MIN_CPU / 2;
+  const minMemPerNode = TNF_MIN_MEMORY_GIB / 2;
+
+  return (
+    <Trans
+      t={t}
+      ns="plugin__odf-console"
+      values={{ scName, minCpuPerNode, minMemPerNode }}
+    >
+      Selected nodes are based on the StorageClass <em>{'{{scName}}'}</em> and
+      require at least {'{{minCpuPerNode}}'} CPU and {'{{minMemPerNode}}'} GiB
+      RAM per node.
     </Trans>
   );
 };

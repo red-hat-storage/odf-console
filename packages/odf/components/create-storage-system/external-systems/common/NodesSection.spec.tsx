@@ -15,22 +15,36 @@ jest.mock('@odf/core/components/utils', () => ({
   ),
 }));
 
-jest.mock('../../select-nodes-table/select-local-cluster-nodes-table', () => ({
-  SelectLocalClusterNodesTable: () => (
-    <div data-test-id="local-cluster-nodes-table" />
-  ),
-}));
+jest.mock(
+  './select-local-cluster-nodes-table/select-local-cluster-nodes-table',
+  () => ({
+    SelectLocalClusterNodesTable: () => (
+      <div data-test-id="local-cluster-nodes-table" />
+    ),
+  })
+);
 
 jest.mock('../../../nodes-table/NodesTable', () => ({
-  NodesTable: ({ nodes, selectedNodes, loaded }) => (
+  NodesTable: ({ nodes, selectedNodes, loaded, isRowSelectable }) => (
     <div
       data-test-id="nodes-table"
       data-nodes={nodes.map((node) => node.metadata.name).join(',')}
       data-selected={selectedNodes.map((node) => node.metadata.name).join(',')}
+      data-disabled={nodes
+        .filter((node) => isRowSelectable && !isRowSelectable(node))
+        .map((node) => node.metadata.name)
+        .join(',')}
       data-loaded={loaded}
     />
   ),
 }));
+
+const ineligible = {
+  areSelectedNodesEligible: false,
+  isLoading: false,
+  error: '',
+  nodesWithoutKernelDevel: [],
+};
 
 describe('NodesSection', () => {
   it('renders the local cluster table when all-nodes selection is hidden', () => {
@@ -71,6 +85,7 @@ describe('NodesSection', () => {
       <ScaleNodesSection
         selectedNodes={[]}
         setSelectedNodes={setSelectedNodes}
+        kernelDevelEligibility={ineligible}
       />
     );
 
@@ -79,6 +94,44 @@ describe('NodesSection', () => {
         expect.objectContaining({ name: 'node-0' }),
         expect.objectContaining({ name: 'node-1' }),
       ])
+    );
+  });
+
+  it('shows fixed nodes as selected and disabled', () => {
+    const nodes = [
+      {
+        metadata: {
+          name: 'selectable-node',
+          labels: { 'node-role.kubernetes.io/worker': '' },
+        },
+        spec: {},
+      },
+      {
+        metadata: {
+          name: 'fixed-node',
+          labels: { 'node-role.kubernetes.io/worker': '' },
+        },
+        spec: {},
+      },
+    ];
+    (useNodesData as jest.Mock).mockReturnValue([nodes, true, null]);
+
+    render(
+      <ScaleNodesSection
+        selectedNodes={[]}
+        setSelectedNodes={jest.fn()}
+        isNodeFixed={(node) => node.metadata.name === 'fixed-node'}
+        kernelDevelEligibility={ineligible}
+      />
+    );
+
+    expect(screen.getByTestId('nodes-table')).toHaveAttribute(
+      'data-selected',
+      'fixed-node'
+    );
+    expect(screen.getByTestId('nodes-table')).toHaveAttribute(
+      'data-disabled',
+      'fixed-node'
     );
   });
 
@@ -125,6 +178,7 @@ describe('NodesSection', () => {
         <ScaleNodesSection
           selectedNodes={selectedNodes}
           setSelectedNodes={handleSelection}
+          kernelDevelEligibility={ineligible}
         />
       );
     };
@@ -159,11 +213,65 @@ describe('NodesSection', () => {
     ]);
   });
 
+  it.each([
+    {
+      eligibility: { ...ineligible, isLoading: true },
+      message: 'Checking kernel-devel packages on selected nodes',
+    },
+    {
+      eligibility: { ...ineligible, error: 'watch failed' },
+      message: 'Unable to verify kernel-devel package status watch failed',
+    },
+    {
+      eligibility: {
+        ...ineligible,
+        nodesWithoutKernelDevel: ['node-0'],
+      },
+      message:
+        'Kernel-devel packages are missing on some selected nodes. Please apply the Machine Config Operator (MCO) update to install them before continuing.',
+    },
+  ])('renders kernel-devel status: $message', ({ eligibility, message }) => {
+    (useNodesData as jest.Mock).mockReturnValue([[], true, null]);
+
+    render(
+      <ScaleNodesSection
+        selectedNodes={[{ name: 'node-0' }]}
+        setSelectedNodes={jest.fn()}
+        kernelDevelEligibility={eligibility}
+      />
+    );
+
+    expect(screen.getByText(message)).toBeInTheDocument();
+  });
+
+  it('renders verified kernel-devel status', () => {
+    (useNodesData as jest.Mock).mockReturnValue([[], true, null]);
+
+    render(
+      <ScaleNodesSection
+        selectedNodes={[{ name: 'node-0' }]}
+        setSelectedNodes={jest.fn()}
+        kernelDevelEligibility={{
+          ...ineligible,
+          areSelectedNodesEligible: true,
+        }}
+      />
+    );
+
+    expect(
+      screen.getByText('Kernel-devel packages verified')
+    ).toBeInTheDocument();
+  });
+
   it('passes the node loading state to the table', () => {
     (useNodesData as jest.Mock).mockReturnValue([[], false, null]);
 
     render(
-      <ScaleNodesSection selectedNodes={[]} setSelectedNodes={jest.fn()} />
+      <ScaleNodesSection
+        selectedNodes={[]}
+        setSelectedNodes={jest.fn()}
+        kernelDevelEligibility={ineligible}
+      />
     );
 
     expect(screen.getByTestId('nodes-table')).toHaveAttribute(

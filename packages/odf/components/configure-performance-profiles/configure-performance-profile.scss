@@ -2,12 +2,18 @@
   &__content {
     flex: 1 1 auto;
     margin-top: 0;
-    overflow-y: auto;
+    overflow: visible;
   }
 
   &__content.odf-m-pane__body + &__footer {
     flex-shrink: 0;
     border-top: none;
     padding-top: 0;
+  }
+
+  &__custom-resources-info {
+    width: max-content;
+    max-width: none;
+    white-space: nowrap;
   }
 }

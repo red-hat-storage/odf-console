@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { OSDMigrationStatus } from '@odf/core/constants';
 import { PROVIDER_MODE } from '@odf/core/features';
-import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import {
   getStorageClusterInNs,
   getResourceInNs as getCephClusterInNs,
@@ -83,7 +83,7 @@ const cephClusterResource = {
 };
 
 const RecentEvent: React.FC = () => {
-  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
   const [pvcs, pvcLoaded] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
   const [events, eventsLoaded] =
@@ -117,7 +117,7 @@ export const storageClusterResource = {
 
 const OngoingActivity = () => {
   const { clusterNamespace: clusterNs, clusterName: managedByOCS } =
-    useGetInternalClusterDetails();
+    useGetClusterDetails();
 
   const [subscriptions, subLoaded] =
     useK8sWatchResource<K8sResourceKind[]>(subscriptionResource);

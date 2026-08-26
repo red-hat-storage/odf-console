@@ -5,6 +5,7 @@ import {
   CreateBucketCommand,
   PutBucketTaggingCommand,
   GetObjectCommand,
+  HeadBucketCommand,
   HeadObjectCommand,
   GetObjectTaggingCommand,
   DeleteObjectsCommand,
@@ -30,6 +31,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { NOOBAA_AVAILABLE_STORAGE_CLASSES_HEADER } from './constants';
 import {
   CreateBucket,
   ListBuckets,
@@ -38,6 +40,7 @@ import {
   PutBucketTags,
   GetSignedUrl,
   GetObject,
+  HeadBucket,
   HeadObject,
   GetObjectTagging,
   DeleteObjects,
@@ -116,6 +119,35 @@ export class S3Commands extends S3Client {
 
   putBucketVersioning: PutBucketVersioning = (input) =>
     this.send(new PutBucketVersioningCommand(input));
+
+  headBucket: HeadBucket = async (input) => {
+    const command = new HeadBucketCommand(input);
+
+    let responseHeaders: Record<string, string> = {};
+
+    // Middleware to capture response headers
+    command.middlewareStack.add(
+      (next) => async (args) => {
+        const result = await next(args);
+        responseHeaders =
+          (result?.response as { headers?: Record<string, string> })?.headers ||
+          {};
+        return result;
+      },
+      { step: 'deserialize', name: 'captureHeaders' }
+    );
+
+    const response = await this.send(command);
+
+    // Parse storage classes from NooBaa custom header
+    const storageClassesHeader =
+      responseHeaders[NOOBAA_AVAILABLE_STORAGE_CLASSES_HEADER] || '';
+    const supportedStorageClasses = storageClassesHeader
+      ? storageClassesHeader.split(',').map((s) => s.trim())
+      : [];
+
+    return { ...response, supportedStorageClasses };
+  };
 
   listBuckets: ListBuckets = (input) =>
     this.send(new ListBucketsCommand(input));

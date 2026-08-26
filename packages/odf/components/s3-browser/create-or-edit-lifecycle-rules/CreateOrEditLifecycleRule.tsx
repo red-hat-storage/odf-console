@@ -4,12 +4,12 @@ import {
   GetBucketLifecycleConfigurationCommandOutput,
   ExpirationStatus,
   LifecycleRuleFilter,
+  TransitionStorageClass,
 } from '@aws-sdk/client-s3';
 import {
   S3Provider,
   S3Context,
 } from '@odf/core/components/s3-browser/s3-context';
-import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { isNoLifecycleRuleError } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -21,22 +21,24 @@ import useSWR from 'swr';
 import {
   ContentVariants,
   Content,
-  Divider,
-  Button,
-  ButtonVariant,
+  Wizard,
+  WizardStep,
 } from '@patternfly/react-core';
 import { BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX } from '../../../constants';
-import { GeneralConfigAndFilters } from './GeneralConfigAndFilters';
+import { useDeepArchiveSupport } from '../../s3-common/hooks/useDeepArchiveSupport';
+import { ConditionalFiltersStep } from './ConditionalFiltersStep';
+import { GeneralConfigStep } from './GeneralConfigStep';
+import { LifecycleRuleWizardFooter } from './LifecycleRuleWizardFooter';
 import {
   ruleReducer,
   ruleInitialState,
-  RuleActionType,
   RuleState,
   RuleScope,
+  LifecycleRuleStep,
 } from './reducer';
+import { ReviewPage } from './ReviewPage';
 import { RuleActions } from './RuleActions';
 import { useEditLifecycleRule } from './useEditLifecycleRule';
-import { isInvalidLifecycleRule } from './validations';
 
 type IsEditProp = { isEdit?: boolean };
 
@@ -77,11 +79,14 @@ const getFilterConfig = (
 };
 
 const getRuleConfig = (state: RuleState): LifecycleRule => {
-  const deleteCurrent = state.actions.deleteCurrent;
-  const deleteExpiredMarkers = state.actions.deleteExpiredMarkers;
+  const deleteCurrent = state.ruleActions.deleteCurrent;
+  const deleteExpiredMarkers = state.ruleActions.deleteExpiredMarkers;
   const conditionalFilters = state.conditionalFilters;
-  const deleteNonCurrent = state.actions.deleteNonCurrent;
-  const deleteIncompleteMultiparts = state.actions.deleteIncompleteMultiparts;
+  const deleteNonCurrent = state.ruleActions.deleteNonCurrent;
+  const deleteIncompleteMultiparts =
+    state.ruleActions.deleteIncompleteMultiparts;
+  const transitionCurrent = state.ruleActions.transitionCurrent;
+  const transitionNonCurrent = state.ruleActions.transitionNonCurrent;
 
   const expirationConfig = {
     ...(deleteCurrent.isChecked ? { Days: deleteCurrent.days } : {}),
@@ -103,10 +108,31 @@ const getRuleConfig = (state: RuleState): LifecycleRule => {
       : {}),
   };
 
+  const transitionsConfig = transitionCurrent.isChecked
+    ? [
+        {
+          Days: transitionCurrent.days,
+          StorageClass: TransitionStorageClass.DEEP_ARCHIVE,
+        },
+      ]
+    : [];
+
+  const nonCurrentTransitionsConfig = transitionNonCurrent.isChecked
+    ? [
+        {
+          NoncurrentDays: transitionNonCurrent.days,
+          StorageClass: TransitionStorageClass.DEEP_ARCHIVE,
+          ...(transitionNonCurrent.retention > 0
+            ? { NewerNoncurrentVersions: transitionNonCurrent.retention }
+            : {}),
+        },
+      ]
+    : [];
+
   return {
     ...(!_.isEmpty(expirationConfig) ? { Expiration: expirationConfig } : {}),
-    ID: state.name,
-    ...(state.scope === RuleScope.TARGETED
+    ID: state.generalConfig.name,
+    ...(state.generalConfig.scope === RuleScope.TARGETED
       ? { Filter: getFilterConfig(conditionalFilters) }
       : { Filter: { Prefix: '' } }), // omitting or empty "Filter" results in error, using `{ Prefix: '' }` as a workaround for "global" scope.
     Status: ExpirationStatus.Enabled,
@@ -116,6 +142,10 @@ const getRuleConfig = (state: RuleState): LifecycleRule => {
     ...(!_.isEmpty(multipartConfig)
       ? { AbortIncompleteMultipartUpload: multipartConfig }
       : {}),
+    ...(transitionsConfig.length > 0 ? { Transitions: transitionsConfig } : {}),
+    ...(nonCurrentTransitionsConfig.length > 0
+      ? { NoncurrentVersionTransitions: nonCurrentTransitionsConfig }
+      : {}),
   };
 };
 
@@ -124,7 +154,9 @@ const createNewRule = (
   latestRules: GetBucketLifecycleConfigurationCommandOutput
 ) => {
   const currRules: LifecycleRule[] =
-    latestRules?.Rules?.filter((rule) => rule.ID !== state.name) || [];
+    latestRules?.Rules?.filter(
+      (rule) => rule.ID !== state.generalConfig.name
+    ) || [];
   const newRule: LifecycleRule = getRuleConfig(state);
 
   return [...currRules, newRule];
@@ -140,7 +172,7 @@ const updateExistingRule = (
   if (!!ruleName) {
     filteredRules =
       latestRules?.Rules?.filter(
-        (rule) => rule.ID !== ruleName && rule.ID !== state.name
+        (rule) => rule.ID !== ruleName && rule.ID !== state.generalConfig.name
       ) || [];
   } else if (!!ruleHash) {
     // fallback if rule name (ID) is missing
@@ -148,7 +180,7 @@ const updateExistingRule = (
       latestRules?.Rules?.filter(
         (rule) =>
           `${murmur3(JSON.stringify(deepSortObject(rule)))}` !== ruleHash &&
-          rule.ID !== state.name
+          rule.ID !== state.generalConfig.name
       ) || [];
   } else {
     filteredRules = latestRules?.Rules || [];
@@ -158,35 +190,13 @@ const updateExistingRule = (
   return [...filteredRules, updateRule];
 };
 
-const Header: React.FC<IsEditProp> = ({ isEdit }) => {
-  const { t } = useCustomTranslation();
-
-  return (
-    <>
-      <Content>
-        <Content component={ContentVariants.h1}>
-          {isEdit ? t('Edit lifecycle rule') : t('Create lifecycle rule')}
-        </Content>
-        <Content component={ContentVariants.small}>
-          {t(
-            'To optimize the storage costs of your objects throughout their lifecycle, set up a lifecycle configuration. This configuration consists of a series of rules that determine the actions S3 takes on a specific group of objects.'
-          )}
-        </Content>
-      </Content>
-      <Divider className="pf-v6-u-my-lg" />
-    </>
-  );
-};
-
-const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
+const CreateOrEditLifecycleRuleWizard: React.FC<IsEditProp> = ({ isEdit }) => {
   const { t } = useCustomTranslation();
 
   const { bucketName } = useParams();
   const navigate = useNavigate();
   const { s3Client } = React.useContext(S3Context);
 
-  const [inProgress, setInProgress] = React.useState<boolean>(false);
-  const [putError, setPutError] = React.useState<Error>();
   const [state, dispatch] = React.useReducer(ruleReducer, ruleInitialState);
 
   const {
@@ -202,6 +212,8 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
     }
   );
 
+  const { isDeepArchiveEnabled } = useDeepArchiveSupport(s3Client, bucketName);
+
   const noRuleExistsError = isNoLifecycleRuleError(getError);
   // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
   const existingRules = noRuleExistsError ? undefined : data;
@@ -212,51 +224,34 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
     dispatch,
   });
 
-  const onSave = async (event) => {
-    event.preventDefault();
-    setInProgress(true);
+  const onSave = async () => {
+    let latestRules: GetBucketLifecycleConfigurationCommandOutput;
 
-    if (isInvalidLifecycleRule(state, existingRules, isEdit, ruleName)) {
-      dispatch({
-        type: RuleActionType.TRIGGER_INLINE_VALIDATIONS,
-        payload: true,
+    try {
+      latestRules = await s3Client.getBucketLifecycleConfiguration({
+        Bucket: bucketName,
       });
-      setInProgress(false);
-    } else {
-      try {
-        let latestRules: GetBucketLifecycleConfigurationCommandOutput;
-
-        try {
-          latestRules = await s3Client.getBucketLifecycleConfiguration({
-            Bucket: bucketName,
-          });
-        } catch (err) {
-          if (isNoLifecycleRuleError(err)) {
-            latestRules = {
-              Rules: [],
-            } as GetBucketLifecycleConfigurationCommandOutput;
-          } else {
-            throw err;
-          }
-        }
-
-        await s3Client.putBucketLifecycleConfiguration({
-          Bucket: bucketName,
-          LifecycleConfiguration: {
-            Rules: isEdit
-              ? updateExistingRule(state, latestRules, ruleName, ruleHash)
-              : createNewRule(state, latestRules),
-          },
-        });
-
-        setInProgress(false);
-        mutate();
-        navigate(-1);
-      } catch (err) {
-        setInProgress(false);
-        setPutError(err);
+    } catch (err) {
+      if (isNoLifecycleRuleError(err)) {
+        latestRules = {
+          Rules: [],
+        } as GetBucketLifecycleConfigurationCommandOutput;
+      } else {
+        throw err;
       }
     }
+
+    await s3Client.putBucketLifecycleConfiguration({
+      Bucket: bucketName,
+      LifecycleConfiguration: {
+        Rules: isEdit
+          ? updateExistingRule(state, latestRules, ruleName, ruleHash)
+          : createNewRule(state, latestRules),
+      },
+    });
+
+    mutate();
+    navigate(-1);
   };
 
   if (isLoading || (getError && !noRuleExistsError)) {
@@ -265,52 +260,83 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
     );
   }
 
+  const wizardTitle = isEdit
+    ? t('Edit lifecycle rule')
+    : t('Create lifecycle rule');
+  const wizardDescription = t(
+    'To optimize the storage costs of your objects throughout their lifecycle, set up a lifecycle configuration. This configuration consists of a series of rules that determine the actions S3 takes on a specific group of objects.'
+  );
+
   return (
     <div className="pf-v6-u-m-md">
-      <Header isEdit={isEdit} />
-      <GeneralConfigAndFilters
-        state={state}
-        dispatch={dispatch}
-        existingRules={existingRules}
-        isEdit={isEdit}
-        editingRuleName={ruleName}
-      />
-      <RuleActions state={state} dispatch={dispatch} />
-      <ButtonBar
-        inProgress={inProgress}
-        errorMessage={putError?.message || JSON.stringify(putError)}
-        className="pf-v6-u-mt-lg pf-v6-u-mb-md"
+      <Content className="pf-v6-u-mb-lg">
+        <Content component={ContentVariants.h1}>{wizardTitle}</Content>
+        <Content component={ContentVariants.small}>{wizardDescription}</Content>
+      </Content>
+
+      <Wizard
+        isVisitRequired={!isEdit}
+        footer={
+          <LifecycleRuleWizardFooter
+            state={state}
+            existingRules={existingRules}
+            isEdit={isEdit}
+            editingRuleName={ruleName}
+            isDeepArchiveEnabled={isDeepArchiveEnabled}
+            onSave={onSave}
+          />
+        }
       >
-        <span>
-          <Button
-            variant={ButtonVariant.primary}
-            onClick={onSave}
-            isDisabled={inProgress}
-            className="pf-v6-u-mr-xs"
+        <WizardStep
+          name={t('General configuration')}
+          id={LifecycleRuleStep.GENERAL}
+        >
+          <GeneralConfigStep
+            state={state}
+            dispatch={dispatch}
+            existingRules={existingRules}
+            isEdit={isEdit}
+            editingRuleName={ruleName}
+          />
+        </WizardStep>
+        {state.generalConfig.scope === RuleScope.TARGETED && (
+          <WizardStep
+            name={t('Conditional filters')}
+            id={LifecycleRuleStep.FILTERS}
           >
-            {isEdit ? t('Save') : t('Create')}
-          </Button>
-          <Button
-            variant={ButtonVariant.secondary}
-            onClick={() => navigate(-1)}
-            className="pf-v6-u-ml-xs"
-          >
-            {t('Cancel')}
-          </Button>
-        </span>
-      </ButtonBar>
+            <ConditionalFiltersStep state={state} dispatch={dispatch} />
+          </WizardStep>
+        )}
+        <WizardStep
+          name={t('Lifecycle rule actions')}
+          id={LifecycleRuleStep.ACTIONS}
+        >
+          <RuleActions
+            state={state}
+            dispatch={dispatch}
+            isDeepArchiveEnabled={isDeepArchiveEnabled}
+          />
+        </WizardStep>
+        <WizardStep name={t('Review')} id={LifecycleRuleStep.REVIEW}>
+          <ReviewPage
+            state={state}
+            isEdit={isEdit}
+            isDeepArchiveEnabled={isDeepArchiveEnabled}
+          />
+        </WizardStep>
+      </Wizard>
     </div>
   );
 };
 
 export const CreateLifecycleRule: React.FC<{}> = () => (
   <S3Provider>
-    <CreateOrEditLifecycleRuleForm />
+    <CreateOrEditLifecycleRuleWizard />
   </S3Provider>
 );
 
 export const EditLifecycleRule: React.FC<{}> = () => (
   <S3Provider>
-    <CreateOrEditLifecycleRuleForm isEdit />
+    <CreateOrEditLifecycleRuleWizard isEdit />
   </S3Provider>
 );

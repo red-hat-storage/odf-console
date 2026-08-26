@@ -23,6 +23,8 @@ export const initialState = {
   tier2BackingStore: [],
   isLoading: false,
   error: '',
+  isDeepArchive: false,
+  archiveNamespaceStore: null,
 };
 
 export type State = {
@@ -42,6 +44,8 @@ export type State = {
   tier2BackingStore: BackingStoreKind[];
   isLoading: boolean;
   error: string;
+  isDeepArchive: boolean;
+  archiveNamespaceStore: NamespaceStoreKind | null;
 };
 
 export type Action =
@@ -60,7 +64,9 @@ export type Action =
   | { type: 'setBackingStoreTier1'; value: BackingStoreKind[] }
   | { type: 'setBackingStoreTier2'; value: BackingStoreKind[] }
   | { type: 'setIsLoading'; value: boolean }
-  | { type: 'setError'; value: string };
+  | { type: 'setError'; value: string }
+  | { type: 'setIsDeepArchive'; value: boolean }
+  | { type: 'setArchiveNamespaceStore'; value: NamespaceStoreKind | null };
 
 export const reducer = (state: State, action: Action) => {
   switch (action.type) {
@@ -96,6 +102,10 @@ export const reducer = (state: State, action: Action) => {
       return Object.assign({}, state, { isLoading: action.value });
     case 'setError':
       return Object.assign({}, state, { error: action.value });
+    case 'setIsDeepArchive':
+      return Object.assign({}, state, { isDeepArchive: action.value });
+    case 'setArchiveNamespaceStore':
+      return Object.assign({}, state, { archiveNamespaceStore: action.value });
     default:
       return initialState;
   }
