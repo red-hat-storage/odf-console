@@ -104,13 +104,26 @@ const createClientFromEndpointConfig = (
   // Ex: For Provider cluster (console proxy), include the port as the proxy forwards it.
   // For Client cluster (nginx proxy), omit the port as the proxy forwards host without port.
   // It must be done BEFORE signature calculation.
+  //
+  // The console-operator constructs proxy endpoint URLs with a trailing dot
+  // (e.g. "svc.cluster.local.") for DNS optimization, console proxy then
+  // forwards that FQDN as the "Host" header. The signed "Host" value must match
+  // exactly, so appending the same trailing dot while signing from the UI.
+  //
+  // This only applies to the console proxy path (Provider cluster), the nginx
+  // proxy (Client cluster) forwards the "Host" as-is without a trailing dot.
 
   const buildMiddleware = (next) => (args) => {
     const request: Partial<HttpRequest> = args.request;
     if (s3Url.protocol === 'https:') {
+      // https://redhat.atlassian.net/browse/DFBUGS-10052
+      // currently we only exclude port in signature for Client cluster
+      const useTrailingDot =
+        s3Url.hostname.endsWith('.cluster.local') && !excludePortInSignature;
+      const hostname = useTrailingDot ? `${s3Url.hostname}.` : s3Url.hostname;
       request.headers['host'] = excludePortInSignature
-        ? s3Url.hostname
-        : `${s3Url.hostname}:${S3_INTERNAL_ENDPOINT_PORT}`;
+        ? hostname
+        : `${hostname}:${S3_INTERNAL_ENDPOINT_PORT}`;
     }
     return next(args);
   };
