@@ -82,14 +82,6 @@ const getRuleActionsCount = (rule: LifecycleRule) => {
     actionCount++;
   }
 
-  if (rule.Transitions?.length > 0) {
-    actionCount += rule.Transitions.length;
-  }
-
-  if (rule.NoncurrentVersionTransitions?.length > 0) {
-    actionCount += rule.NoncurrentVersionTransitions.length;
-  }
-
   return actionCount;
 };
 
@@ -153,8 +145,6 @@ const RuleRow: React.FC<RowProps<LifecycleRule, CustomData>> = ({
   const expiredObjectDeleteMarker = expiration?.ExpiredObjectDeleteMarker;
   const noncurrentVersionExpiration = ruleObj.NoncurrentVersionExpiration;
   const abortIncompleteMultipartUpload = ruleObj.AbortIncompleteMultipartUpload;
-  const transitions = ruleObj.Transitions;
-  const noncurrentVersionTransitions = ruleObj.NoncurrentVersionTransitions;
 
   // fallback if rule name (ID) is missing
   const ruleHash: number = React.useMemo(() => {
@@ -236,46 +226,6 @@ const RuleRow: React.FC<RowProps<LifecycleRule, CustomData>> = ({
                   <Content component={ContentVariants.small}>
                     {t('Remove delete markers with no noncurrent versions.')}
                   </Content>
-                </Content>
-              )}
-
-              {transitions?.length > 0 && (
-                <Content className="pf-v6-u-mb-sm">
-                  <Content component={ContentVariants.h4}>
-                    {t('Transition current versions')}
-                  </Content>
-                  {transitions.map((transition, index) => (
-                    <Content component={ContentVariants.small} key={index}>
-                      {t(
-                        'Transition to {{storageClass}} {{days}} days after creation.',
-                        {
-                          storageClass: transition.StorageClass,
-                          days: transition.Days,
-                        }
-                      )}
-                    </Content>
-                  ))}
-                </Content>
-              )}
-
-              {noncurrentVersionTransitions?.length > 0 && (
-                <Content className="pf-v6-u-mb-sm">
-                  <Content component={ContentVariants.h4}>
-                    {t('Transition noncurrent versions')}
-                  </Content>
-                  {noncurrentVersionTransitions.map((transition, index) => (
-                    <Content component={ContentVariants.small} key={index}>
-                      {t(
-                        'Transition to {{storageClass}} {{days}} days after becoming noncurrent.',
-                        {
-                          storageClass: transition.StorageClass,
-                          days: transition.NoncurrentDays,
-                        }
-                      )}
-                      {transition.NewerNoncurrentVersions > 0 &&
-                        ` ${t('Retain {{count}} newer versions.', { count: transition.NewerNoncurrentVersions })}`}
-                    </Content>
-                  ))}
                 </Content>
               )}
             </>

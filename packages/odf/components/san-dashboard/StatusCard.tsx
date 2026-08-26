@@ -54,6 +54,7 @@ const StatusCard: React.FC<{}> = () => {
     useK8sWatchResource<ClusterKind[]>({
       kind: referenceForModel(SANClusterModel),
       isList: true,
+      namespace: IBM_SCALE_NAMESPACE,
     });
 
   const flashOperator = getOperatorHealthState(

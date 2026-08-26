@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { getDiscoveredDeviceKey } from '@odf/core/components/utils';
 import { DiscoveredDevice } from '@odf/core/types/scale';
 import { DASH, ListPageFilterWrapper, useCustomTranslation } from '@odf/shared';
 import { TableSkeletonLoader } from '@odf/shared/skeletal-loader/TableSkeleton';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { useListPageFilter } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import {
   Table,
   Tbody,
@@ -47,9 +47,9 @@ export const LUNsTable: React.FC<LUNsTableProps> = ({
           aValue = a.path;
           bValue = b.path;
           break;
-        case 1: // WWID / Device ID
-          aValue = getDiscoveredDeviceKey(a);
-          bValue = getDiscoveredDeviceKey(b);
+        case 1: // WWID
+          aValue = a.WWN || '';
+          bValue = b.WWN || '';
           break;
         case 2: // Capacity
           aValue = a.size || 0;
@@ -85,19 +85,16 @@ export const LUNsTable: React.FC<LUNsTableProps> = ({
   );
 
   const areAllSelected = React.useMemo(() => {
-    return (
-      luns.length > 0 &&
-      luns.every((lun) => selectedLUNs.has(getDiscoveredDeviceKey(lun)))
-    );
+    return luns.length > 0 && luns.every((lun) => selectedLUNs.has(lun.WWN));
   }, [luns, selectedLUNs]);
 
   const handleSelectAll: OnSelect = React.useCallback(
     (_event, isSelected) => {
       const newSelected = new Set(selectedLUNs);
       if (isSelected) {
-        luns.forEach((lun) => newSelected.add(getDiscoveredDeviceKey(lun)));
+        luns.forEach((lun) => newSelected.add(lun.WWN));
       } else {
-        luns.forEach((lun) => newSelected.delete(getDiscoveredDeviceKey(lun)));
+        luns.forEach((lun) => newSelected.delete(lun.WWN));
       }
       onLUNSelect(newSelected);
     },
@@ -113,21 +110,21 @@ export const LUNsTable: React.FC<LUNsTableProps> = ({
       }
 
       // Use rowData.props.id if available (more reliable than rowIndex)
-      const lunKey =
+      const lunWWID =
         rowData?.props?.id ||
         (rowIndex >= 0 && rowIndex < sortedLUNs.length
-          ? getDiscoveredDeviceKey(sortedLUNs[rowIndex])
+          ? sortedLUNs[rowIndex]?.WWN
           : null);
 
-      if (!lunKey) {
+      if (!lunWWID) {
         return;
       }
 
       const newSelected = new Set(selectedLUNs);
       if (isSelected) {
-        newSelected.add(lunKey);
+        newSelected.add(lunWWID);
       } else {
-        newSelected.delete(lunKey);
+        newSelected.delete(lunWWID);
       }
       onLUNSelect(newSelected);
     },
@@ -182,7 +179,7 @@ export const LUNsTable: React.FC<LUNsTableProps> = ({
                   columnIndex: 1,
                 }}
               >
-                {t('WWID / Device ID')}
+                {t('WWID')}
               </Th>
               <Th
                 sort={{
@@ -196,26 +193,23 @@ export const LUNsTable: React.FC<LUNsTableProps> = ({
             </Tr>
           </Thead>
           <Tbody>
-            {lunsFilteredData.map((lun, index) => {
-              const lunKey = getDiscoveredDeviceKey(lun);
-              return (
-                <Tr key={lunKey || lun.path}>
-                  <Td
-                    select={{
-                      rowIndex: index,
-                      onSelect: handleRowSelect,
-                      isSelected: selectedLUNs.has(lunKey),
-                      props: {
-                        id: lunKey,
-                      },
-                    }}
-                  />
-                  <Td>{lun.path}</Td>
-                  <Td>{lunKey || DASH}</Td>
-                  <Td>{humanizeBinaryBytes(lun.size).string || '-'}</Td>
-                </Tr>
-              );
-            })}
+            {lunsFilteredData.map((lun, index) => (
+              <Tr key={lun.WWN || lun.path}>
+                <Td
+                  select={{
+                    rowIndex: index,
+                    onSelect: handleRowSelect,
+                    isSelected: selectedLUNs.has(lun.WWN),
+                    props: {
+                      id: lun.WWN,
+                    },
+                  }}
+                />
+                <Td>{lun.path}</Td>
+                <Td>{lun.WWN || DASH}</Td>
+                <Td>{humanizeBinaryBytes(lun.size).string || '-'}</Td>
+              </Tr>
+            ))}
           </Tbody>
         </Table>
       </div>

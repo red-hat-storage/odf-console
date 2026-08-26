@@ -1,13 +1,12 @@
 import React from 'react';
+import { DOC_VERSION } from '@odf/shared';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { enableScaleEncryption } from '../../../scale-encryption/enableScaleEncryption';
 import { CreateScaleSystem } from './CreateScaleSystem';
 import { useKernelDevelEligibility } from './hooks/useKernelDevelEligibility';
 
 let mockWatchedValue = '';
-let mockFormValues: Record<string, string> = {};
 
 // Mock all external dependencies
 jest.mock('react-router', () => ({
@@ -72,9 +71,8 @@ jest.mock('./useFormValidation', () => {
         control: form.control,
         handleSubmit: form.handleSubmit,
         formState: form.formState,
-        isEncryptionValid: true,
         watch: jest.fn((_fieldName) => mockWatchedValue),
-        getValues: () => mockFormValues,
+        getValues: form.getValues,
       };
     }),
   };
@@ -102,7 +100,14 @@ let capturedSetSelectedNodes: ((nodes: any[]) => void) | null = null;
 
 jest.mock('../common/NodesSection', () => ({
   ScaleNodesSection: jest.fn(
-    ({ setSelectedNodes }: { setSelectedNodes: (nodes: any[]) => void }) => {
+    ({
+      setSelectedNodes,
+      statusContent,
+    }: {
+      selectedNodes: any[];
+      setSelectedNodes: (nodes: any[]) => void;
+      statusContent: React.ReactNode;
+    }) => {
       capturedSetSelectedNodes = setSelectedNodes;
       return (
         <div data-testid="mock-nodes-section">
@@ -111,6 +116,7 @@ jest.mock('../common/NodesSection', () => ({
           </label>
           <input id="include-control-plane-nodes" type="checkbox" />
           <div data-test-id="select-nodes-table" />
+          {statusContent}
         </div>
       );
     }
@@ -129,20 +135,16 @@ jest.mock('../common/hooks', () => ({
 }));
 
 jest.mock('./payload', () => ({
-  createScaleCaCertSecretPayload: jest.fn(() => () => Promise.resolve({})),
-  createScaleRemoteClusterPayload: jest.fn(() => () => Promise.resolve({})),
-  createFileSystem: jest.fn(() => () => Promise.resolve({})),
-}));
-
-jest.mock('../../../scale-encryption/enableScaleEncryption', () => ({
-  enableScaleEncryption: jest.fn(() => Promise.resolve()),
+  createScaleCaCertSecretPayload: jest.fn(() => Promise.resolve({})),
+  createScaleRemoteClusterPayload: jest.fn(() => Promise.resolve({})),
+  createFileSystem: jest.fn(() => Promise.resolve({})),
+  createConfigMapPayload: jest.fn(() => Promise.resolve({})),
+  createEncryptionConfigPayload: jest.fn(() => Promise.resolve({})),
+  createUserDetailsSecretPayload: jest.fn(() => Promise.resolve({})),
 }));
 
 jest.mock('../common/payload', () => ({
-  configureMetricsNamespaceLabels: jest.fn(() => Promise.resolve()),
-  createConfigMapPayload: jest.fn(() => () => Promise.resolve({})),
   createScaleLocalClusterPayload: jest.fn(() => () => Promise.resolve({})),
-  createUserDetailsSecretPayload: jest.fn(() => () => Promise.resolve({})),
   labelNodes: jest.fn(() => () => Promise.resolve({})),
 }));
 
@@ -193,7 +195,6 @@ describe('CreateScaleSystem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWatchedValue = '';
-    mockFormValues = {};
     (useKernelDevelEligibility as jest.Mock).mockReturnValue({
       areSelectedNodesEligible: true,
       isLoading: false,
@@ -206,9 +207,9 @@ describe('CreateScaleSystem', () => {
     it('should render the main component with correct title and breadcrumbs', () => {
       render(<CreateScaleSystem />);
 
-      expect(screen.getByText('Connect IBM Storage Scale')).toBeInTheDocument();
+      expect(screen.getByText('Connect IBM Scale (CNSA)')).toBeInTheDocument();
       expect(screen.getByText('External Systems')).toBeInTheDocument();
-      expect(screen.getByText('Create IBM Storage Scale')).toBeInTheDocument();
+      expect(screen.getByText('Create IBM Scale (CNSA)')).toBeInTheDocument();
     });
 
     it('should render all form sections', () => {
@@ -313,63 +314,20 @@ describe('CreateScaleSystem', () => {
     it('should not render encryption fields by default', () => {
       render(<CreateScaleSystem />);
 
+      // Encryption fields should not be visible initially
       expect(
         screen.queryByTestId('encryption-username')
       ).not.toBeInTheDocument();
-    });
-
-    it('submits the shared encryption configuration', async () => {
-      const user = userEvent.setup();
-      mockWatchedValue = 'valid';
-      const { container } = render(<CreateScaleSystem />);
-
-      act(() => {
-        capturedSetSelectedNodes([
-          { name: 'node1' },
-          { name: 'node2' },
-          { name: 'node3' },
-        ]);
-      });
-
-      mockFormValues = {
-        name: 'scale-system',
-        'mandatory-endpoint-host': 'scale.example.com',
-        'mandatory-endpoint-port': '8843',
-        userName: 'admin',
-        password: 'secret',
-        fileSystemName: 'filesystem',
-        encryptionUserName: 'encryption-user',
-        encryptionPassword: 'encryption-password',
-        encryptionPort: '9444',
-        client: 'client',
-        remoteRKM: 'remote_rkm_1',
-        serverInformation: 'server.example.com',
-        tenantId: 'tenant',
-      };
-      await user.click(screen.getByLabelText('Enable data encryption'));
-      await user.upload(
-        container.querySelectorAll('input[type="file"]')[1] as HTMLInputElement,
-        new File(['certificate'], 'ca.crt')
-      );
-
-      const submitButton = screen.getByRole('button', {
-        name: 'Connect and create',
-      });
-      await waitFor(() => expect(submitButton).toBeEnabled());
-      await user.click(submitButton);
-
-      await waitFor(() =>
-        expect(enableScaleEncryption).toHaveBeenCalledWith({
-          certificate: 'certificate',
-          client: 'client',
-          password: 'encryption-password',
-          port: '9444',
-          remoteRKM: 'remote_rkm_1',
-          server: 'server.example.com',
-          tenant: 'tenant',
-          username: 'encryption-user',
-        })
-      );
+      expect(
+        screen.queryByTestId('encryption-password')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId('encryption-port')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('client')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('remote-rkm')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('server-information')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId('tenant-id')).not.toBeInTheDocument();
     });
   });
 
@@ -381,6 +339,67 @@ describe('CreateScaleSystem', () => {
         screen.getByRole('checkbox', { name: 'Include control plane nodes' })
       ).toBeInTheDocument();
       expect(screen.getByTestId('select-nodes-table')).toBeInTheDocument();
+    });
+
+    it('does not show kernel-devel status when no nodes are selected', () => {
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: false,
+        isLoading: false,
+        error: '',
+        nodesWithoutKernelDevel: [],
+      });
+
+      const { container } = render(<CreateScaleSystem />);
+
+      expect(
+        container.querySelector('[data-test^="kernel-devel-status"]')
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows the kernel-devel warning when hook reports nodes without kernel-devel', async () => {
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: false,
+        isLoading: false,
+        error: '',
+        nodesWithoutKernelDevel: ['node1', 'node2'],
+      });
+
+      const { container } = render(<CreateScaleSystem />);
+      act(() => {
+        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
+      });
+
+      await waitFor(() => {
+        const warning = container.querySelector(
+          '[data-test="kernel-devel-status-warning"]'
+        );
+        expect(warning).toHaveTextContent(
+          'Kernel-devel packages are missing on some selected nodes. Please apply the Machine Config Operator (MCO) update to install them before connecting to the remote cluster.'
+        );
+        expect(
+          screen.getByRole('link', { name: 'Learn more' })
+        ).toHaveAttribute('href', expect.stringContaining(`/${DOC_VERSION}/`));
+      });
+    });
+
+    it('shows success when kernel-devel is verified on all selected nodes', async () => {
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: true,
+        isLoading: false,
+        error: '',
+        nodesWithoutKernelDevel: [],
+      });
+
+      const { container } = render(<CreateScaleSystem />);
+      act(() => {
+        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
+      });
+
+      await waitFor(() => {
+        expect(
+          container.querySelector('[data-test="kernel-devel-status-success"]')
+        ).toHaveTextContent('Kernel-devel packages verified');
+      });
     });
 
     it('requires at least three selected nodes', async () => {
@@ -402,6 +421,41 @@ describe('CreateScaleSystem', () => {
           screen.getByRole('button', { name: 'Connect and create' })
         ).toBeDisabled()
       );
+    });
+
+    it('shows checking status while loading and hides it when done', async () => {
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: false,
+        isLoading: true,
+        error: '',
+        nodesWithoutKernelDevel: [],
+      });
+
+      const { container, rerender } = render(<CreateScaleSystem />);
+      act(() => {
+        capturedSetSelectedNodes([{ name: 'node1' }, { name: 'node2' }]);
+      });
+
+      await waitFor(() => {
+        expect(
+          container.querySelector('[data-test="kernel-devel-status-pending"]')
+        ).toBeInTheDocument();
+      });
+
+      (useKernelDevelEligibility as jest.Mock).mockReturnValue({
+        areSelectedNodesEligible: true,
+        isLoading: false,
+        error: '',
+        nodesWithoutKernelDevel: [],
+      });
+
+      rerender(<CreateScaleSystem />);
+
+      await waitFor(() => {
+        expect(
+          container.querySelector('[data-test="kernel-devel-status-pending"]')
+        ).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -499,7 +553,7 @@ describe('CreateScaleSystem', () => {
       ).toBeInTheDocument();
       expect(
         screen.getByText(
-          'Select at least 3 nodes to create the local cluster used for IBM Storage Scale connections.'
+          'Select at least 3 nodes to create the local cluster used for IBM Scale (CNSA) connections.'
         )
       ).toBeInTheDocument();
       expect(screen.getByText('Password is required')).toBeInTheDocument();

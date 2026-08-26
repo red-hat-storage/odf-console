@@ -68,12 +68,6 @@ export enum ResourceProfile {
   Performance = 'performance',
 }
 
-export enum McgPerformanceProfile {
-  Default = 'default',
-  MixedWorkload = 'mixed-workload',
-  SmallObjects = 'small-objects',
-}
-
 export type ResourceProfileRequirementsMap = {
   [key in ResourceProfile]: {
     minCpu: number;

@@ -180,7 +180,7 @@ export const FlashSystemConnectionDetails: React.FC = () => {
     <>
       <PageHeading title={t('Connect IBM FlashSystem')}>
         {t(
-          'Connect to an IBM FlashSystem to deploy Data Foundation using FlashSystem-backed storage.'
+          'Connect to IBM FlashSystem to power Data Foundation with fast, reliable block storage optimized for eterprise performance,'
         )}
       </PageHeading>
       <div className="odf-m-pane__body">

@@ -118,26 +118,24 @@ describe('payload', () => {
           labels: undefined,
           taints: [],
           architecture: 'amd64',
-          localClusterRole: 'disk-node',
         },
       ];
-      const execute = labelNodes(nodes, true);
+      const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
+      expect(mockK8sPatchByName).toHaveBeenCalledTimes(2);
       expect(getDaemonPatchCalls()).toHaveLength(1);
-      expect(getNodeRolePatchCalls()).toHaveLength(1);
-      expect(mockK8sPatchByName.mock.calls[0]).toEqual([
+      expect(getDaemonPatchCalls()[0]).toEqual([
         NodeModel,
         'node-no-labels',
         null,
         expect.arrayContaining([
           { op: 'add', path: '/metadata/labels', value: {} },
           { op: 'add', path: LABEL_PATH, value: '' },
-          { op: 'add', path: NODE_ROLE_LABEL_PATH, value: 'disk-node' },
         ]),
       ]);
-      expect(mockK8sPatchByName.mock.calls[0][3]).toHaveLength(3);
+      const daemonPatch: Patch[] = getDaemonPatchCalls()[0][3];
+      expect(daemonPatch).toHaveLength(2);
     });
 
     it('should not add /metadata/labels when node already has labels so existing labels are not replaced by {}', async () => {
@@ -187,22 +185,20 @@ describe('payload', () => {
           labels: { [SCALE_DAEMON_NODE_LABEL]: '' },
           taints: [],
           architecture: 'amd64',
-          localClusterRole: 'disk-node',
         },
       ];
-      const execute = labelNodes(nodes, true);
+      const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
+      expect(mockK8sPatchByName).toHaveBeenCalledTimes(2);
       expect(getDaemonPatchCalls()).toHaveLength(1);
-      const patch: Patch[] = mockK8sPatchByName.mock.calls[0][3];
-      expect(patch).toEqual(
-        expect.arrayContaining([
-          { op: 'add', path: LABEL_PATH, value: '' },
-          { op: 'add', path: NODE_ROLE_LABEL_PATH, value: 'disk-node' },
-        ])
-      );
-      expect(patch.some((p) => p.path === '/metadata/labels')).toBe(false);
+      const daemonPatch: Patch[] = getDaemonPatchCalls()[0][3];
+      expect(daemonPatch).toHaveLength(1);
+      expect(daemonPatch[0]).toEqual({
+        op: 'add',
+        path: LABEL_PATH,
+        value: '',
+      });
     });
 
     it('should skip daemon-selector patch when node already has daemon-selector label with truthy value', async () => {
@@ -224,7 +220,7 @@ describe('payload', () => {
           localClusterRole: 'disk-node',
         },
       ];
-      const execute = labelNodes(nodes, true);
+      const execute = labelNodes(nodes);
       await execute();
 
       expect(getDaemonPatchCalls()).toHaveLength(0);
@@ -267,10 +263,9 @@ describe('payload', () => {
           architecture: 'amd64',
         },
       ];
-      const execute = labelNodes(nodes, true);
+      const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(2);
       expect(getDaemonPatchCalls()).toHaveLength(2);
       expect(getDaemonPatchCalls()[0]).toEqual([
         NodeModel,
@@ -301,7 +296,6 @@ describe('payload', () => {
           labels: undefined,
           taints: [],
           architecture: 'amd64',
-          localClusterRole: 'disk-node',
         },
         {
           name: 'node-with-other-labels',
@@ -315,7 +309,6 @@ describe('payload', () => {
           labels: { 'custom.io/label': 'keep-me' },
           taints: [],
           architecture: 'amd64',
-          localClusterRole: 'disk-node',
         },
         {
           name: 'node-with-daemon-selector',
@@ -329,13 +322,11 @@ describe('payload', () => {
           labels: { [SCALE_DAEMON_NODE_LABEL]: 'applied' },
           taints: [],
           architecture: 'amd64',
-          localClusterRole: 'cluster-node',
         },
       ];
-      const execute = labelNodes(nodes, true);
+      const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(3);
       expect(getDaemonPatchCalls()).toHaveLength(2);
       expect(getNodeRolePatchCalls()).toHaveLength(3);
 
@@ -350,20 +341,10 @@ describe('payload', () => {
         expect(daemonOp).toMatchObject({ value: '' });
       });
 
+      expect(patch1).toHaveLength(2);
+      expect(patch2).toHaveLength(1);
       expect(patch1.some((op) => op.path === '/metadata/labels')).toBe(true);
       expect(patch2.some((op) => op.path === '/metadata/labels')).toBe(false);
-      expect(patch1).toEqual(
-        expect.arrayContaining([
-          { op: 'add', path: LABEL_PATH, value: '' },
-          { op: 'add', path: NODE_ROLE_LABEL_PATH, value: 'disk-node' },
-        ])
-      );
-      expect(patch2).toEqual(
-        expect.arrayContaining([
-          { op: 'add', path: LABEL_PATH, value: '' },
-          { op: 'add', path: NODE_ROLE_LABEL_PATH, value: 'disk-node' },
-        ])
-      );
     });
 
     it('should return a function that resolves to Promise.all of patch requests', async () => {
@@ -383,14 +364,12 @@ describe('payload', () => {
           labels: undefined,
           taints: [],
           architecture: 'amd64',
-          localClusterRole: 'disk-node',
         },
       ];
-      const execute = labelNodes(nodes, true);
+      const execute = labelNodes(nodes);
       const result = await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
-      expect(result).toEqual([resolved]);
+      expect(result).toEqual([resolved, resolved]);
     });
 
     it('should patch node-role from localClusterRole', async () => {
@@ -410,20 +389,17 @@ describe('payload', () => {
           localClusterRole: 'disk-node',
         },
       ];
-      const execute = labelNodes(nodes, true);
+      const execute = labelNodes(nodes);
       await execute();
 
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
       expect(getNodeRolePatchCalls()).toHaveLength(1);
-      expect(getNodeRolePatchCalls()[0][3]).toEqual(
-        expect.arrayContaining([
-          {
-            op: 'add',
-            path: NODE_ROLE_LABEL_PATH,
-            value: 'disk-node',
-          },
-        ])
-      );
+      expect(getNodeRolePatchCalls()[0][3]).toEqual([
+        {
+          op: 'add',
+          path: NODE_ROLE_LABEL_PATH,
+          value: 'disk-node',
+        },
+      ]);
     });
 
     it('should use replace for node-role when label already exists', async () => {
@@ -443,74 +419,16 @@ describe('payload', () => {
           localClusterRole: 'cluster-node',
         },
       ];
-      const execute = labelNodes(nodes, true);
-      await execute();
-
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
-      expect(getNodeRolePatchCalls()[0][3]).toEqual(
-        expect.arrayContaining([
-          {
-            op: 'replace',
-            path: NODE_ROLE_LABEL_PATH,
-            value: 'cluster-node',
-          },
-        ])
-      );
-    });
-
-    it('should send a single patch containing both daemon and role label paths', async () => {
-      const nodes: WizardNodeState[] = [
-        {
-          name: 'node-combined',
-          hostName: 'node-combined',
-          cpu: '2',
-          memory: '4Gi',
-          zone: '',
-          rack: '',
-          uid: 'uid-combined',
-          roles: [],
-          labels: undefined,
-          taints: [],
-          architecture: 'amd64',
-          localClusterRole: 'disk-node',
-        },
-      ];
-      const execute = labelNodes(nodes, true);
-      await execute();
-
-      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
-      const patch: Patch[] = mockK8sPatchByName.mock.calls[0][3];
-      expect(patch).toEqual([
-        { op: 'add', path: '/metadata/labels', value: {} },
-        { op: 'add', path: LABEL_PATH, value: '' },
-        { op: 'add', path: NODE_ROLE_LABEL_PATH, value: 'disk-node' },
-      ]);
-      expect(patch.some((op) => op.path === LABEL_PATH)).toBe(true);
-      expect(patch.some((op) => op.path === NODE_ROLE_LABEL_PATH)).toBe(true);
-    });
-
-    it('should not patch node-role when patchNodeRoleLabel is false', async () => {
-      const nodes: WizardNodeState[] = [
-        {
-          name: 'node-disk',
-          hostName: 'node-disk',
-          cpu: '2',
-          memory: '4Gi',
-          zone: '',
-          rack: '',
-          uid: 'uid-disk',
-          roles: [],
-          labels: { 'some.io/label': 'value' },
-          taints: [],
-          architecture: 'amd64',
-          localClusterRole: 'disk-node',
-        },
-      ];
       const execute = labelNodes(nodes);
       await execute();
 
-      expect(getDaemonPatchCalls()).toHaveLength(1);
-      expect(getNodeRolePatchCalls()).toHaveLength(0);
+      expect(getNodeRolePatchCalls()[0][3]).toEqual([
+        {
+          op: 'replace',
+          path: NODE_ROLE_LABEL_PATH,
+          value: 'cluster-node',
+        },
+      ]);
     });
   });
 

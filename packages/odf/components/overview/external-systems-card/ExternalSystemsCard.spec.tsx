@@ -218,7 +218,7 @@ describe('ExternalSystemsCard', () => {
       screen.getByText('Storage Area Network LUN groups')
     ).toBeInTheDocument();
     expect(
-      screen.queryByText('IBM Storage Scale file systems')
+      screen.queryByText('IBM Scale (CNSA) file systems')
     ).not.toBeInTheDocument();
 
     const sanRow = screen
@@ -244,7 +244,7 @@ describe('ExternalSystemsCard', () => {
       screen.getByText('Storage Area Network LUN groups')
     ).toBeInTheDocument();
     expect(
-      screen.queryByText('IBM Storage Scale file systems')
+      screen.queryByText('IBM Scale (CNSA) file systems')
     ).not.toBeInTheDocument();
   });
 
@@ -269,7 +269,7 @@ describe('ExternalSystemsCard', () => {
     renderCard();
 
     expect(
-      screen.getByText('IBM Storage Scale file systems')
+      screen.getByText('IBM Scale (CNSA) file systems')
     ).toBeInTheDocument();
     expect(
       screen.queryByText('Storage Area Network LUN groups')
@@ -292,7 +292,7 @@ describe('ExternalSystemsCard', () => {
     renderCard();
 
     expect(
-      screen.getByText('IBM Storage Scale file systems')
+      screen.getByText('IBM Scale (CNSA) file systems')
     ).toBeInTheDocument();
     expect(
       screen.queryByText('Storage Area Network LUN groups')
@@ -326,7 +326,7 @@ describe('ExternalSystemsCard', () => {
       .map((node) => node.textContent?.trim());
     expect(labels).toEqual([
       'IBM FlashSystem clusters',
-      'IBM Storage Scale file systems',
+      'IBM Scale (CNSA) file systems',
       'Red Hat Ceph clusters',
     ]);
   });

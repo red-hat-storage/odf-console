@@ -8,8 +8,6 @@ export const acmDocHome = (acmDocVersion) =>
   `https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/${acmDocVersion}`;
 export const acmDocBasePath = (acmDocVersion) =>
   `${acmDocHome(acmDocVersion)}/html-single`;
-export const acmSubmarinerDoc = (acmDocVersion) =>
-  `${acmDocBasePath(acmDocVersion)}/networking/index#submariner`;
 
 export const docLinks = (mcoDocVersion, acmDocVersion) => ({
   APPLY_POLICY: odfDRDocApplyPolicy(mcoDocVersion),

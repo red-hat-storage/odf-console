@@ -27,9 +27,7 @@ import {
   ActionGroup,
   Alert,
   Button,
-  Checkbox,
   Form,
-  FormGroup,
   TextInput,
 } from '@patternfly/react-core';
 import {
@@ -74,7 +72,6 @@ type NamespaceStoreFormProps = {
   onCancel: () => void;
   /** Vector BucketClass flow: Provider dropdown lists Filesystem only. */
   isVector?: boolean;
-  isDeepArchive?: boolean;
 };
 
 const createSecret = async (
@@ -130,23 +127,12 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   const [error, setError] = React.useState('');
   const [showSecret, setShowSecret] = React.useState(true);
 
-  const {
-    onCancel,
-    className,
-    redirectHandler,
-    namespace,
-    isVector,
-    isDeepArchive,
-  } = props;
+  const { onCancel, className, redirectHandler, namespace, isVector } = props;
 
-  // If archive is pre-selected (from BucketClass wizard), it's fixed to true
-  const [isArchive, setIsArchive] = React.useState(isDeepArchive ?? false);
-
-  const providerDefault = isDeepArchive
-    ? StoreProviders.S3
-    : isVector
-      ? StoreProviders.FILESYSTEM
-      : StoreProviders.AWS;
+  const providerDefault = React.useMemo(
+    () => (isVector ? StoreProviders.FILESYSTEM : StoreProviders.AWS),
+    [isVector]
+  );
 
   const providerDropdownItems = React.useMemo(
     () => (isVector ? NAMESPACE_STORE_FILESYSTEM : PROVIDERS),
@@ -198,7 +184,6 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
     control,
     handleSubmit,
     watch,
-    setValue,
     formState: { isValid, isSubmitted },
   } = useForm({
     ...formSettings,
@@ -209,17 +194,6 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   });
 
   const provider = watch('provider-name');
-
-  // Handle archive checkbox change - set provider to S3 Compatible when checked
-  const handleArchiveChange = React.useCallback(
-    (_event: React.FormEvent<HTMLInputElement>, checked: boolean) => {
-      setIsArchive(checked);
-      if (checked) {
-        setValue('provider-name', StoreProviders.S3);
-      }
-    },
-    [setValue]
-  );
 
   const onSubmit = async (values, event) => {
     event.preventDefault();
@@ -249,7 +223,6 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         },
         spec: {
           type: NOOBAA_TYPE_MAP[provider],
-          ...(isArchive && { archive: true }),
         },
       };
       if (externalProviders.includes(provider)) {
@@ -315,29 +288,6 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         onSubmit={handleSubmit(onSubmit)}
         noValidate={false}
       >
-        {!isVector && (
-          <FormGroup fieldId="archive-checkbox">
-            <Checkbox
-              id="archive-checkbox"
-              label={t('Opt in Namespacestore for IBM Deep Archive')}
-              isChecked={isArchive}
-              onChange={handleArchiveChange}
-              isDisabled={isDeepArchive}
-              data-test="archive-checkbox"
-            />
-            {isArchive && (
-              <Alert
-                variant="info"
-                isInline
-                isPlain
-                title={t(
-                  'Created IBM Deep Archive NamespaceStore should be applied in IBM Deep Archive standard BucketClass'
-                )}
-                className="pf-v6-u-mt-sm"
-              />
-            )}
-          </FormGroup>
-        )}
         <TextInputWithFieldRequirements
           control={control}
           fieldRequirements={fieldRequirements}
@@ -369,18 +319,14 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
             isRequired: true,
           }}
           render={({ value, onChange, onBlur }) => (
-            // Changing key forces React to re-mount the dropdown when isArchive changes,
-            // resetting its internal state to reflect the new defaultSelection and disabled state.
             <StaticDropdown
-              key={isArchive ? 'disabled' : 'enabled'}
               className="nb-endpoints-form-entry__dropdown"
               onSelect={onChange}
               onBlur={onBlur}
               dropdownItems={providerDropdownItems}
-              defaultSelection={isArchive ? StoreProviders.S3 : value}
+              defaultSelection={value}
               data-test="namespacestore-provider"
               isFullWidth
-              isDisabled={isArchive}
             />
           )}
         />

@@ -1,12 +1,6 @@
 import * as React from 'react';
 import { createUniquenessValidator } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
 import {
-  getScaleEncryptionValidationFields,
-  scaleEncryptionDefaultValues,
-  ScaleEncryptionFormData,
-  isValidHostnameOrIP,
-} from '@odf/core/components/scale-encryption/ScaleEncryptionForm';
-import {
   FILESYSTEM_NAME_MAX_LENGTH,
   FILESYSTEM_NAME_MIN_LENGTH,
 } from '@odf/core/modals/add-remote-fs/AddRemoteFileSystemModal';
@@ -26,21 +20,29 @@ const USERNAME_MAX_LENGTH = 63;
 const USERNAME_MIN_LENGTH = 1;
 const PORT_MIN = 1;
 const PORT_MAX = 65535;
+const TENANT_ID_MAX_LENGTH = 63;
+const CLIENT_MAX_LENGTH = 63;
+const SERVER_INFO_MAX_LENGTH = 255;
 
-export type ScaleSystemFormSchema = Yup.ObjectSchema<
-  {
-    name: Yup.StringSchema;
-    'mandatory-endpoint-host': Yup.StringSchema;
-    'mandatory-endpoint-port': Yup.StringSchema;
-    'optional-endpoint-1-host': Yup.StringSchema;
-    'optional-endpoint-1-port': Yup.StringSchema;
-    'optional-endpoint-2-host': Yup.StringSchema;
-    'optional-endpoint-2-port': Yup.StringSchema;
-    userName: Yup.StringSchema;
-    password: Yup.StringSchema;
-    fileSystemName: Yup.StringSchema;
-  } & Record<keyof ScaleEncryptionFormData, Yup.StringSchema>
->;
+export type ScaleSystemFormSchema = Yup.ObjectSchema<{
+  name: Yup.StringSchema;
+  'mandatory-endpoint-host': Yup.StringSchema;
+  'mandatory-endpoint-port': Yup.StringSchema;
+  'optional-endpoint-1-host': Yup.StringSchema;
+  'optional-endpoint-1-port': Yup.StringSchema;
+  'optional-endpoint-2-host': Yup.StringSchema;
+  'optional-endpoint-2-port': Yup.StringSchema;
+  userName: Yup.StringSchema;
+  password: Yup.StringSchema;
+  fileSystemName: Yup.StringSchema;
+  encryptionUserName: Yup.StringSchema;
+  encryptionPassword: Yup.StringSchema;
+  encryptionPort: Yup.StringSchema;
+  client: Yup.StringSchema;
+  remoteRKM: Yup.StringSchema;
+  serverInformation: Yup.StringSchema;
+  tenantId: Yup.StringSchema;
+}>;
 
 export type ScaleSystemFormData = {
   name: string;
@@ -53,7 +55,14 @@ export type ScaleSystemFormData = {
   userName: string;
   password: string;
   fileSystemName: string;
-} & ScaleEncryptionFormData;
+  encryptionUserName: string;
+  encryptionPassword: string;
+  encryptionPort: string;
+  client: string;
+  remoteRKM: string;
+  serverInformation: string;
+  tenantId: string;
+};
 
 export type ScaleSystemFormValidation = {
   formSchema: ScaleSystemFormSchema;
@@ -64,18 +73,19 @@ export type ScaleSystemFormValidation = {
     username: string[];
     password: string[];
     fileSystemName: string[];
+    tenantId: string[];
+    client: string[];
+    serverInfo: string[];
   };
   control: any;
   handleSubmit: any;
   formState: { isSubmitted: boolean };
-  isEncryptionValid: boolean;
   watch: any;
   getValues: any;
 };
 
 const useScaleSystemFormValidation = (
-  existingFileSystemNames: Set<string> | undefined,
-  encryptionEnabled: boolean
+  existingFileSystemNames?: Set<string>
 ): ScaleSystemFormValidation => {
   const { t } = useCustomTranslation();
 
@@ -94,6 +104,31 @@ const useScaleSystemFormValidation = (
       fieldRequirementsTranslations.minChars(t, HOSTNAME_MIN_LENGTH),
       t('Must be a valid hostname or IP address'),
     ];
+
+    // IP address validation function (supports IPv4)
+    const isValidIPv4 = (value: string) => {
+      const parts = value.split('.');
+      if (parts.length !== 4) return false;
+      return parts.every((part) => {
+        const num = parseInt(part, 10);
+        return !isNaN(num) && num >= 0 && num <= 255 && part === num.toString();
+      });
+    };
+
+    // Hostname validation regex (supports valid hostnames, but not pure numeric strings)
+    const hostnameRegex =
+      /^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9](\.[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9])*$|^[a-zA-Z]$/;
+
+    // Combined validation function
+    const isValidHostnameOrIP = (value: string) => {
+      // First check if it's a valid IPv4
+      if (isValidIPv4(value)) return true;
+
+      // Then check if it's a valid hostname (must contain at least one letter)
+      if (/[a-zA-Z]/.test(value) && hostnameRegex.test(value)) return true;
+
+      return false;
+    };
 
     // Port validation
     const portFieldRequirements = [
@@ -123,6 +158,24 @@ const useScaleSystemFormValidation = (
       fieldRequirementsTranslations.startAndEndName(t),
       fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
       t('Name must be unique'),
+    ];
+
+    // Tenant ID validation
+    const tenantIdFieldRequirements = [
+      fieldRequirementsTranslations.maxChars(t, TENANT_ID_MAX_LENGTH),
+      fieldRequirementsTranslations.cannotBeEmpty(t),
+    ];
+
+    // Client validation
+    const clientFieldRequirements = [
+      fieldRequirementsTranslations.maxChars(t, CLIENT_MAX_LENGTH),
+      fieldRequirementsTranslations.cannotBeEmpty(t),
+    ];
+
+    // Server information validation
+    const serverInfoFieldRequirements = [
+      fieldRequirementsTranslations.maxChars(t, SERVER_INFO_MAX_LENGTH),
+      fieldRequirementsTranslations.cannotBeEmpty(t),
     ];
 
     const formSchema = Yup.object({
@@ -224,7 +277,50 @@ const useScaleSystemFormValidation = (
         )
         .transform((value: string) => (!!value ? value : '')),
 
-      ...getScaleEncryptionValidationFields(t, encryptionEnabled),
+      encryptionUserName: Yup.string()
+        .optional()
+        .max(USERNAME_MAX_LENGTH, usernameFieldRequirements[0])
+        .min(USERNAME_MIN_LENGTH, usernameFieldRequirements[1])
+        .transform((value: string) => (!!value ? value : undefined)),
+
+      encryptionPassword: Yup.string()
+        .optional()
+        .transform((value: string) => (!!value ? value : undefined)),
+
+      encryptionPort: Yup.string()
+        .optional()
+        .matches(/^\d+$/, portFieldRequirements[0])
+        .test('port-range', portFieldRequirements[0], (value) => {
+          if (!value) return true;
+          const port = parseInt(value, 10);
+          return port >= PORT_MIN && port <= PORT_MAX;
+        })
+        .transform((value: string) => (!!value ? value : undefined)),
+
+      client: Yup.string()
+        .optional()
+        .max(CLIENT_MAX_LENGTH, clientFieldRequirements[0])
+        .transform((value: string) => (!!value ? value : undefined)),
+
+      remoteRKM: Yup.string()
+        .optional()
+        .max(HOSTNAME_MAX_LENGTH, hostnameFieldRequirements[0])
+        .min(HOSTNAME_MIN_LENGTH, hostnameFieldRequirements[1])
+        .test('valid-hostname-or-ip', hostnameFieldRequirements[2], (value) => {
+          if (!value) return true;
+          return isValidHostnameOrIP(value);
+        })
+        .transform((value: string) => (!!value ? value : undefined)),
+
+      serverInformation: Yup.string()
+        .optional()
+        .max(SERVER_INFO_MAX_LENGTH, serverInfoFieldRequirements[0])
+        .transform((value: string) => (!!value ? value : undefined)),
+
+      tenantId: Yup.string()
+        .optional()
+        .max(TENANT_ID_MAX_LENGTH, tenantIdFieldRequirements[0])
+        .transform((value: string) => (!!value ? value : undefined)),
     });
 
     return {
@@ -236,9 +332,12 @@ const useScaleSystemFormValidation = (
         username: usernameFieldRequirements,
         password: passwordFieldRequirements,
         fileSystemName: fileSystemNameFieldRequirements,
+        tenantId: tenantIdFieldRequirements,
+        client: clientFieldRequirements,
+        serverInfo: serverInfoFieldRequirements,
       },
     };
-  }, [t, existingFileSystemNames, encryptionEnabled]);
+  }, [t, existingFileSystemNames]);
 
   const resolver = useYupValidationResolver(formSchema) as any;
 
@@ -262,25 +361,15 @@ const useScaleSystemFormValidation = (
       userName: '',
       password: '',
       fileSystemName: '',
-      ...scaleEncryptionDefaultValues,
+      encryptionUserName: '',
+      encryptionPassword: '',
+      encryptionPort: '',
+      client: '',
+      remoteRKM: '',
+      serverInformation: '',
+      tenantId: '',
     },
   });
-
-  const encryptionFieldNames = Object.keys(
-    scaleEncryptionDefaultValues
-  ) as (keyof ScaleEncryptionFormData)[];
-  const encryptionFieldValues = watch(encryptionFieldNames);
-  const encryptionValues = Object.fromEntries(
-    encryptionFieldNames.map((fieldName, index) => [
-      fieldName,
-      encryptionFieldValues[index],
-    ])
-  );
-  const isEncryptionValid =
-    !encryptionEnabled ||
-    Yup.object(getScaleEncryptionValidationFields(t, true)).isValidSync(
-      encryptionValues
-    );
 
   return {
     formSchema,
@@ -288,7 +377,6 @@ const useScaleSystemFormValidation = (
     control,
     handleSubmit,
     formState: { isSubmitted },
-    isEncryptionValid,
     watch,
     getValues,
   };

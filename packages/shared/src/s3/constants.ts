@@ -16,8 +16,3 @@ export const S3_LOCAL_ENDPOINT = 'http://localhost:6001';
 export const CLIENT_NOOBAA_EXPOSED_AS = 'noobaaS3';
 export const getHubS3EndpointProxyPath = (uniqueIdentifier: string) =>
   `${S3_ENDPOINT_PROXY_ROOT_PATH}/${uniqueIdentifier}/${CLIENT_NOOBAA_EXPOSED_AS}`;
-
-// Deep Archive support detection (HeadBucket response header)
-export const NOOBAA_AVAILABLE_STORAGE_CLASSES_HEADER =
-  'x-noobaa-available-storage-classes';
-export const STORAGE_CLASS_DEEP_ARCHIVE = 'DEEP_ARCHIVE';

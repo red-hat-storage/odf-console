@@ -23,7 +23,6 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
 } from '@patternfly/react-core';
-import '../create-bc.scss';
 import { NamespacePolicyType } from '../../../constants';
 import { convertTime, getTimeUnitString } from '../../../utils';
 import {
@@ -128,24 +127,20 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
     timeToLive,
     timeUnit,
     writeNamespaceStore,
-    isDeepArchive,
-    archiveNamespaceStore,
   } = state;
   const { error, isLoading } = state;
   const { t } = useCustomTranslation();
 
-  const getNamespacePlacementPolicy = () => (
-    <ReviewListBody hideIcon>
-      <span>{t('Namespace Policy: ')}</span>&nbsp;
-      <span className="text-secondary">{namespacePolicyType}</span>
-    </ReviewListBody>
-  );
-
-  const getNamespaceResources = () => (
+  const getReviewForNamespaceStore = () => (
     <>
+      <ReviewListBody hideIcon>
+        <span>{t('Namespace Policy: ')}</span>&nbsp;
+        <span className="text-secondary">{namespacePolicyType}</span>
+      </ReviewListBody>
       {namespacePolicyType === NamespacePolicyType.SINGLE && (
         <ReviewListBody hideIcon>
-          <span>{t('Read and write NamespaceStore: ')}</span>&nbsp;
+          <span>{t('Read and write NamespaceStore : ')}</span>
+          &nbsp;
           <span className="text-secondary">
             {readNamespaceStore[0]?.metadata.name}
           </span>
@@ -154,11 +149,11 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
       {namespacePolicyType === NamespacePolicyType.CACHE && (
         <>
           <ReviewListBody hideIcon>
-            <span>{t('Hub NamespaceStore: ')}</span>&nbsp;
+            <span>{t('Hub namespace store: ')}</span>&nbsp;
             <span className="text-secondary">{getName(hubNamespaceStore)}</span>
           </ReviewListBody>
           <ReviewListBody hideIcon>
-            <span>{t('Cache BackingStore: ')}</span>&nbsp;
+            <span>{t('Cache backing store: ')}</span>&nbsp;
             <span className="text-secondary">{getName(cacheBackingStore)}</span>
           </ReviewListBody>
           <ReviewListBody hideIcon>
@@ -171,73 +166,66 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
         </>
       )}
       {namespacePolicyType === NamespacePolicyType.MULTI && (
-        <>
-          <ReviewListBody hideIcon>
-            <span>{t('Read NamespaceStores: ')}</span>
-            <StoreCard resources={readNamespaceStore} />
-          </ReviewListBody>
-          <ReviewListBody hideIcon>
-            <span>{t('Write NamespaceStore: ')}</span>&nbsp;
-            <span className="text-secondary">
-              {getName(writeNamespaceStore[0])}
-            </span>
-          </ReviewListBody>
-        </>
-      )}
-    </>
-  );
-
-  const getStandardPlacementPolicy = () => (
-    <>
-      <ReviewListBody hideIcon>
-        <span data-test="tier1">{t('Tier 1: ')}</span>&nbsp;
-        <span className="text-secondary">{tier1Policy}</span>
-      </ReviewListBody>
-      {!!tier2Policy && (
         <ReviewListBody hideIcon>
-          <span data-test="tier2">{t('Tier 2: ')}</span>&nbsp;
-          <span className="text-secondary">{tier2Policy}</span>
-        </ReviewListBody>
-      )}
-    </>
-  );
-
-  const getStandardResources = () => (
-    <>
-      {isDeepArchive && archiveNamespaceStore && (
-        <ReviewListBody hideIcon>
-          <span data-test="archive-namespacestore">
-            {t('Deep archive NamespaceStore: ')}
-          </span>
-          &nbsp;
+          <span>{t('Resources ')}</span>&nbsp;
+          <p>{t('Selected read namespace stores: ')}</p>
+          <StoreCard resources={readNamespaceStore} />
+          <br />
+          <span>{t('Selected write namespace store: ')}</span>
           <span className="text-secondary">
-            {getName(archiveNamespaceStore)}
+            {getName(writeNamespaceStore[0])}
           </span>
         </ReviewListBody>
       )}
+    </>
+  );
+
+  const getReviewForBackingStore = () => (
+    <>
       <ReviewListBody hideIcon>
-        <span>{t('BackingStores: ')}</span>
-        <StoreCard resources={[...tier1BackingStore, ...tier2BackingStore]} />
+        <span>{t('Placement policy details ')}</span>&nbsp;
+        <br />
+        <p data-test="tier1">
+          <b>
+            {t('Tier 1: ')}
+            {tier1Policy}
+          </b>
+        </p>
+        <p>{t('Selected BackingStores')}</p>
+        <StoreCard resources={tier1BackingStore} />
+      </ReviewListBody>
+      <ReviewListBody hideIcon>
+        {!!tier2Policy && (
+          <>
+            <p data-test="tier2">
+              <b>
+                {t('Tier 2: ')}
+                {tier2Policy}
+              </b>
+            </p>
+            <p>{t('Selected BackingStores')}</p>
+            <StoreCard resources={tier2BackingStore} />
+          </>
+        )}
       </ReviewListBody>
     </>
   );
 
   return (
     <div className="nb-create-bc-step-page">
-      <Title size="xl" headingLevel="h2" className="pf-v6-u-mb-md">
+      <Title size="xl" headingLevel="h2">
         {t('Review BucketClass')}
       </Title>
       <DescriptionList>
         <ReviewListTitle text={t('General')} />
+        <br />
         <div className="nb-create-bc-list--indent">
           <ReviewListBody hideIcon>
-            <span>{t('Type: ')}</span>&nbsp;
-            <span data-test="bc-type" className="text-secondary">
-              {bucketClassType}
-            </span>
+            <span>{t('BucketClass type: ')}</span>&nbsp;
+            <span className="text-secondary">{bucketClassType}</span>
           </ReviewListBody>
           <ReviewListBody hideIcon>
-            <span>{t('Name: ')}</span>&nbsp;
+            <span>{t('BucketClass name: ')}</span>&nbsp;
             <span data-test="bc-name" className="text-secondary">
               {bucketClassName}
             </span>
@@ -250,20 +238,9 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
               </span>
             </ReviewListBody>
           )}
-        </div>
-
-        <ReviewListTitle text={t('Placement Policy')} />
-        <div className="nb-create-bc-list--indent">
           {bucketClassType === BucketClassType.STANDARD
-            ? getStandardPlacementPolicy()
-            : getNamespacePlacementPolicy()}
-        </div>
-
-        <ReviewListTitle text={t('Resources')} />
-        <div className="nb-create-bc-list--indent">
-          {bucketClassType === BucketClassType.STANDARD
-            ? getStandardResources()
-            : getNamespaceResources()}
+            ? getReviewForBackingStore()
+            : getReviewForNamespaceStore()}
         </div>
       </DescriptionList>
       {isLoading && <LoadingInline />}

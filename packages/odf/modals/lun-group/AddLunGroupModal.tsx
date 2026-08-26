@@ -8,10 +8,7 @@ import {
 } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/payload';
 import { useDeviceFinder } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useDeviceFinder';
 import useSANSystemFormValidation from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useFormValidation';
-import {
-  filterUsedDiscoveredDevices,
-  getDiscoveredDeviceKey,
-} from '@odf/core/components/utils';
+import { filterUsedDiscoveredDevices } from '@odf/core/components/utils';
 import {
   DiscoveredDevice,
   FileSystemKind,
@@ -85,9 +82,9 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   const updateExistingLunGroup = async () => {
     setInProgress(true);
     setError(undefined);
-    const selectedLUNKeys = Array.from(selectedLUNs);
+    const selectedLUNsWWNArray = Array.from(selectedLUNs);
     const selectedLUNsData: DiscoveredDevice[] = filteredDevices.filter(
-      (device) => selectedLUNKeys.includes(getDiscoveredDeviceKey(device))
+      (device) => selectedLUNsWWNArray.includes(device.WWN)
     );
     try {
       const localDisks = await createLocalDisks(selectedLUNsData, t);
@@ -103,9 +100,9 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   const createLunGroup = async () => {
     setInProgress(true);
     setError(undefined);
-    const selectedLUNKeys = Array.from(selectedLUNs);
+    const selectedLUNsWWNArray = Array.from(selectedLUNs);
     const selectedLUNsData: DiscoveredDevice[] = filteredDevices.filter(
-      (device) => selectedLUNKeys.includes(getDiscoveredDeviceKey(device))
+      (device) => selectedLUNsWWNArray.includes(device.WWN)
     );
     try {
       const localDisks = await createLocalDisks(selectedLUNsData, t);

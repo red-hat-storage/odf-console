@@ -205,8 +205,6 @@ export const createBucketClass = (config: BucketClassConfig) => {
     cy.log('Select Placement policy');
     setPlacementPolicy(tiers);
     cy.contains('Next').click();
-    cy.log('Skip Archive Policy step');
-    cy.contains('Next').click();
     cy.log('Select Backing Store');
     setBackingStores(tiers);
   } else {

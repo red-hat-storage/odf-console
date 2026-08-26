@@ -19,11 +19,7 @@ import {
   StorageClusterKind,
   PersistentVolumeClaimKind,
 } from '@odf/shared/types';
-import {
-  DataPoint,
-  humanizePercentage,
-  getStorageClassName,
-} from '@odf/shared/utils';
+import { DataPoint, humanizePercentage } from '@odf/shared/utils';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import * as _ from 'lodash-es';
 import { compose } from 'redux';
@@ -77,7 +73,7 @@ export const isPersistentStorageEvent =
       : eventNamespace === ns;
   };
 
-// All Ceph (CephRBD and CephFS) based StorageClasses (across multiple Ceph clusters)
+// All Ceph based StorageClasses (across multiple Ceph clusters)
 export const getCephSC = (
   scData: StorageClassResourceKind[] = []
 ): StorageClassResourceKind[] =>
@@ -87,7 +83,7 @@ export const getCephSC = (
     );
   });
 
-// All Ceph (CephRBD and CephFS) based StorageClasses from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
+// All Ceph based StorageClasses from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
 export const filterCephSCByCluster: (
   scData: StorageClassResourceKind[],
   clusterNs: string
@@ -111,7 +107,7 @@ export const getCephNodes = (
   );
 };
 
-// All Ceph (CephRBD and CephFS) based PVs (across multiple Ceph clusters)
+// All Ceph based PVs (across multiple Ceph clusters)
 export const getCephPVs = (
   pvsData: K8sResourceKind[] = []
 ): K8sResourceKind[] =>
@@ -125,7 +121,7 @@ export const getCephPVs = (
     );
   });
 
-// All Ceph (CephRBD and CephFS) based PVs from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
+// All Ceph based PVs from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
 export const filterCephPVsByCluster: (
   pvsData: K8sResourceKind[],
   scData: StorageClassResourceKind[],
@@ -146,7 +142,11 @@ export const filterCephPVsByCluster: (
   }
 );
 
-// All Ceph (CephRBD and CephFS) based PVCs (across multiple Ceph clusters)
+export const getStorageClassName = (pvc: PersistentVolumeClaimKind): string =>
+  pvc?.spec?.storageClassName ||
+  pvc?.metadata?.annotations?.['volume.beta.kubernetes.io/storage-class'];
+
+// All Ceph based PVCs (across multiple Ceph clusters)
 export const getCephPVCs = (
   cephSCNames: string[] = [],
   pvcsData: PersistentVolumeClaimKind[] = [],
@@ -168,7 +168,7 @@ export const getCephPVCs = (
   );
 };
 
-// All Ceph (CephRBD and CephFS) based PVCs from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
+// All Ceph based PVCs from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
 export const filterCephPVCsByCluster = (
   scData: StorageClassResourceKind[] = [],
   pvcsData: PersistentVolumeClaimKind[] = [],

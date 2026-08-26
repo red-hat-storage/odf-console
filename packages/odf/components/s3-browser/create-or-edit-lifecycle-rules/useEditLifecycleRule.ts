@@ -35,8 +35,8 @@ const convertLifecycleRuleToRuleState = (rule: LifecycleRule): RuleState => {
   if (_.isEmpty(rule)) return ruleState;
 
   // name and scope
-  ruleState.generalConfig.name = rule.ID || '';
-  ruleState.generalConfig.scope = isRuleScopeGlobal(rule)
+  ruleState.name = rule.ID || '';
+  ruleState.scope = isRuleScopeGlobal(rule)
     ? RuleScope.GLOBAL
     : RuleScope.TARGETED;
 
@@ -89,11 +89,11 @@ const convertLifecycleRuleToRuleState = (rule: LifecycleRule): RuleState => {
   // actions
   if (rule.Expiration) {
     if (!!rule.Expiration?.Days && typeof rule.Expiration.Days === 'number') {
-      ruleState.ruleActions.deleteCurrent.isChecked = true;
-      ruleState.ruleActions.deleteCurrent.days = rule.Expiration.Days;
+      ruleState.actions.deleteCurrent.isChecked = true;
+      ruleState.actions.deleteCurrent.days = rule.Expiration.Days;
     }
     if (rule.Expiration?.ExpiredObjectDeleteMarker === true) {
-      ruleState.ruleActions.deleteExpiredMarkers = true;
+      ruleState.actions.deleteExpiredMarkers = true;
     }
   }
   if (rule.NoncurrentVersionExpiration) {
@@ -101,10 +101,10 @@ const convertLifecycleRuleToRuleState = (rule: LifecycleRule): RuleState => {
       !!rule.NoncurrentVersionExpiration?.NoncurrentDays &&
       typeof rule.NoncurrentVersionExpiration.NoncurrentDays === 'number'
     ) {
-      ruleState.ruleActions.deleteNonCurrent.isChecked = true;
-      ruleState.ruleActions.deleteNonCurrent.days =
+      ruleState.actions.deleteNonCurrent.isChecked = true;
+      ruleState.actions.deleteNonCurrent.days =
         rule.NoncurrentVersionExpiration.NoncurrentDays;
-      ruleState.ruleActions.deleteNonCurrent.retention =
+      ruleState.actions.deleteNonCurrent.retention =
         rule.NoncurrentVersionExpiration?.NewerNoncurrentVersions || 0;
     }
   }
@@ -114,32 +114,9 @@ const convertLifecycleRuleToRuleState = (rule: LifecycleRule): RuleState => {
       typeof rule.AbortIncompleteMultipartUpload.DaysAfterInitiation ===
         'number'
     ) {
-      ruleState.ruleActions.deleteIncompleteMultiparts.isChecked = true;
-      ruleState.ruleActions.deleteIncompleteMultiparts.days =
+      ruleState.actions.deleteIncompleteMultiparts.isChecked = true;
+      ruleState.actions.deleteIncompleteMultiparts.days =
         rule.AbortIncompleteMultipartUpload.DaysAfterInitiation;
-    }
-  }
-
-  if (rule.Transitions?.length > 0) {
-    const deepArchiveTransition = rule.Transitions.find(
-      (t) => t.StorageClass === 'DEEP_ARCHIVE' && t.Days !== undefined
-    );
-    if (deepArchiveTransition?.Days) {
-      ruleState.ruleActions.transitionCurrent.isChecked = true;
-      ruleState.ruleActions.transitionCurrent.days = deepArchiveTransition.Days;
-    }
-  }
-
-  if (rule.NoncurrentVersionTransitions?.length > 0) {
-    const deepArchiveTransition = rule.NoncurrentVersionTransitions.find(
-      (t) => t.StorageClass === 'DEEP_ARCHIVE'
-    );
-    if (deepArchiveTransition?.NoncurrentDays) {
-      ruleState.ruleActions.transitionNonCurrent.isChecked = true;
-      ruleState.ruleActions.transitionNonCurrent.days =
-        deepArchiveTransition.NoncurrentDays;
-      ruleState.ruleActions.transitionNonCurrent.retention =
-        deepArchiveTransition.NewerNoncurrentVersions || 0;
     }
   }
 

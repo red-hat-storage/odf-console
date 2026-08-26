@@ -2,7 +2,6 @@ export * from './dashboard';
 export * from './doc-utils';
 export * from './humanize';
 export * from './common';
-export * from './cidr';
 export * from './metrics';
 export * from './storage';
 export * from './owner-references';

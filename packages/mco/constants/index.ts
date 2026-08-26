@@ -5,5 +5,3 @@ export * from './acm';
 export * from './doc';
 export * from './dashboard';
 export * from './url-paths';
-export * from './submariner';
-export * from './mirrorpeer';

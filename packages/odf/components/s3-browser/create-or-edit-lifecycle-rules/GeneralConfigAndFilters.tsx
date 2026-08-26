@@ -53,8 +53,8 @@ type SizeField = keyof Pick<
   typeof MAX_OBJ_SIZE | typeof MIN_OBJ_SIZE
 >;
 type SizeAction =
-  | RuleActionType.CONDITIONAL_FILTERS_MAX_SIZE
-  | RuleActionType.CONDITIONAL_FILTERS_MIN_SIZE;
+  | RuleActionType.RULE_MAX_SIZE_FILTER
+  | RuleActionType.RULE_MIN_SIZE_FILTER;
 
 const getSizeObjAndActionType = (
   sizeField: SizeField,
@@ -63,8 +63,8 @@ const getSizeObjAndActionType = (
 ): [ObjectSize, SizeAction] => [
   sizeField === MAX_OBJ_SIZE ? maxObjectSize : minObjectSize,
   sizeField === MAX_OBJ_SIZE
-    ? RuleActionType.CONDITIONAL_FILTERS_MAX_SIZE
-    : RuleActionType.CONDITIONAL_FILTERS_MIN_SIZE,
+    ? RuleActionType.RULE_MAX_SIZE_FILTER
+    : RuleActionType.RULE_MIN_SIZE_FILTER,
 ];
 
 const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
@@ -132,7 +132,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
   };
 
   const [, invalidMinSize, invalidMaxSize, invalidSize] =
-    isInvalidObjectSize(state);
+    state.triggerInlineValidations ? isInvalidObjectSize(state) : [];
 
   return (
     <>
@@ -142,7 +142,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
         isChecked={minObjectSize.isChecked}
         onChange={(_e, checked) =>
           dispatch({
-            type: RuleActionType.CONDITIONAL_FILTERS_MIN_SIZE,
+            type: RuleActionType.RULE_MIN_SIZE_FILTER,
             payload: { ...minObjectSize, isChecked: checked },
           })
         }
@@ -199,7 +199,7 @@ const ObjectSizeFilter: React.FC<StateAndDispatchProps> = ({
         isChecked={maxObjectSize.isChecked}
         onChange={(_e, checked) =>
           dispatch({
-            type: RuleActionType.CONDITIONAL_FILTERS_MAX_SIZE,
+            type: RuleActionType.RULE_MAX_SIZE_FILTER,
             payload: { ...maxObjectSize, isChecked: checked },
           })
         }
@@ -269,20 +269,16 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
   const onTagChange = (index: number, field: TagField, value: string) => {
     const newObjectTags = [...objectTags];
     newObjectTags[index][field] = value;
-    dispatch({
-      type: RuleActionType.CONDITIONAL_FILTERS_TAGS,
-      payload: newObjectTags,
-    });
+    dispatch({ type: RuleActionType.RULE_TAGS_FILTER, payload: newObjectTags });
   };
 
   return (
     <>
       {objectTags.map((tag, index) => {
-        const [invalidTag, emptyKey, alreadyUsedKey] = isInvalidObjectTag(
-          state,
-          tag,
-          index
-        );
+        const [invalidTag, emptyKey, alreadyUsedKey] =
+          state.triggerInlineValidations
+            ? isInvalidObjectTag(state, tag, index)
+            : [];
 
         return (
           <>
@@ -312,7 +308,7 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
                 variant={ButtonVariant.plain}
                 onClick={() =>
                   dispatch({
-                    type: RuleActionType.CONDITIONAL_FILTERS_TAGS,
+                    type: RuleActionType.RULE_TAGS_FILTER,
                     payload: objectTags.filter((_, i) => i !== index),
                   })
                 }
@@ -337,7 +333,7 @@ const ObjectTagsFilter: React.FC<StateAndDispatchProps> = ({
         className="s3-lifecycle--margin"
         onClick={() =>
           dispatch({
-            type: RuleActionType.CONDITIONAL_FILTERS_TAGS,
+            type: RuleActionType.RULE_TAGS_FILTER,
             payload: [...objectTags, { Key: '', Value: '' }],
           })
         }
@@ -354,7 +350,8 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const invalidFilters = areInvalidFilters(state);
+  const invalidFilters =
+    state.triggerInlineValidations && areInvalidFilters(state);
 
   return (
     <>
@@ -375,7 +372,7 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
           value={state.conditionalFilters.prefix}
           onChange={(_e, value) =>
             dispatch({
-              type: RuleActionType.CONDITIONAL_FILTERS_PREFIX,
+              type: RuleActionType.RULE_PREFIX_FILTER,
               payload: value,
             })
           }
@@ -456,7 +453,9 @@ export const GeneralConfigAndFilters: React.FC<
   const { t } = useCustomTranslation();
 
   const [invalidName, emptyName, alreadyUsedName, exceedingLengthName] =
-    isInvalidName(state, existingRules, isEdit, editingRuleName);
+    state.triggerInlineValidations
+      ? isInvalidName(state, existingRules, isEdit, editingRuleName)
+      : [];
 
   return (
     <>
@@ -473,12 +472,9 @@ export const GeneralConfigAndFilters: React.FC<
       >
         <TextInput
           id="name"
-          value={state.generalConfig.name}
+          value={state.name}
           onChange={(_e, value) =>
-            dispatch({
-              type: RuleActionType.GENERAL_CONFIG_NAME,
-              payload: value,
-            })
+            dispatch({ type: RuleActionType.RULE_NAME, payload: value })
           }
           placeholder={t('Enter a valid rule name')}
           className="pf-v6-u-w-50"
@@ -511,10 +507,10 @@ export const GeneralConfigAndFilters: React.FC<
             )}
             name={RADIO_GROUP_NAME}
             value={RuleScope.TARGETED}
-            isChecked={state.generalConfig.scope === RuleScope.TARGETED}
+            isChecked={state.scope === RuleScope.TARGETED}
             onChange={(event) =>
               dispatch({
-                type: RuleActionType.GENERAL_CONFIG_SCOPE,
+                type: RuleActionType.RULE_SCOPE,
                 payload: (event.target as HTMLInputElement).value as RuleScope,
               })
             }
@@ -528,10 +524,10 @@ export const GeneralConfigAndFilters: React.FC<
             )}
             name={RADIO_GROUP_NAME}
             value={RuleScope.GLOBAL}
-            isChecked={state.generalConfig.scope === RuleScope.GLOBAL}
+            isChecked={state.scope === RuleScope.GLOBAL}
             onChange={(event) =>
               dispatch({
-                type: RuleActionType.GENERAL_CONFIG_SCOPE,
+                type: RuleActionType.RULE_SCOPE,
                 payload: (event.target as HTMLInputElement).value as RuleScope,
               })
             }
@@ -541,7 +537,7 @@ export const GeneralConfigAndFilters: React.FC<
         </span>
       </FormGroup>
 
-      {state.generalConfig.scope === RuleScope.GLOBAL && (
+      {state.scope === RuleScope.GLOBAL && (
         <Alert
           title={t('Global rule scope selected')}
           variant={AlertVariant.info}
@@ -554,7 +550,7 @@ export const GeneralConfigAndFilters: React.FC<
         </Alert>
       )}
       <Divider className="pf-v6-u-my-md" />
-      {state.generalConfig.scope === RuleScope.TARGETED && (
+      {state.scope === RuleScope.TARGETED && (
         <ConditionalFilters state={state} dispatch={dispatch} />
       )}
     </>

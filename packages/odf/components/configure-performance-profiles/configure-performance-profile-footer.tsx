@@ -8,7 +8,7 @@ import {
   ButtonVariant,
 } from '@patternfly/react-core';
 import { ConfigurePerformanceProfileFormState } from './state';
-import { isSaveDisabled } from './utils';
+import { checkRequiredValues } from './utils';
 
 export const ConfigurePerformanceProfileFormFooter: React.FC<
   ConfigurePerformanceProfileFormFooterProps
@@ -16,7 +16,7 @@ export const ConfigurePerformanceProfileFormFooter: React.FC<
   const { t } = useCustomTranslation();
   const { inProgress, errorMessage } = state;
   const isDisabled =
-    isSaveDisabled(state, showCoreStorage, showMcgPerformance) ||
+    checkRequiredValues(state, showCoreStorage, showMcgPerformance) ||
     inProgress ||
     !!errorMessage;
 

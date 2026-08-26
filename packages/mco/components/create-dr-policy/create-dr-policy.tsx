@@ -7,12 +7,12 @@ import { useLocation, useNavigate } from 'react-router';
 import { Content, ContentVariants } from '@patternfly/react-core';
 import '../../style.scss';
 import './create-dr-policy.scss';
-import { CreateDRPolicyWizard } from './create-dr-policy-wizard';
+import { CreateDRPolicyForm } from './CreateDRPolicyForm';
 
 const getDRPolicyListPageLink = (url: string) =>
   url.replace(`/${referenceForModel(DRPolicyModel)}/~new`, '');
 
-const CreateDRPolicy: React.FC = () => {
+const CreateDRPolicy: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const { pathname: url, search } = useLocation();
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const CreateDRPolicy: React.FC = () => {
   return (
     <>
       <PageHeading title={t('Create DRPolicy')}>
-        <Content className="pf-v6-u-mb-sm">
+        <Content className="mco-create-data-policy__description">
           <Content component={ContentVariants.small}>
             {t(
               'Get a quick recovery in a remote or secondary cluster with a disaster recovery (DR) policy'
@@ -47,7 +47,7 @@ const CreateDRPolicy: React.FC = () => {
           </Content>
         </Content>
       </PageHeading>
-      <CreateDRPolicyWizard
+      <CreateDRPolicyForm
         preSelectedClusters={preSelectedClusters}
         onSuccess={handleSuccess}
         onCancel={handleCancel}
