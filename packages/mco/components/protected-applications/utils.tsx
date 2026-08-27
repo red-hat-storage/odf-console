@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
+import { getApplicationName } from '@odf/mco/utils';
 import { DRPlacementControlModel } from '@odf/shared';
 import { ActionDropdownItems } from '@odf/shared/dropdown/action-dropdown';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -343,3 +344,13 @@ export const getEnrollDropdownItems = (
     text: t('ACM managed applications'),
   },
 ];
+
+export const pavMatchesSearch = (
+  searchText: string,
+  pav: ProtectedApplicationViewKind
+): boolean => {
+  if (!searchText) return true;
+
+  const appName = getApplicationName(pav) || '';
+  return appName.toLowerCase().includes(searchText.toLowerCase());
+};
