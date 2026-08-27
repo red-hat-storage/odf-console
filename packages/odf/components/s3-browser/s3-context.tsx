@@ -1,11 +1,14 @@
 import * as React from 'react';
+import { NOOBAA_ADMIN_SECRET } from '@odf/core/constants';
 import { ODF_ADMIN } from '@odf/core/features';
 import { S3ProviderType } from '@odf/core/types';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { dataPathSeparationProxy, S3Commands } from '@odf/shared/s3';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isClientPlugin } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
+import { Alert, Spinner } from '@patternfly/react-core';
 import { LazyLoginForm } from '../s3-common/components/LazyLogin';
 import { useClient } from '../s3-common/hooks/useClient';
 import { useProviderConfig } from '../s3-common/hooks/useProviderConfig';
@@ -43,6 +46,7 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
   error,
   s3Provider,
 }) => {
+  const { t } = useCustomTranslation();
   const isAdmin = useFlag(ODF_ADMIN);
   const isClientCluster = isClientPlugin();
 
@@ -110,6 +114,25 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
   if (allLoaded && !anyError) {
     return (
       <S3Context.Provider value={contextData}>{children}</S3Context.Provider>
+    );
+  }
+
+  const isNoobaaSetupInProgress =
+    secretRef?.name === NOOBAA_ADMIN_SECRET &&
+    _.get(secretError, 'response.status') === 404;
+  if (isNoobaaSetupInProgress) {
+    return (
+      <Alert
+        className="pf-v6-u-m-md"
+        variant="custom"
+        isInline
+        customIcon={<Spinner size="md" />}
+        title={t('Buckets are not available yet')}
+      >
+        {t(
+          'Object Storage setup is still in progress. The Buckets view will be available after MCG is deployed and the S3 endpoint configuration is created. This usually takes 5-10 minutes after StorageCluster creation.'
+        )}
+      </Alert>
     );
   }
 
