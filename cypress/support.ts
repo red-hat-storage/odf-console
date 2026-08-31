@@ -3,7 +3,6 @@ import {
   CLUSTER_NAMESPACE,
   STORAGE_SYSTEM_NAME,
   OCS_SC_STATE,
-  ODF_OPERATOR_NAME,
   SECOND,
   MINUTE,
 } from './consts';
@@ -49,12 +48,10 @@ Cypress.Commands.add('install', () => {
     }
   ).then(({ code }) => {
     if (code !== 0) {
-      cy.clickNavLink(['Operators', 'Installed Operators']);
-      cy.byLegacyTestID('item-filter').type(ODF_OPERATOR_NAME);
-      // data-test-operator-row="OpenShift Data Foundation"
-      cy.byTestOperatorRow(ODF_OPERATOR_NAME).click();
-      cy.byLegacyTestID('horizontal-link-Storage System').click();
-      cy.byTestID('item-create').click();
+      // Operator CSV no longer has a Storage System tab; open the wizard directly.
+      cy.visit(
+        '/odf/resource/odf.openshift.io~v1alpha1~StorageSystem/create/~new'
+      );
 
       // Wait for the StorageSystem page to load.
       cy.contains('Create StorageSystem', { timeout: 15 * SECOND }).should(
