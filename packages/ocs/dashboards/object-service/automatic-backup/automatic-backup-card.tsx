@@ -10,6 +10,7 @@ import {
 import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
 import {
   Card,
   CardHeader,
@@ -18,14 +19,14 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 
-const getReadableSchedule = (schedule: string): string => {
+const getReadableSchedule = (schedule: string, t: TFunction): string => {
   switch (getCronTimeFromSchedule(schedule)) {
     case CronTime.DAILY:
-      return 'Daily';
+      return t('Daily');
     case CronTime.WEEKLY:
-      return 'Weekly';
+      return t('Weekly');
     case CronTime.MONTHLY:
-      return 'Monthly';
+      return t('Monthly');
     default:
       return schedule;
   }
@@ -63,7 +64,7 @@ const AutomaticBackupCard: React.FC = () => {
               isLoading={!ocsLoaded}
               error={ocsError}
             >
-              {t(getReadableSchedule(dbBackup.schedule))}
+              {getReadableSchedule(dbBackup.schedule, t)}
             </DetailItem>
 
             <DetailItem

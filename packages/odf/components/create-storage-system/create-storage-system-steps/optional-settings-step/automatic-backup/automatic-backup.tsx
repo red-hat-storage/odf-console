@@ -70,7 +70,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
     )
   );
 
-  const selectedFrequency = getCronTimeFromSchedule(schedule);
+  const selectedFrequency = getCronTimeFromSchedule(schedule) ?? CronTime.DAILY;
   const handleSelect = (type: CronTime) => {
     dispatch({
       type: 'optionalSettings/dbBackup/schedule',

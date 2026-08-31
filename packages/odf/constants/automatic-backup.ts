@@ -10,9 +10,11 @@ export const CRON_MAP: Record<CronTime, string> = {
   [CronTime.MONTHLY]: '0 0 1-7 * 6', // First Saturday of each month at 12:00 AM
 };
 
-export const getCronTimeFromSchedule = (schedule: string): CronTime => {
+export const getCronTimeFromSchedule = (
+  schedule: string
+): CronTime | undefined => {
   const entry = Object.entries(CRON_MAP).find(
     ([, value]) => value === schedule
   );
-  return entry ? (entry[0] as CronTime) : CronTime.DAILY;
+  return entry ? (entry[0] as CronTime) : undefined;
 };
