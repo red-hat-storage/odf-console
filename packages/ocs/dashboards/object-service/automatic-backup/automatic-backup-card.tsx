@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CRON_MAP } from '@odf/core/components/create-storage-system/create-storage-system-steps/optional-settings-step/automatic-backup/automatic-backup';
+import { CronTime, getCronTimeFromSchedule } from '@odf/core/constants';
 import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import {
@@ -19,10 +19,16 @@ import {
 } from '@patternfly/react-core';
 
 const getReadableSchedule = (schedule: string): string => {
-  const match = Object.entries(CRON_MAP).find(([, cron]) => cron === schedule);
-  return match
-    ? match[0].charAt(0).toUpperCase() + match[0].slice(1)
-    : schedule;
+  switch (getCronTimeFromSchedule(schedule)) {
+    case CronTime.DAILY:
+      return 'Daily';
+    case CronTime.WEEKLY:
+      return 'Weekly';
+    case CronTime.MONTHLY:
+      return 'Monthly';
+    default:
+      return schedule;
+  }
 };
 
 const storageClusterResource = {
