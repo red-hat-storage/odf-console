@@ -99,7 +99,7 @@ const ScaleDashboard: React.FC = () => {
   return (
     <>
       <PageHeading
-        title={t('Scale Dashboard')}
+        title={systemName}
         hasUnderline={false}
         breadcrumbs={[
           {
@@ -107,7 +107,7 @@ const ScaleDashboard: React.FC = () => {
             path: '/odf/external-systems',
           },
           {
-            name: t('IBM Scale'),
+            name: systemName,
             path: '',
           },
         ]}

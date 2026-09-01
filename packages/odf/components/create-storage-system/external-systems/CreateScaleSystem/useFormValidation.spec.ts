@@ -542,9 +542,9 @@ describe('useScaleSystemFormValidation', () => {
         encryptionPassword: 'encryption123',
         encryptionPort: '443',
         client: 'my-client',
-        remoteRKM: 'rkm.example.com',
-        serverInformation: 'server.example.com:443',
-        tenantId: 'tenant-123',
+        remoteRKM: 'remote_rkm_1',
+        serverInformation: 'server.example.com',
+        tenantId: 'tenant_123',
       };
 
       const validationPromises = Object.entries(validEncryptionData).map(
@@ -604,25 +604,39 @@ describe('useScaleSystemFormValidation', () => {
       await Promise.all(invalidValidationPromises);
     });
 
-    it('should validate encryption hostname fields', async () => {
+    it('should validate encryption identifiers and server hosts', async () => {
       const result = getHookResult();
-      const validHostnames = ['rkm.example.com', '192.168.1.1'];
-      const invalidHostnames = ['1.1.1', '256.1.1.1', 'example..com'];
+      const validRKMIds = ['rkm1', 'remote_rkm_1', '_primary'];
+      const invalidRKMIds = ['rkm.example.com', '192.168.1.1', '1rkm', 'rkm-1'];
 
-      const validValidationPromises = validHostnames.map((hostname) =>
-        result.formSchema.validateAt('remoteRKM', { remoteRKM: hostname })
+      const validValidationPromises = validRKMIds.map((remoteRKM) =>
+        result.formSchema.validateAt('remoteRKM', { remoteRKM })
       );
       const validResults = await Promise.all(validValidationPromises);
       validResults.forEach((validationResult, index) => {
-        expect(validationResult).toBe(validHostnames[index]);
+        expect(validationResult).toBe(validRKMIds[index]);
       });
 
-      const invalidValidationPromises = invalidHostnames.map((hostname) =>
+      const invalidValidationPromises = invalidRKMIds.map((remoteRKM) =>
         expect(
-          result.formSchema.validateAt('remoteRKM', { remoteRKM: hostname })
+          result.formSchema.validateAt('remoteRKM', { remoteRKM })
         ).rejects.toThrow()
       );
       await Promise.all(invalidValidationPromises);
+
+      await expect(
+        result.formSchema.validateAt('serverInformation', {
+          serverInformation: ' keyserver.example.com ',
+        })
+      ).resolves.toBe('keyserver.example.com');
+      await expect(
+        result.formSchema.validateAt('serverInformation', {
+          serverInformation: 'keyserver.example.com:9443',
+        })
+      ).rejects.toThrow();
+      await expect(
+        result.formSchema.validateAt('tenantId', { tenantId: 'tenant-123' })
+      ).rejects.toThrow();
     });
   });
 
@@ -689,9 +703,9 @@ describe('useScaleSystemFormValidation', () => {
         encryptionPassword: 'encryption123',
         encryptionPort: '443',
         client: 'my-client',
-        remoteRKM: 'rkm.example.com',
-        serverInformation: 'server.example.com:443',
-        tenantId: 'tenant-123',
+        remoteRKM: 'remote_rkm_1',
+        serverInformation: 'server.example.com',
+        tenantId: 'tenant_123',
       };
 
       await expect(

@@ -20,7 +20,6 @@ import yaml from 'js-yaml';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
 import { retryWithBackoff } from '../../odf/utils/retry';
-import { S3Details } from '../components/create-dr-policy/add-s3-bucket-details/s3-bucket-details-form';
 import {
   AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY,
@@ -28,7 +27,12 @@ import {
   RAMEN_CONFIG_KEY,
   RAMEN_HUB_OPERATOR_CONFIG_NAME,
 } from '../constants';
-import { DRClusterKind, RamenConfig, S3StoreProfile } from '../types';
+import {
+  DRClusterKind,
+  RamenConfig,
+  S3StoreProfile,
+  type S3Details,
+} from '../types';
 
 export function murmur32Hex(str: string, seed = 0): string {
   const h = murmur3(str, seed);

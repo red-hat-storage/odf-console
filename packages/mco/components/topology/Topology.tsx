@@ -33,7 +33,7 @@ import {
   useActiveDROperations,
 } from '../../hooks';
 import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
-import { getManagedClusterInfoTypes } from '../create-dr-policy/utils/cluster-list-utils';
+import { getManagedClusterInfoTypes } from '../../utils/managed-cluster-info';
 import { TopologyDataContext } from './context/TopologyContext';
 import { mcoLayoutFactory } from './factory/MCOLayoutFactory';
 import { mcoTopologyComponentFactory } from './factory/MCOStyleFactory';

@@ -1,21 +1,24 @@
 import * as React from 'react';
 import { BackendType } from '@odf/mco/constants';
 import { Gallery } from '@patternfly/react-core';
-import { DRPolicyAction, DRPolicyActionType } from '../utils/reducer';
+import { DRPolicyAction, DRPolicyActionType } from '../../../utils/reducer';
 import { BackendOptionCard } from './backend-option';
-import '../create-dr-policy.scss';
+import '../../../create-dr-policy.scss';
 
 type SelectReplicationBackendProps = {
   clusterNames?: string[];
   selectedKey?: BackendType;
   dispatch: React.Dispatch<DRPolicyAction>;
-  doClustersHaveODF?: boolean;
+  onReplicationBackendChange?: () => void;
 };
 
 export const SelectReplicationBackend: React.FC<
   SelectReplicationBackendProps
-> = ({ selectedKey, clusterNames, dispatch }) => {
+> = ({ selectedKey, clusterNames, dispatch, onReplicationBackendChange }) => {
   const handleSelect = (backend: BackendType) => {
+    if (backend !== selectedKey) {
+      onReplicationBackendChange?.();
+    }
     dispatch({
       type: DRPolicyActionType.SET_REPLICATION_BACKEND,
       payload: backend,

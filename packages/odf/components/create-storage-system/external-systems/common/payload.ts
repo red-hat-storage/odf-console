@@ -16,6 +16,7 @@ import {
   SecretModel,
 } from '@odf/shared';
 import { k8sPatchByName } from '@odf/shared/utils';
+import { createOrUpdate } from '@odf/shared/utils/k8s';
 import {
   K8sKind,
   Patch,
@@ -45,7 +46,13 @@ export const createUserDetailsSecretPayload = (
     type: 'Opaque',
     stringData: { username, password },
   };
-  return () => k8sCreate({ model: SecretModel, data: secret });
+  return () =>
+    createOrUpdate<SecretKind>({
+      model: SecretModel,
+      name,
+      namespace: IBM_SCALE_NAMESPACE,
+      mutate: () => secret,
+    });
 };
 
 export const createConfigMapPayload = (
@@ -58,14 +65,28 @@ export const createConfigMapPayload = (
     metadata: { name, namespace: IBM_SCALE_NAMESPACE },
     data,
   };
-  return () => k8sCreate({ model: ConfigMapModel, data: configMap });
+  return () =>
+    createOrUpdate<ConfigMapKind>({
+      model: ConfigMapModel,
+      name,
+      namespace: IBM_SCALE_NAMESPACE,
+      mutate: () => configMap,
+    });
 };
 
-export const labelNodes = (nodes: WizardNodeState[]) => {
+export const labelNodes = (
+  nodes: WizardNodeState[],
+  patchNodeRoleLabel = false
+) => {
   const labelPath = `/metadata/labels/${SCALE_DAEMON_NODE_LABEL.replace('/', '~1')}`;
   const nodeRoleLabelPath = `/metadata/labels/${LOCAL_CLUSTER_NODE_ROLE_LABEL}`;
   const requests: Promise<K8sKind>[] = [];
+
   nodes.forEach((node) => {
+    if (!patchNodeRoleLabel && node.labels?.[SCALE_DAEMON_NODE_LABEL]) {
+      return;
+    }
+
     const patch: Patch[] = [];
     if (!node.labels) {
       patch.push({
@@ -74,31 +95,23 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
         value: {},
       });
     }
-    patch.push({
-      op: 'add',
-      path: labelPath,
-      value: '',
-    });
     if (!node.labels?.[SCALE_DAEMON_NODE_LABEL]) {
-      requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
-    }
-  });
-  nodes.forEach((node) => {
-    const rolePatch: Patch[] = [];
-    if (!node.labels) {
-      rolePatch.push({
+      patch.push({
         op: 'add',
-        path: '/metadata/labels',
-        value: {},
+        path: labelPath,
+        value: '',
       });
     }
-    rolePatch.push({
-      op: node.labels?.[LOCAL_CLUSTER_NODE_ROLE_LABEL] ? 'replace' : 'add',
-      path: nodeRoleLabelPath,
-      value: node.localClusterRole,
-    });
-    requests.push(k8sPatchByName(NodeModel, node.name, null, rolePatch));
+    if (patchNodeRoleLabel) {
+      patch.push({
+        op: node.labels?.[LOCAL_CLUSTER_NODE_ROLE_LABEL] ? 'replace' : 'add',
+        path: nodeRoleLabelPath,
+        value: node.localClusterRole,
+      });
+    }
+    requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
   });
+
   return () => Promise.all(requests);
 };
 

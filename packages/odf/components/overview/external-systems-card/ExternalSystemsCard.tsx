@@ -145,7 +145,7 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
     if (isCnsaConnected) {
       connectedRows.push({
         id: 'cnsa',
-        label: t('IBM Scale (CNSA) file systems'),
+        label: t('IBM Storage Scale file systems'),
         counts: getCnsaFilesystemStatusCounts(cnsaFileSystems),
       });
     } else if (isSanConnected) {

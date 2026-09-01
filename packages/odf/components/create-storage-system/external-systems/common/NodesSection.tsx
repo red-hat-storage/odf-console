@@ -7,12 +7,29 @@ import {
   nodesIncludingControlPlane,
   nodesWithoutTaints,
 } from '@odf/core/utils';
-import { getName, useCustomTranslation } from '@odf/shared';
-import { isControlPlaneNode, isWorkerNode } from '@odf/shared/utils';
-import { Alert, Checkbox } from '@patternfly/react-core';
+import {
+  DOC_VERSION,
+  getName,
+  kernelDevelDoc,
+  useCustomTranslation,
+} from '@odf/shared';
+import {
+  ExternalLink,
+  isControlPlaneNode,
+  isWorkerNode,
+} from '@odf/shared/utils';
+import {
+  Alert,
+  Checkbox,
+  HelperText,
+  HelperTextItem,
+  HelperTextItemVariant,
+  Spinner,
+} from '@patternfly/react-core';
 import { NodesTable } from '../../../nodes-table/NodesTable';
 import { WizardNodeState } from '../../reducer';
-import { SelectLocalClusterNodesTable } from '../../select-nodes-table/select-local-cluster-nodes-table';
+import { KernelDevelEligibility } from '../CreateScaleSystem/types';
+import { SelectLocalClusterNodesTable } from './select-local-cluster-nodes-table/select-local-cluster-nodes-table';
 
 type IncludeControlPlaneCheckboxProps = {
   isChecked: boolean;
@@ -41,15 +58,85 @@ export const IncludeControlPlaneCheckbox: React.FC<
   );
 };
 
+enum KernelDevelStatusKind {
+  SUCCESS = 'success',
+  DANGER = 'danger',
+  PENDING = 'pending',
+  WARNING = 'warning',
+}
+
+type KernelDevelStatusProps = {
+  eligibility: KernelDevelEligibility;
+};
+
+const KernelDevelStatus: React.FC<KernelDevelStatusProps> = ({
+  eligibility,
+}) => {
+  const { t } = useCustomTranslation();
+  let status = KernelDevelStatusKind.SUCCESS;
+  let variant: HelperTextItemVariant = HelperTextItemVariant.success;
+  let message = t('Kernel-devel packages verified');
+  let details = '';
+
+  if (eligibility.error) {
+    status = KernelDevelStatusKind.DANGER;
+    variant = HelperTextItemVariant.error;
+    message = t('Unable to verify kernel-devel package status');
+    details = eligibility.error;
+  } else if (eligibility.isLoading) {
+    status = KernelDevelStatusKind.PENDING;
+    variant = HelperTextItemVariant.default;
+    message = t('Checking kernel-devel packages on selected nodes');
+  } else if (eligibility.nodesWithoutKernelDevel.length > 0) {
+    status = KernelDevelStatusKind.WARNING;
+    variant = HelperTextItemVariant.warning;
+    message = t(
+      'Kernel-devel packages are missing on some selected nodes. Please apply the Machine Config Operator (MCO) update to install them before continuing.'
+    );
+  }
+
+  return (
+    <HelperText className="pf-v6-u-mt-md">
+      <HelperTextItem
+        data-test={`kernel-devel-status-${status}`}
+        variant={variant}
+        icon={
+          status === KernelDevelStatusKind.PENDING ? (
+            <Spinner size="sm" />
+          ) : undefined
+        }
+      >
+        {message}
+        {details ? ` ${details}` : ''}
+        {status === KernelDevelStatusKind.WARNING && (
+          <>
+            {' '}
+            <ExternalLink href={kernelDevelDoc(DOC_VERSION)}>
+              {t('Learn more')}
+            </ExternalLink>
+          </>
+        )}
+      </HelperTextItem>
+    </HelperText>
+  );
+};
+
 type ScaleNodesSectionProps = {
   isDisabled?: boolean;
   selectedNodes: WizardNodeState[];
   setSelectedNodes: (nodes: WizardNodeState[]) => void;
-  statusContent?: React.ReactNode;
+  kernelDevelEligibility: KernelDevelEligibility;
+  isNodeFixed?: (node: NodeData) => boolean;
 };
 
 export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
-  ({ isDisabled, selectedNodes, setSelectedNodes, statusContent }) => {
+  ({
+    isDisabled,
+    selectedNodes,
+    setSelectedNodes,
+    kernelDevelEligibility,
+    isNodeFixed,
+  }) => {
     const { t } = useCustomTranslation();
     const [includeControlPlaneNodes, setIncludeControlPlaneNodes] =
       React.useState(false);
@@ -73,11 +160,18 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
 
     const onNodeSelect = React.useCallback(
       (nodes: NodeData[]) => {
-        setSelectedNodes(createWizardNodeState(nodes));
+        setSelectedNodes(
+          createWizardNodeState(
+            isNodeFixed ? nodes.filter((node) => !isNodeFixed(node)) : nodes
+          )
+        );
       },
-      [setSelectedNodes]
+      [isNodeFixed, setSelectedNodes]
     );
-    const isNodeSelectable = React.useCallback(() => !isDisabled, [isDisabled]);
+    const isNodeSelectable = React.useCallback(
+      (node: NodeData) => !isDisabled && !isNodeFixed?.(node),
+      [isDisabled, isNodeFixed]
+    );
 
     // Initialize once so an intentional deselect-all action is preserved.
     React.useEffect(() => {
@@ -96,8 +190,11 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
       [selectedNodes]
     );
     const selectedNodeData = React.useMemo(
-      () => tableNodes.filter((node) => selectedNodeNames.has(getName(node))),
-      [selectedNodeNames, tableNodes]
+      () =>
+        tableNodes.filter(
+          (node) => selectedNodeNames.has(getName(node)) || isNodeFixed?.(node)
+        ),
+      [isNodeFixed, selectedNodeNames, tableNodes]
     );
 
     const handleIncludeControlPlaneNodes = React.useCallback(
@@ -128,7 +225,9 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
           isRowSelectable={isNodeSelectable}
           nameColumnTitle={t('Node')}
         />
-        {statusContent}
+        {selectedNodes.length > 0 && (
+          <KernelDevelStatus eligibility={kernelDevelEligibility} />
+        )}
         {isDisabled && (
           <Alert
             variant="info"
@@ -165,10 +264,17 @@ export const SANNodesSection: React.FC<SANNodesSectionProps> = React.memo(
     const onNodeSelect = React.useCallback(
       (nodes: NodeData[]) => {
         setSelectedNodes(
-          createWizardNodeState(nodes, { enableStretchCluster })
+          createWizardNodeState(nodes, { enableStretchCluster }).map((node) => {
+            const previousRole = selectedNodes.find(
+              (n) => n.name === node.name
+            )?.localClusterRole;
+            return previousRole && node.localClusterRole !== NodeType.ARBITER
+              ? { ...node, localClusterRole: previousRole }
+              : node;
+          })
         );
       },
-      [enableStretchCluster, setSelectedNodes]
+      [enableStretchCluster, setSelectedNodes, selectedNodes]
     );
 
     const onLocalClusterRoleChange = React.useCallback(

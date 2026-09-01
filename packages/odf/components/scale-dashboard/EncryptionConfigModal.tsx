@@ -50,7 +50,7 @@ const EncryptionConfigModal: React.FC<EncryptionConfigModalProps> = ({
     mode: 'onChange',
     resolver,
   });
-  const canSubmit = isEncryptionEnabled && !!certificate && isValid;
+  const canSubmit = isEncryptionEnabled && isValid;
 
   const enableEncryption = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -87,7 +87,7 @@ const EncryptionConfigModal: React.FC<EncryptionConfigModalProps> = ({
       <ModalHeader
         title={t('Enable data encryption')}
         description={t(
-          'Enabling encryption requires a username, password, port, remote RKM, CA certificate, server information, client, and tenant ID. This change applies to the local cluster and will affect all IBM Scale CNSA remote cluster connections.'
+          'Enabling encryption requires a username, password, port, remote RKM, server information, client, and tenant ID. A CA certificate is optional. This change applies to the local cluster and will affect all IBM Storage Scale remote cluster connections.'
         )}
       />
       <ModalBody>

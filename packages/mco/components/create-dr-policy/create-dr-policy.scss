@@ -3,29 +3,31 @@
   width: 90%;
 }
 
-.mco-create-data-policy__action-group {
-  margin-bottom: var(--pf-t--global--spacer--md);
-}
-
-.mco-create-data-policy__description {
-  margin-bottom: var(--pf-t--global--spacer--sm);
-}
-
-.mco-create-data-policy__flex {
-  margin-right: var(--pf-t--global--spacer--2xl);
-  margin-bottom: var(--pf-t--global--spacer--md);
-}
-
 .mco-create-data-policy__dropdown {
   width: 12rem;
 }
 
+// Overrides Alert's internal md font token; pf-v6-u-font-size-sm is not equivalent.
 .mco-create-data-policy__alert {
   --pf-t--global--font--size--md: 0.8rem;
-  margin-bottom: var(--pf-t--global--spacer--xs);
 }
 
 .mco-create-data-policy__text-input {
   width: 67%;
 }
 
+.mco-create-data-policy__pairing {
+  min-height: 50vh;
+}
+
+.mco-create-data-policy__pairing-status-icon {
+  width: var(--pf-t--global--icon--size--font--4xl);
+  height: var(--pf-t--global--icon--size--font--4xl);
+}
+
+.mco-create-data-policy__pairing-progress {
+  .pf-v6-c-progress__indicator {
+    transition: width var(--pf-t--global--motion--duration--md, 0.4s)
+      var(--pf-t--global--motion--timing-function--default, ease);
+  }
+}

@@ -5,12 +5,8 @@ import {
   useCustomTranslation,
   TextInputWithFieldRequirements,
   ButtonBar,
-  DOC_VERSION,
-  ocpDocHome,
 } from '@odf/shared';
 import { ValidatedPasswordInput } from '@odf/shared/text-inputs/password-input';
-import { ExternalLink } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router';
 import {
@@ -27,11 +23,9 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
-  HelperTextItemProps,
   AlertVariant,
   ButtonType,
   ButtonVariant,
-  Spinner,
 } from '@patternfly/react-core';
 import { enableScaleEncryption } from '../../../scale-encryption/enableScaleEncryption';
 import { ScaleEncryptionForm } from '../../../scale-encryption/ScaleEncryptionForm';
@@ -51,60 +45,9 @@ import {
   createScaleRemoteClusterPayload,
   createFileSystem,
 } from './payload';
-import {
-  KernelDevelEligibility,
-  ScaleSystemComponentState,
-  initialComponentState,
-} from './types';
+import { ScaleSystemComponentState, initialComponentState } from './types';
 import useScaleSystemFormValidation from './useFormValidation';
 import './CreateScaleSystem.scss';
-
-const KERNEL_DEVEL_DOC_URL =
-  `${ocpDocHome(DOC_VERSION)}machine_configuration/machine-configs-configure` +
-  '#rhcos-add-extensions_machine-configs-configure';
-
-const getKernelDevelStatus = (
-  kernelDevelEligibility: KernelDevelEligibility,
-  t: TFunction
-): {
-  kind: string;
-  variant: HelperTextItemProps['variant'];
-  message: string;
-  details?: string;
-} => {
-  if (kernelDevelEligibility.error) {
-    return {
-      kind: 'danger',
-      variant: 'error',
-      message: t('Unable to verify kernel-devel package status'),
-      details: kernelDevelEligibility.error,
-    };
-  }
-
-  if (kernelDevelEligibility.isLoading) {
-    return {
-      kind: 'pending',
-      variant: 'default',
-      message: t('Checking kernel-devel packages on selected nodes'),
-    };
-  }
-
-  if (kernelDevelEligibility.nodesWithoutKernelDevel.length > 0) {
-    return {
-      kind: 'warning',
-      variant: 'warning',
-      message: t(
-        'Kernel-devel packages are missing on some selected nodes. Please apply the Machine Config Operator (MCO) update to install them before connecting to the remote cluster.'
-      ),
-    };
-  }
-
-  return {
-    kind: 'success',
-    variant: 'success',
-    message: t('Kernel-devel packages verified'),
-  };
-};
 
 type CreateScaleSystemFormProps = {
   componentState: ScaleSystemComponentState;
@@ -150,10 +93,6 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const userName = watch('userName');
   const password = watch('password');
   const fileSystemName = watch('fileSystemName');
-  const hasSelectedNodes = componentState.selectedNodes.length > 0;
-  const kernelDevelStatus = hasSelectedNodes
-    ? getKernelDevelStatus(kernelDevelEligibility, t)
-    : null;
 
   const mandatoryFieldsValid = !!(
     name &&
@@ -166,10 +105,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     kernelDevelEligibility.areSelectedNodesEligible
   );
 
-  const isFormValid =
-    mandatoryFieldsValid &&
-    isEncryptionValid &&
-    (!componentState.encryptionEnabled || !!componentState.encryptionCert);
+  const isFormValid = mandatoryFieldsValid && isEncryptionValid;
 
   const handleGeneralCAFileInputChange = React.useCallback(
     (_ev, file: File) => {
@@ -319,7 +255,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
             <HelperText>
               <HelperTextItem>
                 {t(
-                  'Select at least 3 nodes to create the local cluster used for IBM Scale (CNSA) connections.'
+                  'Select at least 3 nodes to create the local cluster used for IBM Storage Scale connections.'
                 )}
               </HelperTextItem>
             </HelperText>
@@ -330,34 +266,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
             setSelectedNodes={(nodes) =>
               setComponentState((prev) => ({ ...prev, selectedNodes: nodes }))
             }
-            statusContent={
-              kernelDevelStatus ? (
-                <HelperText className="pf-v6-u-mt-md">
-                  <HelperTextItem
-                    data-test={`kernel-devel-status-${kernelDevelStatus.kind}`}
-                    variant={kernelDevelStatus.variant}
-                    icon={
-                      kernelDevelStatus.kind === 'pending' ? (
-                        <Spinner size="sm" />
-                      ) : undefined
-                    }
-                  >
-                    {kernelDevelStatus.message}
-                    {kernelDevelStatus.details
-                      ? ` ${kernelDevelStatus.details}`
-                      : ''}
-                    {kernelDevelStatus.kind === 'warning' && (
-                      <>
-                        {' '}
-                        <ExternalLink href={KERNEL_DEVEL_DOC_URL}>
-                          {t('Learn more')}
-                        </ExternalLink>
-                      </>
-                    )}
-                  </HelperTextItem>
-                </HelperText>
-              ) : null
-            }
+            kernelDevelEligibility={kernelDevelEligibility}
           />
         </FormGroup>
       </FormSection>
@@ -366,7 +275,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           <HelperText>
             <HelperTextItem>
               {t(
-                'Enter at least one IBM Scale management endpoint to authenticate and configure the remote cluster (For high availability, define 2 or more endpoints). Use valid credentials to verify and establish a connection to the remote cluster.'
+                'Enter at least one IBM Storage Scale management endpoint to authenticate and configure the remote cluster (For high availability, define 2 or more endpoints). Use valid credentials to verify and establish a connection to the remote cluster.'
               )}
             </HelperTextItem>
           </HelperText>
@@ -660,7 +569,7 @@ export const CreateScaleSystem: React.FC = () => {
   return (
     <>
       <PageHeading
-        title={t('Connect IBM Scale (CNSA)')}
+        title={t('Connect IBM Storage Scale')}
         hasUnderline={false}
         breadcrumbs={[
           {
@@ -668,13 +577,13 @@ export const CreateScaleSystem: React.FC = () => {
             path: '/odf/external-systems',
           },
           {
-            name: t('Create IBM Scale (CNSA)'),
+            name: t('Create IBM Storage Scale'),
             path: '/odf/external-systems/scale/~create',
           },
         ]}
       >
         {t(
-          'Connect to IBM Scale (CNSA) to power Data Foundation with fast, reliable file storage optimized for enterprise performance.'
+          'Connect to IBM Storage Scale to power Data Foundation with fast, reliable file storage optimized for enterprise performance.'
         )}
       </PageHeading>
       <div className="odf-m-pane__body">

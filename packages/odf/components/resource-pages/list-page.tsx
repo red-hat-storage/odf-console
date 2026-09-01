@@ -29,12 +29,23 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
+import { Label } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
+import {
+  BackingStoreKind,
+  BucketClassKind,
+  NamespaceStoreKind,
+} from '../../types';
+import {
+  getBucketClassTypeDisplayText,
+  getMCGStoreType,
+  getNamespaceStoreType,
+} from '../../utils/mcg';
 import { OperandStatus } from '../utils';
 
 const tableColumnInfo = [
   { className: '', id: 'name' },
-  { className: '', id: 'kind' },
+  { className: '', id: 'type' },
   {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-sm'),
     id: 'status',
@@ -49,6 +60,13 @@ const tableColumnInfo = [
   },
   { className: Kebab.columnClass, id: '' },
 ];
+
+type CustomData = {
+  resourceModel: K8sModel;
+  kebabActions?: CustomKebabItem[];
+  getTypeDisplayText?: (obj: K8sResourceCommon, t: TFunction) => string;
+  getLabel?: (obj: K8sResourceCommon, t: TFunction) => React.ReactNode;
+};
 
 type ResourceTableProps = {
   data: K8sResourceCommon[];
@@ -72,7 +90,7 @@ const ResourceTable: React.FC<ResourceTableProps> = (props) => {
         id: tableColumnInfo[0].id,
       },
       {
-        title: t('Kind'),
+        title: t('Type'),
         props: {
           className: tableColumnInfo[1].className,
         },
@@ -125,30 +143,29 @@ const ResourceTable: React.FC<ResourceTableProps> = (props) => {
   );
 };
 
-type CustomData = {
-  resourceModel: K8sModel;
-  kebabActions?: CustomKebabItem[];
-};
-
 const RowRenderer: React.FC<RowProps<K8sResourceCommon, CustomData>> = ({
   obj,
   activeColumnIDs,
   rowData,
 }) => {
-  const { resourceModel, kebabActions } = rowData;
+  const { t } = useCustomTranslation();
+  const { resourceModel, kebabActions, getTypeDisplayText, getLabel } = rowData;
   const name = getName(obj);
   const path = `/odf/resource/${referenceForModel(resourceModel)}/${name}`;
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
-        <ResourceLink
-          resourceModel={resourceModel}
-          resourceName={name}
-          link={path}
-        />
+        <span className="pf-v6-u-display-flex pf-v6-u-align-items-center">
+          <ResourceLink
+            resourceModel={resourceModel}
+            resourceName={name}
+            link={path}
+          />
+          {getLabel?.(obj, t)}
+        </span>
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        {obj.kind}
+        {getTypeDisplayText?.(obj, t) ?? obj.kind}
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         <OperandStatus operand={obj} />
@@ -172,11 +189,15 @@ const RowRenderer: React.FC<RowProps<K8sResourceCommon, CustomData>> = ({
 type GenericListPageProps = {
   resourceModel: K8sModel;
   kebabActions?: CustomData['kebabActions'];
+  getTypeDisplayText?: CustomData['getTypeDisplayText'];
+  getLabel?: CustomData['getLabel'];
 };
 
 const GenericListPage: React.FC<GenericListPageProps> = ({
   resourceModel,
   kebabActions,
+  getTypeDisplayText,
+  getLabel,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -215,7 +236,12 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
           unfilteredData={data || []}
           loaded={loaded && isODFNsLoaded}
           loadError={loadError || odfNsLoadError}
-          rowData={{ resourceModel, kebabActions }}
+          rowData={{
+            resourceModel,
+            kebabActions,
+            getTypeDisplayText,
+            getLabel,
+          }}
         />
       </ListPageBody>
     </>
@@ -234,20 +260,62 @@ const bcKebabActions = (t: TFunction) => [
   },
 ];
 
+const getBucketClassType = (obj: K8sResourceCommon, t: TFunction): string =>
+  getBucketClassTypeDisplayText(obj as BucketClassKind, t);
+
+const getNamespaceStoreProviderType = (
+  obj: K8sResourceCommon,
+  t: TFunction
+): string => {
+  const provider = getNamespaceStoreType(obj as NamespaceStoreKind);
+  return provider ? t(provider) : '';
+};
+
+const getNamespaceStoreLabel = (
+  obj: K8sResourceCommon,
+  t: TFunction
+): React.ReactNode => {
+  const ns = obj as NamespaceStoreKind;
+  if (ns.spec?.archive) {
+    return (
+      <Label color="green" isCompact className="pf-v6-u-ml-sm">
+        {t('Deep archive')}
+      </Label>
+    );
+  }
+  return null;
+};
+
+const getBackingStoreProviderType = (
+  obj: K8sResourceCommon,
+  t: TFunction
+): string => {
+  const provider = getMCGStoreType(obj as BackingStoreKind);
+  return provider ? t(provider) : '';
+};
+
 export const BucketClassListPage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <GenericListPage
       resourceModel={NooBaaBucketClassModel}
       kebabActions={bcKebabActions(t)}
+      getTypeDisplayText={getBucketClassType}
     />
   );
 };
 
 export const NamespaceStoreListPage: React.FC = () => (
-  <GenericListPage resourceModel={NooBaaNamespaceStoreModel} />
+  <GenericListPage
+    resourceModel={NooBaaNamespaceStoreModel}
+    getTypeDisplayText={getNamespaceStoreProviderType}
+    getLabel={getNamespaceStoreLabel}
+  />
 );
 
 export const BackingStoreListPage: React.FC = () => (
-  <GenericListPage resourceModel={NooBaaBackingStoreModel} />
+  <GenericListPage
+    resourceModel={NooBaaBackingStoreModel}
+    getTypeDisplayText={getBackingStoreProviderType}
+  />
 );

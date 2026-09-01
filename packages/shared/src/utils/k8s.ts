@@ -12,18 +12,24 @@ function delay(ms: number): Promise<void> {
   });
 }
 
+export type CreateOrUpdateMutationDetails = {
+  isUpdated?: boolean;
+};
+
 export async function createOrUpdate<T extends K8sResourceCommon>({
   model,
   name,
   namespace,
   mutate,
   maxRetries = 3,
+  mutationDetails,
 }: {
   model: K8sModel;
   name: string;
   namespace?: string;
   mutate: (obj: T | null) => T;
   maxRetries?: number;
+  mutationDetails?: CreateOrUpdateMutationDetails;
 }): Promise<T> {
   let attempt = 0;
   let lastError: any;
@@ -60,7 +66,11 @@ export async function createOrUpdate<T extends K8sResourceCommon>({
       };
 
       // eslint-disable-next-line no-await-in-loop
-      return (await k8sUpdate({ model, data: updated })) as T;
+      const result = (await k8sUpdate({ model, data: updated })) as T;
+      if (mutationDetails) {
+        mutationDetails.isUpdated = true;
+      }
+      return result;
     } catch (e: any) {
       lastError = e;
 
@@ -68,7 +78,11 @@ export async function createOrUpdate<T extends K8sResourceCommon>({
         try {
           const fresh = mutate(null);
           // eslint-disable-next-line no-await-in-loop
-          return (await k8sCreate({ model, data: fresh })) as T;
+          const result = (await k8sCreate({ model, data: fresh })) as T;
+          if (mutationDetails) {
+            mutationDetails.isUpdated = false;
+          }
+          return result;
         } catch (createError: any) {
           const status = createError?.response?.status;
           if (![400, 401, 403, 422].includes(status) && status < 500) {
