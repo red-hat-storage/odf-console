@@ -170,7 +170,8 @@
     "**/@typescript-eslint/typescript-estree/semver": "^7.7.1",
     "**/cypress/semver": "^7.7.1",
     "async": "^3.2.6",
-    "brace-expansion": "1.1.12",
+    "brace-expansion": "1.1.18",
+    "browserslist": "4.28.7",
     "braces": "^3.0.3",
     "@patternfly/quickstarts": "2.4.3",
     "cache-loader/loader-utils": "^1.4.2",
@@ -183,16 +184,21 @@
     "loader-utils": "^2.0.4",
     "micromatch": "^4.0.8",
     "minimist": "^1.2.8",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.19",
     "tough-cookie": "^4.1.3",
     "webpack": "5.94.0",
     "webpack-dev-middleware": "^5.3.4",
     "webpack-bundle-analyzer/ws": "^7.5.10",
     "webpack-dev-server/express": "^4.21.0",
     "ws": "^8.18.0",
+    "tar": "7.5.21",
     "serialize-javascript": "^6.0.2",
     "minimatch": "^3.0.5",
-    "underscore.string": "^3.3.6"
+    "underscore.string": "^3.3.6",
+    "@openshift-console/dynamic-plugin-sdk-internal/immutable": "^4.3.9",
+    "@openshift-console/dynamic-plugin-sdk/immutable": "^4.3.9",
+    "immutable": "^4.3.9",
+    "sass/immutable": "^4.3.9"
   },
   "engines": {
     "node": ">=14.17.0"
