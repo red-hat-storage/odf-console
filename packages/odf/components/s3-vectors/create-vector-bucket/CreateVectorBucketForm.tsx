@@ -124,7 +124,6 @@ const CreateVectorBucketForm: React.FC = () => {
           namespace={activeNamespace}
           selectedKey={nsfs}
           onChange={(ns: NamespaceStoreKind) => setNsfs(getName(ns))}
-          filterFilesystem
           creatorDisabled
         />
       </FormGroup>
