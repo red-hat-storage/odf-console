@@ -1,8 +1,31 @@
+import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { PersistentVolumeClaimKind } from '@odf/shared/types';
+import validationRegEx from '@odf/shared/utils/validation';
+import { TFunction } from 'i18next';
 import * as Yup from 'yup';
 import { StoreProviders } from './mcg';
 
-export const providerSchema = (shouldValidateSecret: boolean) =>
+export const TARGET_BUCKET_MIN = 3;
+export const TARGET_BUCKET_MAX = 63;
+
+export type TargetBucketMessages = {
+  minChars: string;
+  maxChars: string;
+  startAndEnd: string;
+  alphaNumeric: string;
+};
+
+export const getTargetBucketFieldRequirements = (t: TFunction): string[] => [
+  fieldRequirementsTranslations.minChars(t, TARGET_BUCKET_MIN),
+  fieldRequirementsTranslations.maxChars(t, TARGET_BUCKET_MAX),
+  fieldRequirementsTranslations.startAndEndName(t),
+  fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+];
+
+export const providerSchema = (
+  shouldValidateSecret: boolean,
+  targetBucketMessages?: TargetBucketMessages
+) =>
   Yup.object({
     'provider-name': Yup.string().required(),
     endpoint: Yup.string().when('provider-name', {
@@ -40,7 +63,21 @@ export const providerSchema = (shouldValidateSecret: boolean) =>
           StoreProviders.IBM,
           StoreProviders.GCP,
         ].includes(value as StoreProviders),
-      then: (schema: Yup.StringSchema) => schema.required(),
+      then: (schema: Yup.StringSchema) =>
+        targetBucketMessages
+          ? schema
+              .required()
+              .min(TARGET_BUCKET_MIN, targetBucketMessages.minChars)
+              .max(TARGET_BUCKET_MAX, targetBucketMessages.maxChars)
+              .matches(
+                validationRegEx.startAndEndsWithAlphanumerics,
+                targetBucketMessages.startAndEnd
+              )
+              .matches(
+                validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
+                targetBucketMessages.alphaNumeric
+              )
+          : schema.required(),
     }),
     'pvc-name': Yup.object().when('provider-name', {
       is: StoreProviders.FILESYSTEM,
