@@ -18,6 +18,7 @@ import {
   K8sResourceCommon,
   useK8sWatchResource,
   useListPageFilter,
+  RowFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'i18next';
@@ -67,6 +68,7 @@ import {
   getColumnNames,
   getHeaderColumns,
   getRowActions,
+  pavMatchesSearch,
 } from './utils';
 
 const getFailureMessage = (
@@ -399,6 +401,19 @@ const ProtectedAppsTableRow: React.FC<
   );
 };
 
+const PAV_NAME_FILTER = 'protected-application';
+
+const nameFilterOverride: RowFilter<ProtectedApplicationViewKind>[] = [
+  {
+    type: PAV_NAME_FILTER,
+    filterGroupName: '',
+    reducer: () => undefined,
+    items: [],
+    filter: (filterValue, pav) =>
+      pavMatchesSearch(filterValue.selected?.[0] || '', pav),
+  },
+];
+
 export const ProtectedApplicationsListPage: React.FC = () => {
   const { t } = useCustomTranslation();
   const launcher: LaunchModal = useModalWrapper();
@@ -428,7 +443,10 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const isAllLoadedWOAnyError =
     pavsLoaded && drpcsLoaded && !pavsError && !drpcsError;
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(pavs || []);
+  const [data, filteredData, onFilterChange] = useListPageFilter(
+    pavs || [],
+    nameFilterOverride
+  );
 
   const [pagePavs, setPagePavs] = React.useState<
     ProtectedApplicationViewKind[]
@@ -547,6 +565,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
           data: data,
           loaded: drpcsLoaded && pavsLoaded,
           onFilterChange: onFilterChange,
+          nameFilter: PAV_NAME_FILTER,
         }}
         composableTableProps={{
           columns: getHeaderColumns(t),
