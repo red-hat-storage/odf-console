@@ -296,7 +296,7 @@ export const PVCDetailsWizardContent: React.FC<
   );
 
   return (
-    <Form>
+    <Form className="mco-manage-policies__pvc-name-value">
       <FormGroup>
         <span>
           {t(
