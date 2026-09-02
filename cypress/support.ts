@@ -3,6 +3,7 @@ import {
   CLUSTER_NAMESPACE,
   STORAGE_SYSTEM_NAME,
   OCS_SC_STATE,
+  ODF_OPERATOR_NAME,
   SECOND,
   MINUTE,
 } from './consts';
@@ -45,17 +46,19 @@ Cypress.Commands.add('install', () => {
     `oc get storagesystem ${STORAGE_SYSTEM_NAME} -n ${CLUSTER_NAMESPACE}`,
     {
       failOnNonZeroExit: false,
-    }
+    },
   ).then(({ code }) => {
     if (code !== 0) {
-      // Operator CSV no longer has a Storage System tab; open the wizard directly.
-      cy.visit(
-        '/odf/resource/odf.openshift.io~v1alpha1~StorageSystem/create/~new'
-      );
+      cy.clickNavLink(['Operators', 'Installed Operators']);
+      cy.byLegacyTestID('item-filter').type(ODF_OPERATOR_NAME);
+      // data-test-operator-row="OpenShift Data Foundation"
+      cy.byTestOperatorRow(ODF_OPERATOR_NAME).click();
+      cy.byLegacyTestID('horizontal-link-Storage System').click();
+      cy.byTestID('item-create').click();
 
       // Wait for the StorageSystem page to load.
       cy.contains('Create StorageSystem', { timeout: 15 * SECOND }).should(
-        'be.visible'
+        'be.visible',
       );
 
       // Uncomment next line only if the cluster has enough resources.
@@ -77,7 +80,7 @@ Cypress.Commands.add('install', () => {
       cy.get('@Create StorageSystem Button').click();
       // Wait for the storage system to be created.
       cy.get('@Create StorageSystem Button', { timeout: 10 * SECOND }).should(
-        'not.exist'
+        'not.exist',
       );
 
       cy.log('Check if storage system was created and is listed as expected.');
@@ -93,7 +96,7 @@ Cypress.Commands.add('install', () => {
       cy.visit('/');
     } else {
       cy.log(
-        ' ocs-storagecluster-storagesystem is present, proceeding without installation.'
+        ' ocs-storagecluster-storagesystem is present, proceeding without installation.',
       );
     }
   });
