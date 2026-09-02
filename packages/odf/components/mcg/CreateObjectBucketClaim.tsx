@@ -383,7 +383,8 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
               }}
               onBlur={onBlur}
               className="odf-mcg__resource-dropdown"
-              {...(bucketType === BucketType.General && {
+              {...((bucketType === BucketType.General ||
+                bucketType === BucketType.S3Vector) && {
                 initialSelection: (resources) =>
                   resources.find(
                     (res) => getName(res) === 'noobaa-default-bucket-class'
