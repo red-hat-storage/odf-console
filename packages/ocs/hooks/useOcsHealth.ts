@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { isClusterDeleting } from '@odf/core/utils/odf';
 import {
   CephObjectStoreModel,
   NooBaaSystemModel,
@@ -70,6 +71,13 @@ export const useGetOCSHealth: UseGetOCSHealth = (storageCluster) => {
   });
 
   return React.useMemo(() => {
+    if (isClusterDeleting(storageCluster)) {
+      return {
+        healthState: HealthState.PROGRESS,
+        message: t('Deleting'),
+      };
+    }
+
     // Check if any required resources are still loading (not loaded and no error)
     const isLoading =
       (!cephLoaded && !cephLoadError) ||
