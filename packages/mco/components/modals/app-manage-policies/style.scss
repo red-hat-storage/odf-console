@@ -5,6 +5,10 @@
     &__nameValue--weight {
         font-weight: var(--pf-t--global--font--weight--body--bold)
     }
+    &__pvc-name-value .pairs-list__heading {
+        display: flex;
+        justify-content: space-between;
+    }
     &__alert--margin-left {
         margin-left: var(--pf-t--global--spacer--lg);
     }
