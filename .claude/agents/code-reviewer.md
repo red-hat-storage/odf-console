@@ -25,6 +25,7 @@ PatternFly compliance is the single most important UI concern for odf-console. F
 - Hardcoded color, spacing, or sizing values — must use PatternFly 6 CSS variables (`--pf-t--global--*`) or utility classes such as `pf-v6-u-mt-md`
 - Custom UI primitives that duplicate PatternFly components
 - PatternFly v4 or v5 imports or patterns — must use PatternFly v6
+- Importing PatternFly CSS from `@patternfly/patternfly` or `@patternfly/react-styles` (ex: `patternfly.css`, `utilities/_index.css`) — Plugins may use PF React components, PF class names, PF tokens and Sass `@use`/`@forward` of `sass-utilities` only. Do not import CSS directly from PatternFly.
 
 ### Data Fetching (Critical)
 
