@@ -46,7 +46,7 @@ Cypress.Commands.add('install', () => {
     `oc get storagesystem ${STORAGE_SYSTEM_NAME} -n ${CLUSTER_NAMESPACE}`,
     {
       failOnNonZeroExit: false,
-    },
+    }
   ).then(({ code }) => {
     if (code !== 0) {
       cy.clickNavLink(['Operators', 'Installed Operators']);
@@ -58,7 +58,7 @@ Cypress.Commands.add('install', () => {
 
       // Wait for the StorageSystem page to load.
       cy.contains('Create StorageSystem', { timeout: 15 * SECOND }).should(
-        'be.visible',
+        'be.visible'
       );
 
       // Uncomment next line only if the cluster has enough resources.
@@ -80,7 +80,7 @@ Cypress.Commands.add('install', () => {
       cy.get('@Create StorageSystem Button').click();
       // Wait for the storage system to be created.
       cy.get('@Create StorageSystem Button', { timeout: 10 * SECOND }).should(
-        'not.exist',
+        'not.exist'
       );
 
       cy.log('Check if storage system was created and is listed as expected.');
@@ -96,7 +96,7 @@ Cypress.Commands.add('install', () => {
       cy.visit('/');
     } else {
       cy.log(
-        ' ocs-storagecluster-storagesystem is present, proceeding without installation.',
+        ' ocs-storagecluster-storagesystem is present, proceeding without installation.'
       );
     }
   });
