@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FileSystemKind, LocalDiskKind } from '@odf/core/types/scale';
+import { FileSystemKind } from '@odf/core/types/scale';
 import {
   getName,
   getNamespace,
@@ -16,12 +16,11 @@ import {
   ModalHeader,
 } from '@odf/shared/modals/Modal';
 import { FileSystemModel, LocalDiskModel } from '@odf/shared/models/scale';
-import { ListKind, PersistentVolumeClaimKind } from '@odf/shared/types';
+import { PersistentVolumeClaimKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getStorageClassName } from '@odf/shared/utils';
+import { getStorageClassName, isNotFoundError } from '@odf/shared/utils';
 import {
   k8sDelete,
-  k8sList,
   k8sPatch,
   K8sModel,
   YellowExclamationTriangleIcon,
@@ -161,19 +160,11 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
         ],
       });
 
-      // Get all LocalDisks that reference this FileSystem
-      const localDisksResponse = await k8sList<LocalDiskKind>({
-        model: LocalDiskModel,
-        queryParams: { ns: fsNamespace },
-      });
-
-      // API may return ListKind { items: [...] } or a raw array
-      const localDisksList = Array.isArray(localDisksResponse)
-        ? localDisksResponse
-        : ((localDisksResponse as ListKind<LocalDiskKind>)?.items ?? []);
-      const associatedDisks = localDisksList.filter(
-        (disk) => disk.status?.filesystem === fsName
-      );
+      const associatedDisks = (
+        resource.spec?.local?.pools?.flatMap((pool) => pool.disks) ?? []
+      ).map((name) => ({
+        metadata: { name, namespace: fsNamespace },
+      }));
 
       // Delete StorageClass if it exists
       if (filteredStorageClasses?.length > 0) {
@@ -218,8 +209,10 @@ const DeleteLUNModal: React.FC<DeleteLUNModalProps> = ({
         )
       );
 
+      // A stale disk name that no longer exists is not an error — ignore NotFound.
       const diskFailures = localDiskResults.filter(
-        (r): r is PromiseRejectedResult => r.status === 'rejected'
+        (r): r is PromiseRejectedResult =>
+          r.status === 'rejected' && !isNotFoundError(r.reason)
       );
 
       if (diskFailures.length > 0) {
