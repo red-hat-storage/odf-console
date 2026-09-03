@@ -13,6 +13,7 @@ import {
 } from '@patternfly/react-charts/victory';
 import { Link } from 'react-router';
 import { Tooltip } from '@patternfly/react-core';
+import { chart_legend_Margin as chartLegendMargin } from '@patternfly/react-tokens';
 import { BUCKETCLASSKIND, CLUSTERWIDE, OTHER } from './consts';
 import { getBarRadius, StackDataPoint } from './utils';
 import './breakdown-card.scss';
@@ -73,6 +74,10 @@ export const LinkableLegend: React.FC<LinkableLegendProps> = React.memo(
 
 LinkableLegend.displayName = 'LinkableLegend';
 
+const CHART_HEIGHT = 60;
+const CHART_LEGEND_PADDING = 35;
+const legendOffset = Number(chartLegendMargin.value) * 2;
+
 export const BreakdownChart: React.FC<BreakdownChartProps> = ({
   data,
   legends,
@@ -80,73 +85,82 @@ export const BreakdownChart: React.FC<BreakdownChartProps> = ({
   ocsVersion,
   labelPadding,
   odfNamespace,
-}) => (
-  <Chart
-    legendPosition="bottom-left"
-    legendComponent={
-      <ChartLegend
-        themeColor={ChartThemeColor.multiOrdered}
-        data={legends}
-        y={40}
-        labelComponent={
-          <LinkableLegend
-            metricModel={metricModel}
-            ocsVersion={ocsVersion}
-            odfNamespace={odfNamespace}
+}) => {
+  const [extraHeight, setExtraHeight] = React.useState(0);
+  const onLegendWrap = React.useCallback((height: number) => {
+    setExtraHeight((current) => (current === height ? current : height));
+  }, []);
+
+  return (
+    <div className="capacity-breakdown-card__chart">
+      <Chart
+        legendAllowWrap={onLegendWrap}
+        legendPosition="bottom-left"
+        legendComponent={
+          <ChartLegend
+            themeColor={ChartThemeColor.multiOrdered}
+            data={legends}
+            labelComponent={
+              <LinkableLegend
+                metricModel={metricModel}
+                ocsVersion={ocsVersion}
+                odfNamespace={odfNamespace}
+              />
+            }
+            orientation="horizontal"
+            symbolSpacer={7}
+            gutter={10}
+            style={{
+              labels: Object.assign(
+                { fontSize: 10 },
+                labelPadding
+                  ? {
+                      paddingRight: labelPadding.right,
+                      paddingTop: labelPadding.top,
+                      paddingBottom: labelPadding.bottom,
+                      paddingLeft: labelPadding.left,
+                    }
+                  : {}
+              ),
+            }}
           />
         }
-        orientation="horizontal"
-        symbolSpacer={7}
-        gutter={10}
-        style={{
-          labels: Object.assign(
-            { fontSize: 10 },
-            labelPadding
-              ? {
-                  paddingRight: labelPadding.right,
-                  paddingTop: labelPadding.top,
-                  paddingBottom: labelPadding.bottom,
-                  paddingLeft: labelPadding.left,
-                }
-              : {}
-          ),
+        height={CHART_HEIGHT + legendOffset + extraHeight}
+        padding={{
+          bottom: CHART_LEGEND_PADDING + legendOffset + extraHeight,
+          top: 0,
+          right: 0,
+          left: 0,
         }}
-      />
-    }
-    height={60}
-    padding={{
-      bottom: 35,
-      top: 0,
-      right: 0,
-      left: 0,
-    }}
-  >
-    <ChartAxis
-      style={{ axis: { stroke: 'none' }, ticks: { stroke: 'none' } }}
-      tickFormat={() => ''}
-    />
-    <ChartStack horizontal>
-      {data.map((d: StackDataPoint, index) => (
-        <ChartBar
-          key={d.id}
-          style={{
-            data: { stroke: 'white', strokeWidth: 0.7, fill: d.fill },
-          }}
-          cornerRadius={getBarRadius(index, data.length)}
-          barWidth={12}
-          padding={0}
-          data={[d]}
-          labelComponent={
-            <ChartTooltip
-              style={{ fontSize: 8, padding: 5 }}
-              constrainToVisibleArea
-            />
-          }
+      >
+        <ChartAxis
+          style={{ axis: { stroke: 'none' }, ticks: { stroke: 'none' } }}
+          tickFormat={() => ''}
         />
-      ))}
-    </ChartStack>
-  </Chart>
-);
+        <ChartStack horizontal>
+          {data.map((d: StackDataPoint, index) => (
+            <ChartBar
+              key={d.id}
+              style={{
+                data: { stroke: 'white', strokeWidth: 0.7, fill: d.fill },
+              }}
+              cornerRadius={getBarRadius(index, data.length)}
+              barWidth={12}
+              padding={0}
+              data={[d]}
+              labelComponent={
+                <ChartTooltip
+                  style={{ fontSize: 8, padding: 5 }}
+                  constrainToVisibleArea
+                />
+              }
+            />
+          ))}
+        </ChartStack>
+      </Chart>
+    </div>
+  );
+};
 
 export type BreakdownChartProps = {
   data: StackDataPoint[];
