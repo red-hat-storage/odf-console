@@ -31,6 +31,9 @@ export const gettingStartedDRDocs = (mcoDocVersion) => ({
   CREATE_POLICY: `${odfDRDocHome(
     mcoDocVersion
   )}#creating-disaster-recovery-policy-on-hub-cluster_mdr`,
+  CREATE_POLICY_RDR: `${odfDRDocHome(
+    mcoDocVersion
+  )}#creating-disaster-recovery-policy-on-hub-cluster_rdr`,
   ENABLE_MONITORING: `${odfDRDocHome(
     mcoDocVersion
   )}#enable-dr-monitoring_monitor-dr`,
