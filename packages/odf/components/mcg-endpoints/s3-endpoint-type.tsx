@@ -1,7 +1,9 @@
 import * as React from 'react';
+import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { TypeaheadDropdown } from '@odf/shared/dropdown/TypeaheadDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
+import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { SecretKind } from '@odf/shared/types';
@@ -58,6 +60,16 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
     showSecret,
     setShowSecret,
   } = props;
+
+  const fieldRequirements = React.useMemo(
+    () => [
+      t('3-63 characters'),
+      fieldRequirementsTranslations.startAndEndName(t),
+      fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+      t('Avoid using the form of an IP address'),
+    ],
+    [t]
+  );
 
   const targetLabel =
     provider === StoreProviders.AZURE
@@ -242,29 +254,29 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
           />
         </>
       )}
-      <FormGroupController
-        name="target-bucket"
+      <TextInputWithFieldRequirements
         control={control}
+        fieldRequirements={fieldRequirements}
         defaultValue={state.target}
+        popoverProps={{
+          headerContent: t('Target bucket requirements'),
+          footerContent: `${t('Example')}: my-bucket-name`,
+        }}
         formGroupProps={{
           label: targetLabel,
           fieldId: 'target-bucket',
           className: 'nb-endpoints-form-entry',
           isRequired: true,
         }}
-        render={({ value, onChange, onBlur }) => (
-          <TextInput
-            id="target-bucket"
-            value={value}
-            data-test={`${type.toLowerCase()}-target-bucket`}
-            onChange={(e, val) => {
-              onChange(e);
-              dispatch({ type: 'setTarget', value: val });
-            }}
-            onBlur={onBlur}
-            aria-label={targetLabel}
-          />
-        )}
+        textInputProps={{
+          id: 'target-bucket',
+          name: 'target-bucket',
+          'data-test': `${type.toLowerCase()}-target-bucket`,
+          'aria-label': targetLabel,
+          onChange: (_e, val) => {
+            dispatch({ type: 'setTarget', value: val });
+          },
+        }}
       />
     </>
   );

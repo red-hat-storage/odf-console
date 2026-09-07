@@ -1,8 +1,12 @@
+import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { PersistentVolumeClaimKind } from '@odf/shared/types';
+import { isValidIP } from '@odf/shared/utils';
+import validationRegEx from '@odf/shared/utils/validation';
+import { TFunction } from 'i18next';
 import * as Yup from 'yup';
 import { StoreProviders } from './mcg';
 
-export const providerSchema = (shouldValidateSecret: boolean) =>
+export const providerSchema = (shouldValidateSecret: boolean, t?: TFunction) =>
   Yup.object({
     'provider-name': Yup.string().required(),
     endpoint: Yup.string().when('provider-name', {
@@ -40,7 +44,28 @@ export const providerSchema = (shouldValidateSecret: boolean) =>
           StoreProviders.IBM,
           StoreProviders.GCP,
         ].includes(value as StoreProviders),
-      then: (schema: Yup.StringSchema) => schema.required(),
+      then: (schema: Yup.StringSchema) =>
+        schema
+          .required()
+          .min(3, t ? t('3-63 characters') : undefined)
+          .max(63, t ? t('3-63 characters') : undefined)
+          .matches(
+            validationRegEx.startAndEndsWithAlphanumerics,
+            t ? fieldRequirementsTranslations.startAndEndName(t) : undefined
+          )
+          .matches(
+            validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
+            t
+              ? fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t)
+              : undefined
+          )
+          .test(
+            'avoid-ip-address',
+            t
+              ? t('Avoid using the form of an IP address')
+              : 'Avoid using the form of an IP address',
+            (value: string) => !isValidIP(value)
+          ),
     }),
     'pvc-name': Yup.object().when('provider-name', {
       is: StoreProviders.FILESYSTEM,

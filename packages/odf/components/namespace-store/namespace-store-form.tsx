@@ -188,8 +188,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         ),
     });
 
-    const schema = baseSchema.concat(providerSchema(showSecret));
-
+    const schema = baseSchema.concat(providerSchema(showSecret, t));
     return { schema, fieldRequirements };
   }, [data, loadError, loaded, showSecret, t]);
 
