@@ -18,6 +18,7 @@ import {
   K8sResourceCommon,
   useK8sWatchResource,
   useListPageFilter,
+  RowFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'i18next';
@@ -399,6 +400,24 @@ const ProtectedAppsTableRow: React.FC<
   );
 };
 
+// Override the default name filter to match on the displayed application name
+// (from getApplicationName) instead of metadata.name, using case-insensitive
+// fuzzy matching. This follows the same pattern as CORS/Lifecycle list pages.
+const nameFilterOverride: RowFilter<ProtectedApplicationViewKind>[] = [
+  {
+    type: 'name',
+    filterGroupName: '',
+    reducer: () => undefined,
+    items: [],
+    filter: (filterValue, pav) => {
+      const searchText = filterValue.selected?.[0];
+      // When filter is cleared, show all items
+      if (!searchText) return true;
+      return fuzzyCaseInsensitive(searchText, getApplicationName(pav) || '');
+    },
+  },
+];
+
 export const ProtectedApplicationsListPage: React.FC = () => {
   const { t } = useCustomTranslation();
   const launcher: LaunchModal = useModalWrapper();
@@ -428,7 +447,10 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const isAllLoadedWOAnyError =
     pavsLoaded && drpcsLoaded && !pavsError && !drpcsError;
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(pavs || []);
+  const [data, filteredData, onFilterChange] = useListPageFilter(
+    pavs || [],
+    nameFilterOverride
+  );
 
   const [pagePavs, setPagePavs] = React.useState<
     ProtectedApplicationViewKind[]
@@ -547,6 +569,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
           data: data,
           loaded: drpcsLoaded && pavsLoaded,
           onFilterChange: onFilterChange,
+          hideLabelFilter: true,
         }}
         composableTableProps={{
           columns: getHeaderColumns(t),
