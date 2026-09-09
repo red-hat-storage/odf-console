@@ -170,7 +170,7 @@
     "**/@typescript-eslint/typescript-estree/semver": "^7.7.1",
     "**/cypress/semver": "^7.7.1",
     "async": "^3.2.6",
-    "brace-expansion": "1.1.18",
+    "brace-expansion": "^1.1.18",
     "browserslist": "4.28.7",
     "braces": "^3.0.3",
     "@patternfly/quickstarts": "2.4.3",
