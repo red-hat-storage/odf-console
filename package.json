@@ -191,7 +191,7 @@
     "webpack-bundle-analyzer/ws": "^7.5.10",
     "webpack-dev-server/express": "^4.21.0",
     "ws": "^8.18.0",
-    "tar": "7.5.21",
+    "tar": "^7.5.21",
     "serialize-javascript": "^6.0.2",
     "minimatch": "^3.0.5",
     "underscore.string": "^3.3.6",
