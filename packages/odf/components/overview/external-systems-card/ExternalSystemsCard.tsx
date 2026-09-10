@@ -131,13 +131,17 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
       !sanClusters?.loadError &&
       fileSystemsLoaded &&
       !fileSystemsLoadError);
-
   const isCnsaConnected = isFDF && remoteClustersData.length > 0;
   const isSanConnected =
     isFDF && !isCnsaConnected && sanClustersData.length > 0;
 
   const cnsaFileSystems = filterCnsaFileSystems(fileSystems ?? []);
   const sanLunGroups = filterSANFileSystems(fileSystems ?? []);
+  const oldestLunGroupTimestamp = sanLunGroups.sort(
+    (a, b) =>
+      new Date(a.metadata?.creationTimestamp ?? '').getTime() -
+      new Date(b.metadata?.creationTimestamp ?? '').getTime()
+  )[0]?.metadata?.creationTimestamp;
 
   const connectedRows: ExternalSystemRow[] = [];
 
@@ -152,7 +156,10 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
       connectedRows.push({
         id: 'san',
         label: t('Storage Area Network LUN groups'),
-        counts: getSanLunGroupStatusCounts(sanLunGroups),
+        counts: getSanLunGroupStatusCounts(
+          sanLunGroups,
+          oldestLunGroupTimestamp
+        ),
       });
     }
   }
@@ -188,7 +195,9 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
   const emptyMessage = t('No external systems connected');
   const isListLoaded =
     scaleResourcesLoaded ||
-    (storageClusters?.loaded && flashSystemClusters?.loaded);
+    (storageClusters?.loaded &&
+      flashSystemClusters?.loaded &&
+      sanClusters?.loaded);
 
   return (
     <Card className={classNames(className, 'odf-external-system-card')}>
