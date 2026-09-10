@@ -206,9 +206,7 @@ describe('CreateScaleSystem', () => {
     it('should render the main component with correct title and breadcrumbs', () => {
       render(<CreateScaleSystem />);
 
-      expect(
-        screen.getByText('Connect IBM Storage Scale Container Native(CNSA)')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Connect IBM Storage Scale')).toBeInTheDocument();
       expect(screen.getByText('External Systems')).toBeInTheDocument();
       expect(screen.getByText('Create IBM Storage Scale')).toBeInTheDocument();
     });
