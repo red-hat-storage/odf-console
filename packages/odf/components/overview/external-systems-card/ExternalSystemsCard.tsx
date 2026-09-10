@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { FDF_FLAG } from '@odf/core/redux';
-import { FileSystemKind } from '@odf/core/types/scale';
+import { ClusterKind, FileSystemKind } from '@odf/core/types/scale';
 import { isClusterIgnored, isExternalCluster } from '@odf/core/utils/odf';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
-import { FileSystemModel } from '@odf/shared/models/scale';
+import { ClusterModel, FileSystemModel } from '@odf/shared/models/scale';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getValidWatchK8sResourceObj,
@@ -108,6 +108,17 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
       )
     );
 
+  const [scaleClusters, scaleClusterLoaded, scaleClusterLoadError] =
+    useK8sWatchResource<ClusterKind[]>(
+      getValidWatchK8sResourceObj(
+        {
+          kind: referenceForModel(ClusterModel),
+          isList: true,
+        },
+        isFDF
+      )
+    );
+
   const externalCephClusters =
     storageClusters?.loaded && !storageClusters?.loadError
       ? (storageClusters.data?.filter(
@@ -130,7 +141,9 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
       Boolean(sanClusters?.loaded) &&
       !sanClusters?.loadError &&
       fileSystemsLoaded &&
-      !fileSystemsLoadError);
+      !fileSystemsLoadError &&
+      scaleClusterLoaded &&
+      !scaleClusterLoadError);
 
   const isCnsaConnected = isFDF && remoteClustersData.length > 0;
   const isSanConnected =
@@ -152,7 +165,10 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
       connectedRows.push({
         id: 'san',
         label: t('Storage Area Network LUN groups'),
-        counts: getSanLunGroupStatusCounts(sanLunGroups),
+        counts: getSanLunGroupStatusCounts(
+          sanLunGroups,
+          scaleClusters?.[0]?.metadata?.creationTimestamp
+        ),
       });
     }
   }
@@ -188,7 +204,9 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
   const emptyMessage = t('No external systems connected');
   const isListLoaded =
     scaleResourcesLoaded ||
-    (storageClusters?.loaded && flashSystemClusters?.loaded);
+    (storageClusters?.loaded &&
+      flashSystemClusters?.loaded &&
+      scaleClusterLoaded);
 
   return (
     <Card className={classNames(className, 'odf-external-system-card')}>
