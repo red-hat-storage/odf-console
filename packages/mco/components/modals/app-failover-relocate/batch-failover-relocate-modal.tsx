@@ -12,6 +12,8 @@ import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { chunk } from 'lodash-es';
 import {
+  Alert,
+  AlertVariant,
   Button,
   ButtonType,
   ButtonVariant,
@@ -25,7 +27,7 @@ import {
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../constants';
 import { DRPlacementControlKind } from '../../../types';
-import { getPrimaryClusterName } from '../../../utils';
+import { DRPCClusterInfo } from '../../../utils/pav';
 
 const BATCH_SIZE = 6;
 
@@ -42,17 +44,23 @@ export type BatchFailureResult = {
 
 export type BatchFailoverRelocateExtraProps = {
   selectedDRPCs: DRPlacementControlKind[];
+  clusterInfoMap: Map<string, DRPCClusterInfo>;
   onComplete: () => void;
   onPartialFailure: (result: BatchFailureResult) => void;
   initialAction?: DRActionType;
 };
 
-const buildDRPCPatch = (drpc: DRPlacementControlKind, action: DRActionType) => {
-  const primaryCluster = getPrimaryClusterName(drpc);
-  const targetCluster =
-    [drpc.spec.preferredCluster, drpc.spec.failoverCluster].find(
-      (c) => c && c !== primaryCluster
-    ) || '';
+const isDRActionReady = (
+  clusterInfo: DRPCClusterInfo,
+  action: DRActionType
+): boolean =>
+  !!clusterInfo.primaryCluster &&
+  !!clusterInfo.targetCluster &&
+  clusterInfo.isPeerReady &&
+  (action === DRActionType.RELOCATE ? clusterInfo.isAvailable : true);
+
+const buildDRPCPatch = (action: DRActionType, clusterInfo: DRPCClusterInfo) => {
+  const { primaryCluster, targetCluster } = clusterInfo;
 
   return [
     { op: 'replace', path: '/spec/action', value: action },
@@ -72,8 +80,13 @@ const buildDRPCPatch = (drpc: DRPlacementControlKind, action: DRActionType) => {
 export const BatchFailoverRelocateModal: React.FC<
   CommonModalProps<BatchFailoverRelocateExtraProps>
 > = ({ isOpen, closeModal, extraProps }) => {
-  const { selectedDRPCs, onComplete, onPartialFailure, initialAction } =
-    extraProps;
+  const {
+    selectedDRPCs,
+    clusterInfoMap,
+    onComplete,
+    onPartialFailure,
+    initialAction,
+  } = extraProps;
   const { t } = useCustomTranslation();
 
   const [selectedAction, setSelectedAction] =
@@ -82,8 +95,19 @@ export const BatchFailoverRelocateModal: React.FC<
   const [completedCount, setCompletedCount] = React.useState(0);
 
   const totalCount = selectedDRPCs.length;
+
+  const ineligibleCount = React.useMemo(() => {
+    if (!selectedAction) return 0;
+    return selectedDRPCs.filter((drpc) => {
+      const key = `${getNamespace(drpc)}/${getName(drpc)}`;
+      const clusterInfo = clusterInfoMap.get(key);
+      return !clusterInfo || !isDRActionReady(clusterInfo, selectedAction);
+    }).length;
+  }, [selectedAction, selectedDRPCs, clusterInfoMap]);
+
+  const eligibleCount = totalCount - ineligibleCount;
   const progressPercent =
-    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+    eligibleCount > 0 ? Math.round((completedCount / eligibleCount) * 100) : 0;
 
   const onInitiate = async () => {
     if (!selectedAction) return;
@@ -91,12 +115,34 @@ export const BatchFailoverRelocateModal: React.FC<
     setCompletedCount(0);
 
     const failedItems: FailedDRPCItem[] = [];
-    const batches = chunk(selectedDRPCs, BATCH_SIZE);
+    const eligible: Array<{
+      drpc: DRPlacementControlKind;
+      clusterInfo: DRPCClusterInfo;
+    }> = [];
+
+    selectedDRPCs.forEach((drpc) => {
+      const key = `${getNamespace(drpc)}/${getName(drpc)}`;
+      const clusterInfo = clusterInfoMap.get(key);
+      if (!clusterInfo || !isDRActionReady(clusterInfo, selectedAction)) {
+        failedItems.push({
+          drpc,
+          errorMessage: !clusterInfo
+            ? t('Missing cluster information')
+            : selectedAction === DRActionType.RELOCATE
+              ? t('Peer is not ready or application is not available')
+              : t('Peer is not ready'),
+        });
+      } else {
+        eligible.push({ drpc, clusterInfo });
+      }
+    });
+
+    const batches = chunk(eligible, BATCH_SIZE);
 
     for (const batch of batches) {
       // eslint-disable-next-line no-await-in-loop
       await Promise.all(
-        batch.map((drpc) =>
+        batch.map(({ drpc, clusterInfo }) =>
           k8sPatch({
             model: DRPlacementControlModel,
             resource: {
@@ -105,7 +151,7 @@ export const BatchFailoverRelocateModal: React.FC<
                 namespace: getNamespace(drpc),
               },
             },
-            data: buildDRPCPatch(drpc, selectedAction),
+            data: buildDRPCPatch(selectedAction, clusterInfo),
           })
             .catch((error) => {
               failedItems.push({
@@ -128,7 +174,9 @@ export const BatchFailoverRelocateModal: React.FC<
       });
     }
 
-    onComplete();
+    if (failedItems.length < totalCount) {
+      onComplete();
+    }
     closeModal();
   };
 
@@ -162,7 +210,7 @@ export const BatchFailoverRelocateModal: React.FC<
       <Modal
         title={t('{{action}} {{count}} applications', {
           action: label,
-          count: totalCount,
+          count: eligibleCount,
         })}
         isOpen={isOpen}
         showClose={false}
@@ -192,6 +240,26 @@ export const BatchFailoverRelocateModal: React.FC<
       variant={ModalVariant.medium}
     >
       <ModalBody>
+        {selectedAction && ineligibleCount > 0 && (
+          <Alert
+            variant={AlertVariant.warning}
+            title={t(
+              '{{count}} of {{total}} selected applications are not ready for {{action}}.',
+              {
+                count: ineligibleCount,
+                total: totalCount,
+                action:
+                  selectedAction === DRActionType.FAILOVER
+                    ? t('failover')
+                    : t('relocate'),
+              }
+            )}
+            isInline
+            className="pf-v6-u-mb-md"
+          >
+            {t('These applications will be skipped and reported as failures.')}
+          </Alert>
+        )}
         <Gallery hasGutter minWidths={{ default: '200px' }}>
           {actionCards.map(({ type, title, body }) => {
             const id = `selectable-action-${type.toLowerCase()}`;

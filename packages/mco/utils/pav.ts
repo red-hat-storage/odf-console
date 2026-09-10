@@ -1,7 +1,38 @@
 import { DASH, getName } from '@odf/shared';
-import { ObjectReference } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  ObjectReference,
+  type K8sResourceCondition,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { ApplicationType } from '../constants';
 import { ProtectedApplicationViewKind } from '../types/pav';
+
+export type DRPCClusterInfo = {
+  primaryCluster: string;
+  targetCluster: string;
+  isPeerReady: boolean;
+  isAvailable: boolean;
+};
+
+const hasCondition = (
+  conditions: K8sResourceCondition[],
+  type: string
+): boolean =>
+  !!conditions?.some((c) => c?.type === type && c?.status === 'True');
+
+export const buildClusterInfo = (
+  pav: ProtectedApplicationViewKind
+): DRPCClusterInfo => {
+  const primaryCluster = pav.status?.drInfo?.primaryCluster || '';
+  const drClusters = pav.status?.drInfo?.drClusters || [];
+  const targetCluster = drClusters.find((c) => c && c !== primaryCluster) || '';
+  const conditions = pav.status?.drInfo?.status?.conditions || [];
+  return {
+    primaryCluster,
+    targetCluster,
+    isPeerReady: hasCondition(conditions, 'PeerReady'),
+    isAvailable: hasCondition(conditions, 'Available'),
+  };
+};
 
 export const getApplicationName = (
   pav: ProtectedApplicationViewKind
