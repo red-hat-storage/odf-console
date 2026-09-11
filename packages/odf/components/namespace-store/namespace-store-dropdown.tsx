@@ -42,7 +42,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
     true
   );
 
-  const { noobaaNamespaceStores, hasNoFilesystemStores } = React.useMemo(() => {
+  const { noobaaNamespaceStores } = React.useMemo(() => {
     const filesystemStores = nnsData.filter(
       (nns) => getNamespaceStoreType(nns) === StoreProviders.FILESYSTEM
     );
@@ -56,7 +56,6 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
 
     return {
       noobaaNamespaceStores: stores,
-      hasNoFilesystemStores: filesystemStores.length === 0,
     };
   }, [nnsData, filterArchive, filterFilesystem]);
 
@@ -127,8 +126,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
       isDisabled={
         !!nnsLoadErr ||
         (namespacePolicy === NamespacePolicyType.MULTI &&
-          enabledItems?.length === 0) ||
-        (filterFilesystem && hasNoFilesystemStores)
+          enabledItems?.length === 0)
       }
       isFullWidth
     >

@@ -369,18 +369,24 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
             isRequired: true,
           }}
           render={({ value, onChange, onBlur }) => (
-            // Changing key forces React to re-mount the dropdown when isArchive changes,
+            // Changing key forces React to re-mount the dropdown when isArchive/ isVector changes,
             // resetting its internal state to reflect the new defaultSelection and disabled state.
             <StaticDropdown
-              key={isArchive ? 'disabled' : 'enabled'}
+              key={isArchive || isVector ? 'disabled' : 'enabled'}
               className="nb-endpoints-form-entry__dropdown"
               onSelect={onChange}
               onBlur={onBlur}
               dropdownItems={providerDropdownItems}
-              defaultSelection={isArchive ? StoreProviders.S3 : value}
+              defaultSelection={
+                isArchive
+                  ? StoreProviders.S3
+                  : isVector
+                    ? StoreProviders.FILESYSTEM
+                    : value
+              }
               data-test="namespacestore-provider"
               isFullWidth
-              isDisabled={isArchive}
+              isDisabled={isArchive || isVector}
             />
           )}
         />
