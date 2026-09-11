@@ -290,6 +290,10 @@ export const getIPFamily = (addr: string): IPFamily => {
   return ipPattern.test(addr) ? IPFamily.IPV4 : IPFamily.IPV6;
 };
 
+export const formatIPV6HostForURL = (host: string): string => {
+  const ipv6Pattern = /^(?=.*:)[0-9A-Fa-f:]+$/;
+  return ipv6Pattern.test(host) ? `[${host}]` : host;
+};
 export const checkError = (
   data: string = '{}',
   requiredKeys = [],
