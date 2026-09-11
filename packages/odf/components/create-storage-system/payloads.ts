@@ -1,4 +1,8 @@
-import { getOCSRequestData, OCSRequestData } from '@odf/core/components/utils';
+import {
+  formatIPV6HostForURL,
+  getOCSRequestData,
+  OCSRequestData,
+} from '@odf/core/components/utils';
 import { DeploymentType, BackingStorageType } from '@odf/core/types';
 import { isFlexibleScaling } from '@odf/core/utils';
 import { Payload } from '@odf/odf-plugin-sdk/extensions';
@@ -34,7 +38,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash-es';
-import { ocsTaint, DefaultRequestSize, NO_PROVISIONER } from '../../constants';
+import { DefaultRequestSize, NO_PROVISIONER, ocsTaint } from '../../constants';
 import { WizardNodeState, WizardState } from './reducer';
 
 export const createSecretPayload = (
@@ -76,7 +80,7 @@ export const createNoobaaExternalPostgresResources = (
 ): Promise<K8sResourceKind>[] => {
   let secretResources: Promise<K8sResourceKind>[] = [];
   const stringData = {
-    db_url: `postgresql://${externalPostgresDetails.username}:${externalPostgresDetails.password}@${externalPostgresDetails.serverName}:${externalPostgresDetails.port}/${externalPostgresDetails.databaseName}`,
+    db_url: `postgresql://${externalPostgresDetails.username}:${externalPostgresDetails.password}@${formatIPV6HostForURL(externalPostgresDetails.serverName)}:${externalPostgresDetails.port}/${externalPostgresDetails.databaseName}`,
   };
   const noobaaExternalPostgresSecretPayload = createSecretPayload(
     NOOBA_EXTERNAL_PG_SECRET_NAME,

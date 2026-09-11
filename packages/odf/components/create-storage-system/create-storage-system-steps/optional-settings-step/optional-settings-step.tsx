@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { FDF_FLAG } from '@odf/core/redux';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
-import { TechPreviewBadge } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Form, FormGroup, Checkbox } from '@patternfly/react-core';
@@ -65,14 +64,7 @@ export const OptionalSettings: React.FC<OptionalSettingsProps> = ({
         {!hasOCS && (
           <Checkbox
             id="use-external-postgress"
-            label={
-              <>
-                {t('Use external PostgreSQL')}
-                <span className="pf-v6-u-ml-sm">
-                  <TechPreviewBadge />
-                </span>
-              </>
-            }
+            label={t('Use external PostgreSQL')}
             description={t(
               'Allow Noobaa to connect to an external postgres server'
             )}
