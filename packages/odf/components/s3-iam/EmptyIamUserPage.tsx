@@ -1,5 +1,8 @@
 import * as React from 'react';
 import { StatusBox, useCustomTranslation } from '@odf/shared';
+import { iamUserDoc } from '@odf/shared/constants';
+import { DOC_VERSION } from '@odf/shared/hooks';
+import { ViewDocumentation } from '@odf/shared/utils';
 import { useNavigate } from 'react-router';
 import useSWR from 'swr';
 import {
@@ -75,7 +78,10 @@ const EmptyIamUserPageContent = () => {
             </Button>
           </EmptyStateActions>
           <EmptyStateActions>
-            <Button variant="link">{t('Learn more about IAM')}</Button>
+            <ViewDocumentation
+              doclink={iamUserDoc(DOC_VERSION)}
+              text={t('Learn more about IAM')}
+            />
           </EmptyStateActions>
         </EmptyStateFooter>
       </EmptyState>
