@@ -9,7 +9,6 @@ import { hasAnyInternalOCS, labelOCSNamespace } from '@odf/core/utils';
 import {
   inTransitEncryptionSettingsForRHCS,
   PageHeading,
-  TechPreviewBadge,
   useCustomTranslation,
   useK8sList,
 } from '@odf/shared';
@@ -430,14 +429,7 @@ const CreateCephCluster: React.FC = () => {
           />
           <Checkbox
             id="use-external-postgress"
-            label={
-              <>
-                {t('Use external PostgreSQL')}
-                <span className="pf-v6-u-ml-sm">
-                  <TechPreviewBadge />
-                </span>
-              </>
-            }
+            label={t('Use external PostgreSQL')}
             description={t(
               'Allow Noobaa to connect to an external postgres server'
             )}
