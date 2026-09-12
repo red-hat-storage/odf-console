@@ -284,11 +284,10 @@
     }
   },
   {
-    "type": "console.dashboards/overview/health/prometheus",
+    "type": "console.dashboards/overview/health/resource",
     "properties": {
       "title": "Storage",
-      "queries": ["NooBaa_health_status"],
-      "additionalResource": { "$codeRef": "healthResource.healthResource" },
+      "resources": { "$codeRef": "healthResource.healthResources" },
       "healthHandler": { "$codeRef": "healthResource.healthHandler" },
       "popupComponent": { "$codeRef": "healthResource.StoragePopover" },
       "popupTitle": "Storage"

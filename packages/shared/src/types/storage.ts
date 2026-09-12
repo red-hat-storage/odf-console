@@ -293,7 +293,54 @@ export type CleanupPolicy = {
   wipeDevicesFromOtherClusters: boolean;
 };
 
-export type NoobaaSystemKind = K8sResourceCommon;
+export enum NooBaaSystemPhase {
+  Rejected = 'Rejected',
+  Verifying = 'Verifying',
+  Creating = 'Creating',
+  Connecting = 'Connecting',
+  Configuring = 'Configuring',
+  Ready = 'Ready',
+}
+
+export type NooBaaStatus = {
+  observedGeneration?: number;
+  phase?: NooBaaSystemPhase;
+  conditions?: Array<{
+    type: string;
+    status: string;
+    reason?: string;
+    message?: string;
+    lastTransitionTime?: string;
+  }>;
+  relatedObjects?: K8sResourceCommon[];
+  actualImage?: string;
+  upgradePhase?: string;
+  postgresUpdatePhase?: string;
+  readme?: string;
+  lastKeyRotateTime?: string;
+  beforeUpgradeDbImage?: string;
+  accounts?: {
+    admin: {
+      secretRef: {
+        name: string;
+        namespace: string;
+      };
+    };
+  };
+  services?: Record<string, unknown>;
+  endpoints?: {
+    readyCount: number;
+    virtualHosts: string[];
+  };
+  dbStatus?: Record<string, unknown>;
+};
+
+export type NooBaaKind = K8sResourceCommon & {
+  spec?: Record<string, unknown>;
+  status?: NooBaaStatus;
+};
+
+export type NoobaaSystemKind = NooBaaKind;
 
 export enum CapacityAutoscalingStatus {
   Failed = 'Failed',

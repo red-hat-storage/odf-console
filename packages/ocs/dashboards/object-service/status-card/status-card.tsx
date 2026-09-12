@@ -3,14 +3,18 @@ import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { secretResource } from '@odf/core/resources';
 import { getResourceInNs } from '@odf/core/utils';
-import { decodeRGWPrefix, getDataResiliencyState } from '@odf/ocs/utils';
+import {
+  decodeRGWPrefix,
+  getDataResiliencyState,
+  getNooBaaHealthFromCR,
+} from '@odf/ocs/utils';
 import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import useAlerts from '@odf/shared/monitoring/useAlert';
-import { K8sResourceKind } from '@odf/shared/types';
+import { K8sResourceKind, NooBaaKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   alertURL,
@@ -40,7 +44,7 @@ import {
   ObjectServiceDashboardQuery,
 } from '../../../queries';
 import { ObjectServiceStatus } from './object-service-health';
-import { getNooBaaState, getRGWHealthState } from './statuses';
+import { getRGWHealthState } from './statuses';
 import '../../../style.scss';
 
 const noobaaResource = {
@@ -88,7 +92,7 @@ const StatusCard: React.FC<{}> = () => {
   const [secretData, secretLoaded, secretLoadError] =
     useK8sWatchResource<K8sResourceKind>(secretResource(clusterNs));
   const [noobaas, noobaaLoaded, noobaaLoadError] =
-    useK8sWatchResource<K8sResourceKind[]>(noobaaResource);
+    useK8sWatchResource<NooBaaKind[]>(noobaaResource);
   const [rgws, rgwLoaded, rgwLoadError] = useK8sWatchResource<
     K8sResourceKind[]
   >(cephObjectStoreResource);
@@ -108,11 +112,6 @@ const StatusCard: React.FC<{}> = () => {
     ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY
   ](rgwPrefix, managedByOCS);
 
-  const [healthStatusResult, healthStatusError] = useCustomPrometheusPoll({
-    query: StatusCardQueries.HEALTH_QUERY,
-    endpoint: 'api/v1/query' as any,
-    basePath: usePrometheusBasePath(),
-  });
   const [progressResult, progressError] = useCustomPrometheusPoll({
     query: StatusCardQueries.MCG_REBUILD_PROGRESS_QUERY,
     endpoint: 'api/v1/query' as any,
@@ -124,15 +123,10 @@ const StatusCard: React.FC<{}> = () => {
     basePath: usePrometheusBasePath(),
   });
 
-  const MCGState = getNooBaaState(
-    [{ response: healthStatusResult, error: healthStatusError }],
-    t,
-    {
-      loaded: noobaaLoaded,
-      loadError: noobaaLoadError,
-      data: noobaa,
-    }
-  );
+  const MCGState =
+    !noobaaLoadError && noobaaLoaded
+      ? getNooBaaHealthFromCR(noobaa as NooBaaKind, t)
+      : undefined;
 
   const RGWState =
     !rgwLoadError && rgwLoaded ? getRGWHealthState(rgw) : undefined;
