@@ -3,6 +3,7 @@ import { ODF_ADMIN } from '@odf/core/features';
 import { S3ProviderType } from '@odf/core/types';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { dataPathSeparationProxy, S3Commands } from '@odf/shared/s3';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isClientPlugin } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -14,6 +15,10 @@ import { useSecretData } from '../s3-common/hooks/useSecretData';
 import { useSecretRef } from '../s3-common/hooks/useSecretRef';
 import { useStorage } from '../s3-common/hooks/useStorage';
 import { StorageType, SecretRef } from '../s3-common/types';
+import {
+  getObjectStorageNotReadyAlert,
+  isAdminSecretNotFound,
+} from '../s3-common/utils';
 
 type S3ContextType = {
   s3Client: S3Commands;
@@ -43,6 +48,7 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
   error,
   s3Provider,
 }) => {
+  const { t } = useCustomTranslation();
   const isAdmin = useFlag(ODF_ADMIN);
   const isClientCluster = isClientPlugin();
 
@@ -111,6 +117,16 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
     return (
       <S3Context.Provider value={contextData}>{children}</S3Context.Provider>
     );
+  }
+
+  if (
+    isAdminSecretNotFound(
+      secretRef,
+      secretError,
+      providerConfig?.adminSecretName
+    )
+  ) {
+    return getObjectStorageNotReadyAlert(t);
   }
 
   return <StatusBox loaded={allLoaded} loadError={anyError} />;

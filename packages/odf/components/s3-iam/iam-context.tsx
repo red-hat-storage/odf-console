@@ -3,6 +3,7 @@ import { ODF_ADMIN } from '@odf/core/features';
 import { S3ProviderType } from '@odf/core/types';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { IamCommands } from '@odf/shared/iam';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { LazyLoginForm } from '../s3-common/components/LazyLogin';
@@ -12,6 +13,10 @@ import { useSecretData } from '../s3-common/hooks/useSecretData';
 import { useSecretRef } from '../s3-common/hooks/useSecretRef';
 import { useStorage } from '../s3-common/hooks/useStorage';
 import { StorageType, SecretRef, ClientType } from '../s3-common/types';
+import {
+  getObjectStorageNotReadyAlert,
+  isAdminSecretNotFound,
+} from '../s3-common/utils';
 
 type IamContextType = {
   iamClient: IamCommands;
@@ -38,6 +43,7 @@ export const IamProvider: React.FC<IamProviderProps> = ({
   loading,
   error,
 }) => {
+  const { t } = useCustomTranslation();
   const isAdmin = useFlag(ODF_ADMIN);
 
   // IAM is currently only supported for Noobaa provider type
@@ -105,6 +111,16 @@ export const IamProvider: React.FC<IamProviderProps> = ({
     return (
       <IamContext.Provider value={contextData}>{children}</IamContext.Provider>
     );
+  }
+
+  if (
+    isAdminSecretNotFound(
+      secretRef,
+      secretError,
+      providerConfig?.adminSecretName
+    )
+  ) {
+    return getObjectStorageNotReadyAlert(t);
   }
 
   return <StatusBox loaded={allLoaded} loadError={anyError} />;

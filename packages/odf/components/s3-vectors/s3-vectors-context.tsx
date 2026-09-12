@@ -3,6 +3,7 @@ import { ODF_ADMIN } from '@odf/core/features';
 import { S3ProviderType } from '@odf/core/types';
 import { StatusBox } from '@odf/shared';
 import { S3VectorsCommands } from '@odf/shared/s3-vectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { LazyLoginForm } from '../s3-common/components/LazyLogin';
@@ -12,6 +13,10 @@ import { useSecretData } from '../s3-common/hooks/useSecretData';
 import { useSecretRef } from '../s3-common/hooks/useSecretRef';
 import { useStorage } from '../s3-common/hooks/useStorage';
 import { ClientType, SecretRef, StorageType } from '../s3-common/types';
+import {
+  getObjectStorageNotReadyAlert,
+  isAdminSecretNotFound,
+} from '../s3-common/utils';
 
 type S3VectorsContextType = {
   s3VectorsClient: S3VectorsCommands;
@@ -38,6 +43,7 @@ export const S3VectorsProvider: React.FC<S3VectorsProviderProps> = ({
   loading,
   error,
 }) => {
+  const { t } = useCustomTranslation();
   const isAdmin = useFlag(ODF_ADMIN);
 
   // S3 Vectors is currently only supported for Noobaa provider type
@@ -109,5 +115,16 @@ export const S3VectorsProvider: React.FC<S3VectorsProviderProps> = ({
       </S3VectorsContext.Provider>
     );
   }
+
+  if (
+    isAdminSecretNotFound(
+      secretRef,
+      secretError,
+      providerConfig?.adminSecretName
+    )
+  ) {
+    return getObjectStorageNotReadyAlert(t);
+  }
+
   return <StatusBox loaded={allLoaded} loadError={anyError} />;
 };
