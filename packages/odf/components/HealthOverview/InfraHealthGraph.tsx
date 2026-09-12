@@ -59,22 +59,59 @@ const getScoreSeries = (
   }));
 };
 
-const getAlertSeries = (alerts: AlertRowData[]) => {
+// Severity bands - each severity gets a vertical range where its alerts are spread
+// Format: [minY, maxY] - alerts within each severity are distributed in this range
+const SEVERITY_BANDS: Record<string, [number, number]> = {
+  critical: [5, 20],
+  warning: [25, 40],
+  info: [45, 60],
+};
+
+const getSeverityBand = (severity: string): [number, number] => {
+  const normalizedSeverity = severity?.toLowerCase();
+  return SEVERITY_BANDS[normalizedSeverity] ?? SEVERITY_BANDS.info;
+};
+
+type TimeWindow = {
+  now: Date;
+  twentyFourHoursAgo: Date;
+};
+
+const getAlertSeries = (alerts: AlertRowData[], timeWindow: TimeWindow) => {
   if (!alerts.length) {
     return [];
   }
 
-  const MIN_Y = 10;
-  const MAX_Y = 100;
-  const bandHeight = MAX_Y - MIN_Y;
-  const laneCount = alerts.length;
-  const gap = bandHeight / (laneCount + 1);
+  const { now, twentyFourHoursAgo } = timeWindow;
 
-  const now = new Date();
-  const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS);
+  // Group alerts by severity to calculate lane positions within each band
+  const severityCounts: Record<string, number> = {};
+  const severityIndices: Record<string, number> = {};
 
-  return alerts.map((alert, index) => {
-    const laneY = MIN_Y + gap * (index + 1);
+  // First pass: count alerts per severity
+  alerts.forEach((alert) => {
+    const severity = alert.severity?.toLowerCase() ?? 'info';
+    severityCounts[severity] = (severityCounts[severity] ?? 0) + 1;
+  });
+
+  // Second pass: assign lane positions
+  return alerts.map((alert) => {
+    const severity = alert.severity?.toLowerCase() ?? 'info';
+    const [minY, maxY] = getSeverityBand(severity);
+    const count = severityCounts[severity];
+    const index = severityIndices[severity] ?? 0;
+    severityIndices[severity] = index + 1;
+
+    // Calculate Y position within the severity band
+    // If only one alert of this severity, center it; otherwise spread them
+    let laneY: number;
+    if (count === 1) {
+      laneY = (minY + maxY) / 2;
+    } else {
+      const bandHeight = maxY - minY;
+      const gap = bandHeight / (count + 1);
+      laneY = minY + gap * (index + 1);
+    }
 
     // Clamp start time to the 24-hour window
     const start = new Date(
@@ -146,7 +183,23 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
     [scoreResponse]
   );
 
-  const alertSeries = React.useMemo(() => getAlertSeries(alerts), [alerts]);
+  // Stable time window - updates when alerts or score data changes
+  // This ensures consistent time boundaries across the chart and alert series
+  // while still advancing the graph as real time progresses via polling intervals
+  const timeWindow = React.useMemo<TimeWindow>(
+    () => {
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS);
+      return { now, twentyFourHoursAgo };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [alerts, scoreResponse]
+  );
+
+  const alertSeries = React.useMemo(
+    () => getAlertSeries(alerts, timeWindow),
+    [alerts, timeWindow]
+  );
 
   const scoreHasData = scoreSeries?.length > 0;
   const alertsHaveData = alertSeries?.length > 0;
@@ -169,8 +222,8 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
   } else if (!scoreHasData && !alertsHaveData) {
     content = <GraphEmpty height={250} loading={false} />;
   } else {
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS);
+    // Use stable time window for chart domain (same as alert series)
+    const { now, twentyFourHoursAgo } = timeWindow;
 
     content = (
       <Chart
@@ -272,7 +325,7 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
                 alertname: alert.alertname,
                 severity: alert.severity,
                 startTime: alert.startTime,
-                endTime: alert.endTime ?? new Date(),
+                endTime: alert.endTime ?? now,
               }))}
               style={{
                 data: {
