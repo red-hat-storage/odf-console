@@ -20,6 +20,7 @@ import {
   K8sResourceCommon,
   useK8sWatchResource,
   useListPageFilter,
+  RowFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'i18next';
@@ -401,6 +402,24 @@ const ProtectedAppsTableRow: React.FC<
   );
 };
 
+// Dedicated filter key so Name search is not tied to the default
+// type: 'name' filter handling, which can leave the filter stuck after clear.
+const PAV_NAME_FILTER = 'protected-application';
+
+const nameFilter: RowFilter<ProtectedApplicationViewKind>[] = [
+  {
+    type: PAV_NAME_FILTER,
+    filterGroupName: '',
+    reducer: () => undefined,
+    items: [],
+    filter: (filterValue, pav) =>
+      fuzzyCaseInsensitive(
+        filterValue.selected?.[0],
+        getApplicationName(pav) || ''
+      ),
+  },
+];
+
 export const ProtectedApplicationsListPage: React.FC = () => {
   const { t } = useCustomTranslation();
   const launcher: LaunchModal = useModalWrapper();
@@ -430,7 +449,10 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const isAllLoadedWOAnyError =
     pavsLoaded && drpcsLoaded && !pavsError && !drpcsError;
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(pavs || []);
+  const [data, filteredData, onFilterChange] = useListPageFilter(
+    pavs || [],
+    nameFilter
+  );
 
   const [pagePavs, setPagePavs] = React.useState<
     ProtectedApplicationViewKind[]
@@ -575,6 +597,8 @@ export const ProtectedApplicationsListPage: React.FC = () => {
           data: data,
           loaded: drpcsLoaded && pavsLoaded,
           onFilterChange: onFilterChange,
+          nameFilter: PAV_NAME_FILTER,
+          hideLabelFilter: true,
         }}
         composableTableProps={{
           columns: getHeaderColumns(t),
