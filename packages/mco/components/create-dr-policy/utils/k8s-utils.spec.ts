@@ -3,7 +3,6 @@ import { ManagedClusterInfoType, MirrorPeerKind } from '@odf/mco/types';
 import {
   k8sCreate,
   k8sDelete,
-  k8sGet,
   k8sUpdate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { createPolicyPromises } from './k8s-utils';
@@ -11,18 +10,15 @@ import { drPolicyInitialState, DRPolicyState } from './reducer';
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
-  k8sGet: jest.fn(),
   k8sCreate: jest.fn(),
   k8sUpdate: jest.fn(),
   k8sDelete: jest.fn(),
 }));
 
-const mockK8sGet = k8sGet as jest.Mock;
 const mockK8sCreate = k8sCreate as jest.Mock;
 const mockK8sUpdate = k8sUpdate as jest.Mock;
 const mockK8sDelete = k8sDelete as jest.Mock;
 
-const notFound = { response: { status: 404 } };
 const forbidden = { response: { status: 403 } };
 const conflict = { response: { status: 409 } };
 
@@ -78,11 +74,6 @@ const existingMirrorPeer = {
   spec: { items: [peerItem('east-1'), peerItem('west-1')] },
 } as MirrorPeerKind;
 
-const existingPolicy = {
-  metadata: { name: 'policy-1', uid: 'uid-1', resourceVersion: '1' },
-  spec: { drClusters: ['east-1', 'west-1'], schedulingInterval: '10m' },
-};
-
 const resolveCreate = ({ model, data }) =>
   Promise.resolve(
     model.kind === 'MirrorPeer'
@@ -98,8 +89,7 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
     mockK8sDelete.mockResolvedValue({});
   });
 
-  it('sets isNewPolicy from createOrUpdate create vs update', async () => {
-    mockK8sGet.mockRejectedValueOnce(notFound);
+  it('creates a DRPolicy and does not update when the name already exists', async () => {
     await expect(
       createPolicyPromises(state, [existingMirrorPeer])
     ).resolves.toMatchObject({
@@ -110,31 +100,15 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
     expect(mockK8sUpdate).not.toHaveBeenCalled();
 
     jest.clearAllMocks();
-    mockK8sUpdate.mockImplementation(({ data }) => Promise.resolve(data));
-    mockK8sGet.mockResolvedValue(existingPolicy);
-    await expect(
-      createPolicyPromises(state, [existingMirrorPeer])
-    ).resolves.toMatchObject({ isNewPolicy: false });
-    expect(mockK8sCreate).not.toHaveBeenCalled();
-  });
-
-  it('fails closed on forbidden GET; 404→409 race becomes an update', async () => {
-    mockK8sGet.mockRejectedValue(forbidden);
-    await expect(
-      createPolicyPromises(state, [existingMirrorPeer])
-    ).rejects.toEqual(forbidden);
-
-    mockK8sGet
-      .mockRejectedValueOnce(notFound)
-      .mockResolvedValue(existingPolicy);
     mockK8sCreate.mockRejectedValueOnce(conflict);
+    mockK8sUpdate.mockImplementation(({ data }) => Promise.resolve(data));
     await expect(
       createPolicyPromises(state, [existingMirrorPeer])
-    ).resolves.toMatchObject({ isNewPolicy: false });
+    ).rejects.toEqual(conflict);
+    expect(mockK8sUpdate).not.toHaveBeenCalled();
   });
 
   it('creates MirrorPeer when missing and rolls it back if DRPolicy create fails', async () => {
-    mockK8sGet.mockRejectedValue(notFound);
     mockK8sCreate.mockImplementation(resolveCreate);
     await expect(createPolicyPromises(state, [])).resolves.toMatchObject({
       isNewMirrorPeer: true,
@@ -142,8 +116,12 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
       isNewPolicy: true,
     });
 
-    mockK8sGet.mockRejectedValue(forbidden);
-    mockK8sCreate.mockImplementation(resolveCreate);
+    mockK8sCreate.mockImplementation(({ model, data }) => {
+      if (model.kind === 'DRPolicy') {
+        return Promise.reject(forbidden);
+      }
+      return resolveCreate({ model, data });
+    });
     await expect(createPolicyPromises(state, [])).rejects.toEqual(forbidden);
     expect(mockK8sDelete).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -155,7 +133,6 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
   });
 
   it('does not match MirrorPeer with same SC name but different namespace', async () => {
-    mockK8sGet.mockRejectedValue(notFound);
     mockK8sCreate.mockImplementation(resolveCreate);
     const staleMirrorPeer = {
       metadata: { name: 'mirrorpeer-stale' },

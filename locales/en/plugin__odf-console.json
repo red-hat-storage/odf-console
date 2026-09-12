@@ -163,6 +163,7 @@
   "A BackingStore represents a storage target to be used as the underlying storage layer in Multicloud Object Gateway buckets.": "A BackingStore represents a storage target to be used as the underlying storage layer in Multicloud Object Gateway buckets.",
   "A dimension is the number of values in a vector. Larger dimensions require more storage.": "A dimension is the number of values in a vector. Larger dimensions require more storage.",
   "A dimension must be an integer between 1 and 4096": "A dimension must be an integer between 1 and 4096",
+  "A DRPolicy with name '{{name}}' already exists. Please choose a different name.": "A DRPolicy with name '{{name}}' already exists. Please choose a different name.",
   "A failover will occur for all namespaces currently under this DRPC.": "A failover will occur for all namespaces currently under this DRPC.",
   "A list of all Multicloud Object Gateway resources that are currently in use. Those resources are used to store data according to the buckets' policies and can be a cloud-based resource or a bare metal resource.": "A list of all Multicloud Object Gateway resources that are currently in use. Those resources are used to store data according to the buckets' policies and can be a cloud-based resource or a bare metal resource.",
   "a local backing store is recommended for better performance": "a local backing store is recommended for better performance",
