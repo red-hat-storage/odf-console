@@ -21,22 +21,20 @@ const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
       title={t('Create new NamespaceStore')}
       hasNoBodyWrapper={true}
     >
-      <div className="nb-endpoints__modal">
-        <ModalBody>
-          <p>
-            {t(
-              'Represents an underlying storage to be used as read or write target for the data in the namespace buckets.'
-            )}
-          </p>
-          <NamespaceStoreForm
-            namespace={odfNamespace}
-            onCancel={closeModal}
-            redirectHandler={closeModal}
-            isVector={extraProps?.isVector}
-            isDeepArchive={extraProps?.isDeepArchive}
-          />
-        </ModalBody>
-      </div>
+      <ModalBody>
+        <p>
+          {t(
+            'Represents an underlying storage to be used as read or write target for the data in the namespace buckets.'
+          )}
+        </p>
+        <NamespaceStoreForm
+          namespace={odfNamespace}
+          onCancel={closeModal}
+          redirectHandler={closeModal}
+          isVector={extraProps?.isVector}
+          isDeepArchive={extraProps?.isDeepArchive}
+        />
+      </ModalBody>
     </Modal>
   );
 };
