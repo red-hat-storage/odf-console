@@ -27,7 +27,7 @@ import {
   ReplicationType,
   ApplicationType,
 } from '../../constants';
-import { DRPlacementControlKind } from '../../types';
+import { DRPlacementControlKind, Phase, Progression } from '../../types';
 import {
   isFailingOrRelocating as isFailingOrRelocatingUtil,
   isCleanupRequired as isCleanupRequiredUtil,
@@ -125,7 +125,16 @@ export const getAlertMessages = (
 
 export const isFailingOrRelocating = (
   application: DRPlacementControlKind
-): boolean => isFailingOrRelocatingUtil(application?.status?.phase);
+): boolean => {
+  const phase = application?.status?.phase;
+  const action = application?.spec?.action;
+  if (!action) return false;
+  if (isFailingOrRelocatingUtil(phase)) return true;
+  if (phase === Phase.Initiating || phase === Phase.Deploying) return true;
+
+  const progression = application?.status?.progression;
+  return !!progression && progression !== Progression.Completed;
+};
 
 export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
   isCleanupRequiredUtil(drpc?.status?.phase, drpc?.status?.progression);

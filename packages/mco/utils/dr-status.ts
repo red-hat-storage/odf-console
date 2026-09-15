@@ -309,8 +309,9 @@ export const getDRStatus = ({
  * Utility: Check if application is currently failing over or relocating.
  */
 export const isFailingOrRelocating = (
-  status: DRStatus | Phase | string
+  status: DRStatus | Phase | string | undefined
 ): boolean => {
+  if (!status) return false;
   const statusStr = String(status);
   return (
     status === DRStatus.FailingOver ||
