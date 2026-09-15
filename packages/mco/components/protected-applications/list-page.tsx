@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
 import {
+  buildClusterInfo,
+  DRPCClusterInfo,
   getApplicationName,
   getPAVDRPolicyName,
   getPrimaryCluster,
@@ -61,13 +63,13 @@ import {
 } from './components';
 import { useDROperationAlert } from './dr-operation-alert-helper';
 import { getDRPCKey, useProtectedAppsSelection } from './use-selection';
-import './protected-apps.scss';
 import {
   drpcDetailsPageRoute,
   getColumnNames,
   getHeaderColumns,
   getRowActions,
 } from './utils';
+import './protected-apps.scss';
 
 const getFailureMessage = (
   t: TFunction<string>,
@@ -452,9 +454,14 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const [showDetails, setShowDetails] = React.useState(false);
 
   const launchBatchModal = React.useCallback(
-    (selectedDRPCs: DRPlacementControlKind[], initialAction?: DRActionType) => {
+    (
+      selectedDRPCs: DRPlacementControlKind[],
+      clusterInfoMap: Map<string, DRPCClusterInfo>,
+      initialAction?: DRActionType
+    ) => {
       const extraProps: BatchFailoverRelocateExtraProps = {
         selectedDRPCs,
+        clusterInfoMap,
         onComplete: selection.onSelectNone,
         onPartialFailure: (result: BatchFailureResult) =>
           setBatchFailure(result),
@@ -466,17 +473,22 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   );
 
   const onBatchAction = React.useCallback(() => {
-    const selectedDRPCs = (
-      filteredData as ProtectedApplicationViewKind[]
-    ).reduce<DRPlacementControlKind[]>((acc, pav) => {
-      if (selection.isSelected(pav)) {
-        const drpc = drpcMap.get(getDRPCKey(pav));
-        if (drpc) acc.push(drpc);
-      }
-      return acc;
-    }, []);
+    const selectedDRPCs: DRPlacementControlKind[] = [];
+    const clusterInfoMap = new Map<string, DRPCClusterInfo>();
 
-    if (selectedDRPCs.length > 0) launchBatchModal(selectedDRPCs);
+    (filteredData as ProtectedApplicationViewKind[]).forEach((pav) => {
+      if (selection.isSelected(pav)) {
+        const key = getDRPCKey(pav);
+        const drpc = drpcMap.get(key);
+        if (drpc) {
+          selectedDRPCs.push(drpc);
+          clusterInfoMap.set(key, buildClusterInfo(pav));
+        }
+      }
+    });
+
+    if (selectedDRPCs.length > 0)
+      launchBatchModal(selectedDRPCs, clusterInfoMap);
   }, [filteredData, selection, drpcMap, launchBatchModal]);
 
   const rowSelectProps: RowSelectProps = {
@@ -499,20 +511,36 @@ export const ProtectedApplicationsListPage: React.FC = () => {
     />
   );
 
+  const pavClusterInfoMap = React.useMemo(() => {
+    const map = new Map<string, DRPCClusterInfo>();
+    if (pavsLoaded && pavs) {
+      (pavs as ProtectedApplicationViewKind[]).forEach((pav) => {
+        map.set(getDRPCKey(pav), buildClusterInfo(pav));
+      });
+    }
+    return map;
+  }, [pavs, pavsLoaded]);
+
   const onRetry = React.useCallback(() => {
     if (!batchFailure) return;
-    const freshDrpcs = batchFailure.failedItems.reduce<
-      DRPlacementControlKind[]
-    >((acc, item) => {
+    const freshDrpcs: DRPlacementControlKind[] = [];
+    const retryClusterInfoMap = new Map<string, DRPCClusterInfo>();
+
+    batchFailure.failedItems.forEach((item) => {
       const key = `${getNamespace(item.drpc)}/${getName(item.drpc)}`;
       const fresh = drpcMap.get(key);
-      if (fresh) acc.push(fresh);
-      return acc;
-    }, []);
+      const info = fresh && pavClusterInfoMap.get(key);
+      if (fresh && info) {
+        freshDrpcs.push(fresh);
+        retryClusterInfoMap.set(key, info);
+      }
+    });
+
+    if (freshDrpcs.length === 0) return;
     const action = batchFailure.action;
     setBatchFailure(null);
-    if (freshDrpcs.length > 0) launchBatchModal(freshDrpcs, action);
-  }, [batchFailure, drpcMap, launchBatchModal]);
+    launchBatchModal(freshDrpcs, retryClusterInfoMap, action);
+  }, [batchFailure, drpcMap, pavClusterInfoMap, launchBatchModal]);
 
   const onDismiss = () => {
     setBatchFailure(null);

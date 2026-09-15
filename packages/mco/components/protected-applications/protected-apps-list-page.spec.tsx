@@ -146,7 +146,26 @@ const relocatedPAV = {
       drClusters: ['test-cluster-1', 'test-cluster-2'],
       primaryCluster: deploymentClusterName,
       protectedNamespaces: namespaces,
-      status: { phase: 'Relocated', lastGroupSyncTime: '2024-03-04T11:38:44Z' },
+      status: {
+        phase: 'Relocated',
+        lastGroupSyncTime: '2024-03-04T11:38:44Z',
+        conditions: [
+          {
+            type: 'PeerReady',
+            status: 'True',
+            lastTransitionTime: '',
+            reason: '',
+            message: '',
+          },
+          {
+            type: 'Available',
+            status: 'True',
+            lastTransitionTime: '',
+            reason: '',
+            message: '',
+          },
+        ],
+      },
     },
   },
 };
@@ -257,6 +276,15 @@ jest.mock('./use-selection', () => ({
 }));
 
 jest.mock('@odf/mco/utils', () => ({
+  buildClusterInfo: jest.fn((pav) => ({
+    primaryCluster: pav.status?.drInfo?.primaryCluster || '',
+    targetCluster:
+      (pav.status?.drInfo?.drClusters || []).find(
+        (c) => c && c !== (pav.status?.drInfo?.primaryCluster || '')
+      ) || '',
+    isPeerReady: true,
+    isAvailable: true,
+  })),
   getApplicationName: jest.fn((pav) => pav.metadata.name),
   getDRPlacementControlRef: jest.fn((pav) => pav.spec.drpcRef),
   getPAVDRPolicyName: jest.fn(() => drPolicyName),
@@ -571,6 +599,17 @@ describe('Test batch failover/relocate (RHSTOR-6407, RHSTOR-6408)', () => {
         closeModal={closeModal}
         extraProps={{
           selectedDRPCs: [relocatedDRPC as any],
+          clusterInfoMap: new Map([
+            [
+              'test/test-drpc-2',
+              {
+                primaryCluster: 'test-cluster-2',
+                targetCluster: 'test-cluster-1',
+                isPeerReady: true,
+                isAvailable: true,
+              },
+            ],
+          ]),
           onComplete: jest.fn(),
           onPartialFailure: jest.fn(),
         }}
@@ -594,6 +633,17 @@ describe('Test batch failover/relocate (RHSTOR-6407, RHSTOR-6408)', () => {
         closeModal={jest.fn()}
         extraProps={{
           selectedDRPCs: [relocatedDRPC as any],
+          clusterInfoMap: new Map([
+            [
+              'test/test-drpc-2',
+              {
+                primaryCluster: 'test-cluster-2',
+                targetCluster: 'test-cluster-1',
+                isPeerReady: true,
+                isAvailable: true,
+              },
+            ],
+          ]),
           onComplete: jest.fn(),
           onPartialFailure: jest.fn(),
         }}
@@ -617,6 +667,17 @@ describe('Test batch failover/relocate (RHSTOR-6407, RHSTOR-6408)', () => {
         closeModal={closeModal}
         extraProps={{
           selectedDRPCs: [relocatedDRPC as any],
+          clusterInfoMap: new Map([
+            [
+              'test/test-drpc-2',
+              {
+                primaryCluster: 'test-cluster-2',
+                targetCluster: 'test-cluster-1',
+                isPeerReady: true,
+                isAvailable: true,
+              },
+            ],
+          ]),
           onComplete,
           onPartialFailure: jest.fn(),
         }}
@@ -650,6 +711,17 @@ describe('Test batch failover/relocate (RHSTOR-6407, RHSTOR-6408)', () => {
         closeModal={closeModal}
         extraProps={{
           selectedDRPCs: [relocatedDRPC as any],
+          clusterInfoMap: new Map([
+            [
+              'test/test-drpc-2',
+              {
+                primaryCluster: 'test-cluster-2',
+                targetCluster: 'test-cluster-1',
+                isPeerReady: true,
+                isAvailable: true,
+              },
+            ],
+          ]),
           onComplete,
           onPartialFailure,
         }}
@@ -691,6 +763,17 @@ describe('Test batch failover/relocate (RHSTOR-6407, RHSTOR-6408)', () => {
         closeModal={closeModal}
         extraProps={{
           selectedDRPCs: [relocatedDRPC as any],
+          clusterInfoMap: new Map([
+            [
+              'test/test-drpc-2',
+              {
+                primaryCluster: 'test-cluster-2',
+                targetCluster: 'test-cluster-1',
+                isPeerReady: true,
+                isAvailable: true,
+              },
+            ],
+          ]),
           onComplete,
           onPartialFailure,
         }}
@@ -716,7 +799,7 @@ describe('Test batch failover/relocate (RHSTOR-6407, RHSTOR-6408)', () => {
           totalCount: 1,
         })
       );
-      expect(onComplete).toHaveBeenCalled();
+      expect(onComplete).not.toHaveBeenCalled();
       expect(closeModal).toHaveBeenCalled();
     });
   });
