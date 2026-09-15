@@ -425,7 +425,8 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
                     pvcObj?.status?.phase === 'Bound' &&
                     pvcObj?.spec?.accessModes.some(
                       (mode) => mode === 'ReadWriteMany'
-                    )
+                    ) &&
+                    pvcObj.spec.volumeMode === 'Filesystem'
                   }
                 />
               )}
