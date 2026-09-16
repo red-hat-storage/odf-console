@@ -6,6 +6,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { Kebab } from '@odf/shared/kebab';
 import { FileSystemModel } from '@odf/shared/models/scale';
 import { GreenCheckCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -142,6 +143,7 @@ const FileSystemsTable: React.FC = () => {
               <Th>{t('Connection status')}</Th>
               <Th>{t('Used capacity')}</Th>
               <Th>{t('Total capacity')}</Th>
+              <Th />
             </Tr>
           </Thead>
           <Tbody>
@@ -168,6 +170,14 @@ const FileSystemsTable: React.FC = () => {
                   ) : (
                     getFileSystemCapacity(totalCapacity, getName(fileSystem))
                   )}
+                </Td>
+                <Td className={Kebab.columnClass}>
+                  <Kebab
+                    extraProps={{
+                      resource: fileSystem,
+                      resourceModel: FileSystemModel,
+                    }}
+                  />
                 </Td>
               </Tr>
             ))}
