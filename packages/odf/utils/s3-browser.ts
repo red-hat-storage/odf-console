@@ -7,6 +7,7 @@ import {
   DeleteMarkerEntry,
 } from '@aws-sdk/client-s3';
 import { DASH, WILDCARD } from '@odf/shared/constants';
+import { STORAGE_CLASS_DEEP_ARCHIVE } from '@odf/shared/s3';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
@@ -119,6 +120,19 @@ export const convertObjectDataToCrFormat = (
       (objectData as Content | ObjectVersion | DeleteMarkerEntry)?.Owner
         ?.DisplayName || DASH;
     structuredObject.apiResponse.versionId = versionId;
+    // Storage class & restore status only exist on actual objects/versions,
+    // never on delete markers.
+    if (!isDeleteMarker) {
+      const objectOrVersion = objectData as Content | ObjectVersion;
+      structuredObject.apiResponse.storageClass = objectOrVersion?.StorageClass;
+      const restoreStatus = objectOrVersion?.RestoreStatus;
+      if (restoreStatus) {
+        structuredObject.apiResponse.restoreStatus = {
+          isRestoreInProgress: restoreStatus.IsRestoreInProgress,
+          restoreExpiryDate: restoreStatus.RestoreExpiryDate?.toString(),
+        };
+      }
+    }
     if (isDeleteMarker) structuredObject.isDeleteMarker = true;
     if (isLatestVersion) structuredObject.isLatest = true;
   }
@@ -223,3 +237,72 @@ export const isAllowAllConfig = (config: string[]) =>
 
 export const getProviderLabel = (providerType: S3ProviderType) =>
   providerType === S3ProviderType.Noobaa ? 'MCG' : 'RGW';
+
+// --- Storage class / Deep Archive helpers ---
+// Releases 5.1 / 5.0 / 4.23 only support the Deep Archive storage class, so all
+// archive-related conditions are intentionally scoped to DEEP_ARCHIVE only.
+
+// Returns the storage class exactly as fetched (e.g. STANDARD, DEEP_ARCHIVE),
+// keeping the display consistent across all classes. Blank only when no storage
+// class is provided.
+export const getStorageClassDisplayName = (
+  storageClass: string | undefined
+): string => storageClass || '';
+
+// True when the object lives in the Deep Archive storage class.
+export const isObjectDeepArchived = (object: ObjectCrFormat): boolean =>
+  object?.apiResponse?.storageClass === STORAGE_CLASS_DEEP_ARCHIVE;
+
+// True when a restore has been initiated for the object and is still running.
+export const isObjectRestoreInProgress = (object: ObjectCrFormat): boolean =>
+  !!object?.apiResponse?.restoreStatus?.isRestoreInProgress;
+
+// True when the object has been restored and is currently downloadable, i.e.
+// the restore completed and the temporary copy has a valid expiry still in the
+// future. An expired or unparseable expiry means the copy is gone and the
+// object is effectively archived again.
+export const isObjectRestored = (object: ObjectCrFormat): boolean => {
+  const restoreStatus = object?.apiResponse?.restoreStatus;
+  if (!restoreStatus || restoreStatus.isRestoreInProgress) return false;
+  const expiryTime = new Date(restoreStatus.restoreExpiryDate).getTime();
+  return !Number.isNaN(expiryTime) && expiryTime > Date.now();
+};
+
+// Parses the S3 `x-amz-restore` header (returned by HeadObject as `Restore`)
+// into the same restoreStatus shape used across the objects list. Examples:
+//   'ongoing-request="true"'
+//     -> { isRestoreInProgress: true }
+//   'ongoing-request="false", expiry-date="Fri, 21 Dec 2012 00:00:00 GMT"'
+//     -> { isRestoreInProgress: false, restoreExpiryDate: '...' }
+// Returns undefined when the object was never restored / not archived.
+export const parseRestoreHeader = (
+  restore: string | undefined
+): ObjectCrFormat['apiResponse']['restoreStatus'] | undefined => {
+  if (!restore) return undefined;
+  const isRestoreInProgress = /ongoing-request="true"/.test(restore);
+  const expiryMatch = restore.match(/expiry-date="([^"]+)"/);
+  return {
+    isRestoreInProgress,
+    ...(expiryMatch && { restoreExpiryDate: expiryMatch[1] }),
+  };
+};
+
+// Secondary text shown under the storage class value for Deep Archive objects:
+//   - restore in progress    -> "Restoring…"
+//   - restored (downloadable) -> "Restored until <date>"
+//   - archived, not restored  -> "Archived"
+// Returns '' for non-deep-archived / live objects.
+export const getRestoreStatusText = (
+  object: ObjectCrFormat,
+  t: TFunction
+): string => {
+  if (!isObjectDeepArchived(object)) return '';
+  if (isObjectRestoreInProgress(object)) return t('Restoring…');
+  if (isObjectRestored(object)) {
+    const expiry = new Date(
+      object.apiResponse.restoreStatus.restoreExpiryDate
+    ).toLocaleDateString();
+    return t('Restored until {{expiry}}', { expiry });
+  }
+  return t('Archived');
+};
