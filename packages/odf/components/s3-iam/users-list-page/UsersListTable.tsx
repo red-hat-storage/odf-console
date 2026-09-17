@@ -63,25 +63,34 @@ const getHeaderColumns = (t: TFunction<string>, favorites: string[]) => {
     {
       columnName: columnNames[0],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'UserName', favorites),
+      thProps: {
+        modifier: 'fitContent' as const,
+      },
     },
     {
       columnName: columnNames[1],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'UserName'),
+      thProps: {
+        className: 'pf-v6-u-w-25-on-lg',
+      },
     },
     {
       columnName: columnNames[2],
       thProps: {
-        className: 'pf-v6-u-w-16-on-lg',
+        className: 'pf-v6-u-w-25-on-lg',
       },
     },
     {
       columnName: columnNames[3],
       thProps: {
-        className: 'pf-v6-u-w-16-on-lg',
+        className: 'pf-v6-u-w-25-on-lg',
       },
     },
     {
       columnName: columnNames[4],
+      thProps: {
+        modifier: 'fitContent' as const,
+      },
     },
   ];
 };
