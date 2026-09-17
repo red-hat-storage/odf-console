@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { SAN_STORAGE_SYSTEM_NAME } from '@odf/core/constants';
-import { FileSystemKind } from '@odf/core/types/scale';
+import { ClusterKind, FileSystemKind } from '@odf/core/types/scale';
 import {
   DASH,
   getName,
@@ -12,6 +12,7 @@ import {
 import { Kebab } from '@odf/shared/kebab';
 import { ModalKeys } from '@odf/shared/modals';
 import { FileSystemModel } from '@odf/shared/models/scale';
+import { ClusterModel } from '@odf/shared/models/scale';
 import { GreenCheckCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -56,6 +57,11 @@ import { filterSANFileSystems } from '../ibm-common/utils';
 import { useScaleGuiLink } from './useScaleGUILink';
 import './LUNCard.scss';
 
+const scaleClusterResource = {
+  kind: referenceForModel(ClusterModel),
+  isList: true,
+};
+
 const resource = {
   kind: referenceForModel(FileSystemModel),
   isList: true,
@@ -70,7 +76,8 @@ const LUNGroupStatusIcon: React.FC<{
   fileSystems: FileSystemKind[];
   loading: boolean;
   loadError: boolean;
-}> = ({ fileSystems, loading, loadError }) => {
+  isFirstFileSystem: (creationTimestamp: string) => boolean;
+}> = ({ fileSystems, loading, loadError, isFirstFileSystem }) => {
   if (fileSystems?.length === 0 || loading || loadError) {
     return null;
   }
@@ -81,7 +88,8 @@ const LUNGroupStatusIcon: React.FC<{
     isLunGroupConnected(fileSystem)
   );
   const isAnyLUNGroupCreating = fileSystems.some(
-    (fileSystem) => getLUNGroupStatus(fileSystem) === HealthState.LOADING
+    (fileSystem) =>
+      getLUNGroupStatus(isFirstFileSystem)(fileSystem) === HealthState.LOADING
   );
   if (areAllLUNGroupsConnected) {
     return <GreenCheckCircleIcon />;
@@ -113,10 +121,13 @@ const getConsoleLink = (
   return `${url}-/${getName(fileSystem)}`;
 };
 
-const lunGroupStatusFilter = (t): RowFilter<FileSystemKind> => ({
+const lunGroupStatusFilter = (
+  t,
+  isFirstFileSystem: (creationTimestamp: string) => boolean
+): RowFilter<FileSystemKind> => ({
   type: 'lun-group-status',
   filterGroupName: t('Status'),
-  reducer: getLUNGroupStatus,
+  reducer: getLUNGroupStatus(isFirstFileSystem),
   items: [
     { id: HealthState.OK, title: t('Healthy') },
     { id: HealthState.LOADING, title: t('Creating') },
@@ -126,7 +137,7 @@ const lunGroupStatusFilter = (t): RowFilter<FileSystemKind> => ({
     if (!statuses || !statuses.selected || _.isEmpty(statuses.selected)) {
       return true;
     }
-    const status = getLUNGroupStatus(fileSystem);
+    const status = getLUNGroupStatus(isFirstFileSystem)(fileSystem);
     return (
       statuses.selected.includes(status) ||
       !_.includes(statuses.all, status) ||
@@ -149,6 +160,7 @@ type LUNGroupsListProps = {
   loaded: boolean;
   loadError: any;
   storageClasses: StorageClassResourceKind[];
+  isFirstFileSystem: (creationTimestamp: string) => boolean;
 };
 
 const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
@@ -229,20 +241,28 @@ const LUNGroupsList: React.FC<LUNGroupsListProps> = ({ ...props }) => {
       aria-label={t('LUN groups table')}
       columns={columns}
       Row={LUNGroupRow}
-      rowData={{ url, storageClasses: props.storageClasses }}
+      rowData={{
+        url,
+        storageClasses: props.storageClasses,
+        isFirstFileSystem: props.isFirstFileSystem,
+      }}
     />
   );
 };
 
-type CustomData = { url: string; storageClasses: StorageClassResourceKind[] };
+type CustomData = {
+  url: string;
+  storageClasses: StorageClassResourceKind[];
+  isFirstFileSystem: (creationTimestamp: string) => boolean;
+};
 
 const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
   obj,
   activeColumnIDs,
-  rowData: { url, storageClasses },
+  rowData: { url, storageClasses, isFirstFileSystem },
 }) => {
   const { t } = useCustomTranslation();
-  const status = getLUNGroupStatus(obj);
+  const status = getLUNGroupStatus(isFirstFileSystem)(obj);
   const storageClassName = getStorageClassName(obj, storageClasses);
 
   const customKebabItems = React.useMemo(
@@ -270,7 +290,7 @@ const LUNGroupRow: React.FC<RowProps<FileSystemKind, CustomData>> = ({
   const consoleLink = getConsoleLink(obj, url);
 
   const getStatusDisplay = () => {
-    switch (status) {
+    switch (getLUNGroupStatus(isFirstFileSystem)(obj)) {
       case HealthState.OK:
         return {
           icon: <GreenCheckCircleIcon className="pf-v6-u-mr-sm" />,
@@ -356,8 +376,27 @@ const LUNGroupsTable: React.FC = () => {
   const connectedLUNGroups = filteredFileSystems?.filter((fileSystem) =>
     isLunGroupConnected(fileSystem)
   );
+  const [scaleClusters, scaleClusterLoaded, scaleClusterLoadError] =
+    useK8sWatchResource<ClusterKind[]>(scaleClusterResource);
 
-  const rowFilters = React.useMemo(() => [lunGroupStatusFilter(t)], [t]);
+  const scaleCLusterCreationTimestamp =
+    scaleClusters?.[0]?.metadata?.creationTimestamp;
+  // If the remote filesystem is created up to 5 seconds after the scale cluster is created, it is the first filesystem.
+  const isFirstFileSystem = React.useCallback(
+    (creationTimestamp: string) => {
+      const creationDate = new Date(creationTimestamp);
+      const scaleClusterCreationDate = new Date(scaleCLusterCreationTimestamp);
+      const difference =
+        creationDate.getTime() - scaleClusterCreationDate.getTime();
+      return difference >= 0 && difference <= 5 * 1000;
+    },
+    [scaleCLusterCreationTimestamp]
+  );
+
+  const rowFilters = React.useMemo(
+    () => [lunGroupStatusFilter(t, isFirstFileSystem)],
+    [t, isFirstFileSystem]
+  );
 
   const [data, filteredData, onFilterChange] = useListPageFilter(
     filteredFileSystems || [],
@@ -371,8 +410,17 @@ const LUNGroupsTable: React.FC = () => {
           <span className="pf-v6-u-mr-sm">
             <LUNGroupStatusIcon
               fileSystems={filteredFileSystems || []}
-              loading={!fileSystemsLoaded || !storageClassesLoaded}
-              loadError={!!fileSystemsLoadError || !!storageClassesLoadError}
+              isFirstFileSystem={isFirstFileSystem}
+              loading={
+                !fileSystemsLoaded ||
+                !storageClassesLoaded ||
+                !scaleClusterLoaded
+              }
+              loadError={
+                !!fileSystemsLoadError ||
+                !!storageClassesLoadError ||
+                !!scaleClusterLoadError
+              }
             />
           </span>
           {t('{{ lunGroups }} connected', {
@@ -393,9 +441,14 @@ const LUNGroupsTable: React.FC = () => {
       <LUNGroupsList
         data={filteredData}
         unfilteredData={filteredFileSystems || []}
-        loaded={fileSystemsLoaded && storageClassesLoaded}
-        loadError={fileSystemsLoadError || storageClassesLoadError}
+        loaded={fileSystemsLoaded && storageClassesLoaded && scaleClusterLoaded}
+        loadError={
+          fileSystemsLoadError ||
+          storageClassesLoadError ||
+          scaleClusterLoadError
+        }
         storageClasses={storageClasses}
+        isFirstFileSystem={isFirstFileSystem}
       />
     </div>
   );
