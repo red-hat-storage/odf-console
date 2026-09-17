@@ -6,6 +6,13 @@ export type ObjectCrFormat = K8sResourceCommon & {
     lastModified?: string;
     ownerName?: string;
     versionId?: string;
+    // raw S3 storage class e.g. 'DEEP_ARCHIVE' | 'STANDARD' | ... (undefined when not provided)
+    storageClass?: string;
+    // populated only when the list call requests RestoreStatus optional attribute
+    restoreStatus?: {
+      isRestoreInProgress?: boolean;
+      restoreExpiryDate?: string;
+    };
   };
   isFolder?: boolean;
   isDeleteMarker?: boolean;

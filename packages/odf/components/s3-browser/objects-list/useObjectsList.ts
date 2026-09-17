@@ -6,6 +6,7 @@ import {
   CommonPrefix,
   ObjectVersion,
   DeleteMarkerEntry,
+  OptionalObjectAttributes,
 } from '@aws-sdk/client-s3';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -91,6 +92,8 @@ export const useObjectsList: UseObjectsList = ({
       MaxKeys: MAX_KEYS,
       Delimiter: DELIMITER,
       FetchOwner: true,
+      // Needed to surface Deep Archive restore status in the listing.
+      OptionalObjectAttributes: [OptionalObjectAttributes.RESTORE_STATUS],
       ...(!!searchWithPrefix && { Prefix: searchWithPrefix }),
       ...(!!arg && { ContinuationToken: arg }),
     })
@@ -106,6 +109,8 @@ export const useObjectsList: UseObjectsList = ({
       Bucket: bucketName,
       MaxKeys: MAX_KEYS,
       Delimiter: DELIMITER,
+      // Needed to surface Deep Archive restore status in the listing.
+      OptionalObjectAttributes: [OptionalObjectAttributes.RESTORE_STATUS],
       ...(!!searchWithPrefix && { Prefix: searchWithPrefix }),
       ...(!!arg?.keyMarker && { KeyMarker: arg.keyMarker }),
       ...(!!arg?.versionIdMarker && { VersionIdMarker: arg.versionIdMarker }),
