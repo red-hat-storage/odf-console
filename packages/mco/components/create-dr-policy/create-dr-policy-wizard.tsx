@@ -4,6 +4,7 @@ import { getMajorVersion } from '@odf/mco/utils';
 import {
   ACM_DEFAULT_DOC_VERSION,
   DRClusterModel,
+  DRPolicyModel,
   MirrorPeerModel,
   useDocVersion,
 } from '@odf/shared';
@@ -124,6 +125,13 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
   const [drClusters, drClustersLoaded, drClustersLoadError] =
     useK8sWatchResource<DRClusterKind[]>({
       kind: referenceForModel(DRClusterModel),
+      isList: true,
+      namespaced: false,
+    });
+
+  const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
+    useK8sWatchResource<DRPolicyKind[]>({
+      kind: referenceForModel(DRPolicyModel),
       isList: true,
       namespaced: false,
     });
@@ -298,8 +306,13 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
     setStep(CreateDRPolicyWizardSteps.Clusters);
   };
 
-  const loaded = mirrorPeerLoaded && drClustersLoaded;
-  const loadedError = mirrorPeerLoadError || drClustersLoadError;
+  const loaded = mirrorPeerLoaded && drClustersLoaded && drPoliciesLoaded;
+  const loadedError =
+    mirrorPeerLoadError || drClustersLoadError || drPoliciesLoadError;
+
+  const isPolicyNameTaken = (drPolicies ?? []).some(
+    (policy) => getName(policy) === state.policy.policyName
+  );
 
   const clusterNames = React.useMemo(
     () => state.clusters.selectedClusters.map(getName),
@@ -369,12 +382,14 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
       allDRClustersExist,
       prePairValidationPassed
     ),
-    [CreateDRPolicyWizardSteps.Policy]: validatePolicyStepInputs(state),
-    [CreateDRPolicyWizardSteps.Review]: validateReviewStepInputs(
-      state,
-      allDRClustersExist,
-      prePairValidationPassed
-    ),
+    [CreateDRPolicyWizardSteps.Policy]:
+      validatePolicyStepInputs(state) && !isPolicyNameTaken,
+    [CreateDRPolicyWizardSteps.Review]:
+      validateReviewStepInputs(
+        state,
+        allDRClustersExist,
+        prePairValidationPassed
+      ) && !isPolicyNameTaken,
   };
 
   return (
@@ -446,6 +461,7 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
           state={state}
           dispatch={dispatch}
           docHref={gettingStartedDRDocs(odfMCOVersion).CREATE_POLICY}
+          isPolicyNameTaken={isPolicyNameTaken}
         />
       </WizardStep>
       <WizardStep
