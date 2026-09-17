@@ -9,6 +9,7 @@ import {
   ResourceHealthHandler,
 } from '@odf/shared/types';
 import { getResiliencyProgress } from '@odf/shared/utils';
+import { isClusterDeleting } from '@odf/shared/utils/storage';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import { TFunction } from 'i18next';
@@ -107,6 +108,24 @@ export const getCephHealthState: ResourceHealthHandler<WatchCephResource> = (
     return { state: HealthState.NOT_AVAILABLE };
   }
   return parseCephHealthStatus(status, t);
+};
+
+export const getStorageClusterHealthState = (
+  data: K8sResourceKind | undefined,
+  loaded: boolean,
+  loadError: unknown,
+  t: TFunction
+): SubsystemHealth | undefined => {
+  if (loadError) {
+    return undefined;
+  }
+  if (!loaded) {
+    return { state: HealthState.LOADING, message: t('Loading') };
+  }
+  if (isClusterDeleting(data)) {
+    return { state: HealthState.PROGRESS, message: t('Deleting') };
+  }
+  return undefined;
 };
 
 export const getCephsHealthState: ResourceHealthHandler<WatchCephResources> = (

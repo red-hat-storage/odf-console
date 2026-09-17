@@ -1,7 +1,23 @@
 import { StorageConsumerKind, StorageConsumerState } from '@odf/shared';
+import { STATE_PRIORITY } from '@odf/shared/dashboards/status-card/states';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
+
+type HealthStateItem = {
+  healthState: HealthState;
+};
+
+export const getWorstHealthState = (
+  items: HealthStateItem[] = []
+): HealthState => {
+  for (const state of STATE_PRIORITY) {
+    if (items.some((item) => item.healthState === state)) {
+      return state;
+    }
+  }
+  return HealthState.UNKNOWN;
+};
 
 const getHealthAndTotalClientCounts = (clients: StorageConsumerKind[]) => {
   const connectedClients = clients.filter(
