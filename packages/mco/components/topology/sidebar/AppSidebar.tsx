@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router';
 import {
@@ -94,7 +95,7 @@ export const DRPCTable: React.FC<DRPCTableProps> = ({ apps }) => {
                       variant="link"
                       isInline
                       onClick={() =>
-                        navigate(getAppLink(app.name, app.namespace))
+                        navigate(getAppLink(app.drpcName, app.drpcNamespace))
                       }
                     >
                       {app.name}
@@ -142,6 +143,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
     return {
       name: op.applicationName,
       namespace: op.applicationNamespace,
+      drpcName: op.drpcName,
+      drpcNamespace: getNamespace(op.drpc) || op.applicationNamespace,
       status: getDRStatus({
         phase: op.phase,
         progression: op.progression,

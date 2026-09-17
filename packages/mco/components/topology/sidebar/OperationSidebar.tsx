@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { getDRStatus } from '@odf/mco/utils/dr-status';
 import { DASH } from '@odf/shared/constants';
+import { getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router';
 import {
@@ -157,7 +158,8 @@ const OperationsTableView: React.FC<{
                               navigate(
                                 getAppLink(
                                   operation.drpcName,
-                                  operation.applicationNamespace
+                                  getNamespace(operation.drpc) ||
+                                    operation.applicationNamespace
                                 )
                               )
                             }

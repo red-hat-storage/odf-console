@@ -50,6 +50,8 @@ export type { ClusterAppsMap, ClusterPairOperationsMap };
 export type AppSidebarItem = {
   name: string;
   namespace: string;
+  drpcName: string;
+  drpcNamespace: string;
   status: DRStatus;
   drPolicy: string;
 };
