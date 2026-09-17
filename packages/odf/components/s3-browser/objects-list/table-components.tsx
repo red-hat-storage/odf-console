@@ -18,8 +18,17 @@ import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
 import { getBucketOverviewBaseRoute, PREFIX } from '../../../constants';
 import { SetObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
 import { LazyDeleteObjectsModal } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
+import { LazyRestoreObjectModal } from '../../../modals/s3-browser/restore-object/LazyRestoreObjectModal';
 import { ObjectCrFormat, S3ProviderType } from '../../../types';
-import { getEncodedPrefix, replacePathFromName } from '../../../utils';
+import {
+  getEncodedPrefix,
+  replacePathFromName,
+  getStorageClassDisplayName,
+  getRestoreStatusText,
+  isObjectDeepArchived,
+  isObjectRestored,
+  isObjectRestoreInProgress,
+} from '../../../utils';
 import {
   DownloadAndPreviewState,
   onDownload,
@@ -35,6 +44,7 @@ const getColumnNames = (t: TFunction): string[] => [
   t('Size'),
   t('Type'),
   t('Last modified'),
+  t('Storage class'),
   '',
 ];
 const getVersioningColumnName = (t: TFunction): string => t('Version ID');
@@ -68,6 +78,20 @@ export const getInlineActionsItems = (
   blockDataPath = false
 ): IAction[] => {
   const isDeleteMarker = object?.isDeleteMarker;
+  // Deep Archive objects must be restored before their data can be read.
+  // Until the restore completes (and the temporary copy is available), data
+  // operations (download / preview / share) are unavailable.
+  const isDeepArchived = isObjectDeepArchived(object);
+  const isRestored = isObjectRestored(object);
+  const isRestoreInProgress = isObjectRestoreInProgress(object);
+  // Archived and not yet available for download (either not started or running).
+  const needsRestore = isDeepArchived && !isRestored;
+  // A restore can be initiated only when nothing is running/available yet.
+  const canInitiateRestore =
+    isDeepArchived && !isRestored && !isRestoreInProgress;
+  const archivedDataOpDescription = isRestoreInProgress
+    ? t('Object restore is in progress. Available once restore completes.')
+    : t('Object is archived. Restore it before performing this action.');
   return [
     ...(!isDeleteMarker
       ? [
@@ -88,7 +112,9 @@ export const getInlineActionsItems = (
                 setDownloadAndPreview,
                 showVersioning
               ),
-            isDisabled: blockDataPath || downloadAndPreview.isDownloading,
+            isDisabled:
+              blockDataPath || downloadAndPreview.isDownloading || needsRestore,
+            ...(needsRestore && { description: archivedDataOpDescription }),
             shouldCloseOnClick: false,
           },
         ]
@@ -112,7 +138,9 @@ export const getInlineActionsItems = (
                 setDownloadAndPreview,
                 showVersioning
               ),
-            isDisabled: blockDataPath || downloadAndPreview.isPreviewing,
+            isDisabled:
+              blockDataPath || downloadAndPreview.isPreviewing || needsRestore,
+            ...(needsRestore && { description: archivedDataOpDescription }),
             shouldCloseOnClick: false,
           },
         ]
@@ -126,7 +154,30 @@ export const getInlineActionsItems = (
                 isOpen: true,
                 extraProps: { bucketName, object, s3Client, showVersioning },
               }),
-            isDisabled: blockDataPath || isDeleteMarker,
+            isDisabled: blockDataPath || isDeleteMarker || needsRestore,
+            ...(needsRestore && { description: archivedDataOpDescription }),
+          },
+        ]
+      : []),
+    ...(canInitiateRestore
+      ? [
+          {
+            title: t('Restore'),
+            onClick: () =>
+              launcher(LazyRestoreObjectModal, {
+                isOpen: true,
+                extraProps: {
+                  bucketName,
+                  object,
+                  s3Client,
+                  showVersioning,
+                  refreshTokens,
+                },
+              }),
+            isDisabled: blockDataPath,
+            description: t(
+              'Restore this Deep Archive object to make it downloadable.'
+            ),
           },
         ]
       : []),
@@ -186,8 +237,35 @@ export const getColumns = (t: TFunction, showVersioning: boolean) => {
       columnName: columnNames[3],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'apiResponse.lastModified'),
     },
-    { columnName: columnNames[4] },
+    {
+      columnName: columnNames[4],
+      sortFunction: (a, b, c) => sortRows(a, b, c, 'apiResponse.storageClass'),
+    },
+    { columnName: columnNames[5] },
   ];
+};
+
+// Renders the storage class primary value (shown as fetched, e.g. STANDARD /
+// DEEP_ARCHIVE, blank when none) with the restore status as muted secondary
+// text ("Archived" / "Restoring…" / "Restored until <date>") for Deep Archive
+// objects.
+const StorageClassCell: React.FC<{ object: ObjectCrFormat }> = ({ object }) => {
+  const { t } = useCustomTranslation();
+  const displayName = getStorageClassDisplayName(
+    object?.apiResponse?.storageClass
+  );
+  const restoreStatusText = getRestoreStatusText(object, t);
+
+  return (
+    <>
+      <div>{displayName}</div>
+      {!!restoreStatusText && (
+        <div className="pf-v6-u-color-200 pf-v6-u-font-size-sm">
+          {restoreStatusText}
+        </div>
+      )}
+    </>
+  );
 };
 
 export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
@@ -295,7 +373,10 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
       <Td dataLabel={columnNames[3]} onClick={onClick}>
         {object.apiResponse.lastModified}
       </Td>
-      <Td dataLabel={columnNames[4]} isActionCell>
+      <Td dataLabel={columnNames[4]} onClick={onClick}>
+        {isFolder ? null : <StorageClassCell object={object} />}
+      </Td>
+      <Td dataLabel={columnNames[5]} isActionCell>
         {isFolder ? null : <ActionsColumn items={actionItems} />}
       </Td>
     </>

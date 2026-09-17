@@ -8,6 +8,7 @@ import {
   HeadBucketCommand,
   HeadObjectCommand,
   GetObjectTaggingCommand,
+  RestoreObjectCommand,
   DeleteObjectsCommand,
   GetBucketEncryptionCommand,
   GetBucketVersioningCommand,
@@ -43,6 +44,7 @@ import {
   HeadBucket,
   HeadObject,
   GetObjectTagging,
+  RestoreObject,
   DeleteObjects,
   DeleteBucket,
   GetBucketEncryption,
@@ -214,6 +216,12 @@ export class S3Commands extends S3Client {
 
   getObjectTagging: GetObjectTagging = (input) =>
     this.send(new GetObjectTaggingCommand(input));
+
+  // Initiates restore of an archived (e.g. Deep Archive) object. Returns an
+  // acknowledgement (202 accepted / 200 already restored); the actual restore
+  // runs asynchronously server-side and can take hours.
+  restoreObject: RestoreObject = (input) =>
+    this.send(new RestoreObjectCommand(input));
 
   deleteObjects: DeleteObjects = (input) =>
     this.send(new DeleteObjectsCommand(input));

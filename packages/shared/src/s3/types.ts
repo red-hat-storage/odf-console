@@ -29,6 +29,8 @@ import {
   HeadObjectCommandOutput,
   GetObjectTaggingCommandInput,
   GetObjectTaggingCommandOutput,
+  RestoreObjectCommandInput,
+  RestoreObjectCommandOutput,
   ListObjectVersionsCommandInput,
   ListObjectVersionsCommandOutput,
   DeleteBucketCommandInput,
@@ -167,6 +169,10 @@ export type HeadObject = (
 export type GetObjectTagging = (
   input: GetObjectTaggingCommandInput
 ) => Promise<GetObjectTaggingCommandOutput>;
+
+export type RestoreObject = (
+  input: RestoreObjectCommandInput
+) => Promise<RestoreObjectCommandOutput>;
 
 export type GetSignedUrl = (
   input: GetObjectCommandInput,
