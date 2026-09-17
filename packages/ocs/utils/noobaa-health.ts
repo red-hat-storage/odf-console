@@ -1,4 +1,8 @@
-import { PrometheusHealthHandler } from '@odf/shared/types';
+import {
+  NooBaaKind,
+  NooBaaSystemPhase,
+  PrometheusHealthHandler,
+} from '@odf/shared/types';
 import { getGaugeValue } from '@odf/shared/utils';
 import {
   HealthState,
@@ -30,6 +34,44 @@ const parseNoobaaStatus = (status: string, t: TFunction): SubsystemHealth => {
       return {
         state: HealthState.WARNING,
         message: t('plugin__odf-console~Some buckets have issues'),
+      };
+    default:
+      return { state: HealthState.UNKNOWN };
+  }
+};
+
+/**
+ * Get NooBaa health state from CR status.phase field
+ * Maps NooBaa SystemPhase to HealthState according to:
+ * - Rejected → ERROR (red)
+ * - Verifying, Creating, Connecting, Configuring → PROGRESS (yellow)
+ * - Ready → OK (green)
+ */
+export const getNooBaaHealthFromCR = (
+  noobaa: NooBaaKind | undefined,
+  t: TFunction
+): SubsystemHealth => {
+  const phase = noobaa?.status?.phase;
+
+  if (!phase) {
+    return { state: HealthState.UNKNOWN };
+  }
+
+  switch (phase) {
+    case NooBaaSystemPhase.Ready:
+      return { state: HealthState.OK };
+    case NooBaaSystemPhase.Rejected:
+      return {
+        state: HealthState.ERROR,
+        message: t('plugin__odf-console~NooBaa spec rejected'),
+      };
+    case NooBaaSystemPhase.Verifying:
+    case NooBaaSystemPhase.Creating:
+    case NooBaaSystemPhase.Connecting:
+    case NooBaaSystemPhase.Configuring:
+      return {
+        state: HealthState.PROGRESS,
+        message: t('plugin__odf-console~NooBaa is {{phase}}', { phase }),
       };
     default:
       return { state: HealthState.UNKNOWN };
