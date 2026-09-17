@@ -6,6 +6,11 @@ export type ObjectCrFormat = K8sResourceCommon & {
     lastModified?: string;
     ownerName?: string;
     versionId?: string;
+    storageClass?: string;
+    restoreStatus?: {
+      isRestoreInProgress?: boolean;
+      restoreExpiryDate?: string;
+    };
   };
   isFolder?: boolean;
   isDeleteMarker?: boolean;
