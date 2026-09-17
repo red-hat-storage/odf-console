@@ -53,6 +53,7 @@ type NameValueEditorProps = {
   isAddDisabled?: boolean;
   className?: string;
   hideHeaderWhenNoItems?: boolean;
+  hideHeader?: boolean;
   IconComponent?: React.FC;
   nameMaxLength?: number;
   valueMaxLength?: number;
@@ -219,6 +220,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
       isAddDisabled,
       className,
       hideHeaderWhenNoItems = false,
+      hideHeader = false,
       nameMaxLength,
       valueMaxLength,
       IconComponent = PlusCircleIcon,
@@ -323,18 +325,20 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
         <>
           {hideHeaderWhenNoItems && _.isEmpty(pairElems) ? null : (
             <>
-              <div className="row pairs-list__heading">
-                {!readOnly && allowSorting && (
+              {!hideHeader && (
+                <div className="row pairs-list__heading">
+                  {!readOnly && allowSorting && (
+                    <div className="col-xs-1 co-empty__header" />
+                  )}
+                  <div className={classNames('col-xs-5', className)}>
+                    {nameStringUpdated}
+                  </div>
+                  <div className={classNames('col-xs-5', className)}>
+                    {valueStringUpdated}
+                  </div>
                   <div className="col-xs-1 co-empty__header" />
-                )}
-                <div className={classNames('col-xs-5', className)}>
-                  {nameStringUpdated}
                 </div>
-                <div className={classNames('col-xs-5', className)}>
-                  {valueStringUpdated}
-                </div>
-                <div className="col-xs-1 co-empty__header" />
-              </div>
+              )}
               {pairElems}
             </>
           )}
