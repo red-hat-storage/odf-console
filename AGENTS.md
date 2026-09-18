@@ -38,7 +38,13 @@ yarn test-cypress-headless BRIDGE_E2E_BROWSER_NAME=chrome  # E2E tests
 - **Import order** (ESLint-enforced): React → external packages → `@patternfly/*` → `@odf/*` → relative
 - **Naming:** Follow the convention used by nearby files first. Common patterns are PascalCase components/types, camelCase variables/functions, and kebab-case directories.
 - **Styling:** SCSS only, no CSS or CSS-in-JS. Use PatternFly CSS variables (`--pf-t--global--*`), never hardcoded values. BEM-like class naming with component prefix (e.g., `.capacity-breakdown-card__header-link`). Component-scoped selectors.
-- **PatternFly:** Use PatternFly 6 components only, no custom UI primitives. Exhaust PatternFly component options before writing custom SCSS.
+- **PatternFly:** Use PatternFly 6 components only, no custom UI primitives. Exhaust PatternFly component options before writing custom SCSS. Follow **PatternFly CSS ownership** below.
+- **PatternFly CSS ownership:** OCP Console loads base PatternFly CSS, including utilities (`pf-v6-u-*`), component styles, mode/theme tokens etc. This plugin must **never** ship PatternFly CSS that can override Console.
+  - **Do not** `@import` / `import` any CSS from `@patternfly/patternfly` or `@patternfly/react-styles` (ex: `patternfly.css`, `utilities/_index.css`).
+  - **Do** use PatternFly React components and utility **class names** (`pf-v6-u-*`).
+  - **Do** use PatternFly Sass utilities at compile time only (`@use` / `@forward '@patternfly/patternfly/sass-utilities'`) for breakpoints/mixins/variables in our SCSS.
+  - **Do** keep plugin SCSS limited to ODF-specific selectors on top of Console PF styles. Prefer semantic tokens (`--pf-t--global--*`) over opaque hardcoded values.
+  - Webpack drops `@patternfly/react-styles` and `@patternfly/patternfly` CSS via `scripts/empty-style-loader.js` as a safety net.
 - **Data fetching:** Prefer hooks from `@openshift-console/dynamic-plugin-sdk` for Kubernetes resources (e.g., `useK8sWatchResource`, `k8sCreate`, `k8sPatch`). SWR is used in some places for non-k8s data. Follow existing patterns in the codebase.
 - **ODF namespace:** Never hardcode `"openshift-storage"`. Use [`useODFNamespace`](packages/odf/redux/provider-hooks/useODFNamespace.ts) to get the operator namespace. If hardcoding is truly unavoidable, add a comment explaining why.
 - **Cluster state:** Use [`useODFSystemFlags`](packages/odf/redux/provider-hooks/useODFSystemFlags.ts) for ODF cluster details (external mode, NFS, MCG standalone, etc.) instead of re-polling the same resources.
@@ -56,6 +62,7 @@ yarn test-cypress-headless BRIDGE_E2E_BROWSER_NAME=chrome  # E2E tests
 
 - **Missing i18n keys:** Forgetting `yarn i18n` after adding translatable strings causes missing key warnings.
 - **CSS-in-JS or hardcoded styles:** The codebase is SCSS-only with PatternFly tokens. Never use inline styles, CSS-in-JS, or hardcoded color/spacing values.
+- **Bundling PatternFly CSS:** Importing `@patternfly/patternfly/**/*.css` or `@patternfly/react-styles/**/*.css` re-ships Console-owned styles (often an older PF patch) and can break styling at runtime. Use Console-provided styles instead.
 - **Barrel import cycles:** Be cautious with barrel `index.ts` re-exports — they can create circular dependencies across packages.
 
 ## Development workflow
