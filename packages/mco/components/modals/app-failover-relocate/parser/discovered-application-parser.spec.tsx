@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { DRActionType } from '@odf/mco/constants';
+import { DRActionType, VM_RECIPE_NAME } from '@odf/mco/constants';
 import { DisasterRecoveryResourceKind } from '@odf/mco/hooks';
+import { VRGConditionReason } from '@odf/mco/types';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 // eslint-disable-next-line jest/no-mocks-import
@@ -194,6 +195,81 @@ describe('Discovered application failover/relocate modal test', () => {
       JSON.stringify(patchObj) ===
         '[{"op":"replace","path":"/spec/action","value":"Failover"},{"op":"replace","path":"/spec/failoverCluster","value":"west-1"},{"op":"replace","path":"/spec/preferredCluster","value":"east-1"}]'
     ).toBeTruthy();
+  });
+
+  test('Failover hides manual cleanup for Fleet-protected VMs', () => {
+    type = 1;
+    const vmDRPC = {
+      ...mockDRPC1,
+      spec: {
+        ...mockDRPC1.spec,
+        kubeObjectProtection: {
+          recipeRef: { name: VM_RECIPE_NAME },
+        },
+      },
+    };
+
+    render(
+      <DRPlacementControlParser
+        extraProps={{ application: vmDRPC, action: DRActionType.FAILOVER }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen
+        .getAllByRole('listitem')
+        .find(
+          (listitem) =>
+            listitem.textContent ===
+            'A failover will occur for all namespaces currently under this DRPC.'
+        )
+    ).toBeTruthy();
+    expect(
+      screen.queryByText(
+        'You need to clean up manually to begin replication after a successful failover.'
+      )
+    ).not.toBeInTheDocument();
+  });
+
+  test('Failover keeps manual cleanup when VM auto cleanup is not feasible', () => {
+    type = 1;
+    const vmDRPC = {
+      ...mockDRPC1,
+      spec: {
+        ...mockDRPC1.spec,
+        kubeObjectProtection: {
+          recipeRef: { name: VM_RECIPE_NAME },
+        },
+      },
+      status: {
+        ...mockDRPC1.status,
+        resourceConditions: {
+          conditions: [
+            {
+              type: 'AutoCleanup',
+              status: 'False' as const,
+              reason: VRGConditionReason.NotFeasible,
+            },
+          ],
+        },
+      },
+    };
+
+    render(
+      <DRPlacementControlParser
+        extraProps={{ application: vmDRPC, action: DRActionType.FAILOVER }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        'You need to clean up manually to begin replication after a successful failover.'
+      )
+    ).toBeInTheDocument();
   });
 
   test('Relocate happy path test', async () => {
