@@ -73,7 +73,6 @@
     "ajv-formats/ajv": "^8.20.0",
     "ajv-keywords": "^5.1.0",
     "ajv-keywords/ajv": "^8.20.0",
-    "baseline-browser-mapping": "2.11.0",
     "brace-expansion": "^1.1.18",
     "browserslist": "4.28.7",
     "eslint/ajv": "^6.15.0",
