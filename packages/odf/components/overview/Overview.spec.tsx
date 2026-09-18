@@ -11,14 +11,16 @@ import Overview from './Overview';
 
 const odfNamespace = 'test-ns';
 
+const mockUseODFNamespaceSelector = jest.fn(() => ({
+  odfNamespace,
+  isODFNsLoaded: true,
+  odfNsLoadError: null,
+  isNsSafe: true,
+  isFallbackSafe: true,
+}));
+
 jest.mock('@odf/core/redux/selectors', () => ({
-  useODFNamespaceSelector: () => ({
-    odfNamespace,
-    isODFNsLoaded: true,
-    odfNsLoadError: null,
-    isNsSafe: true,
-    isFallbackSafe: true,
-  }),
+  useODFNamespaceSelector: () => mockUseODFNamespaceSelector(),
   useODFSystemFlagsSelector: () => ({
     systemFlags: {
       [odfNamespace]: {
@@ -80,8 +82,20 @@ jest.mock('@openshift-console/dynamic-plugin-sdk/lib/utils/flags', () => ({
   useFlag: jest.fn(),
 }));
 
+const defaultNamespaceSelector = {
+  odfNamespace,
+  isODFNsLoaded: true,
+  odfNsLoadError: null,
+  isNsSafe: true,
+  isFallbackSafe: true,
+};
+
 describe('General Overview', () => {
-  it('only renders common cards', () => {
+  beforeEach(() => {
+    mockUseODFNamespaceSelector.mockReturnValue(defaultNamespaceSelector);
+  });
+
+  it('renders the Infrastructure health card on a non-FDF cluster', () => {
     (useFlag as jest.Mock).mockReturnValue(false);
     render(
       <BrowserRouter>
@@ -92,9 +106,10 @@ describe('General Overview', () => {
     expect(screen.getByText('Object storage')).toBeInTheDocument();
     expect(screen.getByText('Activity')).toBeInTheDocument();
     expect(screen.getByText('External systems')).toBeInTheDocument();
+    expect(screen.getByText('Infrastructure health')).toBeInTheDocument();
   });
 
-  it('also renders External Systems card', () => {
+  it('hides the Infrastructure health card on an FDF cluster', () => {
     (useFlag as jest.Mock).mockReturnValue(true);
     render(
       <BrowserRouter>
@@ -105,5 +120,34 @@ describe('General Overview', () => {
     expect(screen.getByText('Object storage')).toBeInTheDocument();
     expect(screen.getByText('Activity')).toBeInTheDocument();
     expect(screen.getByText('External systems')).toBeInTheDocument();
+    expect(screen.queryByText('Infrastructure health')).not.toBeInTheDocument();
+  });
+
+  it('hides the Infrastructure health card while FDF detection is in flight', () => {
+    // Feature flag is undefined until namespace/provider detection resolves.
+    (useFlag as jest.Mock).mockReturnValue(undefined);
+    render(
+      <BrowserRouter>
+        <Overview />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('Activity')).toBeInTheDocument();
+    expect(screen.queryByText('Infrastructure health')).not.toBeInTheDocument();
+  });
+
+  it('hides the Infrastructure health card when namespace detection failed', () => {
+    (useFlag as jest.Mock).mockReturnValue(false);
+    mockUseODFNamespaceSelector.mockReturnValue({
+      ...defaultNamespaceSelector,
+      odfNsLoadError: new Error('namespace detection failed'),
+      isNsSafe: false,
+    });
+    render(
+      <BrowserRouter>
+        <Overview />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('Activity')).toBeInTheDocument();
+    expect(screen.queryByText('Infrastructure health')).not.toBeInTheDocument();
   });
 });
