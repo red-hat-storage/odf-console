@@ -4,9 +4,11 @@ import { ExternalSystemsCard } from '@odf/core/components/overview/external-syst
 import { ObjectStorageCard } from '@odf/core/components/overview/object-storage-card/ObjectStorageCard';
 import { StorageClusterCard } from '@odf/core/components/overview/storage-cluster-card/StorageClusterCard';
 import { StorageClusterCreateModal } from '@odf/core/modals/ConfigureDF/StorageClusterCreateModal';
+import { FDF_FLAG } from '@odf/core/redux';
 import { useODFSystemFlagsSelector } from '@odf/core/redux/selectors';
 import { PageHeading, useCustomTranslation } from '@odf/shared';
 import { useModalWrapper } from '@odf/shared';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
@@ -26,8 +28,12 @@ const Overview: React.FC = () => {
   // Show health card only for internal Ceph clusters.
   // Can't use hasAnyInternalOCS because MCG standalone is also internal mode,
   // but it has no Ceph, so ocs_health_score metric won't exist.
+  // Also hide it on FDF: the ocs_health_score metric is ODF-only, so the card
+  // would otherwise hang on "Waiting for health checks".
+  const isFDF = useFlag(FDF_FLAG);
   const { systemFlags, areFlagsSafe } = useODFSystemFlagsSelector();
-  const showHealthCard = areFlagsSafe && hasAnyInternalCeph(systemFlags);
+  const showHealthCard =
+    !isFDF && areFlagsSafe && hasAnyInternalCeph(systemFlags);
 
   React.useEffect(() => {
     if (showWelcomeModal === 'true') {
