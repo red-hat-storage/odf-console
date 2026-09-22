@@ -17,6 +17,7 @@ import { isMirrorPeerReady, parseNamespaceName } from '@odf/mco/utils';
 import {
   createSecretNameFromS3,
   createOrUpdateRamenS3Secret,
+  fetchRamenS3Profiles,
   updateRamenHubOperatorConfig,
   deleteDRCluster,
   createDRCluster,
@@ -27,10 +28,7 @@ import {
   MirrorPeerModel,
   SecretModel,
 } from '@odf/shared';
-import {
-  createOrUpdate,
-  type CreateOrUpdateMutationDetails,
-} from '@odf/shared/utils/k8s';
+import type { CreateOrUpdateMutationDetails } from '@odf/shared/utils/k8s';
 import {
   getAPIVersionForModel,
   k8sCreate,
@@ -106,65 +104,32 @@ const createMirrorPeer = (
   });
 };
 
-type CreateDRPolicyResult = {
-  policy: DRPolicyKind;
-  isUpdated: boolean;
-  previousPolicySpec?: DRPolicyKind['spec'];
-};
-
-const createDRPolicy = async (
+const createDRPolicy = (
   policyName: string,
   replicationType: ReplicationType,
   syncIntervalTime: string,
   enableRBDImageFlatten: boolean,
   peerNames: string[]
-): Promise<CreateDRPolicyResult> => {
+): Promise<DRPolicyKind> => {
   const schedulingInterval =
     replicationType === ReplicationType.ASYNC ? syncIntervalTime : '0m';
   const replicationClassSelector = enableRBDImageFlatten
     ? { matchLabels: RBD_IMAGE_FLATTEN_LABEL }
     : {};
-  const mutationDetails: CreateOrUpdateMutationDetails = {};
-  let previousPolicySpec: DRPolicyKind['spec'];
 
-  const policy = await createOrUpdate<DRPolicyKind>({
+  return k8sCreate({
     model: DRPolicyModel,
-    name: policyName,
-    mutationDetails,
-    mutate: (current) => {
-      if (current) {
-        previousPolicySpec = current.spec
-          ? (JSON.parse(JSON.stringify(current.spec)) as DRPolicyKind['spec'])
-          : current.spec;
-      }
-      const base: DRPolicyKind = current ?? {
-        apiVersion: getAPIVersionForModel(DRPolicyModel),
-        kind: DRPolicyModel.kind,
-        metadata: { name: policyName },
-        spec: {
-          replicationClassSelector,
-          schedulingInterval,
-          drClusters: peerNames,
-        },
-      };
-
-      return {
-        ...base,
-        spec: {
-          ...base.spec,
-          replicationClassSelector,
-          schedulingInterval,
-          drClusters: peerNames,
-        },
-      };
+    data: {
+      apiVersion: getAPIVersionForModel(DRPolicyModel),
+      kind: DRPolicyModel.kind,
+      metadata: { name: policyName },
+      spec: {
+        replicationClassSelector,
+        schedulingInterval,
+        drClusters: peerNames,
+      },
     },
   });
-
-  return {
-    policy,
-    isUpdated: !!mutationDetails.isUpdated,
-    previousPolicySpec,
-  };
 };
 
 export type CreatePolicyResult = {
@@ -185,11 +150,10 @@ export const createPolicyPromises = async (
   if (state.configure.replicationBackend === BackendType.DataFoundation) {
     let createdMirrorPeer: MirrorPeerKind | undefined;
     let peering: OdfPeeringResult;
-    let policyResult: CreateDRPolicyResult;
     try {
       peering = await prepareOdfPeering(state, mirrorPeers, peerNames);
       createdMirrorPeer = peering.isNew ? peering.mirrorPeer : undefined;
-      policyResult = await createDRPolicy(
+      await createDRPolicy(
         state.policy.policyName,
         state.policy.replicationType,
         state.policy.syncIntervalTime,
@@ -211,10 +175,7 @@ export const createPolicyPromises = async (
 
     const mirrorPeerName = getName(peering.mirrorPeer);
     return {
-      isNewPolicy: !policyResult.isUpdated,
-      ...(policyResult.previousPolicySpec
-        ? { previousPolicySpec: policyResult.previousPolicySpec }
-        : {}),
+      isNewPolicy: true,
       ...(!!mirrorPeerName
         ? {
             mirrorPeerName,
@@ -227,25 +188,17 @@ export const createPolicyPromises = async (
   } else {
     const allDRClustersExist =
       selectedDRClusters?.length === MAX_ALLOWED_CLUSTERS;
-    let policyResult: CreateDRPolicyResult;
 
-    if (allDRClustersExist) {
-      policyResult = await createDRPolicy(
-        state.policy.policyName,
-        state.policy.replicationType,
-        state.policy.syncIntervalTime,
-        state.policy.enableRBDImageFlatten,
-        peerNames
-      );
-    } else {
+    if (!allDRClustersExist) {
       const created: CreatedResources = {
         secrets: [],
         profiles: [],
         drClusters: [],
+        replacedDRClusters: [],
       };
       try {
         await prepareThirdPartyPeering(state, selectedDRClusters, created);
-        policyResult = await createDRPolicy(
+        await createDRPolicy(
           state.policy.policyName,
           state.policy.replicationType,
           state.policy.syncIntervalTime,
@@ -256,13 +209,18 @@ export const createPolicyPromises = async (
         await rollbackThirdPartyResources(created);
         throw error;
       }
+    } else {
+      await createDRPolicy(
+        state.policy.policyName,
+        state.policy.replicationType,
+        state.policy.syncIntervalTime,
+        state.policy.enableRBDImageFlatten,
+        peerNames
+      );
     }
 
     return {
-      isNewPolicy: !policyResult.isUpdated,
-      ...(policyResult.previousPolicySpec
-        ? { previousPolicySpec: policyResult.previousPolicySpec }
-        : {}),
+      isNewPolicy: true,
     };
   }
 };
@@ -339,6 +297,7 @@ type CreatedResources = {
   secrets: string[];
   profiles: S3StoreProfile[];
   drClusters: string[];
+  replacedDRClusters: DRClusterKind[];
 };
 
 const prepareThirdPartyPeering = async (
@@ -352,6 +311,10 @@ const prepareThirdPartyPeering = async (
     [state.configure.cluster2S3Details.clusterName]:
       state.configure.cluster2S3Details,
   };
+
+  const existingProfileNames = new Set(
+    (await fetchRamenS3Profiles()).map((profile) => profile.s3ProfileName)
+  );
 
   // Sequential: avoid ConfigMap update races across clusters.
   for (const cluster of state.clusters.selectedClusters) {
@@ -379,24 +342,32 @@ const prepareThirdPartyPeering = async (
       existingDRCluster.spec.s3ProfileName !== det.s3ProfileName;
 
     if (needsRecreate) {
+      created.replacedDRClusters.push(existingDRCluster);
       // eslint-disable-next-line no-await-in-loop
       await deleteDRCluster(name);
     }
 
+    const secretMutation: CreateOrUpdateMutationDetails = {};
     // eslint-disable-next-line no-await-in-loop
     await createOrUpdateRamenS3Secret({
       name: secretName,
       accessKeyId: det.accessKeyId,
       secretAccessKey: det.secretKey,
+      mutationDetails: secretMutation,
     });
-    created.secrets.push(secretName);
+    if (!secretMutation.isUpdated) {
+      created.secrets.push(secretName);
+    }
 
     // eslint-disable-next-line no-await-in-loop
     await updateRamenHubOperatorConfig({
       namespace: ODFMCO_OPERATOR_NAMESPACE,
       profile: s3Profile,
     });
-    created.profiles.push(s3Profile);
+    if (!existingProfileNames.has(s3Profile.s3ProfileName)) {
+      created.profiles.push(s3Profile);
+      existingProfileNames.add(s3Profile.s3ProfileName);
+    }
 
     if (!existingDRCluster || needsRecreate) {
       // eslint-disable-next-line no-await-in-loop
@@ -412,7 +383,7 @@ const prepareThirdPartyPeering = async (
 const rollbackThirdPartyResources = async (
   resources: CreatedResources
 ): Promise<void> => {
-  // Best-effort cleanup - settle all, log failures but do not throw.
+  // Delete replacements first, then restore prior DRClusters (same names).
   const results = await Promise.allSettled([
     ...resources.drClusters.map((name) => deleteDRCluster(name)),
     ...resources.profiles.map((profile) =>
@@ -435,7 +406,17 @@ const rollbackThirdPartyResources = async (
     ),
   ]);
 
-  results
+  const restoreResults = await Promise.allSettled(
+    resources.replacedDRClusters.map((cluster) => {
+      const spec = cluster.spec ?? { s3ProfileName: '' };
+      return createDRCluster({
+        name: getName(cluster),
+        ...spec,
+      });
+    })
+  );
+
+  [...results, ...restoreResults]
     .filter((r) => r.status === 'rejected')
     .forEach((r) => {
       // eslint-disable-next-line no-console
