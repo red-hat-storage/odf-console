@@ -129,6 +129,86 @@
     }
   },
   {
+    "type": "console.navigation/separator",
+    "properties": {
+      "id": "odf-separator-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
+      "insertBefore": "odfdashboard-virt-perspective"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "odfdashboard-virt-perspective",
+      "insertAfter": "volumesnapshotcontents-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
+      "name": "%plugin__odf-console~Data Foundation%",
+      "href": "/odf/overview"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-cluster-virt-perspective",
+      "insertAfter": "odfdashboard-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
+      "name": "%plugin__odf-console~Storage cluster%",
+      "href": "/odf/storage-cluster"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "external-systems-virt-perspective",
+      "insertAfter": "storage-cluster-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
+      "name": "%plugin__odf-console~External systems%",
+      "href": "/odf/external-systems"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-object-virt-perspective",
+      "insertAfter": "external-systems-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
+      "name": "%plugin__odf-console~Object storage%",
+      "href": "/odf/object-storage"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-object-virt-perspective",
+      "insertAfter": "external-systems-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
+      "name": "%plugin__odf-console~Object storage%",
+      "href": "/odf/object-storage"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "MCG"],
+      "disallowed": ["ODF_ADMIN"]
+    }
+  },
+  {
     "type": "console.page/route",
     "properties": {
       "path": ["/odf/storage-cluster"],
@@ -668,6 +748,20 @@
       "name": "%plugin__odf-console~Storage consumers%",
       "insertAfter": "storage-object",
       "section": "storage",
+      "href": "/odf/storage-consumers"
+    },
+    "flags": {
+      "required": ["PROVIDER_MODE", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-consumers-virt-perspective",
+      "name": "%plugin__odf-console~Storage consumers%",
+      "insertAfter": "storage-object-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
       "href": "/odf/storage-consumers"
     },
     "flags": {
