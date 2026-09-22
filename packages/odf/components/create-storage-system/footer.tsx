@@ -556,7 +556,7 @@ export const CreateStorageSystemFooter: React.FC<
           className="pf-v6-u-mr-sm"
         >
           {stepName === StepsName(t)[Steps.ReviewAndCreate]
-            ? t('Create storage system')
+            ? t('Create storage cluster')
             : t('Next')}
         </Button>
         {/* Disabling the back button for the first step (Backing storage) in wizard */}
