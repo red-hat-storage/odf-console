@@ -56,13 +56,13 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
       <Alert
         className="pf-v6-u-mt-md pf-v6-u-mb-xs odf-alert mco-create-data-policy__alert"
         title={
-          <Trans>
-            Before choosing this option, read the section{' '}
+          <Trans t={t}>
+            Before selecting this option, review the{' '}
             <ExternalLink href={docHref}>
-              Creating Disaster Recovery Policy on Hub cluster
+              Creating Disaster Recovery Policy on the Hub Cluster
             </ExternalLink>{' '}
-            chapter of Regional-DR solution guide to understand the impact and
-            limitations of this feature.
+            section in the Regional-DR Solution Guide to understand the
+            feature&apos;s impact and limitations.
           </Trans>
         }
         variant={AlertVariant.warning}

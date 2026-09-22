@@ -445,7 +445,7 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
         <PolicyStep
           state={state}
           dispatch={dispatch}
-          docHref={gettingStartedDRDocs(odfMCOVersion).CREATE_POLICY}
+          docHref={gettingStartedDRDocs(odfMCOVersion).CREATE_POLICY_RDR}
         />
       </WizardStep>
       <WizardStep
