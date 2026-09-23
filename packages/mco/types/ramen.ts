@@ -183,6 +183,7 @@ export enum DRPlacementControlConditionReason {
 // VRG condition reasons (for resourceConditions)
 export enum VRGConditionReason {
   Unused = 'Unused',
+  NotFeasible = 'NotFeasible',
 }
 
 export type S3StoreProfile = {
