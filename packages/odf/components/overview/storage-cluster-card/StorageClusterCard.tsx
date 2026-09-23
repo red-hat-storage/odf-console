@@ -8,7 +8,7 @@ import {
 import { getStorageClusterInNs } from '@odf/core/utils';
 import { DANGER_THRESHOLD, WARNING_THRESHOLD } from '@odf/ocs/constants/charts';
 import { useGetOCSHealth } from '@odf/ocs/hooks/useOcsHealth';
-import { resiliencyProgressQuery, StatusCardQueries } from '@odf/ocs/queries';
+import { resiliencyProgressQuery } from '@odf/ocs/queries';
 import { getDataResiliencyState } from '@odf/ocs/utils';
 import {
   DASH,
@@ -92,8 +92,11 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
   const storageCluster = getStorageClusterInNs(storageClusters, odfNamespace);
   const clusterName = getName(storageCluster);
 
-  const { healthState, message: healthMessage } =
-    useGetOCSHealth(storageCluster);
+  const {
+    healthState,
+    message: healthMessage,
+    mcgHealth,
+  } = useGetOCSHealth(storageCluster);
 
   const [totalCapacity, usedCapacity, capacityLoading, capacityLoadError] =
     useRawCapacity(clusterName);
@@ -104,22 +107,6 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
       basePath: usePrometheusBasePath(),
     });
 
-  const [objectResiliencyProgress, objectResiliencyProgressError] =
-    useCustomPrometheusPoll({
-      query: StatusCardQueries.MCG_REBUILD_PROGRESS_QUERY,
-      endpoint: 'api/v1/query' as any,
-      basePath: usePrometheusBasePath(),
-    });
-
-  const objectResiliencyState = getDataResiliencyState(
-    [
-      {
-        response: objectResiliencyProgress,
-        error: objectResiliencyProgressError,
-      },
-    ],
-    t
-  );
   const cephDataResiliencyState = getDataResiliencyState(
     [{ response: cephResiliencyProgress, error: cephResiliencyProgressError }],
     t
@@ -132,11 +119,10 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
   const cephResiliencyIcon =
     healthStateMapping?.[cephDataResiliencyState.state]?.icon;
   const objectResiliencyMessage =
-    objectResiliencyState.state === HealthState.OK
+    mcgHealth.state === HealthState.OK
       ? t('Healthy')
-      : healthStateMessage(objectResiliencyState.state, t);
-  const objectResiliencyIcon =
-    healthStateMapping?.[objectResiliencyState.state]?.icon;
+      : healthStateMessage(mcgHealth.state, t);
+  const objectResiliencyIcon = healthStateMapping?.[mcgHealth.state]?.icon;
 
   const odfVersion =
     csvLoaded && _.isEmpty(csvError) ? getOprVersionFromCSV(csv) : DASH;
