@@ -104,6 +104,7 @@ const storageClusterActions =
           resource: storageCluster,
           resourceModel: StorageClusterModel,
           storageCluster,
+          confirmWithName: true,
         }}
         customKebabItems={customKebabItems}
         toggleType="Dropdown"
