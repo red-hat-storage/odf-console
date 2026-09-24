@@ -29,7 +29,6 @@ import {
 import {
   ListPageBody,
   ListPageCreateLink,
-  ListPageHeader,
   RowProps,
   TableColumn,
   TableData,
@@ -43,7 +42,7 @@ import {
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
 import { Link, useLocation } from 'react-router';
-import { Tooltip } from '@patternfly/react-core';
+import { Flex, FlexItem, Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import {
   PoolType,
@@ -689,30 +688,32 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
   const createPath = `/odf/system/ns/${getNamespace(data[0])}/ocs.openshift.io~v1~StorageCluster/${clusterName}/storage-pools/create/~new`;
 
   return (
-    <>
-      <ListPageHeader title={t('Storage pools')}>
-        {loaded && (
-          <ListPageCreateLink to={createPath} data-test="item-create">
-            {t('Create storage pool')}
-          </ListPageCreateLink>
-        )}
-      </ListPageHeader>
-      <ListPageBody>
-        <ListPageFilterWrapper
-          data={data}
-          loaded={loaded}
-          onFilterChange={onFilterChange}
-          hideColumnManagement={true}
-        />
-        <StoragePoolListTable
-          data={filteredData}
-          unfilteredData={data}
-          loaded={loaded}
-          loadError={loadError}
-          rowData={{ ...customData }}
-        />
-      </ListPageBody>
-    </>
+    <ListPageBody>
+      <Flex>
+        <FlexItem>
+          <ListPageFilterWrapper
+            data={data}
+            loaded={loaded}
+            onFilterChange={onFilterChange}
+            hideColumnManagement={true}
+          />
+        </FlexItem>
+        <FlexItem>
+          {loaded && (
+            <ListPageCreateLink to={createPath} data-test="item-create">
+              {t('Create storage pool')}
+            </ListPageCreateLink>
+          )}
+        </FlexItem>
+      </Flex>
+      <StoragePoolListTable
+        data={filteredData}
+        unfilteredData={data}
+        loaded={loaded}
+        loadError={loadError}
+        rowData={{ ...customData }}
+      />
+    </ListPageBody>
   );
 };
 

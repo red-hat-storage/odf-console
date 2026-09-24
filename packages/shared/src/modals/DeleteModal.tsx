@@ -24,7 +24,7 @@ type DeleteModalExtraProps = {
   resourceModel: K8sModel;
   cluster?: string;
   cleanupBeforeDelete?: (resource: K8sResourceCommon) => Promise<void>;
-  confirmWithName?: string;
+  confirmWithName?: boolean;
 };
 
 const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
