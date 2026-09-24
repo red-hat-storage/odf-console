@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
@@ -7,10 +7,11 @@ import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router';
 import {
-  Dropdown,
-  DropdownItem,
-  DropdownList,
-  DropdownPopperProps,
+  Menu,
+  MenuContainer,
+  MenuContent,
+  MenuItem,
+  MenuList,
   MenuToggle,
   Tooltip,
 } from '@patternfly/react-core';
@@ -20,40 +21,6 @@ import { ModalKeys, defaultModalMap } from '../modals/types';
 import { useModalWrapper } from '../sdk-wrapper/useModalWrapper';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
-
-const useClickOutside = (
-  dropdownRef: React.RefObject<HTMLElement>,
-  dropdownToggleRef: React.RefObject<HTMLElement>,
-  callback: () => void
-) => {
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // Dropdown and its toggle button are 2 separate elements at the same
-      // nesting level, so we check that we're interacting outside both.
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        dropdownToggleRef.current &&
-        !dropdownToggleRef.current.contains(event.target as Node)
-      ) {
-        callback();
-      }
-    };
-
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        callback();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscapeKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscapeKey);
-    };
-  }, [dropdownRef, dropdownToggleRef, callback]);
-};
 
 export type CustomKebabItem = {
   key: string;
@@ -74,6 +41,7 @@ type KebabProps = {
     resourceModel: K8sModel;
     [key: string]: any;
     forceDeletion?: boolean;
+    confirmWithName?: boolean;
   };
   customKebabItems?: CustomKebabItem[];
   toggleType?: 'Kebab' | 'Dropdown';
@@ -93,44 +61,45 @@ type KebabStaticProperties = {
 
 const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
   [ModalKeys.EDIT_LABELS]: (
-    <DropdownItem
+    <MenuItem
       key={ModalKeys.EDIT_LABELS}
       id={ModalKeys.EDIT_LABELS}
-      value={ModalKeys.EDIT_LABELS}
+      itemId={ModalKeys.EDIT_LABELS}
       data-test-action="Edit labels"
     >
       {t('Edit labels')}
-    </DropdownItem>
+    </MenuItem>
   ),
   [ModalKeys.EDIT_ANN]: (
-    <DropdownItem
+    <MenuItem
       key={ModalKeys.EDIT_ANN}
       id={ModalKeys.EDIT_ANN}
-      value={ModalKeys.EDIT_ANN}
+      itemId={ModalKeys.EDIT_ANN}
       data-test-action="Edit annotations"
     >
       {t('Edit annotations')}
-    </DropdownItem>
+    </MenuItem>
   ),
   [ModalKeys.EDIT_RES]: (
-    <DropdownItem
+    <MenuItem
       key={ModalKeys.EDIT_RES}
       id={ModalKeys.EDIT_RES}
-      value={ModalKeys.EDIT_RES}
+      itemId={ModalKeys.EDIT_RES}
       data-test-action={`Edit ${resourceLabel}`}
     >
       {t('Edit {{resourceLabel}}', { resourceLabel })}
-    </DropdownItem>
+    </MenuItem>
   ),
   [ModalKeys.DELETE]: (
-    <DropdownItem
+    <MenuItem
       key={ModalKeys.DELETE}
       id={ModalKeys.DELETE}
-      value={ModalKeys.DELETE}
+      itemId={ModalKeys.DELETE}
+      isDanger
       data-test-action={`Delete ${resourceLabel}`}
     >
       {t('Delete {{resourceLabel}}', { resourceLabel })}
-    </DropdownItem>
+    </MenuItem>
   ),
 });
 
@@ -146,16 +115,10 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
 }) => {
   const { t } = useCustomTranslation();
   const launchModal = useModalWrapper();
-  const eventRef = React.useRef(undefined);
-  const dropdownRef = React.useRef();
-  const dropdownToggleRef = React.useRef();
-  const [toggleDirection, setToggleDirection] =
-    React.useState<DropdownPopperProps['direction']>('down');
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const toggleRef = React.useRef<HTMLButtonElement>(null);
   const [isOpen, setOpen] = React.useState(false);
-  const closeDropdown = useCallback(() => setOpen(false), []);
-
-  // Use the custom hook to detect clicks outside the Kebab menu
-  useClickOutside(dropdownRef, dropdownToggleRef, closeDropdown);
+  const onOpenChange = useCallback((open: boolean) => setOpen(open), []);
 
   const { resourceModel, resource } = extraProps;
   const resourceLabel = customLabel ?? resourceModel.label;
@@ -172,20 +135,6 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   });
 
   const showPermissionTooltip = !canCreate && !createLoading;
-
-  React.useLayoutEffect(() => {
-    const e = eventRef.current;
-    if (toggleType === 'Kebab' && !!e) {
-      const clientY = e?.clientY; // y-coordinate of kebab button onclick
-      const clientHeight = e?.target?.nextSibling?.clientHeight; // height of popper menu, which is a sibling of kebab button
-      const windowHeight =
-        document.getElementsByTagName('body')[0].clientHeight; // height of viewport
-
-      if (clientY + clientHeight >= windowHeight) setToggleDirection('up');
-      else setToggleDirection('down');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventRef.current, toggleType]);
 
   const customKebabItemsMap: CustomKebabItemsMap = React.useMemo(
     () =>
@@ -227,7 +176,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
     }
   };
 
-  const dropdownItems = React.useMemo(() => {
+  const menuItems = React.useMemo(() => {
     const defaultResolved = defaultKebabItems(t, resourceLabel);
     const filteredDefaultItems = hideItems
       ? Object.keys(defaultResolved)
@@ -245,17 +194,18 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
         if (hideItems?.includes(k as ModalKeys)) {
           return acc;
         }
-        const dropdownItem = (
-          <DropdownItem
+        const menuItem = (
+          <MenuItem
             key={k}
             id={k}
-            value={k}
+            itemId={k}
             data-test-action={obj?.value}
             isDisabled={obj?.isDisabled}
             description={obj?.description}
+            isDanger={k === ModalKeys.DELETE}
           >
             {obj?.value}
-          </DropdownItem>
+          </MenuItem>
         );
 
         if (
@@ -266,9 +216,9 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
             ModalKeys.EDIT_RES,
           ].includes(k as ModalKeys)
         ) {
-          acc['overrides'][k] = dropdownItem;
+          acc['overrides'][k] = menuItem;
         } else {
-          acc['custom'][k] = dropdownItem;
+          acc['custom'][k] = menuItem;
         }
         return acc;
       },
@@ -296,7 +246,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
     ? terminatingTooltip || t('Resource is being deleted.')
     : '';
 
-  return (
+  const toggle = (
     <Tooltip
       content={
         showPermissionTooltip
@@ -309,39 +259,47 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
           : 'manual'
       }
     >
-      <Dropdown
+      <MenuToggle
+        ref={toggleRef}
+        aria-label="Kebab toggle"
+        variant={toggleType === 'Kebab' ? 'plain' : 'default'}
+        onClick={() => setOpen(!isOpen)}
+        isExpanded={isOpen}
         data-test={dataTestId || 'kebab-button'}
-        onSelect={onClick}
-        ref={dropdownRef}
-        toggle={{
-          toggleNode: (
-            <MenuToggle
-              ref={dropdownToggleRef}
-              aria-label="Dropdown toggle"
-              variant={toggleType === 'Kebab' ? 'plain' : 'default'}
-              onClick={() => setOpen(!isOpen)}
-              isExpanded={isOpen}
-              data-test={dataTestId || 'kebab-button'}
-              isDisabled={isDisabled}
-            >
-              {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
-            </MenuToggle>
-          ),
-          toggleRef: dropdownToggleRef,
-        }}
-        isOpen={isOpen}
-        data-test-id={dataTestId || 'kebab-button'}
-        popperProps={{
-          preventOverflow: true,
-          direction: toggleDirection,
-          enableFlip: true,
-          position: 'right',
-        }}
-        shouldFocusFirstItemOnOpen={false}
+        isDisabled={isDisabled}
       >
-        <DropdownList>{dropdownItems}</DropdownList>
-      </Dropdown>
+        {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
+      </MenuToggle>
     </Tooltip>
+  );
+
+  const menu = (
+    <Menu
+      ref={menuRef}
+      onSelect={onClick}
+      data-test={`${dataTestId || 'kebab-button'}-menu`}
+      data-test-id={`${dataTestId || 'kebab-button'}-menu`}
+    >
+      <MenuContent>
+        <MenuList>{menuItems}</MenuList>
+      </MenuContent>
+    </Menu>
+  );
+
+  return (
+    <MenuContainer
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      toggle={toggle}
+      toggleRef={toggleRef}
+      menu={menu}
+      menuRef={menuRef}
+      popperProps={{
+        direction: 'down',
+        position: 'right',
+        enableFlip: true,
+      }}
+    />
   );
 };
 
