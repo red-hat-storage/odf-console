@@ -28,6 +28,7 @@ import {
   ApplicationType,
 } from '../../constants';
 import { DRPlacementControlKind, Phase, Progression } from '../../types';
+import { getAutoCleanupCondition } from '../../utils';
 import {
   isFailingOrRelocating as isFailingOrRelocatingUtil,
   isCleanupRequired as isCleanupRequiredUtil,
@@ -137,7 +138,10 @@ export const isFailingOrRelocating = (
 };
 
 export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
-  isCleanupRequiredUtil(drpc?.status?.phase, drpc?.status?.progression);
+  isCleanupRequiredUtil(
+    drpc?.status?.progression,
+    getAutoCleanupCondition(drpc)
+  );
 
 export type ReplicationHealthMap = {
   title: string;

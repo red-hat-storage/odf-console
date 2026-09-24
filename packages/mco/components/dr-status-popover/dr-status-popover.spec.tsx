@@ -2,7 +2,13 @@
 import React from 'react';
 import { describe, expect, it } from '@jest/globals';
 import { DRActionType, VolumeReplicationHealth } from '@odf/mco/constants';
-import { DRPlacementControlConditionReason, Phase } from '@odf/mco/types';
+import {
+  DRPlacementControlConditionReason,
+  Phase,
+  Progression,
+  VRGConditionReason,
+  VRGConditionType,
+} from '@odf/mco/types';
 import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -204,6 +210,100 @@ describe('DRStatusPopover Component', () => {
       /Application is now running on/
     );
     expect(screen.getByTestId('cluster-details')).toBeInTheDocument();
+  });
+
+  it('hides progression train when AutoCleanup is Completed after failover', async () => {
+    const autoCleanupCompleted: DRStatusProps = {
+      isLoadedWOError: true,
+      phase: Phase.FailedOver,
+      primaryCluster: 'primary-cluster',
+      targetCluster: 'target-cluster',
+      policyName: 'policy-1',
+      schedulingInterval: '5m',
+      volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
+      volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      progression: Progression.WaitOnUserToCleanUp,
+      action: DRActionType.FAILOVER,
+      isCleanupRequired: false,
+      autoCleanupCondition: {
+        type: VRGConditionType.AutoCleanup,
+        status: K8sResourceConditionStatus.True,
+        reason: VRGConditionReason.Completed,
+      },
+    };
+
+    render(<DRStatusPopover disasterRecoveryStatus={autoCleanupCompleted} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Failover complete'
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Application is now running on/
+    );
+    expect(screen.getByTestId('cluster-details')).toBeInTheDocument();
+    expect(screen.queryByText(/steps completed/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps progression train when AutoCleanup is Completed during Relocating', async () => {
+    const relocatingAfterCleanup: DRStatusProps = {
+      isLoadedWOError: true,
+      phase: Phase.Relocating,
+      primaryCluster: 'primary-cluster',
+      targetCluster: 'target-cluster',
+      policyName: 'policy-1',
+      schedulingInterval: '5m',
+      volumeLastGroupSyncTime: '',
+      volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      progression: Progression.WaitOnUserToCleanUp,
+      action: DRActionType.RELOCATE,
+      isCleanupRequired: false,
+      isDiscoveredApp: true,
+      autoCleanupCondition: {
+        type: VRGConditionType.AutoCleanup,
+        status: K8sResourceConditionStatus.True,
+        reason: VRGConditionReason.Completed,
+      },
+    };
+
+    render(<DRStatusPopover disasterRecoveryStatus={relocatingAfterCleanup} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Relocating'
+    );
+    expect(screen.getByText(/steps completed/i)).toBeInTheDocument();
+  });
+
+  it('keeps progression train when AutoCleanup Completed but progression advanced past cleanup', async () => {
+    const relocatedSyncing: DRStatusProps = {
+      isLoadedWOError: true,
+      phase: Phase.Relocated,
+      primaryCluster: 'primary-cluster',
+      targetCluster: 'target-cluster',
+      policyName: 'policy-1',
+      schedulingInterval: '5m',
+      volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
+      volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+      progression: 'RunningFinalSync',
+      action: DRActionType.RELOCATE,
+      isCleanupRequired: false,
+      isDiscoveredApp: true,
+      autoCleanupCondition: {
+        type: VRGConditionType.AutoCleanup,
+        status: K8sResourceConditionStatus.True,
+        reason: VRGConditionReason.Completed,
+      },
+    };
+
+    render(<DRStatusPopover disasterRecoveryStatus={relocatedSyncing} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Relocation complete'
+    );
+    expect(screen.getByText(/steps completed/i)).toBeInTheDocument();
   });
 
   it('renders the popover with Relocation completed status', async () => {
@@ -435,11 +535,53 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver - WaitOnUserToCleanUp',
+        expectedStatus: 'WaitOnUserToCleanUp',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'WaitOnUserToCleanUp',
+          volumeLastGroupSyncTime: noSync,
+        },
+      },
+      {
+        label: 'FailedOver - AutoCleanup Progressing',
         expectedStatus: 'FailedOver',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'WaitOnUserToCleanUp',
           volumeLastGroupSyncTime: noSync,
+          autoCleanupCondition: {
+            type: VRGConditionType.AutoCleanup,
+            status: K8sResourceConditionStatus.True,
+            reason: VRGConditionReason.Progressing,
+          },
+        },
+      },
+      {
+        label: 'FailedOver - AutoCleanup Completed',
+        expectedStatus: 'FailedOver',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'WaitOnUserToCleanUp',
+          volumeLastGroupSyncTime: noSync,
+          autoCleanupCondition: {
+            type: VRGConditionType.AutoCleanup,
+            status: K8sResourceConditionStatus.True,
+            reason: VRGConditionReason.Completed,
+          },
+        },
+      },
+      {
+        label: 'FailedOver - AutoCleanup NotFeasible',
+        expectedStatus: 'WaitOnUserToCleanUp',
+        overrides: {
+          phase: Phase.FailedOver,
+          progression: 'WaitOnUserToCleanUp',
+          volumeLastGroupSyncTime: noSync,
+          autoCleanupCondition: {
+            type: VRGConditionType.AutoCleanup,
+            status: K8sResourceConditionStatus.False,
+            reason: VRGConditionReason.NotFeasible,
+          },
         },
       },
       {
@@ -586,7 +728,7 @@ describe('DRStatusPopover Component', () => {
         expectedStatus: 'Relocated',
         overrides: {
           phase: Phase.Relocated,
-          progression: 'CleaningUp',
+          progression: Progression.CleaningUp,
           volumeLastGroupSyncTime: noSync,
         },
       },

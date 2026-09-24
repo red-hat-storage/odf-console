@@ -148,7 +148,8 @@ export enum Progression {
   Relocating = 'Relocating',
   FailedOver = 'FailedOver',
   WaitOnUserToCleanUp = 'WaitOnUserToCleanUp',
-  CleaningUp = 'CleaningUp',
+  CleanupReadiness = 'CleanupReadiness',
+  CleaningUp = 'Cleaning Up',
   WaitForUserAction = 'WaitForUserAction',
   TestingFailover = 'TestingFailover',
 }
@@ -180,10 +181,17 @@ export enum DRPlacementControlConditionReason {
   Success = 'Success',
 }
 
+// VRG condition types (for resourceConditions)
+export enum VRGConditionType {
+  AutoCleanup = 'AutoCleanup',
+}
+
 // VRG condition reasons (for resourceConditions)
 export enum VRGConditionReason {
   Unused = 'Unused',
+  Progressing = 'Progressing',
   NotFeasible = 'NotFeasible',
+  Completed = 'Completed',
 }
 
 export type S3StoreProfile = {
