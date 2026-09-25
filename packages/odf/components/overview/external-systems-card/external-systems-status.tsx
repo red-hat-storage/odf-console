@@ -21,9 +21,11 @@ export type ExternalSystemStatusCounts = {
   inProgress: number;
 };
 
-const countFilesystemHealth = (
-  fileSystems: FileSystemKind[],
-  getHealth: (fs: FileSystemKind) => HealthState
+// Clash between TypeScript and ESLint
+// eslint-disable-next-line comma-spacing
+const countHealthStates = <T,>(
+  items: T[],
+  getHealth: (item: T) => HealthState
 ): ExternalSystemStatusCounts => {
   const counts: ExternalSystemStatusCounts = {
     error: 0,
@@ -31,8 +33,8 @@ const countFilesystemHealth = (
     healthy: 0,
     inProgress: 0,
   };
-  for (const fileSystem of fileSystems) {
-    const health = getHealth(fileSystem);
+  for (const item of items) {
+    const health = getHealth(item);
     switch (health) {
       case HealthState.OK:
         counts.healthy++;
@@ -43,8 +45,10 @@ const countFilesystemHealth = (
       case HealthState.LOADING:
         counts.inProgress++;
         break;
-      default:
+      case HealthState.WARNING:
         counts.warning++;
+        break;
+      default:
         break;
     }
   }
@@ -59,39 +63,38 @@ const IN_PROGRESS_CLUSTER_PHASES = new Set([
   'Upgrading',
 ]);
 
+const getClusterHealth = (cluster: K8sResourceKind): HealthState => {
+  const phase = resourceStatus(cluster);
+  if (!phase) return HealthState.UNKNOWN;
+  if (phase === StorageClusterPhase.Ready) return HealthState.OK;
+  if (phase === StorageClusterPhase.Error) return HealthState.ERROR;
+  if (IN_PROGRESS_CLUSTER_PHASES.has(phase)) return HealthState.LOADING;
+  return HealthState.WARNING;
+};
+
 export const getClusterStatusCounts = (
   clusters: K8sResourceKind[] = []
-): ExternalSystemStatusCounts => {
-  const counts: ExternalSystemStatusCounts = {
-    error: 0,
-    warning: 0,
-    healthy: 0,
-    inProgress: 0,
-  };
-  for (const cluster of clusters) {
-    const phase = resourceStatus(cluster);
-    if (phase === StorageClusterPhase.Ready) {
-      counts.healthy++;
-    } else if (phase === StorageClusterPhase.Error) {
-      counts.error++;
-    } else if (IN_PROGRESS_CLUSTER_PHASES.has(phase)) {
-      counts.inProgress++;
-    } else if (phase) {
-      counts.warning++;
-    }
-  }
-  return counts;
-};
+): ExternalSystemStatusCounts => countHealthStates(clusters, getClusterHealth);
 
 export const getCnsaFilesystemStatusCounts = (
   fileSystems: FileSystemKind[] = []
 ): ExternalSystemStatusCounts =>
-  countFilesystemHealth(fileSystems, getCnsaFilesystemHealth);
+  countHealthStates(fileSystems, getCnsaFilesystemHealth);
 
 export const getSanLunGroupStatusCounts = (
-  fileSystems: FileSystemKind[] = []
-): ExternalSystemStatusCounts =>
-  countFilesystemHealth(fileSystems, getLUNGroupStatus);
+  fileSystems: FileSystemKind[] = [],
+  scaleClusterCreationTimestamp?: string
+): ExternalSystemStatusCounts => {
+  const isFirstFileSystem = scaleClusterCreationTimestamp
+    ? (creationTimestamp: string) => {
+        const diff =
+          new Date(creationTimestamp).getTime() -
+          new Date(scaleClusterCreationTimestamp).getTime();
+        return diff >= 0 && diff <= 5000;
+      }
+    : () => false;
+  return countHealthStates(fileSystems, getLUNGroupStatus(isFirstFileSystem));
+};
 
 const hasStatusCounts = (counts: ExternalSystemStatusCounts): boolean =>
   counts.error + counts.warning + counts.healthy + counts.inProgress > 0;
