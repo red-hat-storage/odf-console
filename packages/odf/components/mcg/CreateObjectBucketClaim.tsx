@@ -518,6 +518,8 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
     // NamespaceStore modal's submit is triggering this form as well, added this check to prevent that
     if (e.nativeEvent.submitter.id !== submitBtnId) return;
 
+    if (!isValid) return;
+
     dispatch({ type: 'setProgress' });
     const promises: Promise<K8sResourceKind>[] = [];
     if (
