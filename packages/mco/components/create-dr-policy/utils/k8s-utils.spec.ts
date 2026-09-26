@@ -1,9 +1,19 @@
 import { BackendType, ReplicationType } from '@odf/mco/constants';
-import { ManagedClusterInfoType, MirrorPeerKind } from '@odf/mco/types';
+import {
+  DRClusterKind,
+  ManagedClusterInfoType,
+  MirrorPeerKind,
+} from '@odf/mco/types';
+import {
+  createDRCluster,
+  createOrUpdateRamenS3Secret,
+  deleteDRCluster,
+  fetchRamenS3Profiles,
+  updateRamenHubOperatorConfig,
+} from '@odf/mco/utils/tps-payload-creator';
 import {
   k8sCreate,
   k8sDelete,
-  k8sGet,
   k8sUpdate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { createPolicyPromises } from './k8s-utils';
@@ -11,18 +21,27 @@ import { drPolicyInitialState, DRPolicyState } from './reducer';
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
-  k8sGet: jest.fn(),
   k8sCreate: jest.fn(),
   k8sUpdate: jest.fn(),
   k8sDelete: jest.fn(),
 }));
 
-const mockK8sGet = k8sGet as jest.Mock;
+jest.mock('@odf/mco/utils/tps-payload-creator', () => {
+  const actual = jest.requireActual('@odf/mco/utils/tps-payload-creator');
+  return {
+    ...actual,
+    createOrUpdateRamenS3Secret: jest.fn(),
+    updateRamenHubOperatorConfig: jest.fn(),
+    deleteDRCluster: jest.fn(),
+    createDRCluster: jest.fn(),
+    fetchRamenS3Profiles: jest.fn(),
+  };
+});
+
 const mockK8sCreate = k8sCreate as jest.Mock;
 const mockK8sUpdate = k8sUpdate as jest.Mock;
 const mockK8sDelete = k8sDelete as jest.Mock;
 
-const notFound = { response: { status: 404 } };
 const forbidden = { response: { status: 403 } };
 const conflict = { response: { status: 409 } };
 
@@ -78,11 +97,6 @@ const existingMirrorPeer = {
   spec: { items: [peerItem('east-1'), peerItem('west-1')] },
 } as MirrorPeerKind;
 
-const existingPolicy = {
-  metadata: { name: 'policy-1', uid: 'uid-1', resourceVersion: '1' },
-  spec: { drClusters: ['east-1', 'west-1'], schedulingInterval: '10m' },
-};
-
 const resolveCreate = ({ model, data }) =>
   Promise.resolve(
     model.kind === 'MirrorPeer'
@@ -98,8 +112,7 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
     mockK8sDelete.mockResolvedValue({});
   });
 
-  it('sets isNewPolicy from createOrUpdate create vs update', async () => {
-    mockK8sGet.mockRejectedValueOnce(notFound);
+  it('creates a DRPolicy and does not update when the name already exists', async () => {
     await expect(
       createPolicyPromises(state, [existingMirrorPeer])
     ).resolves.toMatchObject({
@@ -110,31 +123,15 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
     expect(mockK8sUpdate).not.toHaveBeenCalled();
 
     jest.clearAllMocks();
-    mockK8sUpdate.mockImplementation(({ data }) => Promise.resolve(data));
-    mockK8sGet.mockResolvedValue(existingPolicy);
-    await expect(
-      createPolicyPromises(state, [existingMirrorPeer])
-    ).resolves.toMatchObject({ isNewPolicy: false });
-    expect(mockK8sCreate).not.toHaveBeenCalled();
-  });
-
-  it('fails closed on forbidden GET; 404→409 race becomes an update', async () => {
-    mockK8sGet.mockRejectedValue(forbidden);
-    await expect(
-      createPolicyPromises(state, [existingMirrorPeer])
-    ).rejects.toEqual(forbidden);
-
-    mockK8sGet
-      .mockRejectedValueOnce(notFound)
-      .mockResolvedValue(existingPolicy);
     mockK8sCreate.mockRejectedValueOnce(conflict);
+    mockK8sUpdate.mockImplementation(({ data }) => Promise.resolve(data));
     await expect(
       createPolicyPromises(state, [existingMirrorPeer])
-    ).resolves.toMatchObject({ isNewPolicy: false });
+    ).rejects.toEqual(conflict);
+    expect(mockK8sUpdate).not.toHaveBeenCalled();
   });
 
   it('creates MirrorPeer when missing and rolls it back if DRPolicy create fails', async () => {
-    mockK8sGet.mockRejectedValue(notFound);
     mockK8sCreate.mockImplementation(resolveCreate);
     await expect(createPolicyPromises(state, [])).resolves.toMatchObject({
       isNewMirrorPeer: true,
@@ -142,8 +139,12 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
       isNewPolicy: true,
     });
 
-    mockK8sGet.mockRejectedValue(forbidden);
-    mockK8sCreate.mockImplementation(resolveCreate);
+    mockK8sCreate.mockImplementation(({ model, data }) => {
+      if (model.kind === 'DRPolicy') {
+        return Promise.reject(forbidden);
+      }
+      return resolveCreate({ model, data });
+    });
     await expect(createPolicyPromises(state, [])).rejects.toEqual(forbidden);
     expect(mockK8sDelete).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -155,7 +156,6 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
   });
 
   it('does not match MirrorPeer with same SC name but different namespace', async () => {
-    mockK8sGet.mockRejectedValue(notFound);
     mockK8sCreate.mockImplementation(resolveCreate);
     const staleMirrorPeer = {
       metadata: { name: 'mirrorpeer-stale' },
@@ -185,5 +185,139 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
       isNewMirrorPeer: true,
       mirrorPeerName: 'mirrorpeer-new',
     });
+  });
+
+  it('skips TPS helper rollback when DRPolicy create conflicts', async () => {
+    const tpsState: DRPolicyState = {
+      ...state,
+      configure: {
+        ...state.configure,
+        replicationBackend: BackendType.ThirdParty,
+        cluster1S3Details: {
+          clusterName: 'east-1',
+          bucketName: 'bucket-east',
+          endpoint: 'https://s3.example',
+          accessKeyId: 'ak',
+          secretKey: 'sk',
+          region: 'us-east-1',
+          s3ProfileName: 'profile-east',
+        },
+        cluster2S3Details: {
+          clusterName: 'west-1',
+          bucketName: 'bucket-west',
+          endpoint: 'https://s3.example',
+          accessKeyId: 'ak',
+          secretKey: 'sk',
+          region: 'us-east-1',
+          s3ProfileName: 'profile-west',
+        },
+      },
+    };
+
+    (fetchRamenS3Profiles as jest.Mock).mockResolvedValue([
+      { s3ProfileName: 'profile-east' },
+      { s3ProfileName: 'profile-west' },
+    ]);
+    (createOrUpdateRamenS3Secret as jest.Mock).mockImplementation(
+      async (args) => {
+        if (args.mutationDetails) {
+          args.mutationDetails.isUpdated = true;
+        }
+        return {};
+      }
+    );
+    (updateRamenHubOperatorConfig as jest.Mock).mockResolvedValue({});
+    (createDRCluster as jest.Mock).mockImplementation(async ({ name }) => ({
+      metadata: { name },
+    }));
+    (deleteDRCluster as jest.Mock).mockResolvedValue({});
+    mockK8sCreate.mockRejectedValue(conflict);
+
+    await expect(createPolicyPromises(tpsState, [], [])).rejects.toEqual(
+      conflict
+    );
+
+    expect(updateRamenHubOperatorConfig).not.toHaveBeenCalledWith(
+      expect.objectContaining({ remove: true })
+    );
+    expect(mockK8sDelete).not.toHaveBeenCalled();
+    expect(deleteDRCluster).toHaveBeenCalled();
+  });
+
+  it('restores a replaced DRCluster after a DRPolicy create conflict', async () => {
+    const tpsState: DRPolicyState = {
+      ...state,
+      configure: {
+        ...state.configure,
+        replicationBackend: BackendType.ThirdParty,
+        cluster1S3Details: {
+          clusterName: 'east-1',
+          bucketName: 'bucket-east',
+          endpoint: 'https://s3.example',
+          accessKeyId: 'ak',
+          secretKey: 'sk',
+          region: 'us-east-1',
+          s3ProfileName: 'profile-east-new',
+        },
+        cluster2S3Details: {
+          clusterName: 'west-1',
+          bucketName: 'bucket-west',
+          endpoint: 'https://s3.example',
+          accessKeyId: 'ak',
+          secretKey: 'sk',
+          region: 'us-east-1',
+          s3ProfileName: 'profile-west',
+        },
+      },
+    };
+    const existingEast = {
+      metadata: { name: 'east-1' },
+      spec: {
+        s3ProfileName: 'profile-east-old',
+        cidrs: ['10.0.0.0/16', '192.168.1.0/24'],
+        clusterFence: 'Fenced',
+      },
+    } as DRClusterKind;
+
+    (fetchRamenS3Profiles as jest.Mock).mockResolvedValue([
+      { s3ProfileName: 'profile-east-old' },
+      { s3ProfileName: 'profile-west' },
+    ]);
+    (createOrUpdateRamenS3Secret as jest.Mock).mockImplementation(
+      async (args) => {
+        if (args.mutationDetails) {
+          args.mutationDetails.isUpdated = true;
+        }
+        return {};
+      }
+    );
+    (updateRamenHubOperatorConfig as jest.Mock).mockResolvedValue({});
+    (createDRCluster as jest.Mock).mockImplementation(async ({ name }) => ({
+      metadata: { name },
+    }));
+    (deleteDRCluster as jest.Mock).mockResolvedValue({});
+    mockK8sCreate.mockRejectedValue(conflict);
+
+    await expect(
+      createPolicyPromises(tpsState, [], [existingEast])
+    ).rejects.toEqual(conflict);
+
+    expect(deleteDRCluster).toHaveBeenCalledWith('east-1');
+    expect(createDRCluster).toHaveBeenCalledWith({
+      name: 'east-1',
+      s3ProfileName: 'profile-east-new',
+    });
+    expect(createDRCluster).toHaveBeenCalledWith({
+      name: 'east-1',
+      s3ProfileName: 'profile-east-old',
+      cidrs: ['10.0.0.0/16', '192.168.1.0/24'],
+      clusterFence: 'Fenced',
+    });
+    const createCalls = (createDRCluster as jest.Mock).mock.calls.map(
+      ([args]) => args.s3ProfileName
+    );
+    expect(createCalls.lastIndexOf('profile-east-old')).toBeGreaterThan(
+      createCalls.indexOf('profile-east-new')
+    );
   });
 });
