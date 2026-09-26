@@ -20,11 +20,12 @@ import {
 import { ClusterAppsMap } from '../../../hooks/useProtectedAppsByCluster';
 import { ACMManagedClusterKind, DRPolicyKind, Phase } from '../../../types';
 import {
+  getAutoCleanupCondition,
+  getProtectedCondition,
   getReplicationHealth,
   getReplicationType,
-  getProtectedCondition,
 } from '../../../utils';
-import { getDRStatus, isCleanupRequired } from '../../../utils/dr-status';
+import { getDRStatus } from '../../../utils/dr-status';
 import { TOPOLOGY_CONSTANTS } from '../constants';
 import {
   DecoratorIcon,
@@ -78,7 +79,7 @@ const computeOperationDRStatus = (
     : undefined;
 
   return getDRStatus({
-    isCleanupRequired: isCleanupRequired(phase, progression),
+    autoCleanupCondition: getAutoCleanupCondition(drpc),
     phase: phase as Phase,
     volumeReplicationHealth,
     kubeObjectReplicationHealth,

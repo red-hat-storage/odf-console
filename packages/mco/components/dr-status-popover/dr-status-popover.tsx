@@ -4,7 +4,12 @@ import {
   VolumeReplicationHealth,
   DRActionType,
 } from '@odf/mco/constants';
-import { Phase } from '@odf/mco/types';
+import {
+  Phase,
+  Progression,
+  VRGConditionReason,
+  VRGConditionType,
+} from '@odf/mco/types';
 import {
   getDRStatus,
   isReplicationHealthy,
@@ -18,7 +23,10 @@ import {
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
-import { K8sResourceCondition } from '@odf/shared/types';
+import {
+  K8sResourceCondition,
+  K8sResourceConditionStatus,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ViewDocumentation } from '@odf/shared/utils';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
@@ -49,6 +57,7 @@ export type DRStatusProps = {
   kubeObjectReplicationHealth?: VolumeReplicationHealth;
   phase: Phase;
   isCleanupRequired?: boolean;
+  autoCleanupCondition?: K8sResourceCondition;
   isLoadedWOError: boolean;
   progression?: string;
   applicationName?: string;
@@ -342,13 +351,33 @@ const createCompletionStatus = (
  * @param status - Current DR status
  * @param progression - Progression string from DRPC status
  * @param action - DR action type (failover or relocate)
+ * @param autoCleanupCondition - Optional VRG AutoCleanup condition
  * @returns true if train view should be displayed
  */
 const shouldShowProgressionTrainView = (
   status: DRStatus,
   progression?: string,
-  action?: DRActionType
+  action?: DRActionType,
+  autoCleanupCondition?: K8sResourceCondition
 ): boolean => {
+  // AutoCleanup Completed after a terminal failover/relocate can leave
+  // progression stuck at WaitOnUserToCleanUp. Hide the train only for that
+  // stale cleanup progression so the UI matches the normal post-cleanup view.
+  // Do NOT hide for later active progressions (Syncing/Restoring), or during
+  // Relocating where discovered-app cleanup finishes before later steps.
+  const isAutoCleanupCompleted =
+    autoCleanupCondition?.type === VRGConditionType.AutoCleanup &&
+    autoCleanupCondition?.status === K8sResourceConditionStatus.True &&
+    autoCleanupCondition?.reason === VRGConditionReason.Completed;
+
+  if (
+    isAutoCleanupCompleted &&
+    [DRStatus.FailedOver, DRStatus.Relocated].includes(status) &&
+    progression === Progression.WaitOnUserToCleanUp
+  ) {
+    return false;
+  }
+
   // Show train view during active operations (FailingOver/Relocating)
   // OR when waiting for cleanup (WaitOnUserToCleanUp) - so user can see train is stuck at cleanup step
   // OR when phase is FailedOver/Relocated but progression is still active (cleanup steps ongoing)
@@ -377,7 +406,6 @@ const getCleanupMessage = (phase: Phase, cluster: string, t: TFunction) => {
 };
 
 type GetDRStatusDetailsParams = {
-  isCleanupRequired: boolean;
   phase: Phase;
   volumeReplicationHealth: VolumeReplicationHealth;
   kubeObjectReplicationHealth?: VolumeReplicationHealth;
@@ -388,6 +416,7 @@ type GetDRStatusDetailsParams = {
   targetCluster: string;
   protectedCondition?: K8sResourceCondition;
   availableCondition?: K8sResourceCondition;
+  autoCleanupCondition?: K8sResourceCondition;
   schedulingInterval?: string;
   actionStartTime?: string;
   action?: DRActionType;
@@ -395,7 +424,6 @@ type GetDRStatusDetailsParams = {
 };
 
 const getDRStatusDetails = ({
-  isCleanupRequired,
   phase,
   volumeReplicationHealth,
   kubeObjectReplicationHealth,
@@ -406,19 +434,20 @@ const getDRStatusDetails = ({
   targetCluster,
   protectedCondition,
   availableCondition,
+  autoCleanupCondition,
   schedulingInterval,
   actionStartTime,
   action,
   dryRun,
 }: GetDRStatusDetailsParams): StatusContent => {
   const drStatus = getDRStatus({
-    isCleanupRequired,
     phase,
     volumeReplicationHealth,
     kubeObjectReplicationHealth,
     progression,
     volumeLastGroupSyncTime,
     protectedCondition,
+    autoCleanupCondition,
     schedulingInterval,
     actionStartTime,
     action,
@@ -590,14 +619,21 @@ const getDRStatusDetails = ({
           )
         : null;
 
+      const isAutoCleanupProgressing =
+        autoCleanupCondition?.type === VRGConditionType.AutoCleanup &&
+        autoCleanupCondition?.status === K8sResourceConditionStatus.True &&
+        autoCleanupCondition?.reason === VRGConditionReason.Progressing;
+
       const completionTitle = t('Failover complete');
       // After failover, primaryCluster is where the app is now running (the failover cluster)
-      const completionMessage = t(
-        'Application is now running on {{primaryCluster}}.',
-        {
-          primaryCluster,
-        }
-      );
+      const completionMessage = isAutoCleanupProgressing
+        ? t(
+            'Application is now running on {{primaryCluster}}. Automatic cleanup is in progress.',
+            { primaryCluster }
+          )
+        : t('Application is now running on {{primaryCluster}}.', {
+            primaryCluster,
+          });
 
       return createCompletionStatus(
         drStatus,
@@ -680,7 +716,8 @@ const DRStatusPopoverBody: React.FC<{
     shouldShowProgressionTrainView(
       status,
       disasterRecoveryStatus.progression,
-      disasterRecoveryStatus.action
+      disasterRecoveryStatus.action,
+      disasterRecoveryStatus.autoCleanupCondition
     )
   ) {
     return (
@@ -693,6 +730,7 @@ const DRStatusPopoverBody: React.FC<{
         actionStartTime={disasterRecoveryStatus.actionStartTime}
         progressionDetails={disasterRecoveryStatus.progressionDetails}
         isCleanupRequired={disasterRecoveryStatus.isCleanupRequired}
+        autoCleanupCondition={disasterRecoveryStatus.autoCleanupCondition}
         cleanupCluster={cleanupCluster}
         isDiscoveredApp={disasterRecoveryStatus.isDiscoveredApp}
         learnMoreHref={cleanupDocHref}
@@ -739,7 +777,6 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
   const { icon, title, message, className, status } = React.useMemo(
     () =>
       getDRStatusDetails({
-        isCleanupRequired: disasterRecoveryStatus.isCleanupRequired,
         phase: disasterRecoveryStatus.phase,
         volumeReplicationHealth: disasterRecoveryStatus.volumeReplicationHealth,
         kubeObjectReplicationHealth:
@@ -751,6 +788,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         targetCluster: disasterRecoveryStatus.targetCluster,
         protectedCondition: disasterRecoveryStatus.protectedCondition,
         availableCondition: disasterRecoveryStatus.availableCondition,
+        autoCleanupCondition: disasterRecoveryStatus.autoCleanupCondition,
         schedulingInterval: disasterRecoveryStatus.schedulingInterval,
         actionStartTime: disasterRecoveryStatus.actionStartTime,
         action: disasterRecoveryStatus.action,

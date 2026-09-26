@@ -13,6 +13,8 @@ import {
   Phase,
   Progression,
   DRPlacementControlConditionReason,
+  VRGConditionReason,
+  VRGConditionType,
 } from '../types/ramen';
 import { getVolumeReplicationHealth } from '../utils';
 
@@ -163,16 +165,14 @@ export const shouldShowProtectionError = (
  * This is the authoritative implementation used by dr-status-popover.
  *
  * Priority order:
- * 1. Cleanup requirements (WaitOnUserToCleanUp)
- * 2. User action requirements (WaitForUser)
- * 3. Deletion state
- * 4. Active operations (FailingOver/Relocating)
- * 5. Completed operations (FailedOver/Relocated) with sync state
- * 6. Protection status (Protecting/ProtectionError)
- * 7. Replication health (Critical/Warning/Healthy)
+ * 1. User action requirements (WaitForUser) and deletion state
+ * 2. Cleanup requirements (WaitOnUserToCleanUp), except Deleting/WaitForUser
+ * 3. Active operations (FailingOver/Relocating)
+ * 4. Completed operations (FailedOver/Relocated) with sync state
+ * 5. Protection status (Protecting/ProtectionError)
+ * 6. Replication health (Critical/Warning/Healthy)
  */
 export const getDRStatus = ({
-  isCleanupRequired,
   phase,
   volumeReplicationHealth,
   kubeObjectReplicationHealth,
@@ -183,8 +183,8 @@ export const getDRStatus = ({
   actionStartTime,
   action,
   dryRun,
+  autoCleanupCondition,
 }: {
-  isCleanupRequired?: boolean;
   phase: Phase;
   volumeReplicationHealth?: VolumeReplicationHealth;
   kubeObjectReplicationHealth?: VolumeReplicationHealth;
@@ -195,22 +195,19 @@ export const getDRStatus = ({
   actionStartTime?: string;
   action?: DRActionType;
   dryRun?: boolean;
+  autoCleanupCondition?: K8sResourceCondition;
 }): DRStatus => {
-  // Check if cleanup is required — this has the highest priority.
-  // If not explicitly provided, derive from progression.
-  const cleanupRequired =
-    isCleanupRequired ?? progression === Progression.WaitOnUserToCleanUp;
+  // WaitForUser / Deleting win over a stale WaitOnUserToCleanUp progression
+  // (phase can change while progression has not yet advanced).
+  if (phase === Phase.WaitForUser) return DRStatus.WaitForUser;
+  if (phase === Phase.Deleting) return DRStatus.Deleting;
+
+  const cleanupRequired = isCleanupRequired(progression, autoCleanupCondition);
   if (cleanupRequired) return DRStatus.WaitOnUserToCleanUp;
 
   // DryRun test failover in hold state — test workload is running on secondary.
   if (dryRun && progression === Progression.TestingFailover)
     return DRStatus.TestingFailover;
-
-  // WaitForUser is always treated as action required
-  if (phase === Phase.WaitForUser) return DRStatus.WaitForUser;
-
-  // Deleting is always shown as an in-progress removal state
-  if (phase === Phase.Deleting) return DRStatus.Deleting;
 
   // Handle failover or relocation phases directly
   if (phase === Phase.FailingOver) return DRStatus.FailingOver;
@@ -321,17 +318,23 @@ export const isFailingOrRelocating = (
   );
 };
 
-/**
- * Utility: Check if cleanup is required.
- */
 export const isCleanupRequired = (
-  status: DRStatus | Phase | Progression | string,
-  progression?: Progression | string
-): boolean =>
-  status === DRStatus.WaitOnUserToCleanUp ||
-  String(status) === Progression.WaitOnUserToCleanUp ||
-  progression === Progression.WaitOnUserToCleanUp ||
-  String(progression) === Progression.WaitOnUserToCleanUp;
+  progression?: Progression | string,
+  autoCleanupCondition?: K8sResourceCondition
+): boolean => {
+  if (progression !== Progression.WaitOnUserToCleanUp) {
+    return false;
+  }
+
+  const reason = autoCleanupCondition?.reason;
+  const isHandledByAutoCleanup =
+    autoCleanupCondition?.type === VRGConditionType.AutoCleanup &&
+    autoCleanupCondition?.status === K8sResourceConditionStatus.True &&
+    (reason === VRGConditionReason.Progressing ||
+      reason === VRGConditionReason.Completed);
+
+  return !isHandledByAutoCleanup;
+};
 
 /**
  * Utility: Check if user action is required.

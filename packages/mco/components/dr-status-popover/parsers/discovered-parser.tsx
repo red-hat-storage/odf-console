@@ -10,7 +10,6 @@ import {
   getProtectedCondition,
   getAvailableCondition,
 } from '../../../utils';
-import { isCleanupPending } from '../../protected-applications/utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
 import { getProgressionFields } from './utils';
 
@@ -70,7 +69,6 @@ export const DRPlacementControlParser: React.FC<
       volumeReplicationHealth,
       kubeObjectReplicationHealth,
       phase: drPlacementControl?.status?.phase as Phase,
-      isCleanupRequired: isCleanupPending(drPlacementControl),
       isLoadedWOError: loaded && !loadError,
       ...getProgressionFields(drPlacementControl),
       protectedCondition,
