@@ -15,7 +15,7 @@ export const CreateStorageSystemHeader: React.FC<
     <div className="odf-create-storage-system__header">
       <Content>
         <Content component={ContentVariants.h1}>
-          {t('Create storage system')}
+          {t('Create storage cluster')}
         </Content>
         <Content component={ContentVariants.small}>
           {t(
