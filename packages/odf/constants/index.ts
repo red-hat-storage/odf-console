@@ -1,3 +1,4 @@
+export * from './automatic-backup';
 export * from './common';
 export * from './erasure-coding';
 export * from './kms';
