@@ -277,6 +277,7 @@ const CreateStoragePool: React.FC<{}> = ({}) => {
         appName={params.appName}
         storageCluster={storageCluster}
         cephCluster={cephCluster}
+        cephClusterLoaded={cephClustersLoaded}
         isExternalStorageSystem={isExternalStorageSystem}
         poolNs={poolNs}
         fsName={fsName}
@@ -299,6 +300,7 @@ type CreateStoragePoolFormProps = {
   appName: string;
   storageCluster: StorageClusterKind;
   cephCluster: CephClusterKind;
+  cephClusterLoaded: boolean;
   isExternalStorageSystem: boolean;
   poolNs: string;
   fsName: string;
@@ -310,6 +312,7 @@ type CreateStoragePoolFormProps = {
 const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
   storageCluster,
   cephCluster,
+  cephClusterLoaded,
   isExternalStorageSystem,
   poolNs,
   fsName,
@@ -441,6 +444,7 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
       <div className="create-storage-pool__form">
         <StoragePoolBody
           cephCluster={cephCluster}
+          cephClusterLoaded={cephClusterLoaded}
           state={state}
           dispatch={dispatch}
           showPoolStatus={false}

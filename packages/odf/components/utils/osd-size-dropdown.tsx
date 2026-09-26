@@ -92,7 +92,7 @@ export const OSDSizeDropdown: React.FC<OSDSizeDropdownProps> = ({
       selectedKey={valueLabelMap(t)[selectedKey]}
       className="dropdown--full-width"
       valueLabelMap={valueLabelMap(t)}
-      data-test-id="dropdown-button"
+      data-test={id}
     />
   );
 };
@@ -101,5 +101,4 @@ type OSDSizeDropdownProps = {
   selectedKey: string;
   id?: string;
   onChange: React.Dispatch<React.SetStateAction<string>>;
-  'data-test-id'?: string;
 };
