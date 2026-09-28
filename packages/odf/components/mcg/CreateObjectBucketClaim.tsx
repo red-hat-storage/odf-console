@@ -6,6 +6,7 @@ import {
   createNewObjectBucketClaim,
   createNewSingleNamespaceBucketClass,
   generateGenericName,
+  getBucketClassTypeDisplayText,
   getStorageClassDescription,
 } from '@odf/core/utils';
 import {
@@ -176,6 +177,9 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     }
     return !hasVectorPolicy;
   };
+
+  const getBucketClassTypeDescription = (bc: K8sResourceKind) =>
+    getBucketClassTypeDisplayText(bc as BucketClassKind, t);
 
   const { odfNamespace } = useODFNamespaceSelector();
 
@@ -390,6 +394,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
                   ),
               })}
               filterResource={filterBucketClassByVectorPolicy}
+              secondaryTextGenerator={getBucketClassTypeDescription}
               id="bc-dropdown"
               data-test="bc-dropdown"
               resource={bucketClassResource(odfNamespace)}
