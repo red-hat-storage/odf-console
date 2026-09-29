@@ -87,7 +87,14 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
 
   const memoizedSelectedNodes = useDeepCompareMemoize(selectedNodes, true);
   const discoveryStartedRef = React.useRef(false);
-  const [pollingEnabled, setPollingEnabled] = React.useState(false);
+  const [pollingEnabled, setPollingEnabled] = React.useState(
+    !Array.isArray(selectedNodes)
+  );
+
+  // NEW: expose shared devices
+  const [sharedDevices, setSharedDevices] = React.useState<DiscoveredDevice[]>(
+    []
+  );
 
   React.useEffect(() => {
     // LUN discovery runs on disk nodes only.
@@ -140,22 +147,37 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
-        }).catch((error) => {
-          setDeviceFinderError(error as Error);
-        });
+        })
+          .then(() => setPollingEnabled(true))
+          .catch((error) => {
+            setDeviceFinderError(error as Error);
+          });
+        return;
       }
+    }
+    if (discoveryStartedRef.current) {
+      setSharedDevices([]);
+      setDeviceFinderError(null);
+      setPollingEnabled(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedSelectedNodes]);
 
-  // NEW: expose shared devices
-  const [sharedDevices, setSharedDevices] = React.useState<DiscoveredDevice[]>(
-    []
-  );
-
   // Initialize device finder and wait for completion before starting polling
   React.useEffect(() => {
     if (!pollingEnabled) {
+      return;
+    }
+    if (
+      discoveryStartedRef.current &&
+      !memoizedSelectedNodes?.some(
+        (node) =>
+          node.localClusterRole === NodeType.DISK &&
+          node.labels?.['kubernetes.io/hostname']
+      )
+    ) {
+      setSharedDevices([]);
+      setDeviceFinderLoading(false);
       return;
     }
 
@@ -197,7 +219,7 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
         clearInterval(intervalId);
       }
     };
-  }, [pollingEnabled]);
+  }, [pollingEnabled, memoizedSelectedNodes]);
 
   return {
     deviceFinderResponse,
