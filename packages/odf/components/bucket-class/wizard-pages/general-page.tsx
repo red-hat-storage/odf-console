@@ -116,6 +116,9 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
   } = useForm({
     ...formSettings,
     resolver,
+    defaultValues: {
+      'bucketclassname-input': state.bucketClassName,
+    },
   });
 
   const bucketClassName: string = watch('bucketclassname-input');
