@@ -9,7 +9,7 @@ import {
   EmptyStateBody,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
-import { getProtectedCondition } from '../../../utils';
+import { getAutoCleanupCondition, getProtectedCondition } from '../../../utils';
 import { getDRStatus } from '../../../utils/dr-status';
 import { getPAVDRPolicyName } from '../../../utils/pav';
 import {
@@ -139,6 +139,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
     (operationData.operation ? [operationData.operation] : []);
   const appsFromOperations = operations.map((op) => {
     const protectedCondition = getProtectedCondition(op.drpc);
+    const autoCleanupCondition = getAutoCleanupCondition(op.drpc);
     return {
       name: op.applicationName,
       namespace: op.applicationNamespace,
@@ -146,6 +147,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
         phase: op.phase,
         progression: op.progression,
         protectedCondition,
+        autoCleanupCondition,
         volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
         action: op.action,
         dryRun: op.drpc?.spec?.dryRun,
