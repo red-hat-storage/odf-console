@@ -11,18 +11,18 @@ const MCG_PROFILE_REQUIREMENTS: Record<
   McgPerformanceProfile,
   McgProfileRequirements
 > = {
-  [McgPerformanceProfile.Default]: { cpu: 4.4, memoryGiB: 8.83 },
-  [McgPerformanceProfile.MixedWorkload]: { cpu: 16.2, memoryGiB: 28.49 },
-  [McgPerformanceProfile.SmallObjects]: { cpu: 18.2, memoryGiB: 44.49 },
+  [McgPerformanceProfile.Default]: { cpu: 3.9, memoryGiB: 7.98 },
+  [McgPerformanceProfile.MixedWorkload]: { cpu: 14.4, memoryGiB: 24.98 },
+  [McgPerformanceProfile.SmallObjects]: { cpu: 16.4, memoryGiB: 40.98 },
 };
 
 const MCG_PROFILE_REQUIREMENTS_S390X: Record<
   McgPerformanceProfile,
   McgProfileRequirements
 > = {
-  [McgPerformanceProfile.Default]: { cpu: 2.2, memoryGiB: 8.83 },
-  [McgPerformanceProfile.MixedWorkload]: { cpu: 8.1, memoryGiB: 28.49 },
-  [McgPerformanceProfile.SmallObjects]: { cpu: 9.1, memoryGiB: 44.49 },
+  [McgPerformanceProfile.Default]: { cpu: 0.78, memoryGiB: 7.98 },
+  [McgPerformanceProfile.MixedWorkload]: { cpu: 2.88, memoryGiB: 24.98 },
+  [McgPerformanceProfile.SmallObjects]: { cpu: 3.28, memoryGiB: 40.98 },
 };
 
 export const getMcgProfileRequirements = (
