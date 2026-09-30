@@ -12,6 +12,11 @@ import {
   getObjectVersionId,
   convertObjectDataToCrFormat,
   sortByLastModified,
+  isObjectDeepArchived,
+  isObjectRestored,
+  getStorageClassDisplayName,
+  parseRestoreHeader,
+  getRestoreStatusText,
 } from '@odf/core/utils';
 import {
   DASH,
@@ -22,7 +27,7 @@ import {
 } from '@odf/shared';
 import { useModalWrapper } from '@odf/shared';
 import { PaginatedListPage } from '@odf/shared/list-page';
-import { S3Commands } from '@odf/shared/s3';
+import { S3Commands, STORAGE_CLASS_STANDARD } from '@odf/shared/s3';
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
 import { TFunction } from 'i18next';
 import { useParams, useSearchParams } from 'react-router';
@@ -320,58 +325,109 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
 
   const isLoading = isObjectDataLoading || isTagDataLoading;
 
+  // Merge the freshest storage class from the "headObject" response (the
+  // list-derived apiResponse can be stale).
+  const freshObject: ObjectCrFormat = {
+    ...object,
+    apiResponse: {
+      ...object.apiResponse,
+      // Once the HeadObject response is in, it is authoritative: S3 omits the
+      // storage class for STANDARD objects, so an absent value means STANDARD.
+      // The (possibly stale) list value is only used until HEAD data arrives.
+      storageClass: objectData
+        ? objectData.StorageClass || STORAGE_CLASS_STANDARD
+        : object.apiResponse?.storageClass,
+      // Prefer the restore state from the fresh HeadObject "x-amz-restore"
+      // header; fall back to what the list response reported.
+      restoreStatus:
+        parseRestoreHeader(objectData?.Restore) ||
+        object.apiResponse?.restoreStatus,
+    },
+  };
+  // The access warning only applies while a usable restored copy is missing; a
+  // restored object can be previewed/downloaded like any other.
+  const needsRestore =
+    isObjectDeepArchived(freshObject) && !isObjectRestored(freshObject);
+  const restoreStatusText = getRestoreStatusText(freshObject, t);
+
   return isLoading ? (
     <LoadingBox />
   ) : (
-    <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
-      <GridItem span={6}>
-        <ItemHeading text={t('Name')} />
-        {objShortenedName}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Key')} />
-        <Level>
-          <LevelItem className="odf-object-sidebar__key">{objectKey}</LevelItem>
-          <LevelItem>
-            <CopyToClipboard value={objectKey} iconOnly={true} />
-          </LevelItem>
-        </Level>
-      </GridItem>
-      {showVersioning && (
-        <GridItem span={6}>
-          <ItemHeading text={t('Version')} />
-          {objectData?.VersionId || versionId || DASH}
-        </GridItem>
+    <>
+      {needsRestore && (
+        <Alert
+          isInline
+          variant={AlertVariant.warning}
+          title={t('This object is archived')}
+          className="pf-v6-u-mt-sm"
+        >
+          {t(
+            'This object is stored in the Deep Archive storage class and can only be previewed or downloaded after it is restored.'
+          )}
+        </Alert>
       )}
-      <GridItem span={6}>
-        <ItemHeading text={t('Owner')} />
-        {object.apiResponse?.ownerName}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Type')} />
-        {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Last modified')} />
-        {lastModified}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Size')} />
-        {object.apiResponse.size}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Entity tag (ETag)')} />
-        {objectData?.ETag || DASH}
-      </GridItem>
-      <GridItem span={12}>
-        <ItemHeading text={t('Tags')} />
-        {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
-      </GridItem>
-      <GridItem span={12}>
-        <ItemHeading text={t('Metadata')} />
-        {metadata.length > 0 ? metadata : DASH}
-      </GridItem>
-    </Grid>
+      <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
+        <GridItem span={6}>
+          <ItemHeading text={t('Name')} />
+          {objShortenedName}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Key')} />
+          <Level>
+            <LevelItem className="odf-object-sidebar__key">
+              {objectKey}
+            </LevelItem>
+            <LevelItem>
+              <CopyToClipboard value={objectKey} iconOnly={true} />
+            </LevelItem>
+          </Level>
+        </GridItem>
+        {showVersioning && (
+          <GridItem span={6}>
+            <ItemHeading text={t('Version')} />
+            {objectData?.VersionId || versionId || DASH}
+          </GridItem>
+        )}
+        <GridItem span={6}>
+          <ItemHeading text={t('Owner')} />
+          {object.apiResponse?.ownerName}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Type')} />
+          {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Last modified')} />
+          {lastModified}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Size')} />
+          {object.apiResponse.size}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Storage class')} />
+          {getStorageClassDisplayName(freshObject.apiResponse?.storageClass) ||
+            DASH}
+          {restoreStatusText && (
+            <Content component={ContentVariants.small}>
+              {restoreStatusText}
+            </Content>
+          )}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Entity tag (ETag)')} />
+          {objectData?.ETag || DASH}
+        </GridItem>
+        <GridItem span={12}>
+          <ItemHeading text={t('Tags')} />
+          {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
+        </GridItem>
+        <GridItem span={12}>
+          <ItemHeading text={t('Metadata')} />
+          {metadata.length > 0 ? metadata : DASH}
+        </GridItem>
+      </Grid>
+    </>
   );
 };
 
