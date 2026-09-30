@@ -10,12 +10,14 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Operator } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { useWizardContext, WizardFooterWrapper } from '@patternfly/react-core';
 import {
-  Button,
+  ActionGroup,
   Alert,
-  AlertVariant,
   AlertProps,
+  AlertVariant,
+  Button,
+  useWizardContext,
+  WizardFooterWrapper,
 } from '@patternfly/react-core';
 import { AssignPolicyViewState, PVCSelectorType } from '../utils/reducer';
 import { DRPolicyType } from '../utils/types';
@@ -183,32 +185,36 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
         </Alert>
       )}
       <WizardFooterWrapper>
-        <Button
-          isLoading={requestInProgress}
-          isDisabled={requestInProgress || validationError}
-          variant="primary"
-          onClick={handleNext}
-        >
-          {stepName ===
-          AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign]
-            ? t('Assign')
-            : t('Next')}
-        </Button>
-        {/* Disabling the back button for the first step (Policy) in wizard */}
-        <Button
-          variant="secondary"
-          onClick={goToPrevStep}
-          isDisabled={activeStep.index === 1 || requestInProgress}
-        >
-          {t('Back')}
-        </Button>
-        <Button
-          variant="link"
-          onClick={onCancel}
-          isDisabled={requestInProgress}
-        >
-          {t('Cancel')}
-        </Button>
+        <ActionGroup>
+          <Button
+            isLoading={requestInProgress}
+            isDisabled={requestInProgress || validationError}
+            variant="primary"
+            onClick={handleNext}
+            className="pf-v6-u-mr-md"
+          >
+            {stepName ===
+            AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign]
+              ? t('Assign')
+              : t('Next')}
+          </Button>
+          {/* Disabling the back button for the first step (Policy) in wizard */}
+          <Button
+            variant="secondary"
+            onClick={goToPrevStep}
+            isDisabled={activeStep.index === 1 || requestInProgress}
+            className="pf-v6-u-mr-md"
+          >
+            {t('Back')}
+          </Button>
+          <Button
+            variant="link"
+            onClick={onCancel}
+            isDisabled={requestInProgress}
+          >
+            {t('Cancel')}
+          </Button>
+        </ActionGroup>
       </WizardFooterWrapper>
     </>
   );
