@@ -30,6 +30,8 @@ export const NOOBAA_TYPE_MAP = {
   [StoreProviders.FILESYSTEM]: 'nsfs' as const,
 };
 
+export const DEFAULT_BACKING_STORE_NAME = 'noobaa-default-backing-store';
+
 export type SpecProvider =
   (typeof PROVIDERS_NOOBAA_MAP)[keyof typeof PROVIDERS_NOOBAA_MAP];
 export type SpecType = (typeof NOOBAA_TYPE_MAP)[keyof typeof NOOBAA_TYPE_MAP];
