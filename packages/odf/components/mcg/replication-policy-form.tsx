@@ -9,7 +9,7 @@ import {
   ContentVariants,
   Button,
   ButtonVariant,
-  Form,
+  FormSection,
   FormGroup,
   TextInput,
   Content,
@@ -146,7 +146,7 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
 
   return (
     <div className={className}>
-      <Form>
+      <FormSection>
         <FormGroup>
           <Checkbox
             id="enable-event-logs"
@@ -244,7 +244,7 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
             </StackItem>
           )}
         </Stack>
-      </Form>
+      </FormSection>
     </div>
   );
 };

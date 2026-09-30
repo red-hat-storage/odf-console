@@ -66,7 +66,7 @@ export const defaultState = {
   payload: {},
   sizeUnit: 'GiB',
   sizeValue: '',
-  bucketClass: 'noobaa-default-bucket-class',
+  bucketClass: '',
   replicationRuleFormData: [],
   logReplicationInfo: { logLocation: '', logPrefix: '' },
 };
