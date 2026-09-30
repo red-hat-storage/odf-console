@@ -518,6 +518,8 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
     // NamespaceStore modal's submit is triggering this form as well, added this check to prevent that
     if (e.nativeEvent.submitter.id !== submitBtnId) return;
 
+    if (!isValid) return;
+
     dispatch({ type: 'setProgress' });
     const promises: Promise<K8sResourceKind>[] = [];
     if (
@@ -589,14 +591,19 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
               <Tile
                 title={t('General')}
                 isSelected={selectedBucketType === BucketType.General}
-                onClick={() => setSelectedBucketType(BucketType.General)}
+                onClick={() => {
+                  setSelectedBucketType(BucketType.General);
+                }}
                 data-test="bucket-type-general-tile"
                 className="odf-mcg__bucket-type-tile"
               />
               <Tile
                 title={t('S3 Vector')}
                 isSelected={selectedBucketType === BucketType.S3Vector}
-                onClick={() => setSelectedBucketType(BucketType.S3Vector)}
+                onClick={() => {
+                  setSelectedBucketType(BucketType.S3Vector);
+                  dispatch({ type: 'setBucketClass', name: '' });
+                }}
                 data-test="bucket-type-s3vector-tile"
                 className="odf-mcg__bucket-type-tile"
               />
