@@ -10,6 +10,7 @@ import { getNamespace } from '@odf/shared/selectors';
 import { K8sResourceKind, NooBaaKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
+import { isClusterDeleting } from '@odf/shared/utils/storage';
 import {
   HealthState,
   useK8sWatchResource,
@@ -66,6 +67,14 @@ export const computeOCSHealth = (
   noobaa: ResourceData<NooBaaKind>,
   t: TFunction
 ): OCSHealthResult => {
+  if (isClusterDeleting(storageCluster)) {
+    return {
+      healthState: HealthState.PROGRESS,
+      message: t('Deleting'),
+      mcgHealth: { state: HealthState.PROGRESS },
+    };
+  }
+
   const isLoading =
     (!ceph.loaded && !ceph.loadError) ||
     (!cephObj.loaded && !cephObj.loadError) ||
