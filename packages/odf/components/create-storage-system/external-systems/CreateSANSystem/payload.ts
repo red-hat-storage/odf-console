@@ -1,3 +1,7 @@
+import {
+  getDiscoveredDeviceKey,
+  getLocalDiskNameFromDeviceKey,
+} from '@odf/core/components/utils';
 import { IBM_SCALE_NAMESPACE, SCALE_PROVISIONER } from '@odf/core/constants';
 import {
   DiscoveredDevice,
@@ -14,8 +18,6 @@ import { FileSystemModel, LocalDiskModel } from '@odf/shared/models/scale';
 import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 
-const generateLocalDiskName = (wwn: string) => `localdisk-${wwn}`;
-
 export const createLocalDisks = async (
   disks: DiscoveredDevice[],
   t: TFunction
@@ -25,12 +27,13 @@ export const createLocalDisks = async (
   }
 
   const localDisks: LocalDiskKind[] = disks.map((disk) => {
-    if (!disk.WWN || !disk.path || !disk.nodeName) {
+    const deviceKey = getDiscoveredDeviceKey(disk);
+    if (!deviceKey || !disk.path || !disk.nodeName) {
       throw new Error(
         t(
-          'Invalid disk data: missing required fields (WWN: {{wwn}}, path: {{path}}, nodeName: {{nodeName}})',
+          'Invalid disk data: missing required fields (deviceKey: {{deviceKey}}, path: {{path}}, nodeName: {{nodeName}})',
           {
-            wwn: disk.WWN,
+            deviceKey,
             path: disk.path,
             nodeName: disk.nodeName,
           }
@@ -41,7 +44,7 @@ export const createLocalDisks = async (
       apiVersion: 'scale.spectrum.ibm.com/v1beta1',
       kind: LocalDiskModel.kind,
       metadata: {
-        name: generateLocalDiskName(disk.WWN),
+        name: getLocalDiskNameFromDeviceKey(deviceKey),
         namespace: IBM_SCALE_NAMESPACE,
         labels: {
           discovered: 'true',
@@ -49,8 +52,6 @@ export const createLocalDisks = async (
       },
       spec: {
         device: disk.path,
-        wwn: disk.WWN,
-        capacity: String(disk.size),
         node: disk.nodeName,
       },
     };

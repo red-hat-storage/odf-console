@@ -8,7 +8,10 @@ import {
 } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/payload';
 import { useDeviceFinder } from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useDeviceFinder';
 import useSANSystemFormValidation from '@odf/core/components/create-storage-system/external-systems/CreateSANSystem/useFormValidation';
-import { filterUsedDiscoveredDevices } from '@odf/core/components/utils';
+import {
+  filterUsedDiscoveredDevices,
+  getDiscoveredDeviceKey,
+} from '@odf/core/components/utils';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
@@ -65,9 +68,9 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
   const createLunGroup = async () => {
     setInProgress(true);
     setError(undefined);
-    const selectedLUNsWWNArray = Array.from(selectedLUNs);
+    const selectedLUNKeys = Array.from(selectedLUNs);
     const selectedLUNsData: DiscoveredDevice[] = filteredDevices.filter(
-      (device) => selectedLUNsWWNArray.includes(device.WWN)
+      (device) => selectedLUNKeys.includes(getDiscoveredDeviceKey(device))
     );
     try {
       const localDisks = await createLocalDisks(selectedLUNsData, t);
