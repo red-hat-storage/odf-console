@@ -45,7 +45,7 @@ type RegistryConnectionResult = {
 };
 
 export const testRegistryConnection = async (
-  imageRegistryUrl: string,
+  registryUrl: string,
   registryRepositoryName: string,
   secretKey: string,
   secretNamespace: string
@@ -54,7 +54,7 @@ export const testRegistryConnection = async (
   try {
     await consoleFetchJSON(url, 'POST', {
       body: JSON.stringify({
-        imageRegistryUrl,
+        registryUrl,
         registryRepositoryName,
         secretKey,
         secretNamespace,
