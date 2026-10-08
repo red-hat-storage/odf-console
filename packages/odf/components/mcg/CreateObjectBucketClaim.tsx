@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BucketType } from '@odf/core/constants';
+import { BucketType, NOOBAA_DEFAULT_BUCKET_CLASS } from '@odf/core/constants';
 import { projectResource } from '@odf/core/resources';
 import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
 import {
@@ -63,6 +63,7 @@ import { ReplicationPolicyForm, Rule } from './replication-policy-form';
 import {
   Action,
   commonReducer,
+  defaultObcFormValues,
   defaultState,
   OBCReplicationRules,
   ReplicationResources,
@@ -239,7 +240,10 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       obj.spec.generateBucketName = 'bucket-';
     }
     if (state.bucketClass && allowBucketClass) {
-      if (!!state.replicationRuleFormData.length) {
+      if (
+        bucketType !== BucketType.S3Vector &&
+        !!state.replicationRuleFormData.length
+      ) {
         const replicationPolicy = createReplicationRulesAndStringify(
           state.replicationRuleFormData,
           namespace,
@@ -390,7 +394,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
               {...(bucketType === BucketType.General && {
                 initialSelection: (resources) =>
                   resources.find(
-                    (res) => getName(res) === 'noobaa-default-bucket-class'
+                    (res) => getName(res) === NOOBAA_DEFAULT_BUCKET_CLASS
                   ),
               })}
               filterResource={filterBucketClassByVectorPolicy}
@@ -479,11 +483,14 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
   const {
     control,
     handleSubmit,
+    reset,
     watch,
     formState: { isValid, isSubmitted },
   } = useForm({
     ...formSettings,
+    mode: 'onChange',
     resolver,
+    defaultValues: { ...defaultObcFormValues },
   });
 
   const isClientCluster = isClientPlugin();
@@ -493,6 +500,15 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
   React.useEffect(() => {
     dispatch({ type: 'setName', name: obcName });
   }, [obcName, dispatch]);
+
+  const onBucketTypeChange = (nextType: BucketType) => {
+    if (nextType === selectedBucketType) {
+      return;
+    }
+    setSelectedBucketType(nextType);
+    dispatch({ type: 'reset' });
+    reset();
+  };
 
   /**
    * In OCP, for any creation page: on changing the project from the dropdown,
@@ -594,14 +610,14 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
               <Tile
                 title={t('General')}
                 isSelected={selectedBucketType === BucketType.General}
-                onClick={() => setSelectedBucketType(BucketType.General)}
+                onClick={() => onBucketTypeChange(BucketType.General)}
                 data-test="bucket-type-general-tile"
                 className="odf-mcg__bucket-type-tile"
               />
               <Tile
                 title={t('S3 Vector')}
                 isSelected={selectedBucketType === BucketType.S3Vector}
-                onClick={() => setSelectedBucketType(BucketType.S3Vector)}
+                onClick={() => onBucketTypeChange(BucketType.S3Vector)}
                 data-test="bucket-type-s3vector-tile"
                 className="odf-mcg__bucket-type-tile"
               />
@@ -639,6 +655,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
           />
         )}
         <CreateOBCForm
+          key={selectedBucketType}
           state={state}
           dispatch={dispatch}
           namespace={namespace}
