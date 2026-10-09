@@ -15,7 +15,7 @@ import {
   ScaleDetailsLevel,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import { getProtectedCondition } from '../../../utils';
+import { getAutoCleanupCondition, getProtectedCondition } from '../../../utils';
 import { getDRStatus, isUserActionRequired } from '../../../utils/dr-status';
 import { FailoverNodeData } from '../types';
 import { getDRNodeStatus } from '../utils/sidebar-utils';
@@ -41,10 +41,12 @@ const getFailoverNodeStatus = (data: FailoverNodeData): NodeStatus => {
 
   for (const op of operations) {
     const protectedCondition = getProtectedCondition(op.drpc);
+    const autoCleanupCondition = getAutoCleanupCondition(op.drpc);
     const effectiveStatus = getDRStatus({
       phase: op.phase,
       progression: op.progression,
       protectedCondition,
+      autoCleanupCondition,
       volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
       action: op.action,
       dryRun: op.drpc?.spec?.dryRun,
@@ -118,11 +120,13 @@ const MCOFailoverNodeComponent: React.FC<MCOFailoverNodeProps> = ({
   const action = data.action || 'Failover';
   const needsUserAction = operations.some((op) => {
     const protectedCondition = getProtectedCondition(op.drpc);
+    const autoCleanupCondition = getAutoCleanupCondition(op.drpc);
     return isUserActionRequired(
       getDRStatus({
         phase: op.phase,
         progression: op.progression,
         protectedCondition,
+        autoCleanupCondition,
         volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
         action: op.action,
         dryRun: op.drpc?.spec?.dryRun,

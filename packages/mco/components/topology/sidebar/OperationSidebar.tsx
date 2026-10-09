@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getAutoCleanupCondition } from '@odf/mco/utils';
 import { getDRStatus } from '@odf/mco/utils/dr-status';
 import { DASH } from '@odf/shared/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -31,6 +32,7 @@ const getOperationStatus = (op: DROperationInfo) =>
     progression: op.progression,
     action: op.action,
     dryRun: op.drpc?.spec?.dryRun,
+    autoCleanupCondition: getAutoCleanupCondition(op.drpc),
   });
 
 type OperationSidebarProps = {

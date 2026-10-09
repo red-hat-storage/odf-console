@@ -59,7 +59,11 @@ import {
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
 } from '../constants';
 import { DisasterRecoveryFormatted } from '../hooks';
-import { DRPlacementControlConditionType, Phase } from '../types';
+import {
+  DRPlacementControlConditionType,
+  Phase,
+  VRGConditionType,
+} from '../types';
 import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,
@@ -742,6 +746,16 @@ export const getAvailableCondition = (
 ): K8sResourceCondition | undefined => {
   const condition = drpc?.status?.conditions?.find(
     (condition) => condition.type === DRPlacementControlConditionType.Available
+  );
+  if (!condition) return undefined;
+  return condition;
+};
+
+export const getAutoCleanupCondition = (
+  drpc: DRPlacementControlKind
+): K8sResourceCondition | undefined => {
+  const condition = drpc?.status?.resourceConditions?.conditions?.find(
+    (condition) => condition.type === VRGConditionType.AutoCleanup
   );
   if (!condition) return undefined;
   return condition;
