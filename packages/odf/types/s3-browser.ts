@@ -6,6 +6,14 @@ export type ObjectCrFormat = K8sResourceCommon & {
     lastModified?: string;
     ownerName?: string;
     versionId?: string;
+    // raw S3 storage class e.g. 'DEEP_ARCHIVE' | 'STANDARD' | ... (undefined when not provided)
+    storageClass?: string;
+    // restore state of an archived object, when the response reports it (either
+    // the list RestoreStatus attribute or the HeadObject "x-amz-restore" header)
+    restoreStatus?: {
+      isRestoreInProgress?: boolean;
+      restoreExpiryDate?: string;
+    };
   };
   isFolder?: boolean;
   isDeleteMarker?: boolean;

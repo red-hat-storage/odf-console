@@ -19,7 +19,13 @@ import { getBucketOverviewBaseRoute, PREFIX } from '../../../constants';
 import { SetObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
 import { LazyDeleteObjectsModal } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
 import { ObjectCrFormat, S3ProviderType } from '../../../types';
-import { getEncodedPrefix, replacePathFromName } from '../../../utils';
+import {
+  getEncodedPrefix,
+  replacePathFromName,
+  getStorageClassDisplayName,
+  isObjectDeepArchived,
+  isObjectRestored,
+} from '../../../utils';
 import {
   DownloadAndPreviewState,
   onDownload,
@@ -34,6 +40,7 @@ const getColumnNames = (t: TFunction): string[] => [
   t('Name'),
   t('Size'),
   t('Type'),
+  t('Storage class'),
   t('Last modified'),
   '',
 ];
@@ -68,6 +75,15 @@ export const getInlineActionsItems = (
   blockDataPath = false
 ): IAction[] => {
   const isDeleteMarker = object?.isDeleteMarker;
+  // Deep Archive objects must be restored before their data can be read, so
+  // data operations (download / preview / share) stay unavailable until a
+  // usable restored copy exists. Restoring is not offered from the UI yet; it
+  // will be introduced in a later release.
+  const needsRestore =
+    isObjectDeepArchived(object) && !isObjectRestored(object);
+  const archivedDataOpDescription = t(
+    'Object is archived. Restore it before performing this action.'
+  );
   return [
     ...(!isDeleteMarker
       ? [
@@ -88,7 +104,9 @@ export const getInlineActionsItems = (
                 setDownloadAndPreview,
                 showVersioning
               ),
-            isDisabled: blockDataPath || downloadAndPreview.isDownloading,
+            isDisabled:
+              blockDataPath || downloadAndPreview.isDownloading || needsRestore,
+            ...(needsRestore && { description: archivedDataOpDescription }),
             shouldCloseOnClick: false,
           },
         ]
@@ -112,7 +130,9 @@ export const getInlineActionsItems = (
                 setDownloadAndPreview,
                 showVersioning
               ),
-            isDisabled: blockDataPath || downloadAndPreview.isPreviewing,
+            isDisabled:
+              blockDataPath || downloadAndPreview.isPreviewing || needsRestore,
+            ...(needsRestore && { description: archivedDataOpDescription }),
             shouldCloseOnClick: false,
           },
         ]
@@ -126,7 +146,8 @@ export const getInlineActionsItems = (
                 isOpen: true,
                 extraProps: { bucketName, object, s3Client, showVersioning },
               }),
-            isDisabled: blockDataPath || isDeleteMarker,
+            isDisabled: blockDataPath || isDeleteMarker || needsRestore,
+            ...(needsRestore && { description: archivedDataOpDescription }),
           },
         ]
       : []),
@@ -184,11 +205,22 @@ export const getColumns = (t: TFunction, showVersioning: boolean) => {
     },
     {
       columnName: columnNames[3],
+      thProps: { modifier: 'nowrap' as const },
+      sortFunction: (a, b, c) => sortRows(a, b, c, 'apiResponse.storageClass'),
+    },
+    {
+      columnName: columnNames[4],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'apiResponse.lastModified'),
     },
-    { columnName: columnNames[4] },
+    { columnName: columnNames[5] },
   ];
 };
+
+// Renders the storage class value exactly as fetched (e.g. STANDARD /
+// DEEP_ARCHIVE, blank when none).
+const StorageClassCell: React.FC<{ object: ObjectCrFormat }> = ({ object }) => (
+  <>{getStorageClassDisplayName(object?.apiResponse?.storageClass)}</>
+);
 
 export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
   row: object,
@@ -293,9 +325,12 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
         {object.type}
       </Td>
       <Td dataLabel={columnNames[3]} onClick={onClick}>
+        {isFolder ? null : <StorageClassCell object={object} />}
+      </Td>
+      <Td dataLabel={columnNames[4]} onClick={onClick}>
         {object.apiResponse.lastModified}
       </Td>
-      <Td dataLabel={columnNames[4]} isActionCell>
+      <Td dataLabel={columnNames[5]} isActionCell>
         {isFolder ? null : <ActionsColumn items={actionItems} />}
       </Td>
     </>

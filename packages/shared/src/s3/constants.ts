@@ -21,3 +21,6 @@ export const getHubS3EndpointProxyPath = (uniqueIdentifier: string) =>
 export const NOOBAA_AVAILABLE_STORAGE_CLASSES_HEADER =
   'x-noobaa-available-storage-classes';
 export const STORAGE_CLASS_DEEP_ARCHIVE = 'DEEP_ARCHIVE';
+// S3 omits the storage class from HeadObject/GetObject responses for STANDARD
+// objects, so an absent value on a successful response means STANDARD.
+export const STORAGE_CLASS_STANDARD = 'STANDARD';
