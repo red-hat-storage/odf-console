@@ -21,6 +21,11 @@ jobs:
           cache: 'yarn'
       - name: Install dependencies
         run: yarn install --immutable
+      - name: Check shared module alignment
+        run: yarn tsx scripts/check-shared-modules.mts
+      - name: Audit for known vulnerabilities
+        run: yarn npm audit --environment production --severity moderate
+        continue-on-error: true
       - run: yarn build
       - run: yarn build-mco
       - run: yarn build-client
@@ -31,3 +36,53 @@ jobs:
       - run: yarn analyze-odf
       - run: yarn analyze-mco
       - run: yarn analyze-client
+
+  cve-audit:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v3
+      - run: corepack enable
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Run CVE audit
+        run: yarn tsx scripts/cve-audit-issue.mts --severity moderate
+      - name: Create or update issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LABEL="cve-audit"
+          TITLE="CVE audit: actionable findings in production dependencies"
+
+          gh label create "$LABEL" \
+            --description "Automated CVE audit findings from CI" \
+            --color "D93F0B" --force 2>/dev/null || true
+
+          EXISTING=$(gh issue list --label "$LABEL" --state open \
+            --json number --jq '.[0].number')
+
+          BODY_FILE="cve-audit-body.md"
+
+          if [ ! -s "$BODY_FILE" ]; then
+            echo "No actionable CVEs — nothing to report."
+            if [ -n "$EXISTING" ]; then
+              gh issue close "$EXISTING" \
+                --comment "All CVE findings resolved as of $(date +%Y-%m-%d). Closing automatically."
+            fi
+            exit 0
+          fi
+
+          if [ -n "$EXISTING" ]; then
+            gh issue edit "$EXISTING" --body-file "$BODY_FILE"
+            echo "Updated existing issue #$EXISTING"
+          else
+            gh issue create --title "$TITLE" --body-file "$BODY_FILE" \
+              --label "$LABEL"
+            echo "Created new CVE audit issue"
+          fi
