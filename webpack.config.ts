@@ -123,8 +123,18 @@ const config: webpack.Configuration & DevServerConfiguration = {
           },
         ],
       },
+      // "ConsoleRemotePlugin" only strips CSS imports under "process.cwd".
+      // This config uses "chdir" into "plugins/<plugin>", which omits that check and
+      // plugin's PF CSS could end up in the bundle.
+      // ToDo: Check and fix OCP Console's "ConsoleRemotePlugin" to work with this config.
+      {
+        test: /[\\/]node_modules[\\/]@patternfly[\\/](react-styles|patternfly)[\\/].+\.css$/,
+        use: [path.resolve(__dirname, 'scripts/empty-style-loader.js')],
+      },
       {
         test: /\.css$/,
+        exclude:
+          /[\\/]node_modules[\\/]@patternfly[\\/](react-styles|patternfly)[\\/]/,
         use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
@@ -137,7 +147,14 @@ const config: webpack.Configuration & DevServerConfiguration = {
     ],
   },
   plugins: [
-    new ConsoleRemotePlugin(),
+    new ConsoleRemotePlugin({
+      // Parsing dynamic modules fails as this config uses "chdir" into "plugins/<plugin>"
+      // and "ConsoleRemotePlugin" by default expects to find vendor dependencies at "process.cwd".
+      // "modulePaths" is used to specify the paths to the vendor dependencies.
+      sharedDynamicModuleSettings: {
+        modulePaths: [path.resolve(__dirname, 'node_modules')],
+      },
+    }),
     new CopyPlugin({
       patterns: [...resolveLocale(__dirname, process.env.I8N_NS || '')],
     }),
