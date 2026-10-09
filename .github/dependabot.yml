@@ -1,0 +1,44 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    target-branch: 'master'
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    groups:
+      aws-sdk:
+        patterns:
+          - '@aws-sdk/*'
+      dev-dependencies:
+        dependency-type: 'development'
+      minor-and-patch:
+        update-types:
+          - 'minor'
+          - 'patch'
+    ignore:
+      - dependency-name: '@openshift-console/dynamic-plugin-sdk'
+      - dependency-name: '@openshift-console/dynamic-plugin-sdk-internal'
+      - dependency-name: '@openshift-console/dynamic-plugin-sdk-webpack'
+      - dependency-name: '@openshift/dynamic-plugin-sdk'
+      - dependency-name: '@patternfly/*'
+      - dependency-name: 'react'
+      - dependency-name: 'react-dom'
+      - dependency-name: 'react-i18next'
+      - dependency-name: 'react-redux'
+      - dependency-name: 'react-router'
+      - dependency-name: 'react-router-dom'
+      - dependency-name: 'react-router-dom-v5-compat'
+      - dependency-name: 'redux'
+      - dependency-name: 'redux-thunk'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    groups:
+      actions:
+        patterns:
+          - '*'
