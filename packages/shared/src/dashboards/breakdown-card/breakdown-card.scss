@@ -21,6 +21,11 @@
   }
 }
 
+.capacity-breakdown-card__chart {
+  width: 100%;
+  overflow: visible;
+}
+
 .capacity-breakdown-card--error {
   width: 100%;
   text-align: center;
