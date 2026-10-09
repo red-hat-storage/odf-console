@@ -3,6 +3,34 @@ import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 
+type HealthStateItem = {
+  healthState: HealthState;
+};
+
+// Prefer ERROR over LOADING so a known failure is not hidden behind a skeleton.
+const AGGREGATE_HEALTH_PRIORITY = [
+  HealthState.ERROR,
+  HealthState.WARNING,
+  HealthState.NOT_AVAILABLE,
+  HealthState.PROGRESS,
+  HealthState.UPDATING,
+  HealthState.UPGRADABLE,
+  HealthState.LOADING,
+  HealthState.UNKNOWN,
+  HealthState.OK,
+];
+
+export const getWorstHealthState = (
+  items: HealthStateItem[] = []
+): HealthState => {
+  for (const state of AGGREGATE_HEALTH_PRIORITY) {
+    if (items.some((item) => item.healthState === state)) {
+      return state;
+    }
+  }
+  return HealthState.UNKNOWN;
+};
+
 const getHealthAndTotalClientCounts = (clients: StorageConsumerKind[]) => {
   const connectedClients = clients.filter(
     (client) => client.status?.state === StorageConsumerState.Ready

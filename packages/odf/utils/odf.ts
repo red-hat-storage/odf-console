@@ -1,9 +1,9 @@
 import { getNamespace } from '@odf/shared/selectors';
 import {
   ClusterServiceVersionKind,
+  K8sResourceKind,
   StorageConsumerKind,
 } from '@odf/shared/types';
-import { K8sResourceKind } from '@odf/shared/types';
 import {
   StorageClassResourceKind,
   StorageClusterKind,
@@ -52,6 +52,8 @@ export const isExternalCluster = (storageCluster: StorageClusterKind) =>
 
 export const isClusterIgnored = (storageCluster: StorageClusterKind) =>
   storageCluster?.status?.phase === 'Ignored';
+
+export { isClusterDeleting } from '@odf/shared/utils/storage';
 
 export const isNFSEnabled = (storageCluster: StorageClusterKind) =>
   storageCluster?.spec?.nfs?.enable === true;
