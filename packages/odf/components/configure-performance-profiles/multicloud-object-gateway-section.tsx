@@ -1,16 +1,25 @@
 import * as React from 'react';
 import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
 import { getTotalCpu, getTotalMemoryInGiB } from '@odf/core/components/utils';
-import { McgPerformanceProfile } from '@odf/core/types';
+import { DEFAULT_BACKING_STORE_NAME } from '@odf/core/constants';
+import { useSafeK8sGet } from '@odf/core/hooks';
+import { BackingStoreKind, McgPerformanceProfile } from '@odf/core/types';
 import {
   getMcgProfileDisplayName,
   getMcgProfileRequirements,
   getNodeArchitectureFromState,
+  isDefaultBackingStorePvPool,
   isMcgProfileAllowed,
 } from '@odf/core/utils';
-import { StorageClusterKind, StorageClusterModel } from '@odf/shared';
+import {
+  NooBaaBackingStoreModel,
+  StatusBox,
+  StorageClusterKind,
+  StorageClusterModel,
+} from '@odf/shared';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { isNotFoundError } from '@odf/shared/utils';
 import { k8sPatch, Patch } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import {
@@ -33,16 +42,22 @@ const selectOptions = (
   t: TFunction,
   clusterCpu: number,
   clusterMemoryGiB: number,
-  architecture?: string
+  architecture?: string,
+  includePvPool: boolean = false
 ) =>
   Object.values(McgPerformanceProfile).map((profile) => {
-    const { minCpu, minMem } = getMcgProfileRequirements(profile, architecture);
+    const { minCpu, minMem } = getMcgProfileRequirements(
+      profile,
+      architecture,
+      includePvPool
+    );
     const description = `CPUs required: ${minCpu}, Memory required: ${minMem} GiB`;
     const isDisabled = !isMcgProfileAllowed(
       profile,
       clusterCpu,
       clusterMemoryGiB,
-      architecture
+      architecture,
+      includePvPool
     );
     return (
       <SelectOption
@@ -111,8 +126,22 @@ export const McgPerformanceSection: React.FC<McgPerformanceSectionProps> = ({
   const clusterCpu = getTotalCpu(clusterNodes);
   const clusterMemoryGiB = getTotalMemoryInGiB(clusterNodes);
   const architecture = getNodeArchitectureFromState(clusterNodes);
+  const [defaultBackingStore, loaded, loadError] =
+    useSafeK8sGet<BackingStoreKind>(
+      NooBaaBackingStoreModel,
+      DEFAULT_BACKING_STORE_NAME
+    );
+  const backingStoreNotFound = isNotFoundError(loadError);
+  const includePvPool =
+    loaded && (!loadError || backingStoreNotFound)
+      ? isDefaultBackingStorePvPool(defaultBackingStore)
+      : false;
   const mcgProfileRequirements = mcgPerformanceProfile
-    ? getMcgProfileRequirements(mcgPerformanceProfile, architecture)
+    ? getMcgProfileRequirements(
+        mcgPerformanceProfile,
+        architecture,
+        includePvPool
+      )
     : null;
   const showCustomResourcesInfo = hasMcgCustomResources(
     storageCluster.spec?.resources
@@ -127,6 +156,16 @@ export const McgPerformanceSection: React.FC<McgPerformanceSectionProps> = ({
     },
     [dispatch]
   );
+
+  if (!loaded || (loadError && !backingStoreNotFound)) {
+    return (
+      <StatusBox
+        loaded={loaded}
+        loadError={loadError}
+        label={t('Multicloud Object Gateway')}
+      />
+    );
+  }
 
   return (
     <div className="pf-v6-u-mb-lg">
@@ -168,7 +207,8 @@ export const McgPerformanceSection: React.FC<McgPerformanceSectionProps> = ({
           t,
           clusterCpu,
           clusterMemoryGiB,
-          architecture
+          architecture,
+          includePvPool
         )}
         onChange={(profile) =>
           onProfileChange(profile as McgPerformanceProfile)
