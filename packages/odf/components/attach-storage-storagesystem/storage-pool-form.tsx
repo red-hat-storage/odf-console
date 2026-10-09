@@ -96,6 +96,7 @@ const StoragePoolForm: React.FC<StoragePoolFormProps> = ({
       ) : (
         <StoragePoolBody
           cephCluster={cephCluster}
+          cephClusterLoaded={cephClustersLoaded}
           state={state}
           dispatch={dispatch}
           showPoolStatus={false}
