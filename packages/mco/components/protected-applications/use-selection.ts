@@ -20,6 +20,8 @@ const isEligible = (
   if (!drpc) return false;
   if (drpc.metadata?.deletionTimestamp) return false;
   if (isFailingOrRelocating(drpc)) return false;
+  // A paused test keeps the pre-test phase and progression, check the spec as well
+  if (drpc.spec?.dryRun) return false;
   return true;
 };
 

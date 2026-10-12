@@ -428,6 +428,7 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     expect(screen.getByText('Edit configuration')).toBeVisible();
     expect(screen.getByText('Failover')).toBeVisible();
     expect(screen.getByText('Relocate')).toBeVisible();
+    expect(screen.getByText('Test failover')).toBeVisible();
   });
 
   it('"FailingOver DRPC" expands to show namespaces when expand button is clicked', async () => {

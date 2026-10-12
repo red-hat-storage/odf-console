@@ -22,6 +22,7 @@ import {
   getInvalidDRPolicyCondition,
   getPrimaryClusterName,
   getReplicationType,
+  isDiscoveredDRPC,
   isDRClusterFenced,
 } from '@odf/mco/utils';
 import { DRPlacementControlModel } from '@odf/shared';
@@ -60,6 +61,41 @@ const requiresManualCleanup = (drpc: DRPlacementControlKind): boolean => {
   );
   return autoCleanup?.reason === VRGConditionReason.NotFeasible;
 };
+
+const getTestFailoverAlertMessage = (
+  t: TFunction,
+  showManualCleanup: boolean
+): AlertProps => ({
+  title: t('Attention'),
+  variant: AlertVariant.info,
+  isInline: true,
+  children: (
+    <>
+      <li>
+        {t(
+          'Testing simulates a failover for all namespaces currently under this DRPC.'
+        )}
+      </li>
+      <li>
+        {t(
+          'The application keeps running on the primary cluster during the test.'
+        )}
+      </li>
+      <li>
+        {t(
+          'If replication falls behind, the test pauses and resumes automatically once replication catches up.'
+        )}
+      </li>
+      {showManualCleanup && (
+        <li>
+          {t(
+            'You need to clean up the test application resources manually after ending the test.'
+          )}
+        </li>
+      )}
+    </>
+  ),
+});
 
 const getAlertMessage = (
   action: DRActionType,
@@ -103,7 +139,11 @@ const getAlertMessage = (
 
 export const DRPlacementControlParser: React.FC<
   CommonModalProps<DRPlacementControlParserProps>
-> = ({ isOpen, closeModal, extraProps: { application, action } }) => {
+> = ({
+  isOpen,
+  closeModal,
+  extraProps: { application, action, isTestFailover },
+}) => {
   const { t } = useCustomTranslation();
 
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
@@ -200,14 +240,25 @@ export const DRPlacementControlParser: React.FC<
       loadError={loadError}
       loaded={loaded}
       close={closeModal}
-      message={getAlertMessage(action, t, requiresManualCleanup(application))}
+      isTestFailover={isTestFailover}
+      message={
+        isTestFailover
+          ? getTestFailoverAlertMessage(
+              t,
+              isDiscoveredDRPC(application) &&
+                requiresManualCleanup(application)
+            )
+          : getAlertMessage(action, t, requiresManualCleanup(application))
+      }
     />
   );
 };
 
-type DRPlacementControlParserProps = {
-  // Discovered application
+export type DRPlacementControlParserProps = {
+  // Discovered application, or any application for a test failover
   application: DRPlacementControlKind;
   // Failover/Relocate
   action: DRActionType;
+  // Failover with spec.dryRun (non-disruptive test)
+  isTestFailover?: boolean;
 };

@@ -668,6 +668,9 @@ export const findDeploymentClusters = (
   }
 };
 
+export const isDiscoveredDRPC = (drPlacementControl: DRPlacementControlKind) =>
+  !!drPlacementControl?.spec?.protectedNamespaces?.length;
+
 export const getPrimaryClusterName = (
   drPlacementControl: DRPlacementControlKind
 ) => {
