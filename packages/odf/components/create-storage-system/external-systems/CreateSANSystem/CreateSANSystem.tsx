@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { useExistingFileSystemNames } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
-import { filterUsedDiscoveredDevices } from '@odf/core/components/utils';
+import {
+  filterUsedDiscoveredDevices,
+  getDiscoveredDeviceKey,
+} from '@odf/core/components/utils';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
 import {
   PageHeading,
@@ -135,7 +138,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     setError('');
 
     const mappedLuns: DiscoveredDevice[] = sharedDevices.filter((lun) =>
-      componentState.selectedLUNs.has(lun.WWN)
+      componentState.selectedLUNs.has(getDiscoveredDeviceKey(lun))
     );
     const { cpuRequest, memoryRequest } = getOptimalResourceRequests(
       componentState.selectedNodes
