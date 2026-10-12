@@ -10,14 +10,15 @@ import { Bullseye, Spinner, Alert } from '@patternfly/react-core';
 import { ArogoApplicationSetParser } from '../app-failover-relocate/parser/argo-application-set-parser';
 import { SubscriptionFailoverRelocateModal } from '../app-failover-relocate/subscriptions/failover-relocate-modal';
 
-type ApplicationActionModalProps = {
+export type ApplicationActionModalProps = {
   pav: ProtectedApplicationViewKind;
   action: DRActionType.FAILOVER | DRActionType.RELOCATE;
+  isTestFailover?: boolean;
 };
 
 export const ApplicationActionModal: React.FC<
   CommonModalProps<ApplicationActionModalProps>
-> = ({ isOpen, closeModal, extraProps: { pav, action } }) => {
+> = ({ isOpen, closeModal, extraProps: { pav, action, isTestFailover } }) => {
   const { application, loaded, error, appInfo } = useApplicationFromPAV(pav);
   const { t } = useCustomTranslation();
 
@@ -27,7 +28,7 @@ export const ApplicationActionModal: React.FC<
         variant={ModalVariant.small}
         isOpen={isOpen}
         onClose={closeModal}
-        title={action}
+        title={isTestFailover ? t('Test Disaster Recovery (DR)') : action}
       >
         {!loaded ? (
           <Bullseye>
@@ -48,6 +49,7 @@ export const ApplicationActionModal: React.FC<
       application={application as ArgoApplicationSetKind}
       isOpen={isOpen}
       close={closeModal}
+      isTestFailover={isTestFailover}
     />
   ) : (
     <SubscriptionFailoverRelocateModal
@@ -55,6 +57,7 @@ export const ApplicationActionModal: React.FC<
       resource={application as ApplicationKind}
       isOpen={isOpen}
       close={closeModal}
+      isTestFailover={isTestFailover}
     />
   );
 };

@@ -15,6 +15,7 @@ import {
   DRPlacementControlConditionReason,
 } from '../types/ramen';
 import { getVolumeReplicationHealth } from '../utils';
+import { isTestSyncLagging } from './disaster-recovery';
 
 /**
  * Unified DR Status enum - Single source of truth for all DR status values.
@@ -43,6 +44,8 @@ export enum DRStatus {
 
   // DryRun testing failover
   TestingFailover = Progression.TestingFailover,
+  TestFailoverPaused = 'TestFailoverPaused',
+  TestFailoverActionRequired = 'TestFailoverActionRequired',
 
   // Additional statuses
   Unknown = 'Unknown',
@@ -164,12 +167,13 @@ export const shouldShowProtectionError = (
  *
  * Priority order:
  * 1. Cleanup requirements (WaitOnUserToCleanUp)
- * 2. User action requirements (WaitForUser)
- * 3. Deletion state
- * 4. Active operations (FailingOver/Relocating)
- * 5. Completed operations (FailedOver/Relocated) with sync state
- * 6. Protection status (Protecting/ProtectionError)
- * 7. Replication health (Critical/Warning/Healthy)
+ * 2. Deletion state
+ * 3. Dry-run test failover
+ * 4. User action requirements (WaitForUser)
+ * 5. Active operations (FailingOver/Relocating)
+ * 6. Completed operations (FailedOver/Relocated) with sync state
+ * 7. Protection status (Protecting/ProtectionError)
+ * 8. Replication health (Critical/Warning/Healthy)
  */
 export const getDRStatus = ({
   isCleanupRequired,
@@ -202,15 +206,23 @@ export const getDRStatus = ({
     isCleanupRequired ?? progression === Progression.WaitOnUserToCleanUp;
   if (cleanupRequired) return DRStatus.WaitOnUserToCleanUp;
 
-  // DryRun test failover in hold state — test workload is running on secondary.
-  if (dryRun && progression === Progression.TestingFailover)
+  if (phase === Phase.Deleting) return DRStatus.Deleting;
+
+  // Clean up clears spec.dryRun before Ramen leaves TestingFailover.
+  // Stay on the test hold so this gap is not shown as Failover complete.
+  if (progression === Progression.TestingFailover) {
+    return DRStatus.TestFailoverActionRequired;
+  }
+
+  if (dryRun) {
+    if (isTestSyncLagging(volumeLastGroupSyncTime, schedulingInterval)) {
+      return DRStatus.TestFailoverPaused;
+    }
     return DRStatus.TestingFailover;
+  }
 
   // WaitForUser is always treated as action required
   if (phase === Phase.WaitForUser) return DRStatus.WaitForUser;
-
-  // Deleting is always shown as an in-progress removal state
-  if (phase === Phase.Deleting) return DRStatus.Deleting;
 
   // Handle failover or relocation phases directly
   if (phase === Phase.FailingOver) return DRStatus.FailingOver;

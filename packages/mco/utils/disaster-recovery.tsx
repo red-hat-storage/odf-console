@@ -57,6 +57,7 @@ import {
   PROTECTED_APP_ANNOTATION,
   PLACEMENT_REF_LABEL,
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
+  TEST_FAILOVER_DRYRUN_ANNOTATION,
 } from '../constants';
 import { DisasterRecoveryFormatted } from '../hooks';
 import { DRPlacementControlConditionType, Phase, Progression } from '../types';
@@ -668,6 +669,9 @@ export const findDeploymentClusters = (
   }
 };
 
+export const isDiscoveredDRPC = (drPlacementControl: DRPlacementControlKind) =>
+  !!drPlacementControl?.spec?.protectedNamespaces?.length;
+
 export const getPrimaryClusterName = (
   drPlacementControl: DRPlacementControlKind
 ) => {
@@ -695,31 +699,41 @@ export const getPrimaryClusterName = (
 export const isTestFailoverActive = (
   drPlacementControl: DRPlacementControlKind
 ): boolean =>
-  !!drPlacementControl?.spec?.dryRun &&
-  drPlacementControl?.status?.progression === Progression.TestingFailover;
+  drPlacementControl?.status?.progression === Progression.TestingFailover &&
+  (!!drPlacementControl?.spec?.dryRun ||
+    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
+      'true');
+
+export const isTestSyncLagging = (
+  lastGroupSyncTime?: string,
+  schedulingInterval?: string
+): boolean => {
+  if (!lastGroupSyncTime || !schedulingInterval) return false;
+  const [intervalSeconds] = convertSyncIntervalToSeconds(schedulingInterval);
+  if (!intervalSeconds) return false;
+  return getTimeDifferenceInSeconds(lastGroupSyncTime) > 3 * intervalSeconds;
+};
 
 /**
- * The cluster actually serving the workload, for DR status display.
- *
- * During a failover test the DRPC cannot answer this on its own: the phase says
- * FailedOver, and the annotation (plus sometimes preferredCluster) points at
- * the test cluster. What always holds is that the test runs on
- * last-app-deployment-cluster, so the real primary is the other cluster in the
- * policy.
+ * Cluster serving the real workload.
+ * While a test is in the hold, Ramen leaves last-app-deployment-cluster on the
+ * original primary. Clean up sends that name back as preferredCluster.
+ * When the annotation already equals spec.failoverCluster it names the test
+ * cluster instead, and the primary is the other cluster in the policy.
  */
 export const resolvePrimaryClusterName = (
   drPlacementControl: DRPlacementControlKind,
   drClusterNames: string[]
 ): string => {
   if (isTestFailoverActive(drPlacementControl)) {
-    // Both name the test cluster while a test is in flight. The annotation can
-    // be missing; spec.failoverCluster cannot, Ramen requires it to start one.
-    const testCluster =
-      getLastAppDeploymentClusterName(drPlacementControl) ||
-      drPlacementControl.spec?.failoverCluster;
+    const deployedCluster = getLastAppDeploymentClusterName(drPlacementControl);
+    const failoverCluster = drPlacementControl.spec?.failoverCluster || '';
 
-    // Without a known test cluster the peer lookup would just return the first
-    // cluster in the policy, so report unknown rather than guess.
+    if (deployedCluster && deployedCluster !== failoverCluster) {
+      return deployedCluster;
+    }
+
+    const testCluster = deployedCluster || failoverCluster;
     return testCluster
       ? drClusterNames?.find((name) => name !== testCluster) || ''
       : '';

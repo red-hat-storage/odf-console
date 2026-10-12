@@ -194,22 +194,134 @@ describe('DRStatusPopover Component', () => {
     );
   });
 
-  it('renders the popover with Failover test active status', async () => {
-    render(<DRStatusPopover disasterRecoveryStatus={testFailoverStatus} />);
+  // A dry run stays on the test train until promote or end, including while
+  // the phase is still FailingOver.
+  it('renders the popover while a failover test is running', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+        }}
+      />
+    );
 
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Testing Failover'
+    );
     await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Failover test active/
+      'Testing failover to {{targetCluster}}'
     );
-    expect(screen.getByTestId('popover-description')).toHaveTextContent(
-      /Non-disruptive test in progress/
+    expect(screen.getByTestId('progression-summary')).toHaveAttribute(
+      'data-completed-steps',
+      '0'
     );
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Primary clusterprimary-cluster'
+    expect(screen.getByTestId('progression-summary')).toHaveAttribute(
+      'data-total-steps',
+      '2'
     );
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Target clustertarget-cluster'
+    expect(screen.getByTestId('popover-body')).toHaveTextContent(
+      'Source cluster:primary-cluster'
     );
+    expect(screen.getByTestId('popover-body')).toHaveTextContent(
+      'Target cluster:target-cluster'
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Clean up test' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders the popover while a failover test is waiting on sync', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+          schedulingInterval: '5m',
+          volumeLastGroupSyncTime: '2020-01-01T00:00:00Z',
+          progressionDetails: ['Available / VolumeReplicationGroup is lagging'],
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Testing Failover'
+    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Awaiting recent sync'
+    );
+    expect(screen.getByTestId('progression-summary')).toHaveAttribute(
+      'data-completed-steps',
+      '0'
+    );
+    expect(screen.getByTestId('progression-summary')).toHaveAttribute(
+      'data-total-steps',
+      '2'
+    );
+    expect(screen.getByTestId('popover-body')).toHaveTextContent(
+      'VolumeReplicationGroup is lagging'
+    );
+  });
+
+  it('renders the popover when a failover test is ready for user action', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          drpcName: 'busybox',
+          drpcNamespace: 'openshift-dr-ops',
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'User action required'
+    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Failover Test - User action required'
+    );
+    expect(screen.getByTestId('progression-summary')).toHaveAttribute(
+      'data-completed-steps',
+      '1'
+    );
+    expect(screen.getByTestId('progression-summary')).toHaveAttribute(
+      'data-total-steps',
+      '2'
+    );
+    expect(screen.getByTestId('popover-body')).toHaveTextContent(
+      'Test failover requires action'
+    );
+    expect(
+      screen.getByRole('button', { name: 'Convert to real failover' })
+    ).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Clean up test' })).toBeEnabled();
+  });
+
+  // spec.dryRun stays true while Ramen sets Phase.Deleting, so the column
+  // must show Deleting instead of the test-failover view.
+  it('shows Deleting when a dry-run test is removed', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.Deleting,
+          progression: 'Deleting',
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Deleting'
+    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(
+      screen.queryByRole('button', { name: 'Clean up test' })
+    ).not.toBeInTheDocument();
   });
 
   // DFBUGS-11111: a dry-run revert leaves the phase at Deployed, which used to

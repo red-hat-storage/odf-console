@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { K8sResourceCondition, ArgoApplicationSetModel } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   DRActionType,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
@@ -32,6 +33,10 @@ import {
 } from '../../../../utils';
 import { FailoverRelocateModal } from '../failover-relocate-modal';
 import { PlacementControlProps } from '../failover-relocate-modal-body';
+import {
+  getTestFailoverAlertMessage,
+  showManualTestCleanup,
+} from '../test-failover-alert';
 
 const getDRResources = (namespace: string) => ({
   resources: {
@@ -84,7 +89,8 @@ export const ValidateManagedClusterCondition = (
 export const ArogoApplicationSetParser = (
   props: ArogoApplicationSetParserProps
 ) => {
-  const { application, action, isOpen, close } = props;
+  const { application, action, isOpen, close, isTestFailover } = props;
+  const { t } = useCustomTranslation();
 
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
     getDRResources(getNamespace(application))
@@ -103,6 +109,8 @@ export const ArogoApplicationSetParser = (
     );
 
   const aroAppSetResource = aroAppSetResources?.formattedResources?.[0];
+  const drPlacementControl =
+    aroAppSetResource?.placements?.[0]?.drPlacementControl;
 
   const placementControls: PlacementControlProps[] = React.useMemo(() => {
     const {
@@ -110,30 +118,29 @@ export const ArogoApplicationSetParser = (
       siblingApplications,
       placements: resourcePlacements,
     } = aroAppSetResource || {};
-    const {
-      drClusters,
-      drPolicy,
-      drPlacementControl,
-      placementDecision,
-      placement,
-    } = resourcePlacements?.[0] || {};
+    const { drClusters, drPolicy, placementDecision, placement } =
+      resourcePlacements?.[0] || {};
     const deploymentClusters = findDeploymentClusters(
       placementDecision,
       drPlacementControl
     );
     const deploymentClusterName = deploymentClusters?.[0] || '';
-    const targetCluster = findCluster(managedClusters, deploymentClusterName);
-    const primaryCluster = findCluster(
-      managedClusters,
-      deploymentClusterName,
-      true
-    );
-    const targetDRCluster = findCluster(drClusters, deploymentClusterName);
-    const primaryDRCluster = findCluster(
-      drClusters,
-      deploymentClusterName,
-      true
-    );
+    const clusterName =
+      deploymentClusterName || !isTestFailover ? deploymentClusterName : null;
+    const targetCluster =
+      clusterName === null
+        ? undefined
+        : findCluster(managedClusters, clusterName);
+    const primaryCluster =
+      clusterName === null
+        ? undefined
+        : findCluster(managedClusters, clusterName, true);
+    const targetDRCluster =
+      clusterName === null ? undefined : findCluster(drClusters, clusterName);
+    const primaryDRCluster =
+      clusterName === null
+        ? undefined
+        : findCluster(drClusters, clusterName, true);
     const primaryClusterCondition = ValidateManagedClusterCondition(
       primaryCluster,
       MANAGED_CLUSTER_CONDITION_AVAILABLE
@@ -165,7 +172,14 @@ export const ArogoApplicationSetParser = (
           },
         ]
       : [];
-  }, [aroAppSetResource, loaded, loadError, action]);
+  }, [
+    aroAppSetResource,
+    drPlacementControl,
+    loaded,
+    loadError,
+    action,
+    isTestFailover,
+  ]);
 
   return (
     <FailoverRelocateModal
@@ -178,6 +192,15 @@ export const ArogoApplicationSetParser = (
       loadError={loadError}
       loaded={loaded}
       close={close}
+      isTestFailover={isTestFailover}
+      message={
+        isTestFailover
+          ? getTestFailoverAlertMessage(
+              t,
+              showManualTestCleanup(drPlacementControl)
+            )
+          : undefined
+      }
     />
   );
 };
@@ -187,4 +210,5 @@ type ArogoApplicationSetParserProps = {
   isOpen: boolean;
   action: DRActionType;
   close: () => void;
+  isTestFailover?: boolean;
 };

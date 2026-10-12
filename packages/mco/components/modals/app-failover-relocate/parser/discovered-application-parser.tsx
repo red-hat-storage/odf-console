@@ -2,7 +2,6 @@ import * as React from 'react';
 import {
   DRActionType,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
-  VM_RECIPE_NAME,
 } from '@odf/mco/constants';
 import {
   getDRClusterResourceObj,
@@ -10,11 +9,7 @@ import {
   getManagedClusterResourceObj,
   useDisasterRecoveryResourceWatch,
 } from '@odf/mco/hooks';
-import {
-  ACMManagedClusterKind,
-  DRPlacementControlKind,
-  VRGConditionReason,
-} from '@odf/mco/types';
+import { ACMManagedClusterKind, DRPlacementControlKind } from '@odf/mco/types';
 import {
   checkDRActionReadiness,
   filterManagedClusterUsingDRClusters,
@@ -33,6 +28,11 @@ import { TFunction } from 'i18next';
 import { AlertProps, AlertVariant } from '@patternfly/react-core';
 import { FailoverRelocateModal } from '../failover-relocate-modal';
 import { PlacementControlProps } from '../failover-relocate-modal-body';
+import {
+  getTestFailoverAlertMessage,
+  requiresManualCleanup,
+  showManualTestCleanup,
+} from '../test-failover-alert';
 import { ValidateManagedClusterCondition } from './argo-application-set-parser';
 
 const getDRResources = (drPlacementControl: DRPlacementControlKind) => ({
@@ -50,16 +50,6 @@ const getDRResources = (drPlacementControl: DRPlacementControlKind) => ({
     },
   },
 });
-
-const requiresManualCleanup = (drpc: DRPlacementControlKind): boolean => {
-  if (drpc?.spec?.kubeObjectProtection?.recipeRef?.name !== VM_RECIPE_NAME) {
-    return true;
-  }
-  const autoCleanup = drpc.status?.resourceConditions?.conditions?.find(
-    (condition) => condition.type === 'AutoCleanup'
-  );
-  return autoCleanup?.reason === VRGConditionReason.NotFeasible;
-};
 
 const getAlertMessage = (
   action: DRActionType,
@@ -103,7 +93,11 @@ const getAlertMessage = (
 
 export const DRPlacementControlParser: React.FC<
   CommonModalProps<DRPlacementControlParserProps>
-> = ({ isOpen, closeModal, extraProps: { application, action } }) => {
+> = ({
+  isOpen,
+  closeModal,
+  extraProps: { application, action, isTestFailover },
+}) => {
   const { t } = useCustomTranslation();
 
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
@@ -134,28 +128,24 @@ export const DRPlacementControlParser: React.FC<
         managedClusters
       );
 
-      // Failover/Relocate cluster info
-      const targetManagedCluster = findCluster(
-        filteredManagedClusters,
-        deploymentClusterName
-      );
-      const targetDRCluster = findCluster(drClusters, deploymentClusterName);
+      const targetManagedCluster = deploymentClusterName
+        ? findCluster(filteredManagedClusters, deploymentClusterName)
+        : undefined;
+      const targetDRCluster = deploymentClusterName
+        ? findCluster(drClusters, deploymentClusterName)
+        : undefined;
       const targetClusterCondition = ValidateManagedClusterCondition(
         targetManagedCluster,
         MANAGED_CLUSTER_CONDITION_AVAILABLE
       );
 
       // Surviving cluster info
-      const primaryManagedCluster = findCluster(
-        filteredManagedClusters,
-        deploymentClusterName,
-        true
-      );
-      const primaryDRCluster = findCluster(
-        drClusters,
-        deploymentClusterName,
-        true
-      );
+      const primaryManagedCluster = deploymentClusterName
+        ? findCluster(filteredManagedClusters, deploymentClusterName, true)
+        : undefined;
+      const primaryDRCluster = deploymentClusterName
+        ? findCluster(drClusters, deploymentClusterName, true)
+        : undefined;
       const primaryClusterCondition = ValidateManagedClusterCondition(
         primaryManagedCluster,
         MANAGED_CLUSTER_CONDITION_AVAILABLE
@@ -200,14 +190,21 @@ export const DRPlacementControlParser: React.FC<
       loadError={loadError}
       loaded={loaded}
       close={closeModal}
-      message={getAlertMessage(action, t, requiresManualCleanup(application))}
+      isTestFailover={isTestFailover}
+      message={
+        isTestFailover
+          ? getTestFailoverAlertMessage(t, showManualTestCleanup(application))
+          : getAlertMessage(action, t, requiresManualCleanup(application))
+      }
     />
   );
 };
 
-type DRPlacementControlParserProps = {
-  // Discovered application
+export type DRPlacementControlParserProps = {
+  // Discovered application, or any application for a test failover
   application: DRPlacementControlKind;
   // Failover/Relocate
   action: DRActionType;
+  // Failover with spec.dryRun (non-disruptive test)
+  isTestFailover?: boolean;
 };

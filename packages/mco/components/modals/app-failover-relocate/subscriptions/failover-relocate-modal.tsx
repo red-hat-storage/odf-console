@@ -17,6 +17,7 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../../constants';
+import { getStartTestFailoverPatch } from '../../../../utils';
 import {
   FailoverRelocateModalBody,
   findErrorMessage,
@@ -40,7 +41,7 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
     },
     {
       id: 'modal-initiate-action',
-      label: props.t('Initiate'),
+      label: props.isTestFailover ? props.t('Start') : props.t('Initiate'),
       type: ButtonType.button,
       variant: ButtonVariant.primary,
       isDisabled: props?.isDisable,
@@ -57,7 +58,7 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
     },
     {
       id: 'modal-initiating-action',
-      label: props.t('Initiating'),
+      label: props.isTestFailover ? props.t('Starting') : props.t('Initiating'),
       type: ButtonType.button,
       variant: ButtonVariant.primary,
       isLoading: true,
@@ -73,6 +74,13 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
       onClick: props.close,
     },
   ],
+});
+
+const getTestFailoverModalText = (t: TFunction) => ({
+  title: t('Test Disaster Recovery (DR)'),
+  description: t(
+    'Testing brings up your application on the selected target cluster without stopping it on the primary cluster. Use it to verify that the application recovers on the target cluster.'
+  ),
 });
 
 const getModalText = (t: TFunction) => ({
@@ -94,8 +102,10 @@ export const SubscriptionFailoverRelocateModal: React.FC<
   FailoverRelocateModalProps
 > = (props) => {
   const { t } = useCustomTranslation();
-  const { action, isOpen, resource, close } = props;
-  const modalText = getModalText(t)[action];
+  const { action, isOpen, resource, close, isTestFailover } = props;
+  const modalText = isTestFailover
+    ? getTestFailoverModalText(t)
+    : getModalText(t)[action];
 
   const [state, dispatch] = React.useReducer(
     failoverAndRelocateReducer,
@@ -148,6 +158,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<
                 ? primaryClusterName
                 : targetClusterName,
           },
+          ...(isTestFailover ? getStartTestFailoverPatch() : []),
         ];
         promises.push(
           k8sPatch({
@@ -188,6 +199,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<
           action={action}
           state={state}
           dispatch={dispatch}
+          isTestFailover={isTestFailover}
         />
       </ModalBody>
       <ModalFooter>
@@ -195,6 +207,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<
           t,
           close,
           isDisable: !canInitiate(),
+          isTestFailover,
           onClick,
         })[state.modalFooterStatus].map((buttonProp) => (
           <Button
@@ -218,6 +231,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<
 
 type ModalFooterProps = {
   isDisable?: boolean;
+  isTestFailover?: boolean;
   t: TFunction;
   onClick?: () => void;
   close?: () => void;
@@ -232,4 +246,5 @@ type FailoverRelocateModalProps = {
   isOpen: boolean;
   resource?: ApplicationKind;
   close?: () => void;
+  isTestFailover?: boolean;
 };

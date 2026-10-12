@@ -1,4 +1,7 @@
-import { LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION } from '@odf/mco/constants';
+import {
+  LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
+  TEST_FAILOVER_DRYRUN_ANNOTATION,
+} from '@odf/mco/constants';
 import type { DRPlacementControlKind } from '@odf/mco/types';
 import { Phase, Progression } from '@odf/mco/types';
 import {
@@ -48,8 +51,9 @@ const drpc = ({
   }) as unknown as DRPlacementControlKind;
 
 /**
- * An in-flight dry-run test: Ramen reports phase FailedOver and has moved the
- * last-app-deployment-cluster annotation to the test cluster.
+ * An in-flight dry-run test. failoverCluster is the test cluster.
+ * last-app-deployment-cluster defaults to that same name for the builds that
+ * move the annotation onto the test cluster.
  */
 const activeTest = (overrides: DRPCOverrides) =>
   drpc({
@@ -77,6 +81,17 @@ describe('isTestFailoverActive', () => {
   it('is false for a DRPC with no status yet', () => {
     expect(isTestFailoverActive(drpc({ dryRun: true }))).toBe(false);
   });
+
+  // Clean up clears spec.dryRun before Ramen leaves TestingFailover.
+  // The hold must stay active so the page does not show Failover complete.
+  it('stays active after dryRun is cleared while progression is still TestingFailover', () => {
+    const cleared = activeTest({ dryRun: false });
+    cleared.metadata.annotations = {
+      ...cleared.metadata.annotations,
+      [TEST_FAILOVER_DRYRUN_ANNOTATION]: 'true',
+    };
+    expect(isTestFailoverActive(cleared)).toBe(true);
+  });
 });
 
 describe('resolvePrimaryClusterName', () => {
@@ -99,6 +114,22 @@ describe('resolvePrimaryClusterName', () => {
     expect(
       resolvePrimaryClusterName(
         activeTest({ preferredCluster: C2 }),
+        DR_CLUSTERS
+      )
+    ).toBe(C1);
+  });
+
+  // odr-hub keeps last-app-deployment-cluster on the original primary for the
+  // whole dry run. Clean up must send that cluster as preferredCluster.
+  // The other name is the test cluster.
+  it('returns the annotation when Ramen left it on the original primary', () => {
+    expect(
+      resolvePrimaryClusterName(
+        activeTest({
+          preferredCluster: C1,
+          failoverCluster: C2,
+          lastAppDeploymentCluster: C1,
+        }),
         DR_CLUSTERS
       )
     ).toBe(C1);

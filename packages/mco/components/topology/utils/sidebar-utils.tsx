@@ -39,7 +39,9 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
     status === DRStatus.Relocating ||
     status === DRStatus.Deleting ||
     status === DRStatus.Protecting ||
-    status === DRStatus.TestingFailover
+    status === DRStatus.TestingFailover ||
+    status === DRStatus.TestFailoverPaused ||
+    status === DRStatus.TestFailoverActionRequired
   ) {
     return NodeStatus.info;
   }
@@ -109,7 +111,9 @@ export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
     status === DRStatus.Relocating ||
     status === DRStatus.Deleting ||
     status === DRStatus.Protecting ||
-    status === DRStatus.TestingFailover
+    status === DRStatus.TestingFailover ||
+    status === DRStatus.TestFailoverPaused ||
+    status === DRStatus.TestFailoverActionRequired
   ) {
     return (
       <>

@@ -4,3 +4,4 @@ export * from './acm-search-queries';
 export * from './pav';
 export * from './submariner-health';
 export * from './mirrorpeer-status';
+export * from './test-failover';

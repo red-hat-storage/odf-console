@@ -18,6 +18,7 @@ import {
 import {
   CheckCircleIcon,
   InProgressIcon,
+  ClockIcon,
   AngleRightIcon,
   AngleDownIcon,
 } from '@patternfly/react-icons';
@@ -26,6 +27,7 @@ import './progression-train-view.scss';
 export enum TrainStep {
   Preparing = 'Preparing',
   Failover = 'Failover',
+  FailoverTest = 'Failover test',
   Syncing = 'Syncing',
   Restoring = 'Restoring',
   CleanUp = 'Clean up',
@@ -34,6 +36,7 @@ export enum TrainStep {
 export enum StepStatus {
   Completed = 'completed',
   InProgress = 'in-progress',
+  Paused = 'paused',
   Pending = 'pending',
 }
 
@@ -223,6 +226,25 @@ const getCurrentStepFromFlow = (
   return stepConfig?.label || flow[0].label;
 };
 
+export const getTestTrainSteps = (
+  isHold: boolean,
+  isPaused: boolean
+): ProgressionStep[] => {
+  if (isHold) {
+    return [
+      { label: TrainStep.Preparing, status: StepStatus.Completed },
+      { label: TrainStep.FailoverTest, status: StepStatus.InProgress },
+    ];
+  }
+  return [
+    {
+      label: TrainStep.Preparing,
+      status: isPaused ? StepStatus.Paused : StepStatus.InProgress,
+    },
+    { label: TrainStep.FailoverTest, status: StepStatus.Pending },
+  ];
+};
+
 export const getTrainSteps = (
   action: DRActionType,
   currentProgression?: string,
@@ -259,6 +281,12 @@ type ProgressionTrainViewProps = {
   cleanupCluster?: string;
   isDiscoveredApp?: boolean;
   learnMoreHref?: string;
+  isTest?: boolean;
+  isTestPaused?: boolean;
+  isTestHold?: boolean;
+  sourceCluster?: string;
+  targetCluster?: string;
+  holdAlert?: React.ReactNode;
 };
 
 export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
@@ -271,11 +299,23 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
   cleanupCluster,
   isDiscoveredApp,
   learnMoreHref,
+  isTest,
+  isTestPaused,
+  isTestHold,
+  sourceCluster,
+  targetCluster,
+  holdAlert,
 }) => {
   const { t } = useCustomTranslation();
-  const [isDetailsExpanded, setIsDetailsExpanded] = React.useState(false);
+  const [isDetailsExpanded, setIsDetailsExpanded] =
+    React.useState(!!isTestPaused);
+  React.useEffect(() => {
+    if (isTestPaused) setIsDetailsExpanded(true);
+  }, [isTestPaused]);
 
-  const steps = getTrainSteps(action, currentProgression, isDiscoveredApp);
+  const steps = isTest
+    ? getTestTrainSteps(!!isTestHold, !!isTestPaused)
+    : getTrainSteps(action, currentProgression, isDiscoveredApp);
   const completedSteps = steps.filter(
     (s) => s.status === StepStatus.Completed
   ).length;
@@ -288,7 +328,13 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
       className="progression-train-view"
     >
       <FlexItem>
-        <Content component="p" className="progression-train-view__summary">
+        <Content
+          component="p"
+          className="progression-train-view__summary"
+          data-test-id="progression-summary"
+          data-completed-steps={completedSteps}
+          data-total-steps={totalSteps}
+        >
           {t('{{completedSteps}} of {{totalSteps}} steps completed', {
             completedSteps,
             totalSteps,
@@ -304,7 +350,8 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
               variant={
                 step.status === StepStatus.Completed
                   ? 'success'
-                  : step.status === StepStatus.InProgress
+                  : step.status === StepStatus.InProgress ||
+                      step.status === StepStatus.Paused
                     ? 'info'
                     : 'pending'
               }
@@ -314,6 +361,8 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
               icon={
                 step.status === StepStatus.Completed ? (
                   <CheckCircleIcon />
+                ) : step.status === StepStatus.Paused ? (
+                  <ClockIcon />
                 ) : step.status === StepStatus.InProgress ? (
                   <InProgressIcon className="progression-train-view__in-progress-icon" />
                 ) : undefined
@@ -368,6 +417,25 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
           </Alert>
         </FlexItem>
       )}
+
+      {isTest && (
+        <Flex>
+          <FlexItem>
+            <Content component="p">
+              <strong>{t('Source cluster:')}</strong>
+            </Content>
+            <Content component="p">{sourceCluster}</Content>
+          </FlexItem>
+          <FlexItem>
+            <Content component="p">
+              <strong>{t('Target cluster:')}</strong>
+            </Content>
+            <Content component="p">{targetCluster}</Content>
+          </FlexItem>
+        </Flex>
+      )}
+
+      {holdAlert}
 
       {actionStartTime && (
         <FlexItem>

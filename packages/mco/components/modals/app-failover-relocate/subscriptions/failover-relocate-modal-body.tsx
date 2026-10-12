@@ -90,7 +90,7 @@ const MessageStatus: React.FC<MessageKind> = ({ title, variant, message }) => (
 export const FailoverRelocateModalBody: React.FC<
   FailoverRelocateModalBodyProps
 > = (props) => {
-  const { application, action, state, dispatch } = props;
+  const { application, action, state, dispatch, isTestFailover } = props;
   const { t } = useCustomTranslation();
 
   const response = useK8sWatchResources<DRActionWatchResourceType>(
@@ -274,15 +274,20 @@ export const FailoverRelocateModalBody: React.FC<
       </Flex>
       {(state.modalFooterStatus === ModalFooterStatus.FINISHED && (
         <MessageStatus
-          {...(action === DRActionType.FAILOVER
+          {...(isTestFailover
             ? {
-                title: t('Failover initiated'),
+                title: t('Test failover started'),
                 variant: AlertVariant.success,
               }
-            : {
-                title: t('Relocate initiated'),
-                variant: AlertVariant.success,
-              })}
+            : action === DRActionType.FAILOVER
+              ? {
+                  title: t('Failover initiated'),
+                  variant: AlertVariant.success,
+                }
+              : {
+                  title: t('Relocate initiated'),
+                  variant: AlertVariant.success,
+                })}
         />
       )) ||
         ((!!findErrorMessage(state.errorMessage, true) ||
@@ -308,6 +313,7 @@ type FailoverRelocateModalBodyProps = {
   action: DRActionType;
   state: FailoverAndRelocateState;
   dispatch: React.Dispatch<FailoverAndRelocateAction>;
+  isTestFailover?: boolean;
 };
 
 type DRActionWatchResourceType = {
