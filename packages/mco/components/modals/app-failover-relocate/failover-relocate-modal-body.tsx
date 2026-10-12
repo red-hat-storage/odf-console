@@ -140,6 +140,23 @@ const validatePlacement = (
   return null;
 };
 
+const validateTestFailoverPlacement = (
+  placementControl: PlacementControlProps
+): ErrorMessageType => {
+  // Metro-DR failover requires fencing the primary cluster, which is disruptive
+  if (placementControl?.replicationType === ReplicationType.SYNC) {
+    return ErrorMessageType.TEST_FAILOVER_NOT_SUPPORTED;
+  }
+
+  const errorMessage = validatePlacement(
+    placementControl,
+    DRActionType.FAILOVER
+  );
+  return errorMessage === ErrorMessageType.VOLUME_SYNC_DELAY_FAILOVER
+    ? ErrorMessageType.VOLUME_SYNC_DELAY_TEST_FAILOVER
+    : errorMessage;
+};
+
 const MessageStatus = ({ message }: { message: MessageKind }) => (
   <Flex>
     <FlexItem fullWidth={{ default: 'fullWidth' }}>
@@ -220,6 +237,7 @@ export const FailoverRelocateModalBody: React.FC<
     loaded,
     applicationModel,
     message,
+    isTestFailover,
   } = props;
   const [errorMessage, setErrorMessage] = React.useState<ErrorMessageType>();
   const placement = placementControls?.[0];
@@ -231,7 +249,9 @@ export const FailoverRelocateModalBody: React.FC<
 
   React.useEffect(() => {
     if (loaded && !loadError) {
-      const placementErrorMessage = validatePlacement(placement, action);
+      const placementErrorMessage = isTestFailover
+        ? validateTestFailoverPlacement(placement)
+        : validatePlacement(placement, action);
       setErrorMessage(placementErrorMessage);
       setPlacement(placement);
       setCanInitiate(evaluateErrorMessage(placementErrorMessage) < 0);
@@ -239,6 +259,7 @@ export const FailoverRelocateModalBody: React.FC<
   }, [
     placement,
     action,
+    isTestFailover,
     loadError,
     loaded,
     setCanInitiate,
@@ -293,9 +314,11 @@ export const FailoverRelocateModalBody: React.FC<
         <Flex>
           <FlexItem>
             <strong>
-              {t('{{actionType}} readiness:', {
-                actionType: action,
-              })}
+              {isTestFailover
+                ? t('DR test readiness:')
+                : t('{{actionType}} readiness:', {
+                    actionType: action,
+                  })}
             </strong>
           </FlexItem>
           <FlexItem>
@@ -313,6 +336,21 @@ export const FailoverRelocateModalBody: React.FC<
               </FlexItem>
             </Flex>
           )}
+        {isTestFailover && (
+          <Flex>
+            <FlexItem>
+              <strong>{t('Replication interval:')}</strong>
+            </FlexItem>
+            <FlexItem data-test="replication-interval">
+              {placement?.schedulingInterval || (
+                <StatusIconAndText
+                  title={t('Unknown')}
+                  icon={<UnknownIcon />}
+                />
+              )}
+            </FlexItem>
+          </Flex>
+        )}
 
         {
           // ToDo: Enable this once DRPC has kube object last sync time.
@@ -372,6 +410,8 @@ export type ApplicationProps = {
   message?: AlertProps;
   loadError: any;
   loaded: boolean;
+  // Failover with spec.dryRun (non-disruptive test)
+  isTestFailover?: boolean;
 };
 
 export type FailoverRelocateModalBodyProps = ApplicationProps & {

@@ -3,7 +3,10 @@ import {
   TEST_FAILOVER_DRYRUN_ANNOTATION,
 } from '@odf/mco/constants';
 import { DRPlacementControlKind, VRGConditionReason } from '@odf/mco/types';
-import { getLastAppDeploymentClusterName } from '@odf/mco/utils';
+import {
+  getLastAppDeploymentClusterName,
+  isDiscoveredDRPC,
+} from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { getAnnotations } from '@odf/shared/selectors';
 import {
@@ -123,11 +126,6 @@ export const getProgressionFields = (
       'drplacementcontrol.ramendr.openshift.io/app-namespace'
     ];
 
-  // Check if it's a discovered app: has protectedNamespaces defined and non-empty
-  const isDiscoveredApp =
-    drPlacementControl.spec?.protectedNamespaces !== undefined &&
-    drPlacementControl.spec.protectedNamespaces.length > 0;
-
   return {
     progression: drPlacementControl.status?.progression,
     actionStartTime: drPlacementControl.status?.actionStartTime,
@@ -137,6 +135,6 @@ export const getProgressionFields = (
       getTestFailoverCleanupCluster(drPlacementControl),
     progressionDetails: detailMessages.length ? detailMessages : undefined,
     applicationName,
-    isDiscoveredApp,
+    isDiscoveredApp: isDiscoveredDRPC(drPlacementControl),
   };
 };

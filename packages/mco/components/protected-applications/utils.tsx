@@ -32,7 +32,10 @@ import {
   isFailingOrRelocating as isFailingOrRelocatingUtil,
   isCleanupRequired as isCleanupRequiredUtil,
 } from '../../utils/dr-status';
-import { DRPlacementControlParser } from '../modals/app-failover-relocate/parser/discovered-application-parser';
+import {
+  DRPlacementControlParser,
+  DRPlacementControlParserProps,
+} from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import { AppManagePoliciesModalWrapper } from '../modals/protected-applications/app-manage-policies-modal-wrapper';
 import { ApplicationActionModal } from '../modals/protected-applications/applications-action-modal';
 import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';
@@ -235,6 +238,14 @@ export const getHeaderColumns = (t: TFunction<string>) => {
   ];
 };
 
+const getDisabledActionProps = (tooltip: string): Partial<IAction> => ({
+  isAriaDisabled: true,
+  tooltipProps: {
+    content: tooltip,
+    trigger: 'mouseenter',
+  },
+});
+
 export const getRowActions = (
   t: TFunction<string>,
   launcher: LaunchModal,
@@ -260,6 +271,22 @@ export const getRowActions = (
           extraProps: { pav, action },
         });
 
+  // Test failover always opens the DRPC modal, for every application type
+  const launchTestFailover = () => {
+    const extraProps: DRPlacementControlParserProps = {
+      application: drpc,
+      action: DRActionType.FAILOVER,
+      isTestFailover: true,
+    };
+    launcher(DRPlacementControlParser, { isOpen: true, extraProps });
+  };
+
+  const testInProgressProps =
+    !!drpc.spec?.dryRun &&
+    getDisabledActionProps(
+      t('Unavailable while a test failover is in progress.')
+    );
+
   return [
     {
       title: (
@@ -281,6 +308,7 @@ export const getRowActions = (
           </p>
         </>
       ),
+      ...testInProgressProps,
       onClick: () => launchDRAction(DRActionType.FAILOVER),
     },
     {
@@ -292,7 +320,26 @@ export const getRowActions = (
           </p>
         </>
       ),
+      ...testInProgressProps,
       onClick: () => launchDRAction(DRActionType.RELOCATE),
+    },
+    {
+      title: (
+        <>
+          {t('Test failover')}
+          <p className="text-muted pf-v6-u-font-size-xs">
+            {t(
+              'Start test failover. This action will not change the applications in the production environment.'
+            )}
+          </p>
+        </>
+      ),
+      ...(testInProgressProps ||
+        (isFailingOrRelocating(drpc) &&
+          getDisabledActionProps(
+            t('Unavailable while a disaster recovery operation is in progress.')
+          ))),
+      onClick: launchTestFailover,
     },
     isDiscoveredApp
       ? {
