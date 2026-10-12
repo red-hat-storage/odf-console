@@ -11,6 +11,9 @@ import {
   ExpandableSection,
   Form,
   FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
   TextInput,
   Title,
 } from '@patternfly/react-core';
@@ -76,14 +79,17 @@ type PolicyStepProps = {
   state: DRPolicyState;
   dispatch: React.Dispatch<DRPolicyAction>;
   docHref: string;
+  isPolicyNameTaken: boolean;
 };
 
 export const PolicyStep: React.FC<PolicyStepProps> = ({
   state,
   dispatch,
   docHref,
+  isPolicyNameTaken,
 }) => {
   const { t } = useCustomTranslation();
+  const nameValidated = isPolicyNameTaken ? 'error' : 'default';
 
   return (
     <Form className="mco-create-data-policy__body">
@@ -108,6 +114,7 @@ export const PolicyStep: React.FC<PolicyStepProps> = ({
           value={state.policy.policyName}
           type="text"
           placeholder={t('Enter a policy name')}
+          validated={nameValidated}
           onChange={(_event, policyName) =>
             dispatch({
               type: DRPolicyActionType.SET_POLICY_NAME,
@@ -116,6 +123,18 @@ export const PolicyStep: React.FC<PolicyStepProps> = ({
           }
           isRequired
         />
+        {isPolicyNameTaken && (
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant="error">
+                {t(
+                  "A DRPolicy with name '{{name}}' already exists. Please choose a different name.",
+                  { name: state.policy.policyName }
+                )}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        )}
       </FormGroup>
       <SelectReplicationType
         selectedClusters={state.clusters.selectedClusters}

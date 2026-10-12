@@ -5,7 +5,10 @@ import {
   SecretModel,
 } from '@odf/shared';
 import { getAPIVersionForModel } from '@odf/shared/utils';
-import { createOrUpdate } from '@odf/shared/utils/k8s';
+import {
+  createOrUpdate,
+  type CreateOrUpdateMutationDetails,
+} from '@odf/shared/utils/k8s';
 import {
   k8sDelete,
   k8sGet,
@@ -196,11 +199,10 @@ export function deleteDRCluster(name: string): Promise<K8sResourceKind> {
   }) as Promise<K8sResourceKind>;
 }
 
-export function createDRCluster(params: {
-  name: string;
-  s3ProfileName: string;
-}): Promise<DRClusterKind> {
-  const { name, s3ProfileName } = params;
+export function createDRCluster(
+  params: { name: string } & NonNullable<DRClusterKind['spec']>
+): Promise<DRClusterKind> {
+  const { name, ...spec } = params;
 
   return createOrUpdate<DRClusterKind>({
     model: DRClusterModel,
@@ -210,14 +212,14 @@ export function createDRCluster(params: {
         apiVersion: getAPIVersionForModel(DRClusterModel),
         kind: DRClusterModel.kind,
         metadata: { name },
-        spec: { s3ProfileName: s3ProfileName },
+        spec,
       };
 
       return {
         ...drCluster,
         spec: {
           ...drCluster.spec,
-          s3ProfileName: s3ProfileName,
+          ...spec,
         },
       };
     },
@@ -229,6 +231,7 @@ type CreateRamenS3SecretArgs = {
   accessKeyId: string;
   secretAccessKey: string;
   namespace?: string;
+  mutationDetails?: CreateOrUpdateMutationDetails;
 };
 
 export const createOrUpdateRamenS3Secret = ({
@@ -236,11 +239,13 @@ export const createOrUpdateRamenS3Secret = ({
   accessKeyId,
   secretAccessKey,
   namespace = ODFMCO_OPERATOR_NAMESPACE,
+  mutationDetails,
 }: CreateRamenS3SecretArgs) =>
   createOrUpdate<SecretKind>({
     model: SecretModel,
     name,
     namespace,
+    mutationDetails,
     mutate: (current) => {
       const base: SecretKind = current ?? {
         apiVersion: getAPIVersionForModel(SecretModel),
