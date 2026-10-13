@@ -9,23 +9,24 @@ import { FDF_FLAG } from '../../../../redux';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardState } from '../../reducer';
 import { MultusNetworkConfigurationComponent } from './multus';
-import { NICSelectComponent } from './nic';
+// TODO: Re-enable once public network data path separation is supported by the backend.
+// import { NICSelectComponent } from './nic';
 import './configure.scss';
 
 export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   setNetworkType,
   networkType,
   setMultusNetwork,
-  setClusterCIDR,
-  cephClusterCIDR,
-  useClusterNetwork,
-  setUseClusterNetwork,
+  setClusterCIDR: _setClusterCIDR,
+  cephClusterCIDR: _cephClusterCIDR,
+  useClusterNetwork: _useClusterNetwork,
+  setUseClusterNetwork: _setUseClusterNetwork,
   clusterNetwork,
   publicNetwork,
   systemNamespace,
   isMultusAcknowledged,
   setIsMultusAcknowledged,
-  nodes = [],
+  nodes: _nodes = [],
   isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
@@ -104,19 +105,19 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           setIsMultusAcknowledged={setIsMultusAcknowledged}
           isTNFEnabled={isTNFEnabled}
         />
-      ) : (
-        isFDF && (
-          <NICSelectComponent
-            cephClusterCIDR={cephClusterCIDR ?? ''}
-            setCephCIDR={setClusterCIDR}
-            networkType={networkType}
-            setNetworkType={(type: NetworkType) => setNetworkType(type)}
-            useClusterNetwork={useClusterNetwork}
-            setUseClusterNetwork={setUseClusterNetwork}
-            nodes={nodes}
-          />
-        )
-      )}
+      ) : // TODO: Re-enable NICSelectComponent once public network data path separation is supported by the backend.
+      // isFDF && (
+      //   <NICSelectComponent
+      //     cephClusterCIDR={cephClusterCIDR ?? ''}
+      //     setCephCIDR={setClusterCIDR}
+      //     networkType={networkType}
+      //     setNetworkType={(type: NetworkType) => setNetworkType(type)}
+      //     useClusterNetwork={useClusterNetwork}
+      //     setUseClusterNetwork={setUseClusterNetwork}
+      //     nodes={nodes}
+      //   />
+      // )
+      null}
     </>
   );
 };
