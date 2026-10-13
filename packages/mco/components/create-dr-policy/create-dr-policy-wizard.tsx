@@ -3,6 +3,7 @@ import { usePrePairNetworkValidation } from '@odf/mco/hooks';
 import { getMajorVersion } from '@odf/mco/utils';
 import {
   ACM_DEFAULT_DOC_VERSION,
+  DOC_VERSION,
   DRClusterModel,
   MirrorPeerModel,
   useDocVersion,
@@ -445,7 +446,7 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
         <PolicyStep
           state={state}
           dispatch={dispatch}
-          docHref={gettingStartedDRDocs(odfMCOVersion).CREATE_POLICY_RDR}
+          docHref={gettingStartedDRDocs(DOC_VERSION).CREATE_POLICY_RDR}
         />
       </WizardStep>
       <WizardStep
