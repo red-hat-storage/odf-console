@@ -4,6 +4,8 @@ import {
   K8sResourceCondition,
   K8sResourceConditionStatus,
 } from '@odf/shared/types';
+import { getAutoCleanupCondition } from '../../../utils';
+import { isCleanupRequired } from '../../../utils/dr-status';
 import { DRStatusProps } from '../dr-status-popover';
 
 type ProgressionFields = Pick<
@@ -14,6 +16,8 @@ type ProgressionFields = Pick<
   | 'progressionDetails'
   | 'applicationName'
   | 'dryRun'
+  | 'isCleanupRequired'
+  | 'autoCleanupCondition'
 >;
 
 const parseTime = (value?: string): number => {
@@ -81,6 +85,8 @@ export const getProgressionFields = (
     drPlacementControl.spec?.protectedNamespaces !== undefined &&
     drPlacementControl.spec.protectedNamespaces.length > 0;
 
+  const autoCleanupCondition = getAutoCleanupCondition(drPlacementControl);
+
   return {
     progression: drPlacementControl.status?.progression,
     actionStartTime: drPlacementControl.status?.actionStartTime,
@@ -89,5 +95,10 @@ export const getProgressionFields = (
     progressionDetails: detailMessages.length ? detailMessages : undefined,
     applicationName,
     isDiscoveredApp,
+    autoCleanupCondition,
+    isCleanupRequired: isCleanupRequired(
+      drPlacementControl.status?.progression,
+      autoCleanupCondition
+    ),
   };
 };

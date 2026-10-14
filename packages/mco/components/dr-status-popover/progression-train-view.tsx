@@ -1,7 +1,15 @@
 import * as React from 'react';
 import { DRActionType } from '@odf/mco/constants';
-import { Progression } from '@odf/mco/types';
+import {
+  Progression,
+  VRGConditionReason,
+  VRGConditionType,
+} from '@odf/mco/types';
 import { formatTime } from '@odf/shared/details-page/datetime';
+import {
+  K8sResourceCondition,
+  K8sResourceConditionStatus,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Flex,
@@ -68,6 +76,7 @@ export enum ProgressionStatus {
   UPDATING_PL_RULE = 'UpdatingPlRule',
 
   CLEANING_UP = 'Cleaning Up',
+  CLEANUP_READINESS = 'CleanupReadiness',
   WAIT_USER_CLEANUP = 'WaitOnUserToCleanUp',
 }
 
@@ -115,6 +124,7 @@ export const FAILOVER_FLOW: StepConfig[] = [
     label: TrainStep.CleanUp,
     statuses: [
       ProgressionStatus.CLEANING_UP,
+      ProgressionStatus.CLEANUP_READINESS,
       ProgressionStatus.WAIT_USER_CLEANUP,
     ],
   },
@@ -156,6 +166,7 @@ export const RELOCATE_FLOW: StepConfig[] = [
     label: TrainStep.CleanUp,
     statuses: [
       ProgressionStatus.CLEANING_UP,
+      ProgressionStatus.CLEANUP_READINESS,
       ProgressionStatus.WAIT_USER_CLEANUP,
     ],
   },
@@ -175,7 +186,11 @@ export const RELOCATE_DISCOVERED_FLOW: StepConfig[] = [
   },
   {
     label: TrainStep.CleanUp,
-    statuses: [ProgressionStatus.WAIT_USER_CLEANUP],
+    statuses: [
+      ProgressionStatus.CLEANUP_READINESS,
+      ProgressionStatus.CLEANING_UP,
+      ProgressionStatus.WAIT_USER_CLEANUP,
+    ],
   },
   {
     label: TrainStep.Syncing,
@@ -195,7 +210,6 @@ export const RELOCATE_DISCOVERED_FLOW: StepConfig[] = [
       ProgressionStatus.UPDATED_PLACEMENT,
       ProgressionStatus.CREATING_MW,
       ProgressionStatus.UPDATING_PL_RULE,
-      ProgressionStatus.CLEANING_UP, // Final cleanup after restore
     ],
   },
 ];
@@ -256,9 +270,32 @@ type ProgressionTrainViewProps = {
   actionStartTime?: string;
   progressionDetails?: string[];
   isCleanupRequired?: boolean;
+  autoCleanupCondition?: K8sResourceCondition;
   cleanupCluster?: string;
   isDiscoveredApp?: boolean;
   learnMoreHref?: string;
+};
+
+const getProgressionDisplayLabel = (
+  currentProgression: string | undefined,
+  autoCleanupCondition: K8sResourceCondition | undefined,
+  t: ReturnType<typeof useCustomTranslation>['t']
+): string => {
+  if (!currentProgression) {
+    return t('Unavailable');
+  }
+
+  const isAutoCleanupProgressing =
+    currentProgression === Progression.WaitOnUserToCleanUp &&
+    autoCleanupCondition?.type === VRGConditionType.AutoCleanup &&
+    autoCleanupCondition?.status === K8sResourceConditionStatus.True &&
+    autoCleanupCondition?.reason === VRGConditionReason.Progressing;
+
+  if (isAutoCleanupProgressing) {
+    return t('Automatic cleanup in progress');
+  }
+
+  return currentProgression;
 };
 
 export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
@@ -268,6 +305,7 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
   actionStartTime,
   progressionDetails,
   isCleanupRequired,
+  autoCleanupCondition,
   cleanupCluster,
   isDiscoveredApp,
   learnMoreHref,
@@ -280,6 +318,11 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
     (s) => s.status === StepStatus.Completed
   ).length;
   const totalSteps = steps.length;
+  const progressionLabel = getProgressionDisplayLabel(
+    currentProgression,
+    autoCleanupCondition,
+    t
+  );
 
   return (
     <Flex
@@ -392,8 +435,7 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
           {isDetailsExpanded && (
             <>
               <Content component="p" className="pf-v6-u-mt-sm pf-v6-u-mb-sm">
-                <strong>{t('Current progression')}:</strong>{' '}
-                {currentProgression || t('Unavailable')}
+                <strong>{t('Current progression')}:</strong> {progressionLabel}
               </Content>
               {progressionDetails && progressionDetails.length > 0 ? (
                 <>

@@ -1,12 +1,16 @@
+import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { DRActionType } from '../../../constants';
 import { ClusterPairOperationsMap } from '../../../hooks/useActiveDROperations';
 import { ClusterPairPoliciesMap } from '../../../hooks/useDRPoliciesByClusterPair';
 import { ClusterAppsMap } from '../../../hooks/useProtectedAppsByCluster';
 import {
   ACMManagedClusterKind,
+  DRPlacementControlKind,
   DRPolicyKind,
   Phase,
   Progression,
+  VRGConditionReason,
+  VRGConditionType,
 } from '../../../types';
 import { FilterType } from '../types';
 import { generateClusterNodesModel } from './node-generator';
@@ -495,8 +499,69 @@ describe('generateClusterNodesModel', () => {
       const appNodes =
         model.nodes?.filter((n) => n.type === 'app-node-operation') || [];
       // Labels should show WaitOnUserToCleanUp, not FailedOver
+      expect(appNodes.length).toBeGreaterThan(0);
       appNodes.forEach((node) => {
         expect(node.label).toBe('WaitOnUserToCleanUp');
+      });
+    });
+
+    it('should show FailedOver when AutoCleanup is Progressing', () => {
+      const clusters: ACMManagedClusterKind[] = [
+        createMockCluster('cluster1', 'uid-1'),
+        createMockCluster('cluster2', 'uid-2'),
+      ];
+
+      const drpc: DRPlacementControlKind = {
+        apiVersion: 'ramendr.openshift.io/v1alpha1',
+        kind: 'DRPlacementControl',
+        metadata: { name: 'drpc-app1', namespace: 'ns1' },
+        spec: {
+          preferredCluster: 'cluster2',
+          failoverCluster: 'cluster1',
+          drPolicyRef: { name: 'policy-1' },
+          placementRef: { name: 'placement-1' },
+          pvcSelector: {},
+          action: DRActionType.FAILOVER,
+        },
+        status: {
+          phase: Phase.FailedOver,
+          progression: Progression.WaitOnUserToCleanUp,
+          resourceConditions: {
+            conditions: [
+              {
+                type: VRGConditionType.AutoCleanup,
+                status: K8sResourceConditionStatus.True,
+                reason: VRGConditionReason.Progressing,
+                lastTransitionTime: '',
+              },
+            ],
+          },
+        },
+      };
+
+      const operations: ClusterPairOperationsMap = {
+        'cluster1::cluster2': [
+          {
+            drpcName: 'drpc-app1',
+            applicationName: 'app1',
+            applicationNamespace: 'ns1',
+            action: DRActionType.FAILOVER,
+            phase: Phase.FailedOver,
+            progression: Progression.WaitOnUserToCleanUp,
+            sourceCluster: 'cluster1',
+            targetCluster: 'cluster2',
+            isDiscoveredApp: true,
+            drpc,
+          },
+        ],
+      };
+
+      const model = generateClusterNodesModel(clusters, null, operations);
+      const appNodes =
+        model.nodes?.filter((n) => n.type === 'app-node-operation') || [];
+      expect(appNodes.length).toBeGreaterThan(0);
+      appNodes.forEach((node) => {
+        expect(node.label).toBe('FailedOver');
       });
     });
 

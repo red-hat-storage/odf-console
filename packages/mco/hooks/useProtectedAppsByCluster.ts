@@ -7,12 +7,13 @@ import {
   ProtectedApplicationViewKind,
 } from '../types';
 import {
+  getApplicationName,
+  getAutoCleanupCondition,
+  getProtectedCondition,
   getReplicationHealth,
   getReplicationType,
-  getProtectedCondition,
-  getApplicationName,
 } from '../utils';
-import { DRStatus, getDRStatus, isCleanupRequired } from '../utils/dr-status';
+import { DRStatus, getDRStatus } from '../utils/dr-status';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -105,10 +106,7 @@ export const useProtectedAppsByCluster = (): [
           : undefined;
 
         const status = getDRStatus({
-          isCleanupRequired: isCleanupRequired(
-            drpc?.status?.phase,
-            drpc?.status?.progression
-          ),
+          autoCleanupCondition: getAutoCleanupCondition(drpc),
           phase,
           volumeReplicationHealth,
           kubeObjectReplicationHealth,
