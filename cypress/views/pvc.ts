@@ -13,7 +13,8 @@ export const pvc = {
     cy.byTestID('pvc-size').type('{moveToEnd}');
     cy.byTestID('pvc-size').type(size);
     if (mode === 'Block') {
-      cy.byTestID('Block-radio-input').click();
+      // eslint-disable-next-line cypress/require-data-selectors
+      cy.get('#volumeMode-Block').click();
     }
     cy.byTestID('create-pvc').click();
     cy.byTestID('resource-status').contains('Bound', { timeout: 50000 });
