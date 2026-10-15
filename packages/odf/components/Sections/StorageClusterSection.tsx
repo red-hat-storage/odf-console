@@ -5,7 +5,9 @@ import {
   useGetInternalClusterDetails,
 } from '@odf/core/redux/utils';
 import { isCapacityAutoScalingAllowed, getResourceInNs } from '@odf/core/utils';
-import OCSSystemDashboard from '@odf/ocs/dashboards/ocs-system-dashboard';
+import OCSSystemDashboard, {
+  BLOCK_FILE,
+} from '@odf/ocs/dashboards/ocs-system-dashboard';
 import {
   CustomKebabItem,
   DEFAULT_INFRASTRUCTURE,
@@ -28,6 +30,7 @@ import {
 } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import { EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import { CubesIcon } from '@patternfly/react-icons';
 import InitialEmptyStatePage from './InitialEmptyStatePage';
@@ -116,6 +119,19 @@ const useInternalStorageCluster = () => {
 
 const StorageClusterSection: React.FC = () => {
   const { t } = useCustomTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (
+      location.pathname.endsWith('/odf/storage-cluster') ||
+      location.pathname.endsWith('/odf/storage-cluster/')
+    ) {
+      navigate('/odf/storage-cluster/' + BLOCK_FILE, {
+        replace: true,
+      });
+    }
+  }, [location.pathname, navigate]);
 
   const { selectedCluster, hasMultipleStorageClusters, currentStorageCluster } =
     useInternalStorageCluster();
