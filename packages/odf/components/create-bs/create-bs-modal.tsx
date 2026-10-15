@@ -23,16 +23,14 @@ const CreateBackingStoreFormModal: React.FC<
       header={Header}
       onClose={closeModal}
     >
-      <div className="nb-endpoints__modal">
-        <ModalBody>
-          <p>
-            {t(
-              'BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
-            )}
-          </p>
-          <CreateBackingStoreForm onClose={closeModal} onCancel={closeModal} />
-        </ModalBody>
-      </div>
+      <ModalBody>
+        <p>
+          {t(
+            'BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
+          )}
+        </p>
+        <CreateBackingStoreForm onClose={closeModal} onCancel={closeModal} />
+      </ModalBody>
     </Modal>
   );
 };
