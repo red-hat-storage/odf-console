@@ -44,7 +44,8 @@ describe('Test Object Bucket Claim resource', () => {
   it('Test if Object Bucket Claim details page is rendered correctly', () => {
     cy.log('Test if OBC is bound');
     listPage.searchInList(OBC_NAME);
-    cy.byTestID(`resource-link-${OBC_NAME}`).click();
+    cy.byTestID(`resource-link-${OBC_NAME}`).should('be.visible').click();
+    cy.location('pathname').should('include', `/${OBC_NAME}`);
     cy.byTestID('resource-status').contains(BOUND, { timeout: MINUTE });
 
     cy.log('Test if secret data is masked');
