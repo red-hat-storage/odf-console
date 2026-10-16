@@ -26,6 +26,34 @@
     }
   },
   {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "odfdashboard-virt-perspective",
+      "insertAfter": "volumesnapshotcontents-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
+      "name": "Data Foundation",
+      "href": "/odf/cluster"
+    },
+    "flags": {
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-object-virt-perspective",
+      "insertAfter": "odfdashboard-virt-perspective",
+      "perspective": "virtualization-perspective",
+      "section": "storage-virt-perspective",
+      "name": "%plugin__odf-client-console~Object storage%",
+      "href": "/odf/object-storage"
+    },
+    "flags": {
+      "disallowed": ["ODF_MODEL"]
+    }
+  },
+  {
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "buckets",
