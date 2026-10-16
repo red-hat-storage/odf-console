@@ -14,7 +14,7 @@ import { ProviderNames } from '../../types';
 import { AzureConfigure } from './azure-config';
 import { HpcsConfigure } from './hpcs-config';
 import { KMSConfigureProps } from './providers';
-import { ThalesConfigure } from './thales-config';
+import { GklmConfigure, ThalesConfigure } from './thales-config';
 import { isLengthUnity } from './utils';
 import { VaultConfigure } from './vault-config';
 import './kms-config.scss';
@@ -36,6 +36,11 @@ const KMSProviders: KMSProvidersType = [
     name: 'Thales CipherTrust Manager (using KMIP)',
     value: ProviderNames.THALES,
     Component: ThalesConfigure,
+  },
+  {
+    name: 'IBM Guardium Key Lifecycle Manager (using KMIP)',
+    value: ProviderNames.GKLM,
+    Component: GklmConfigure,
   },
   {
     name: 'Azure Key Vault',

@@ -9,6 +9,7 @@ import {
   KMSConfig,
   KMSConfigMap,
   ThalesConfigMap,
+  GklmConfigMap,
   AzureConfig,
 } from '../types';
 
@@ -24,7 +25,11 @@ export enum KmsProviderNames {
   AZURE = 'Azure Key Vault',
   HPCS = 'Hyper Protect Crypto Services',
   THALES = 'Thales CipherTrust Manager (using KMIP)',
+  GKLM = 'IBM Guardium Key Lifecycle Manager (using KMIP)',
 }
+
+const isGklmConfigMap = (kms: KMSConfigMap): kms is GklmConfigMap =>
+  'USE_CRYPTO_RPC' in kms && (kms as GklmConfigMap).USE_CRYPTO_RPC === 'false';
 
 type SupportedProvidersProps = {
   [key: string]: {
@@ -56,10 +61,29 @@ export const SupportedProviders: SupportedProvidersProps = {
   [ProviderNames.THALES]: {
     group: ProviderNames.THALES,
     supported: [KmsImplementations.KMIP],
-    filter: (kms: ThalesConfigMap, secretsList: SecretKind[]) => {
+    filter: (kms: KMSConfigMap, secretsList: SecretKind[]) => {
+      if (isGklmConfigMap(kms)) {
+        return true;
+      }
+      const thalesKms = kms as ThalesConfigMap;
       const kmsSecret = secretsList?.find(
         (secret: SecretKind) =>
-          secret?.metadata?.name === kms?.['KMIP_SECRET_NAME']
+          secret?.metadata?.name === thalesKms?.['KMIP_SECRET_NAME']
+      );
+      // if "UNIQUE_IDENTIFIER" is empty, means we need to filter this out
+      // "UNIQUE_IDENTIFIER" is required for ceph-csi, not required for rook/noobaa
+      return !kmsSecret?.data?.['UNIQUE_IDENTIFIER'];
+    },
+  },
+  [ProviderNames.GKLM]: {
+    group: KmsProviderNames.GKLM,
+    supported: [KmsImplementations.KMIP],
+    filter: (kms: KMSConfigMap, secretsList: SecretKind[]) => {
+      if (!isGklmConfigMap(kms)) {
+        return true;
+      }
+      const kmsSecret = secretsList?.find(
+        (secret: SecretKind) => secret?.metadata?.name === kms.KMIP_SECRET_NAME
       );
       // if "UNIQUE_IDENTIFIER" is empty, means we need to filter this out
       // "UNIQUE_IDENTIFIER" is required for ceph-csi, not required for rook/noobaa
@@ -203,6 +227,7 @@ export const ProviderStateMap = {
   [ProviderNames.VAULT]: VaultEmptyState,
   [ProviderNames.HPCS]: HpcsEmptyState,
   [ProviderNames.THALES]: ThalesEmptyState,
+  [ProviderNames.GKLM]: ThalesEmptyState,
   [ProviderNames.AZURE]: AzureEmptyState,
 };
 

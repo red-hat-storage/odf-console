@@ -31,7 +31,11 @@ type EncryptionPopoverProps = {
 const StatusIcon: React.FC<{ enabled: boolean }> = ({ enabled }) =>
   enabled ? <GreenCheckCircleIcon /> : <RedTimesIcon />;
 
-const getKmsTypeDescription = (encryptionKMSType: string, t: TFunction) => {
+const getKmsTypeDescription = (
+  encryptionKMSType: string,
+  t: TFunction,
+  useCryptoRpc?: string
+) => {
   let provider = '';
 
   switch (encryptionKMSType) {
@@ -44,7 +48,10 @@ const getKmsTypeDescription = (encryptionKMSType: string, t: TFunction) => {
       provider = KmsProviderNames.HPCS;
       break;
     case KmsImplementations.KMIP:
-      provider = KmsProviderNames.THALES;
+      provider =
+        useCryptoRpc === 'false'
+          ? KmsProviderNames.GKLM
+          : KmsProviderNames.THALES;
       break;
     case KmsImplementations.AZURE:
       provider = KmsProviderNames.AZURE;
@@ -192,7 +199,13 @@ const EncryptionPopover: React.FC<EncryptionPopoverProps> = ({
   const kmsTypeDescription = React.useMemo(() => {
     if (configLoaded && !configLoadError && configMapData?.data) {
       const kmsProvider = configMapData.data.KMS_PROVIDER;
-      return kmsProvider ? getKmsTypeDescription(kmsProvider, t) : '';
+      return kmsProvider
+        ? getKmsTypeDescription(
+            kmsProvider,
+            t,
+            configMapData.data.USE_CRYPTO_RPC
+          )
+        : '';
     }
 
     return '';

@@ -34,26 +34,33 @@ export const uploadInputItems: UploadInputItemType = (t) => [
   },
 ];
 
-export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
+type KmipProvider = ProviderNames.THALES | ProviderNames.GKLM;
+
+type KmipConfigureProps = KMSConfigureProps & {
+  provider: KmipProvider;
+};
+
+export const KmipConfigure: React.FC<KmipConfigureProps> = ({
   state,
   dispatch,
   className,
+  provider,
 }) => {
   const { t } = useCustomTranslation();
 
-  const thalesState = useDeepCompareMemoize(
+  const kmipState = useDeepCompareMemoize(
     state.kms.providerState,
     true
   ) as ThalesConfig;
-  const thalesStateClone: ThalesConfig = React.useMemo(
-    () => _.cloneDeep(thalesState),
-    [thalesState]
+  const kmipStateClone: ThalesConfig = React.useMemo(
+    () => _.cloneDeep(kmipState),
+    [kmipState]
   );
 
   const { encryption } = state;
   const isScEncryption = encryption.storageClass;
 
-  const updateThalesState = React.useCallback(
+  const updateKmipState = React.useCallback(
     (kmsConfig: ThalesConfig) =>
       dispatch({
         type: 'securityAndNetwork/setKmsProviderState',
@@ -65,37 +72,35 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
   React.useEffect(() => {
     // only need to pass unique identifier for ceph-csi
     const validUniqueId: boolean = isScEncryption
-      ? thalesState.uniqueId.valid && thalesState.uniqueId.value !== ''
+      ? kmipState.uniqueId.valid && kmipState.uniqueId.value !== ''
       : true;
     const hasHandled: boolean =
-      validUniqueId && kmsConfigValidation(thalesState, ProviderNames.THALES);
-    if (thalesState.hasHandled !== hasHandled) {
-      updateThalesState({ ...thalesState, hasHandled });
+      validUniqueId && kmsConfigValidation(kmipState, provider);
+    if (kmipState.hasHandled !== hasHandled) {
+      updateKmipState({ ...kmipState, hasHandled });
     }
-  }, [updateThalesState, thalesState, isScEncryption]);
+  }, [updateKmipState, kmipState, isScEncryption, provider]);
 
   const setUniqueID = (id: string) => {
-    thalesStateClone.uniqueId.value = id;
-    thalesStateClone.uniqueId.valid = id !== '';
-    updateThalesState(thalesStateClone);
+    kmipStateClone.uniqueId.value = id;
+    kmipStateClone.uniqueId.valid = id !== '';
+    updateKmipState(kmipStateClone);
   };
 
   const setTLSServer = (serverName: string) => {
-    thalesStateClone.tls = serverName;
-    updateThalesState(thalesStateClone);
+    kmipStateClone.tls = serverName;
+    updateKmipState(kmipStateClone);
   };
 
-  const getValidatedUniqueIdProp = getValidatedProp(
-    !thalesState.uniqueId.valid
-  );
+  const getValidatedUniqueIdProp = getValidatedProp(!kmipState.uniqueId.valid);
 
   return (
     <>
       <NameAddrPort
         className={className}
-        kmsState={thalesState}
-        kmsStateClone={thalesStateClone}
-        updateKmsState={updateThalesState}
+        kmsState={kmipState}
+        kmsStateClone={kmipStateClone}
+        updateKmsState={updateKmipState}
         canAcceptIP
       />
       {uploadInputItems(t).map((uploadItem: UploadInputItem) => (
@@ -104,9 +109,9 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
           id={uploadItem.id}
           inputName={uploadItem.inputName}
           className={className}
-          kmsState={thalesState}
-          kmsStateClone={thalesStateClone}
-          updateKmsState={updateThalesState}
+          kmsState={kmipState}
+          kmsStateClone={kmipStateClone}
+          updateKmsState={updateKmipState}
         />
       ))}
       {isScEncryption && (
@@ -117,7 +122,7 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
           isRequired
         >
           <TextInput
-            value={thalesState.uniqueId.value}
+            value={kmipState.uniqueId.value}
             onChange={(_event, id: string) => setUniqueID(id)}
             type="text"
             id="kms-unique-id"
@@ -145,7 +150,7 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
         className={`${className}__form-body`}
       >
         <TextInput
-          value={thalesState.tls}
+          value={kmipState.tls}
           onChange={(_event, serverName: string) => setTLSServer(serverName)}
           type="text"
           id="kms-tls-server"
@@ -165,5 +170,13 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
     </>
   );
 };
+
+export const ThalesConfigure: React.FC<KMSConfigureProps> = (props) => (
+  <KmipConfigure {...props} provider={ProviderNames.THALES} />
+);
+
+export const GklmConfigure: React.FC<KMSConfigureProps> = (props) => (
+  <KmipConfigure {...props} provider={ProviderNames.GKLM} />
+);
 
 type UploadInputItemType = (t: TFunction) => UploadInputItem[];
