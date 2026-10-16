@@ -2,7 +2,11 @@
 import React from 'react';
 import { describe, expect, it } from '@jest/globals';
 import { DRActionType, VolumeReplicationHealth } from '@odf/mco/constants';
-import { DRPlacementControlConditionReason, Phase } from '@odf/mco/types';
+import {
+  DRPlacementControlConditionReason,
+  Phase,
+  Progression,
+} from '@odf/mco/types';
 import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -172,6 +176,51 @@ describe('DRStatusPopover Component', () => {
     );
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
       'Target clustertarget-cluster'
+    );
+  });
+
+  // DFBUGS-11111: a dry-run revert leaves the phase at Deployed, which used to
+  // fall through to the relocate wording and name the wrong cluster.
+  it('renders test-failover cleanup wording while a dry run is being reverted', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.Deployed,
+          progression: Progression.WaitOnUserToCleanUp,
+          isCleanupRequired: true,
+          testFailoverCleanupCluster: 'test-cluster',
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Action needed/
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /finish reverting the failover test/
+    );
+    expect(screen.getByTestId('popover-description')).not.toHaveTextContent(
+      /to start relocating/
+    );
+  });
+
+  it('renders relocate cleanup wording for an ordinary cleanup', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.Deployed,
+          progression: Progression.WaitOnUserToCleanUp,
+          isCleanupRequired: true,
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /to start relocating/
     );
   });
 
