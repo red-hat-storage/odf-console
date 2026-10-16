@@ -7,6 +7,7 @@ import {
   DeleteMarkerEntry,
 } from '@aws-sdk/client-s3';
 import { DASH, WILDCARD } from '@odf/shared/constants';
+import { STORAGE_CLASS_DEEP_ARCHIVE } from '@odf/shared/s3';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
@@ -119,6 +120,18 @@ export const convertObjectDataToCrFormat = (
       (objectData as Content | ObjectVersion | DeleteMarkerEntry)?.Owner
         ?.DisplayName || DASH;
     structuredObject.apiResponse.versionId = versionId;
+    // Storage class & restore status only exist on actual objects/versions,
+    // never on delete markers.
+    structuredObject.apiResponse.storageClass =
+      (objectData as Content | ObjectVersion)?.StorageClass || DASH;
+    const restoreStatus = (objectData as Content | ObjectVersion)
+      ?.RestoreStatus;
+    if (restoreStatus) {
+      structuredObject.apiResponse.restoreStatus = {
+        isRestoreInProgress: restoreStatus.IsRestoreInProgress,
+        restoreExpiryDate: restoreStatus.RestoreExpiryDate?.toString(),
+      };
+    }
     if (isDeleteMarker) structuredObject.isDeleteMarker = true;
     if (isLatestVersion) structuredObject.isLatest = true;
   }
@@ -223,3 +236,31 @@ export const isAllowAllConfig = (config: string[]) =>
 
 export const getProviderLabel = (providerType: S3ProviderType) =>
   providerType === S3ProviderType.Noobaa ? 'MCG' : 'RGW';
+
+export const isObjectDeepArchived = (object: ObjectCrFormat): boolean =>
+  object?.apiResponse?.storageClass === STORAGE_CLASS_DEEP_ARCHIVE;
+
+export const isObjectRestoreInProgress = (object: ObjectCrFormat): boolean =>
+  !!object?.apiResponse?.restoreStatus?.isRestoreInProgress;
+
+export const isObjectRestored = (object: ObjectCrFormat): boolean => {
+  const restoreStatus = object?.apiResponse?.restoreStatus;
+  if (!restoreStatus || restoreStatus.isRestoreInProgress) return false;
+  const expiryTime = new Date(restoreStatus.restoreExpiryDate).getTime();
+  return !Number.isNaN(expiryTime) && expiryTime > Date.now();
+};
+
+export const getRestoreStatusText = (
+  object: ObjectCrFormat,
+  t: TFunction
+): string => {
+  if (!isObjectDeepArchived(object)) return '';
+  if (isObjectRestoreInProgress(object)) return t('Restoring');
+  if (isObjectRestored(object)) {
+    const expiry = new Date(
+      object.apiResponse.restoreStatus.restoreExpiryDate
+    ).toLocaleDateString();
+    return t('Restored until {{expiry}}', { expiry });
+  }
+  return t('Archived');
+};

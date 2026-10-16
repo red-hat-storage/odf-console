@@ -12,6 +12,9 @@ import {
   getObjectVersionId,
   convertObjectDataToCrFormat,
   sortByLastModified,
+  isObjectDeepArchived,
+  isObjectRestored,
+  getRestoreStatusText,
 } from '@odf/core/utils';
 import {
   DASH,
@@ -320,58 +323,91 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
 
   const isLoading = isObjectDataLoading || isTagDataLoading;
 
+  // Storage class and restore status are read from the list response (the
+  // single source of truth); the warning only applies while a usable restored
+  // copy is missing, as a restored object can be previewed/downloaded like any
+  // other.
+  const needsRestore =
+    isObjectDeepArchived(object) && !isObjectRestored(object);
+  const restoreStatusText = getRestoreStatusText(object, t);
+
   return isLoading ? (
     <LoadingBox />
   ) : (
-    <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
-      <GridItem span={6}>
-        <ItemHeading text={t('Name')} />
-        {objShortenedName}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Key')} />
-        <Level>
-          <LevelItem className="odf-object-sidebar__key">{objectKey}</LevelItem>
-          <LevelItem>
-            <CopyToClipboard value={objectKey} iconOnly={true} />
-          </LevelItem>
-        </Level>
-      </GridItem>
-      {showVersioning && (
-        <GridItem span={6}>
-          <ItemHeading text={t('Version')} />
-          {objectData?.VersionId || versionId || DASH}
-        </GridItem>
+    <>
+      {needsRestore && (
+        <Alert
+          isInline
+          variant={AlertVariant.warning}
+          title={t('This object is archived')}
+          className="pf-v6-u-mt-sm"
+        >
+          {t(
+            'This object is stored in the Deep Archive storage class and can only be previewed or downloaded after it is restored.'
+          )}
+        </Alert>
       )}
-      <GridItem span={6}>
-        <ItemHeading text={t('Owner')} />
-        {object.apiResponse?.ownerName}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Type')} />
-        {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Last modified')} />
-        {lastModified}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Size')} />
-        {object.apiResponse.size}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Entity tag (ETag)')} />
-        {objectData?.ETag || DASH}
-      </GridItem>
-      <GridItem span={12}>
-        <ItemHeading text={t('Tags')} />
-        {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
-      </GridItem>
-      <GridItem span={12}>
-        <ItemHeading text={t('Metadata')} />
-        {metadata.length > 0 ? metadata : DASH}
-      </GridItem>
-    </Grid>
+      <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
+        <GridItem span={6}>
+          <ItemHeading text={t('Name')} />
+          {objShortenedName}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Key')} />
+          <Level>
+            <LevelItem className="odf-object-sidebar__key">
+              {objectKey}
+            </LevelItem>
+            <LevelItem>
+              <CopyToClipboard value={objectKey} iconOnly={true} />
+            </LevelItem>
+          </Level>
+        </GridItem>
+        {showVersioning && (
+          <GridItem span={6}>
+            <ItemHeading text={t('Version')} />
+            {objectData?.VersionId || versionId || DASH}
+          </GridItem>
+        )}
+        <GridItem span={6}>
+          <ItemHeading text={t('Owner')} />
+          {object.apiResponse?.ownerName}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Type')} />
+          {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Last modified')} />
+          {lastModified}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Size')} />
+          {object.apiResponse.size}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Storage class')} />
+          {object.apiResponse?.storageClass || DASH}
+          {restoreStatusText && (
+            <Content component={ContentVariants.small}>
+              {restoreStatusText}
+            </Content>
+          )}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Entity tag (ETag)')} />
+          {objectData?.ETag || DASH}
+        </GridItem>
+        <GridItem span={12}>
+          <ItemHeading text={t('Tags')} />
+          {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
+        </GridItem>
+        <GridItem span={12}>
+          <ItemHeading text={t('Metadata')} />
+          {metadata.length > 0 ? metadata : DASH}
+        </GridItem>
+      </Grid>
+    </>
   );
 };
 
