@@ -1,11 +1,16 @@
 import * as React from 'react';
 import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
-import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
+import {
+  getResourceInNs as getCephClusterInNs,
+  getStorageClusterInNs,
+  isClusterDeleting,
+} from '@odf/core/utils';
 import { resiliencyProgressQuery } from '@odf/ocs/queries';
 import {
   getCephHealthChecks,
   getCephHealthState,
   getDataResiliencyState,
+  getStorageClusterHealthState,
 } from '@odf/ocs/utils';
 import { odfDocBasePath } from '@odf/shared/constants/doc';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
@@ -14,10 +19,14 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { CephClusterModel } from '@odf/shared/models';
+import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
 import useAlerts from '@odf/shared/monitoring/useAlert';
 import { alertURL } from '@odf/shared/monitoring/utils';
-import { CephHealthCheckType, K8sResourceKind } from '@odf/shared/types';
+import {
+  CephHealthCheckType,
+  K8sResourceKind,
+  StorageClusterKind,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { filterCephAlerts, referenceForModel } from '@odf/shared/utils';
 import {
@@ -126,10 +135,17 @@ const cephClusterResource = {
   isList: true,
 };
 
+const storageClusterResource = {
+  kind: referenceForModel(StorageClusterModel),
+  isList: true,
+};
+
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
+  const [storageClusters, storageClustersLoaded, storageClustersLoadError] =
+    useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
 
   const { clusterNamespace: clusterNs, clusterName: managedByOCS } =
     useGetInternalClusterDetails();
@@ -143,11 +159,22 @@ export const StatusCard: React.FC = () => {
   );
 
   const cephCluster = getCephClusterInNs(data, clusterNs);
+  const storageCluster = getStorageClusterInNs(storageClusters, clusterNs);
 
-  const cephHealthState = getCephHealthState(
-    { ceph: { data: cephCluster, loaded, loadError } },
+  const storageClusterHealth = getStorageClusterHealthState(
+    storageCluster,
+    storageClustersLoaded,
+    storageClustersLoadError,
     t
   );
+
+  const cephHealthState =
+    storageClusterHealth ??
+    getCephHealthState({ ceph: { data: cephCluster, loaded, loadError } }, t);
+
+  const suppressCephHealthChecks =
+    (!storageClustersLoaded && !storageClustersLoadError) ||
+    isClusterDeleting(storageCluster);
   const dataResiliencyState = getDataResiliencyState(
     [{ response: resiliencyProgress, error: resiliencyProgressError }],
     t
@@ -170,15 +197,20 @@ export const StatusCard: React.FC = () => {
               title={t('Storage Cluster')}
               state={cephHealthState.state}
               details={cephHealthState.message}
-              popupTitle={healthChecks ? t('Active health checks') : null}
+              popupTitle={
+                healthChecks && !suppressCephHealthChecks
+                  ? t('Active health checks')
+                  : null
+              }
             >
-              {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
-                <CephHealthCheck
-                  key={`${i}`}
-                  cephHealthState={cephHealthState}
-                  healthCheck={healthCheck}
-                />
-              ))}
+              {!suppressCephHealthChecks &&
+                healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
+                  <CephHealthCheck
+                    key={`${i}`}
+                    cephHealthState={cephHealthState}
+                    healthCheck={healthCheck}
+                  />
+                ))}
             </HealthItem>
           </GalleryItem>
           <GalleryItem>

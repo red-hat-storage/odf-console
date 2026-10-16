@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { K8sResourceObj } from '@odf/core/types';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
+import { getStorageClusterHealthState } from '@odf/ocs/utils';
 import { StorageConsumerKind } from '@odf/shared';
 import { StorageConsumerModel } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants';
@@ -14,7 +15,10 @@ import {
 import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
 import { StorageClusterModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
-import { ClusterServiceVersionKind } from '@odf/shared/types';
+import {
+  ClusterServiceVersionKind,
+  StorageClusterKind,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getGVK,
@@ -41,7 +45,11 @@ import { PROVIDER_MODE } from '../../../features';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import StatusCardPopover from './status-card-popover';
-import { getAggregateClientHealthState, getClientText } from './utils';
+import {
+  getAggregateClientHealthState,
+  getClientText,
+  getWorstHealthState,
+} from './utils';
 import '../../../style.scss';
 
 const operatorResource: K8sResourceObj = (ns) => ({
@@ -50,11 +58,18 @@ const operatorResource: K8sResourceObj = (ns) => ({
   isList: true,
 });
 
+const storageClusterResource = {
+  kind: referenceForModel(StorageClusterModel),
+  isList: true,
+};
+
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [csvData, csvLoaded, csvLoadError] =
     useSafeK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
   const [systems, systemsLoaded, systemsLoadError] = useWatchStorageSystems();
+  const [storageClusters, storageClustersLoaded, storageClustersLoadError] =
+    useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
   const [healthData, healthError, healthLoading] = useCustomPrometheusPoll({
     query: STATUS_QUERIES[StorageDashboard.HEALTH],
     endpoint: 'api/v1/query' as any,
@@ -91,7 +106,7 @@ export const StatusCard: React.FC = () => {
           );
           const systemKind =
             referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
-          const systemData =
+          let systemData =
             apiGroup === StorageClusterModel.apiGroup
               ? {
                   systemName,
@@ -118,16 +133,42 @@ export const StatusCard: React.FC = () => {
                     systemNamespace
                   ),
                 };
+
+          if (apiGroup === StorageClusterModel.apiGroup) {
+            const storageCluster = storageClusters?.find(
+              (cluster) =>
+                getName(cluster) === systemName &&
+                getNamespace(cluster) === systemNamespace
+            );
+            const storageClusterHealth = getStorageClusterHealthState(
+              storageCluster,
+              storageClustersLoaded,
+              storageClustersLoadError,
+              t
+            );
+
+            if (storageClusterHealth) {
+              systemData = {
+                ...systemData,
+                healthState: storageClusterHealth.state,
+                ...(storageClusterHealth.message
+                  ? { extraTexts: [storageClusterHealth.message] }
+                  : {}),
+              };
+            }
+          }
+
           return [...acc, systemData];
         }, [])
       : [];
 
   const healthySystems = parsedHealthData.filter(
-    (item) => item.rawHealthData === '0'
+    (item) => item.healthState === HealthState.OK
   );
   const unHealthySystems = parsedHealthData.filter(
-    (item) => item.rawHealthData !== '0'
+    (item) => item.healthState !== HealthState.OK
   );
+  const unHealthySystemsAggregateState = getWorstHealthState(unHealthySystems);
 
   const operatorHealthStatus = getOperatorHealthState(
     operatorStatus,
@@ -183,7 +224,7 @@ export const StatusCard: React.FC = () => {
             <GalleryItem>
               <HealthItem
                 title={pluralize(unHealthySystems.length, 'Storage system')}
-                state={HealthState.ERROR}
+                state={unHealthySystemsAggregateState}
                 maxWidth="35rem"
               >
                 <StatusCardPopover
