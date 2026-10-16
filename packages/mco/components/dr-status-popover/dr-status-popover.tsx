@@ -59,6 +59,8 @@ export type DRStatusProps = {
   protectedCondition?: K8sResourceCondition;
   availableCondition?: K8sResourceCondition;
   dryRun?: boolean;
+  // Cluster left holding the test workload after a failover test is reverted.
+  testFailoverCleanupCluster?: string;
 };
 
 const DR_STATUS_CLASS_NAMES = {
@@ -365,7 +367,21 @@ const shouldShowProgressionTrainView = (
   );
 };
 
-const getCleanupMessage = (phase: Phase, cluster: string, t: TFunction) => {
+const getCleanupMessage = (
+  phase: Phase,
+  cluster: string,
+  t: TFunction,
+  testFailoverCleanupCluster?: string
+) => {
+  // A reverted failover test is not a relocate, and the leftover copy sits on
+  // the test cluster rather than on the one the phase would point us at.
+  if (testFailoverCleanupCluster) {
+    return t(
+      'Clean up test application resources on cluster {{cluster}} to finish reverting the failover test.',
+      { cluster: testFailoverCleanupCluster }
+    );
+  }
+
   return phase === Phase.FailedOver
     ? t('Clean up application resources on failed cluster {{cluster}}.', {
         cluster,
@@ -392,6 +408,7 @@ type GetDRStatusDetailsParams = {
   actionStartTime?: string;
   action?: DRActionType;
   dryRun?: boolean;
+  testFailoverCleanupCluster?: string;
 };
 
 const getDRStatusDetails = ({
@@ -410,6 +427,7 @@ const getDRStatusDetails = ({
   actionStartTime,
   action,
   dryRun,
+  testFailoverCleanupCluster,
 }: GetDRStatusDetailsParams): StatusContent => {
   const drStatus = getDRStatus({
     isCleanupRequired,
@@ -532,7 +550,7 @@ const getDRStatusDetails = ({
       return createStatus(
         DRStatus.WaitOnUserToCleanUp,
         t('Action needed'),
-        getCleanupMessage(phase, targetCluster, t),
+        getCleanupMessage(phase, targetCluster, t, testFailoverCleanupCluster),
         DR_STATUS_CLASS_NAMES.ACTION_NEEDED
       );
     }
@@ -755,6 +773,8 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         actionStartTime: disasterRecoveryStatus.actionStartTime,
         action: disasterRecoveryStatus.action,
         dryRun: disasterRecoveryStatus.dryRun,
+        testFailoverCleanupCluster:
+          disasterRecoveryStatus.testFailoverCleanupCluster,
       }),
     [disasterRecoveryStatus, t]
   );
