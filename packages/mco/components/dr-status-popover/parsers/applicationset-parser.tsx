@@ -12,7 +12,7 @@ import {
   findCluster,
   getReplicationHealth,
   getReplicationType,
-  getPrimaryClusterName,
+  resolvePrimaryClusterName,
   getProtectedCondition,
   getAvailableCondition,
 } from '@odf/mco/utils';
@@ -52,7 +52,10 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       const drpc = drResource?.drPlacementControls?.[0];
       const drPolicy = drResource?.drPolicy;
       const status = drpc?.status?.phase as Phase;
-      const primaryClusterName = getPrimaryClusterName(drpc);
+      const primaryClusterName = resolvePrimaryClusterName(
+        drpc,
+        drResource.drClusters?.map(getName)
+      );
       const targetCluster = findCluster(
         drResource.drClusters,
         primaryClusterName
