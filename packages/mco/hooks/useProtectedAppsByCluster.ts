@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getNamespace } from '@odf/shared/selectors';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   DRPlacementControlKind,
@@ -22,6 +23,8 @@ import {
 export type ProtectedAppInfo = {
   name: string;
   namespace: string;
+  drpcName: string;
+  drpcNamespace: string;
   drPolicy: string;
   status: DRStatus;
   pav: ProtectedApplicationViewKind;
@@ -81,7 +84,8 @@ export const useProtectedAppsByCluster = (): [
         const appNamespace = pav.metadata?.namespace;
         const phase = pav.status?.drInfo?.status?.phase as Phase;
 
-        const drpcName = pav.spec?.drpcRef?.name;
+        const drpcRef = pav.spec?.drpcRef;
+        const drpcName = drpcRef?.name;
         const drpc = drpcName ? drpcByName.get(drpcName) : undefined;
         const drPolicy = drPolicyByName.get(drPolicyName);
         const progression = drpc?.status?.progression;
@@ -140,6 +144,8 @@ export const useProtectedAppsByCluster = (): [
         const appInfo: ProtectedAppInfo = {
           name: appName,
           namespace: appNamespace,
+          drpcName: drpcName || '',
+          drpcNamespace: getNamespace(drpc) || drpcRef?.namespace || '',
           drPolicy: drPolicyName,
           status,
           pav,
