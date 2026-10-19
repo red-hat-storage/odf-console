@@ -2,7 +2,11 @@
 import React from 'react';
 import { describe, expect, it } from '@jest/globals';
 import { DRActionType, VolumeReplicationHealth } from '@odf/mco/constants';
-import { DRPlacementControlConditionReason, Phase } from '@odf/mco/types';
+import {
+  DRPlacementControlConditionReason,
+  Phase,
+  Progression,
+} from '@odf/mco/types';
 import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -71,6 +75,21 @@ describe('DRStatusPopover Component', () => {
   const relocateStatus: DRStatusProps = {
     isLoadedWOError: true,
     phase: Phase.Relocating,
+    primaryCluster: 'primary-cluster',
+    targetCluster: 'target-cluster',
+    policyName: '',
+    schedulingInterval: '',
+    volumeLastGroupSyncTime: '',
+    volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+  };
+
+  // DFBUGS-10990: during a dry-run test the primary cluster is the untouched
+  // original and the target is the cluster the test runs on.
+  const testFailoverStatus: DRStatusProps = {
+    isLoadedWOError: true,
+    phase: Phase.FailedOver,
+    progression: Progression.TestingFailover,
+    dryRun: true,
     primaryCluster: 'primary-cluster',
     targetCluster: 'target-cluster',
     policyName: '',
@@ -167,6 +186,24 @@ describe('DRStatusPopover Component', () => {
       /Relocating application to/
     );
     expect(screen.getByTestId('popover-description')).toBeInTheDocument();
+    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
+      'Primary clusterprimary-cluster'
+    );
+    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
+      'Target clustertarget-cluster'
+    );
+  });
+
+  it('renders the popover with Failover test active status', async () => {
+    render(<DRStatusPopover disasterRecoveryStatus={testFailoverStatus} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Failover test active/
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Non-disruptive test in progress/
+    );
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
       'Primary clusterprimary-cluster'
     );
