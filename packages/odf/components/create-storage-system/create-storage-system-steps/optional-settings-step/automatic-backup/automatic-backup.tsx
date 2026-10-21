@@ -1,4 +1,9 @@
 import * as React from 'react';
+import {
+  CronTime,
+  CRON_MAP,
+  getCronTimeFromSchedule,
+} from '@odf/core/constants';
 import { VolumeSnapshotClassKind, VolumeSnapshotClassModel } from '@odf/shared';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { getName } from '@odf/shared/selectors';
@@ -18,25 +23,6 @@ import {
 } from '@patternfly/react-core';
 import { QuestionCircleIcon } from '@patternfly/react-icons';
 import { WizardDispatch, WizardState } from '../../../reducer';
-
-enum CronTime {
-  DAILY = 'daily',
-  WEEKLY = 'weekly',
-  MONTHLY = 'monthly',
-}
-
-const CRON_MAP: Record<CronTime, string> = {
-  [CronTime.DAILY]: '0 0 * * *', // Every day at 12:00 AM
-  [CronTime.WEEKLY]: '0 0 * * 6', // Every Saturday at 12:00 AM
-  [CronTime.MONTHLY]: '0 0 1-7 * 6', // First Saturday of each month at 12:00 AM
-};
-
-const getCronTimeFromSchedule = (schedule: string): CronTime => {
-  const entry = Object.entries(CRON_MAP).find(
-    ([, value]) => value === schedule
-  );
-  return entry ? (entry[0] as CronTime) : CronTime.DAILY;
-};
 
 const selectOptions = (volumeSnapshotClasses: VolumeSnapshotClassKind[]) =>
   volumeSnapshotClasses?.map((vsc) => (
@@ -84,7 +70,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
     )
   );
 
-  const selectedFrequency = getCronTimeFromSchedule(schedule);
+  const selectedFrequency = getCronTimeFromSchedule(schedule) ?? CronTime.DAILY;
   const handleSelect = (type: CronTime) => {
     dispatch({
       type: 'optionalSettings/dbBackup/schedule',
