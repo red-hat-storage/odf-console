@@ -13,6 +13,8 @@ import {
   PutBucketVersioningCommandInput,
   GetBucketVersioningCommandOutput,
   PutBucketVersioningCommandOutput,
+  PutObjectLockConfigurationCommandInput,
+  PutObjectLockConfigurationCommandOutput,
   HeadBucketCommandInput,
   HeadBucketCommandOutput,
   ListBucketsCommandInput,
@@ -97,6 +99,10 @@ export type GetBucketVersioning = (
 export type PutBucketVersioning = (
   input: PutBucketVersioningCommandInput
 ) => Promise<PutBucketVersioningCommandOutput>;
+
+export type PutObjectLockConfiguration = (
+  input: PutObjectLockConfigurationCommandInput
+) => Promise<PutObjectLockConfigurationCommandOutput>;
 
 // Extended HeadBucket output to include supported storage classes from response header
 export type HeadBucketOutput = HeadBucketCommandOutput & {

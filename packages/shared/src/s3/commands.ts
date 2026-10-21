@@ -12,6 +12,7 @@ import {
   GetBucketEncryptionCommand,
   GetBucketVersioningCommand,
   PutBucketVersioningCommand,
+  PutObjectLockConfigurationCommand,
   GetBucketTaggingCommand,
   GetBucketAclCommand,
   GetBucketPolicyCommand,
@@ -48,6 +49,7 @@ import {
   GetBucketEncryption,
   GetBucketVersioning,
   PutBucketVersioning,
+  PutObjectLockConfiguration,
   GetBucketTagging,
   GetBucketAcl,
   GetBucketPolicy,
@@ -119,6 +121,9 @@ export class S3Commands extends S3Client {
 
   putBucketVersioning: PutBucketVersioning = (input) =>
     this.send(new PutBucketVersioningCommand(input));
+
+  putObjectLockConfiguration: PutObjectLockConfiguration = (input) =>
+    this.send(new PutObjectLockConfigurationCommand(input));
 
   headBucket: HeadBucket = async (input) => {
     const command = new HeadBucketCommand(input);
