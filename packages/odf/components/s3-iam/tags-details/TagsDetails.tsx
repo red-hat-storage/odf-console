@@ -94,3 +94,5 @@ export const TagsDetails: React.FC<TagsDetailsProps> = ({ obj }) => {
     <LoadingBox />
   );
 };
+
+export default TagsDetails;

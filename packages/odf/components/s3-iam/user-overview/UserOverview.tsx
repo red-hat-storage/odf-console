@@ -12,9 +12,7 @@ import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ActionsColumn } from '@patternfly/react-table';
 import { DeleteIamUserModal } from '../../../modals/s3-iam/DeleteIamUserModal';
 import { CustomActionsToggle } from '../../s3-browser/objects-list';
-import { AccessKeysDetails } from '../access-keys-details/AccessKeysDetails';
 import { IamContext, IamProvider } from '../iam-context';
-import { TagsDetails } from '../tags-details/TagsDetails';
 
 const UserOverview: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
@@ -27,12 +25,14 @@ const UserOverview: React.FC<{}> = () => {
       {
         href: 'details',
         name: t('Details'),
-        component: TagsDetails,
+        component: React.lazy(() => import('../tags-details/TagsDetails')),
       },
       {
         href: 'access-keys',
         name: t('Access Keys'),
-        component: AccessKeysDetails,
+        component: React.lazy(
+          () => import('../access-keys-details/AccessKeysDetails')
+        ),
       },
     ],
     [t]
