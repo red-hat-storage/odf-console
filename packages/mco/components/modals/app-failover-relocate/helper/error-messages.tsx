@@ -18,11 +18,13 @@ export enum ErrorMessageType {
   SOME_CLUSTERS_ARE_FENCED,
   PRIMARY_CLUSTER_IS_NOT_FENCED,
   TARGET_CLUSTER_IS_FENCED,
+  TEST_FAILOVER_NOT_SUPPORTED,
   // Warning message priority start from 20
   SIBLING_APPLICATIONS_FOUND_FAILOVER = 20,
   SIBLING_APPLICATIONS_FOUND_RELOCATE,
   VOLUME_SYNC_DELAY_FAILOVER,
   VOLUME_SYNC_DELAY_RELOCATE,
+  VOLUME_SYNC_DELAY_TEST_FAILOVER,
 }
 
 export type MessageKind = Partial<{
@@ -285,6 +287,20 @@ export const ErrorMessages = (
     title: t('Inconsistent data on target cluster'),
     message: t(
       "One or more volumes for this application may not be replicating at all or replication is taking longer than the replication interval as defined in the assigned data policy. If either managed cluster's replication services are offline or unreachable, this is an expected condition. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
+    ),
+    variant: AlertVariant.warning,
+  },
+  [ErrorMessageType.TEST_FAILOVER_NOT_SUPPORTED]: {
+    title: t('Cannot test failover.'),
+    message: t(
+      'Testing is supported only for applications protected by a Regional-DR policy. A Metro-DR failover requires fencing the primary cluster.'
+    ),
+    variant: AlertVariant.danger,
+  },
+  [ErrorMessageType.VOLUME_SYNC_DELAY_TEST_FAILOVER]: {
+    title: t('Test may pause'),
+    message: t(
+      'One or more volumes for this application are syncing slower than the replication interval. The test may pause until replication catches up, and then resumes automatically.'
     ),
     variant: AlertVariant.warning,
   },

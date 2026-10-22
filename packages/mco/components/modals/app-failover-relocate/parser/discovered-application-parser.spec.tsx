@@ -585,6 +585,116 @@ describe('Discovered application failover/relocate modal test', () => {
     expect(screen.getByRole('button', { name: /Initiate/i })).toBeEnabled();
   });
 
+  test('Happy path for a test failover', async () => {
+    const user = userEvent.setup();
+    type = 1;
+
+    render(
+      <DRPlacementControlParser
+        extraProps={{
+          application: mockDRPC1,
+          action: DRActionType.FAILOVER,
+          isTestFailover: true,
+        }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen.getByRole('dialog', { name: /Test failover application/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('dialog', {
+        description:
+          /Testing brings up your application on the selected target cluster without stopping it on the primary cluster./i,
+      })
+    ).toBeInTheDocument();
+
+    expect(
+      screen
+        .getAllByRole('listitem')
+        .find(
+          (listitem) =>
+            listitem.textContent ===
+            'The application keeps running on the primary cluster during the test.'
+        )
+    ).toBeTruthy();
+    // Managed application cleanup is handled by ACM
+    expect(
+      screen.queryByText(
+        'You need to clean up the test application resources manually after ending the test.'
+      )
+    ).not.toBeInTheDocument();
+
+    expect(screen.getByText('DR test readiness:')).toBeInTheDocument();
+    expect(screen.getByText('Replication interval:')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /Warning alert: Test may pause/i })
+    ).toBeInTheDocument();
+
+    expect(screen.getByRole('button', { name: /Cancel/i })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Start' }));
+
+    expect(JSON.stringify(patchObj)).toBe(
+      '[{"op":"replace","path":"/spec/action","value":"Failover"},{"op":"replace","path":"/spec/failoverCluster","value":"west-1"},{"op":"replace","path":"/spec/preferredCluster","value":"east-1"},{"op":"add","path":"/spec/dryRun","value":true}]'
+    );
+  });
+
+  test('Manual cleanup is shown for a test failover of discovered applications', () => {
+    type = 1;
+    const discoveredDRPC = {
+      ...mockDRPC1,
+      spec: { ...mockDRPC1.spec, protectedNamespaces: ['app-ns'] },
+    };
+
+    render(
+      <DRPlacementControlParser
+        extraProps={{
+          application: discoveredDRPC,
+          action: DRActionType.FAILOVER,
+          isTestFailover: true,
+        }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        'You need to clean up the test application resources manually after ending the test.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  test('Metro-DR blocks a test failover', () => {
+    type = 4;
+
+    render(
+      <DRPlacementControlParser
+        extraProps={{
+          application: mockDRPC1,
+          action: DRActionType.FAILOVER,
+          isTestFailover: true,
+        }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: /Danger alert: Cannot test failover./i,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', {
+        name: /Danger alert: Primary cluster is unfenced./i,
+      })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
+  });
+
   test('No volume synchronization delay during relocate', async () => {
     type = 5;
 

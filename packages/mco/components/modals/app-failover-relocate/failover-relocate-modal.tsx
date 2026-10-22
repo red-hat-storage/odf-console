@@ -15,6 +15,7 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../constants';
+import { getStartTestFailoverPatch } from '../../../utils';
 import {
   ApplicationProps,
   PlacementControlProps,
@@ -25,6 +26,13 @@ export enum ModalFooterStatus {
   INITIAL = 'intial',
   INPROGRESS = 'inProgress',
 }
+
+const getTestFailoverModalText = (t: TFunction) => ({
+  title: t('Test failover application'),
+  description: t(
+    'Testing brings up your application on the selected target cluster without stopping it on the primary cluster. Use it to verify that the application recovers on the target cluster.'
+  ),
+});
 
 const getModalText = (t: TFunction) => ({
   [DRActionType.FAILOVER]: {
@@ -41,14 +49,35 @@ const getModalText = (t: TFunction) => ({
   },
 });
 
+const getInitiateButtonText = (
+  t: TFunction,
+  footerStatus: ModalFooterStatus,
+  isTestFailover: boolean
+): string => {
+  const isInitial = footerStatus === ModalFooterStatus.INITIAL;
+  if (isTestFailover) {
+    return isInitial ? t('Start') : t('Starting');
+  }
+  return isInitial ? t('Initiate') : t('Initiating');
+};
+
 export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
   props
 ) => {
-  const { applicationNamespace, action, isOpen, loaded, loadError, close } =
-    props;
+  const {
+    applicationNamespace,
+    action,
+    isOpen,
+    loaded,
+    loadError,
+    close,
+    isTestFailover,
+  } = props;
 
   const { t } = useCustomTranslation();
-  const modalText = getModalText(t)[action];
+  const modalText = isTestFailover
+    ? getTestFailoverModalText(t)
+    : getModalText(t)[action];
   const [errorMessage, setErrorMessage] = React.useState('');
   const [footerStatus, setFooterStatus] = React.useState(
     ModalFooterStatus.INITIAL
@@ -82,6 +111,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
             ? placementControl?.primaryClusterName
             : placementControl?.targetClusterName,
       },
+      ...(isTestFailover ? getStartTestFailoverPatch() : []),
     ];
     k8sPatch({
       model: DRPlacementControlModel,
@@ -157,9 +187,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
           isLoading={footerStatus === ModalFooterStatus.INPROGRESS}
           onClick={onClick}
         >
-          {footerStatus === ModalFooterStatus.INITIAL
-            ? t('Initiate')
-            : t('Initiating')}
+          {getInitiateButtonText(t, footerStatus, isTestFailover)}
         </Button>
       </ModalFooter>
     </Modal>
