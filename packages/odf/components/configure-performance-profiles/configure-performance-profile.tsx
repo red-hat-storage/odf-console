@@ -8,7 +8,10 @@ import {
   StorageClusterModel,
 } from '@odf/shared';
 import { referenceForModel } from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useK8sWatchResource,
+  useToast,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import {
@@ -48,6 +51,7 @@ const ConfigurePerformanceProfilePage: React.FC<
   ConfigurePerformanceProfilePageProps
 > = ({ storageCluster, showCoreStorage, showMcgPerformance }) => {
   const { t } = useTranslation();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const { clusterNodes, nodesLoaded, nodesLoadError } = useClusterNodes();
   const [state, dispatch] = React.useReducer(
@@ -85,11 +89,49 @@ const ConfigurePerformanceProfilePage: React.FC<
           mcgPerformanceProfile: state.mcgPerformanceProfile,
         });
       }
+      const coreChanged =
+        showCoreStorage &&
+        state.resourceProfile !== state.initialResourceProfile;
+      const mcgChanged =
+        showMcgPerformance &&
+        state.mcgPerformanceProfile !== state.initialMcgPerformanceProfile;
+      if (coreChanged && mcgChanged) {
+        addToast({
+          title: t('Performance profiles updated'),
+          variant: AlertVariant.success,
+          content: t(
+            'Pod and service restarts have been scheduled. Storage may be unavailable for a few minutes.'
+          ),
+          dismissible: true,
+          timeout: true,
+        });
+      } else if (coreChanged) {
+        addToast({
+          title: t('Core profile updated'),
+          variant: AlertVariant.success,
+          content: t(
+            'Pod and service restarts have been scheduled. Storage may be unavailable for a few minutes.'
+          ),
+          dismissible: true,
+          timeout: true,
+        });
+      } else if (mcgChanged) {
+        addToast({
+          title: t('Multicloud Object Gateway profile updated'),
+          variant: AlertVariant.success,
+          content: t(
+            'MCG service restarts have been scheduled. Object storage may be unavailable for a few minutes.'
+          ),
+          dismissible: true,
+          timeout: true,
+        });
+      }
       onClose();
     } catch (error) {
+      const message = error?.message || t('An unexpected error has occured.');
       dispatch({
         type: ConfigurePerformanceProfileActionType.SET_ERROR_MESSAGE,
-        payload: error?.message || t('An unexpected error has occured.'),
+        payload: message,
       });
     } finally {
       dispatch({
