@@ -35,6 +35,7 @@ import {
   WatchK8sResource,
   k8sPatch,
   PrometheusEndpoint,
+  useToast,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
@@ -49,6 +50,7 @@ import {
   Button,
   Alert,
   SelectOption,
+  AlertVariant,
 } from '@patternfly/react-core';
 import {
   createWizardNodeState,
@@ -335,6 +337,7 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   );
   const hasMultiDeviceClasses = deviceClasses.length > 1;
 
+  const { addToast } = useToast();
   React.useEffect(() => {
     if (deviceClasses.length === 1) {
       setDeviceClass(deviceClasses[0] || NO_DEVICE_CLASS);
@@ -465,6 +468,15 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
         .then(() => {
           setProgress(false);
           closeModal();
+          addToast({
+            title: t('Capacity expansion triggered'),
+            variant: AlertVariant.success,
+            content: t(
+              'Additional OSDs are being provisioned. This may take several minutes.'
+            ),
+            dismissible: true,
+            timeout: true,
+          });
         })
         .catch((err) => {
           setError(err);
