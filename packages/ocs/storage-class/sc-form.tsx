@@ -88,6 +88,7 @@ import {
   PoolState,
   CEPH_NS_SESSION_STORAGE,
   CEPH_RBD_EC_METADATA_POOL_SESSION_STORAGE,
+  CEPH_SC_KMS_PROVIDER_SESSION_STORAGE,
   POOL_FS_DEFAULT,
   PoolType,
 } from '../constants';
@@ -119,6 +120,12 @@ const setSessionStorageSystemNamespace = (systemNamespace: string) => {
   const sessionNsValue = sessionStorage.getItem(CEPH_NS_SESSION_STORAGE);
   if (!sessionNsValue && !!systemNamespace)
     sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, systemNamespace);
+};
+
+const setSessionStorageKmsProvider = (kmsProvider: string) => {
+  if (kmsProvider) {
+    sessionStorage.setItem(CEPH_SC_KMS_PROVIDER_SESSION_STORAGE, kmsProvider);
+  }
 };
 
 const getPoolDropdownItems = (
@@ -743,6 +750,8 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
     setEncryptionId('');
   };
 
+  setSessionStorageKmsProvider(provider);
+
   const kmsProviderDropdownItems = _.reduce(
     SupportedProviders,
     (res, providerDetails, providerName) => {
@@ -911,6 +920,10 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
   const { kms, encryption } = state.securityAndNetwork;
   const { provider } = kms;
 
+  if (!isExistingKms) {
+    setSessionStorageKmsProvider(provider);
+  }
+
   if (!encryption.storageClass) {
     dispatch({
       type: 'securityAndNetwork/setEncryption',
@@ -940,6 +953,14 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
     },
     [parameterKey]
   );
+
+  const handleKmsSelectionChange = (useExistingKms: boolean) => {
+    if (isExistingKms === useExistingKms) {
+      return;
+    }
+    setIsExistingKms(useExistingKms);
+    setEncryptionId('');
+  };
 
   /** When csiConfigMap is deleted from another tab, "csiConfigMapLoadError" == true (404 Not Found), but,
    * "csiConfigMap" still contains same old object that was present before the deletion of the configMap.
@@ -1029,7 +1050,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
             name="kms-selection"
             id="choose-existing-kms-connection"
             className="ocs-storage-class-encryption__form-radio"
-            onClick={() => setIsExistingKms(true)}
+            onClick={() => handleKmsSelectionChange(true)}
             checked={isExistingKms}
           />
           {isExistingKms && (
@@ -1047,7 +1068,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
             name="kms-selection"
             id="create-new-kms-connection"
             className="ocs-storage-class-encryption__form-radio"
-            onClick={() => setIsExistingKms(false)}
+            onClick={() => handleKmsSelectionChange(false)}
             checked={!isExistingKms}
             data-test={`sc-form-new-kms-radio`}
           />
