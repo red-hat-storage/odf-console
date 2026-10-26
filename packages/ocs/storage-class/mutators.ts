@@ -1,3 +1,4 @@
+import { ProviderNames } from '@odf/core/types';
 import {
   CLUSTER_ID,
   PROV_SECRET_NS,
@@ -5,6 +6,7 @@ import {
   CONTROLLER_SECRET_NS,
   CEPH_NS_SESSION_STORAGE,
   CEPH_RBD_EC_METADATA_POOL_SESSION_STORAGE,
+  CEPH_SC_KMS_PROVIDER_SESSION_STORAGE,
 } from '@odf/ocs/constants';
 import { getAnnotations } from '@odf/shared/selectors';
 import { StorageClass } from '@odf/shared/types';
@@ -66,7 +68,12 @@ export const addKubevirtAnnotations = (sc: StorageClass): StorageClass => {
 };
 
 export const addKeyRotationAnnotation = (sc: StorageClass): StorageClass => {
-  if (isEncryptedStorageClass(sc)) {
+  const kmsProvider = sessionStorage.getItem(
+    CEPH_SC_KMS_PROVIDER_SESSION_STORAGE
+  );
+  sessionStorage.removeItem(CEPH_SC_KMS_PROVIDER_SESSION_STORAGE);
+
+  if (isEncryptedStorageClass(sc) && kmsProvider !== ProviderNames.GKLM) {
     sc.metadata.annotations = {
       ...getAnnotations(sc, {}),
       'keyrotation.csiaddons.openshift.io/schedule': '@weekly',

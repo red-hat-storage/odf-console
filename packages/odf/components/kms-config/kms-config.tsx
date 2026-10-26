@@ -13,8 +13,8 @@ import { ProviderStateMap } from '../../constants';
 import { ProviderNames } from '../../types';
 import { AzureConfigure } from './azure-config';
 import { HpcsConfigure } from './hpcs-config';
+import { KmipConfigure } from './kmip-config';
 import { KMSConfigureProps } from './providers';
-import { ThalesConfigure } from './thales-config';
 import { isLengthUnity } from './utils';
 import { VaultConfigure } from './vault-config';
 import './kms-config.scss';
@@ -22,20 +22,25 @@ import '../../style.scss';
 
 const KMSProviders: KMSProvidersType = [
   {
-    name: 'Vault',
+    name: 'HashiCorp Vault',
     value: ProviderNames.VAULT,
     Component: VaultConfigure,
   },
   {
-    name: 'Hyper Protect Crypto Services',
+    name: 'IBM Cloud Hyper Protect Crypto Services',
     value: ProviderNames.HPCS,
     Component: HpcsConfigure,
     allowedPlatforms: ['IBMCloud'],
   },
   {
-    name: 'Thales CipherTrust Manager (using KMIP)',
+    name: 'Thales CipherTrust Manager (KMIP)',
     value: ProviderNames.THALES,
-    Component: ThalesConfigure,
+    Component: KmipConfigure,
+  },
+  {
+    name: 'IBM Security Guardium Key Lifecycle Manager (KMIP)',
+    value: ProviderNames.GKLM,
+    Component: KmipConfigure,
   },
   {
     name: 'Azure Key Vault',

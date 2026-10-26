@@ -10,10 +10,10 @@ import {
   ValidatedOptions,
 } from '@patternfly/react-core';
 import { KMSMaxFileUploadSize } from '../../../odf/constants';
-import { AzureConfig, ThalesConfig } from '../../../odf/types';
+import { AzureConfig, KmipConfig } from '../../../odf/types';
 
 export const FileUploadInput: React.FC<
-  FileUploadInputProps<AzureConfig | ThalesConfig>
+  FileUploadInputProps<AzureConfig | KmipConfig>
 > = ({
   id,
   inputName,
@@ -123,7 +123,7 @@ export type UploadInputItem = {
   inputName: string;
 };
 
-type FileUploadInputProps<T extends AzureConfig | ThalesConfig> =
+type FileUploadInputProps<T extends AzureConfig | KmipConfig> =
   UploadInputItem & {
     helperText?: string;
     labelIcon?: React.ReactElement;
