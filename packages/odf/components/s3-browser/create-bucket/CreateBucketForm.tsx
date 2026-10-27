@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { PutBucketTaggingCommandInput } from '@aws-sdk/client-s3';
+import {
+  BucketVersioningStatus,
+  ObjectLockEnabled,
+  PutBucketTaggingCommandInput,
+} from '@aws-sdk/client-s3';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import { useS3BucketFormValidation } from '@odf/core/components/s3-common/hooks/useS3BucketFormValidation';
 import { getBucketOverviewBaseRoute } from '@odf/core/constants';
@@ -23,8 +27,14 @@ import {
   Button,
   ButtonType,
   ButtonVariant,
+  Content,
+  ContentVariants,
+  Divider,
   Form,
   FormGroup,
+  Level,
+  LevelItem,
+  Switch,
 } from '@patternfly/react-core';
 import { TagIcon } from '@patternfly/react-icons';
 import './create-bucket-form.scss';
@@ -39,6 +49,8 @@ const CreateBucketForm: React.FC<{}> = () => {
   const [inProgress, setInProgress] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
   const [tagsData, setTagsData] = React.useState<string[][]>([]);
+  const [isVersioningEnabled, setIsVersioningEnabled] = React.useState(false);
+  const [isObjectLockEnabled, setIsObjectLockEnabled] = React.useState(false);
 
   const { s3Client } = React.useContext(S3Context);
   const providerType = s3Client.providerType as S3ProviderType;
@@ -53,6 +65,16 @@ const CreateBucketForm: React.FC<{}> = () => {
     ...formSettings,
     resolver,
   });
+
+  const onChangeObjectLock = (
+    _event: React.FormEvent<HTMLInputElement>,
+    checked: boolean
+  ) => {
+    setIsObjectLockEnabled(checked);
+    if (checked) {
+      setIsVersioningEnabled(true);
+    }
+  };
 
   const save = async (formData: FormData) => {
     setInProgress(true);
@@ -82,6 +104,40 @@ const CreateBucketForm: React.FC<{}> = () => {
       // @TODO: add a toast warning that is visible after redirection to bucket details.
       // eslint-disable-next-line no-console
       console.error(`Error while updating bucket tags: ${name}: ${message}`);
+    }
+
+    if (isObjectLockEnabled) {
+      try {
+        await s3Client.putObjectLockConfiguration({
+          Bucket: bucketName,
+          ObjectLockConfiguration: {
+            ObjectLockEnabled: ObjectLockEnabled.Enabled,
+          },
+        });
+      } catch ({ name, message }) {
+        // @TODO: add a toast warning that is visible after redirection to bucket details.
+        // eslint-disable-next-line no-console
+        console.error(
+          `Error while updating bucket object lock configuration: ${name}: ${message}`
+        );
+      }
+    } else if (isVersioningEnabled) {
+      try {
+        await s3Client.putBucketVersioning({
+          Bucket: bucketName,
+          VersioningConfiguration: {
+            Status: isVersioningEnabled
+              ? BucketVersioningStatus.Enabled
+              : BucketVersioningStatus.Suspended,
+          },
+        });
+      } catch ({ name, message }) {
+        // @TODO: add a toast warning that is visible after redirection to bucket details.
+        // eslint-disable-next-line no-console
+        console.error(
+          `Error while updating bucket versioning: ${name}: ${message}`
+        );
+      }
     }
     navigate(`${getBucketOverviewBaseRoute(bucketName, providerType)}`);
   };
@@ -138,6 +194,56 @@ const CreateBucketForm: React.FC<{}> = () => {
           valueMaxLength={256}
         />
       </FormGroup>
+      <Divider className="pf-v6-u-mb-md" />
+      <Content className="pf-v6-u-mb-md">
+        <Content component={ContentVariants.h2}>
+          {t('Bucket properties')}
+        </Content>
+        <Content component={ContentVariants.small}>
+          {t(
+            'Customize and manage the behaviour and attributes of a storage bucket, including options like versioning, access control, and retention policies.'
+          )}
+        </Content>
+      </Content>
+      <Level className="pf-v6-u-mb-md pf-v6-u-flex-nowrap">
+        <LevelItem className="pf-v6-u-flex-1">
+          <Content>
+            <Content component={ContentVariants.h4}>{t('Versioning')}</Content>
+            <Content component={ContentVariants.small}>
+              {t(
+                'Enables the retention of multiple versions of an object in a bucket, allowing for recovery and tracking of changes over time.'
+              )}
+            </Content>
+          </Content>
+        </LevelItem>
+        <LevelItem className="pf-v6-u-flex-shrink-0">
+          <Switch
+            id="versioning-switch"
+            isChecked={isVersioningEnabled}
+            isDisabled={isObjectLockEnabled}
+            onChange={(_event, checked) => setIsVersioningEnabled(checked)}
+          />
+        </LevelItem>
+      </Level>
+      <Level className="pf-v6-u-mb-md pf-v6-u-flex-nowrap">
+        <LevelItem className="pf-v6-u-flex-1">
+          <Content>
+            <Content component={ContentVariants.h4}>{t('Object Lock')}</Content>
+            <Content component={ContentVariants.small}>
+              {t(
+                'Prevents objects in a bucket from being deleted or overwritten for a specified retention period, ensuring data immutability and compliance. Object Lock works only in versioned buckets. Enabling Object Lock automatically enables bucket versioning.'
+              )}
+            </Content>
+          </Content>
+        </LevelItem>
+        <LevelItem className="pf-v6-u-flex-shrink-0">
+          <Switch
+            id="object-lock-switch"
+            isChecked={isObjectLockEnabled}
+            onChange={onChangeObjectLock}
+          />
+        </LevelItem>
+      </Level>
       {!isValid && isSubmitted && (
         <Alert
           variant={AlertVariant.danger}

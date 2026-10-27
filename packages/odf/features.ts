@@ -141,6 +141,15 @@ export const detectComponents: FeatureDetector = async (
 ) => {
   let noobaaIntervalId = null;
 
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    (window.location?.hostname === 'localhost' ||
+      window.location?.hostname === '127.0.0.1');
+  if (isLocalhost) {
+    setFlag(MCG_FLAG, true);
+    return;
+  }
+
   // ToDo (Sanjal): Remove this once CI is upgraded to ODF 4.21 or above
   const noobaaDetectorCI = async () => {
     try {
