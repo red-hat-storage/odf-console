@@ -3285,7 +3285,7 @@ __metadata:
     "@patternfly/react-icons": "npm:~6.5.1"
     "@patternfly/react-table": "npm:~6.5.1"
     "@patternfly/react-tokens": "npm:~6.5.1"
-    "@patternfly/react-topology": "npm:~6.4.0"
+    "@patternfly/react-topology": "npm:~6.6.0"
     classnames: "npm:^2.5.1"
     fuzzysearch: "npm:^1.0.3"
     i18next-parser: "npm:^9.4.0"
@@ -3307,13 +3307,13 @@ __metadata:
     victory-core: "npm:^37.3.6"
     yup: "npm:^1.7.1"
   peerDependencies:
-    "@openshift-console/dynamic-plugin-sdk": 4.22.0
-    "@openshift-console/dynamic-plugin-sdk-internal": 4.22.0
+    "@openshift-console/dynamic-plugin-sdk": 4.23.0
+    "@openshift-console/dynamic-plugin-sdk-internal": 4.23.0
     i18next: ^25.8.18
     react: ^18.0.0
     react-dom: ^18.0.0
     react-i18next: ~16.5.8
-    react-router: ~7.13.1
+    react-router: ~7.18.4
   languageName: unknown
   linkType: soft
 
@@ -3359,52 +3359,59 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@openshift-console/dynamic-plugin-sdk-internal@npm:4.22.0":
-  version: 4.22.0
-  resolution: "@openshift-console/dynamic-plugin-sdk-internal@npm:4.22.0"
+"@openshift-console/dynamic-plugin-sdk-internal@npm:4.23.0":
+  version: 4.23.0
+  resolution: "@openshift-console/dynamic-plugin-sdk-internal@npm:4.23.0"
   dependencies:
-    "@openshift/dynamic-plugin-sdk": "npm:^8.0.0"
+    "@openshift/dynamic-plugin-sdk": "npm:^9.1.0"
     immutable: "npm:^3.8.3"
-  checksum: 10/24dc4e7018f774fd9bfceacf3895666e774700477eccf1a28568400ae8a6cf2c40b014a24d41770460b27d8304afebc9c5bc72785afddf9ba9ddc8c726750c5b
+  checksum: 10/d307422b31b9ce7091f0d08592b273da47ba6bcdb6e9f7d0225a41a7c8b16165995556600e65aae0c66489eb6bf642dff893d0c01dbdcd4e9247eb20adc28c28
   languageName: node
   linkType: hard
 
-"@openshift-console/dynamic-plugin-sdk-webpack@npm:4.22.0":
-  version: 4.22.0
-  resolution: "@openshift-console/dynamic-plugin-sdk-webpack@npm:4.22.0"
+"@openshift-console/dynamic-plugin-sdk-webpack@npm:4.23.0":
+  version: 4.23.0
+  resolution: "@openshift-console/dynamic-plugin-sdk-webpack@npm:4.23.0"
   dependencies:
-    "@openshift/dynamic-plugin-sdk": "npm:^8.0.0"
-    "@openshift/dynamic-plugin-sdk-webpack": "npm:^5.1.1"
+    "@openshift/dynamic-plugin-sdk": "npm:^9.1.0"
+    "@openshift/dynamic-plugin-sdk-webpack": "npm:^5.3.0"
     ajv: "npm:^6.12.3"
     chalk: "npm:2.4.x"
     comment-json: "npm:4.x"
     find-up: "npm:4.x"
-    glob: "npm:7.x"
-    lodash: "npm:^4.17.21"
+    glob: "npm:^13.0.6"
+    lodash: "npm:^4.18.1"
     read-pkg: "npm:5.x"
-    semver: "npm:6.x"
+    semver: "npm:^7.8.5"
   peerDependencies:
+    "@rspack/core": ">=2.1.10"
     typescript: ">=5.9.3"
     webpack: ">=5.100.0"
-  checksum: 10/dc20498427aef88c6c05c239fdebef17430d5a708b65cbf3743d1a8c07bcf571db4bcaa89b505dd5de173f33221db9c7be3bd1090ea91155226878fdbd66f0cf
+  peerDependenciesMeta:
+    "@rspack/core":
+      optional: true
+    webpack:
+      optional: true
+  checksum: 10/5105c9d3a598c32e29855a0db3ed8c017b4e534a30b5885f2e22299305342cac4074e5e41d3c1b540936500cfc1025dc19a8bd11d7a61b45fc3cbb1d25a96e0b
   languageName: node
   linkType: hard
 
-"@openshift-console/dynamic-plugin-sdk@npm:4.22.0":
-  version: 4.22.0
-  resolution: "@openshift-console/dynamic-plugin-sdk@npm:4.22.0"
+"@openshift-console/dynamic-plugin-sdk@npm:4.23.0":
+  version: 4.23.0
+  resolution: "@openshift-console/dynamic-plugin-sdk@npm:4.23.0"
   dependencies:
-    "@openshift/dynamic-plugin-sdk": "npm:^8.0.0"
+    "@openshift/api-types": "npm:^1.0.0"
+    "@openshift/dynamic-plugin-sdk": "npm:^9.1.0"
     immutable: "npm:^3.8.3"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.18.1"
     reselect: "npm:^5.1.1"
     typesafe-actions: "npm:^5.1.0"
   peerDependencies:
-    "@patternfly/react-topology": ~6.4.0
+    "@patternfly/react-topology": ~6.6.0
     react: ^18.3.1
     react-i18next: ~16.5.8
     react-redux: ~9.2.0
-    react-router: ~7.13.1
+    react-router: ~7.18.1
     redux: ~5.0.1
     redux-thunk: ~3.1.0
   peerDependenciesMeta:
@@ -3422,17 +3429,24 @@ __metadata:
       optional: true
     redux-thunk:
       optional: true
-  checksum: 10/014366ab3d4aec7d382e89270733ae6da925363f43a2d60fc1d0976f1098626b20778fd63bebea2a435add56769999f76c25558e30cce5c1c56c19bb49710d13
+  checksum: 10/5f7b7ba6e17b27d6542cc8dc725cc417798173f71cbb185974f76c91427cc88f70e0a1eed14b78ff0e9598c7c1ae7805f333d7961df17ff5a6333bfe864bc971
   languageName: node
   linkType: hard
 
-"@openshift/dynamic-plugin-sdk-webpack@npm:^5.1.1":
-  version: 5.2.0
-  resolution: "@openshift/dynamic-plugin-sdk-webpack@npm:5.2.0"
+"@openshift/api-types@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@openshift/api-types@npm:1.0.0"
+  checksum: 10/c4bb0deb90df450844aca8fe84e0a576bd46c39933bd7fd40f6a5b3c78fe349bc15ed0b94183a9ec378477aa204d72eb6d256e137d72b0103645ca8a9098ccc3
+  languageName: node
+  linkType: hard
+
+"@openshift/dynamic-plugin-sdk-webpack@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@openshift/dynamic-plugin-sdk-webpack@npm:5.3.0"
   dependencies:
     lodash: "npm:^4.17.23"
     semver: "npm:^7.7.3"
-    yup: "npm:^1.7.1"
+    zod: "npm:^3.25.67"
   peerDependencies:
     "@rspack/core": ^2.0.8
     webpack: ^5.100.0
@@ -3441,21 +3455,20 @@ __metadata:
       optional: true
     webpack:
       optional: true
-  checksum: 10/01e6e43354a299ac93e46ee78ed86c311b5385459120a3ca776e9a16673645b303e2633941c5c770e44d12a44d8dee253a4357badca7ec1409153dc17f2cbe8e
+  checksum: 10/4a644519bf7307c91d7e48d1594c3b36233567a59b04997799e322ba81ae465858bafe053cd23bf10f01e18f6433bc2e975439349efa83eb17435fc08abeb104
   languageName: node
   linkType: hard
 
-"@openshift/dynamic-plugin-sdk@npm:^8.0.0":
-  version: 8.2.0
-  resolution: "@openshift/dynamic-plugin-sdk@npm:8.2.0"
+"@openshift/dynamic-plugin-sdk@npm:^9.1.0":
+  version: 9.1.0
+  resolution: "@openshift/dynamic-plugin-sdk@npm:9.1.0"
   dependencies:
     lodash: "npm:^4.17.23"
     semver: "npm:^7.7.3"
-    uuid: "npm:^8.3.2"
-    yup: "npm:^1.7.1"
+    zod: "npm:^3.25.67"
   peerDependencies:
     react: ^18 || ^19
-  checksum: 10/a168cbc056d568f037c04ea561137d66b1d56a95d8a129982e6c05ddd661b425c062c254ac8df78dfff61709bad653911c1bcfe78d4b8336b93c36b22199acd7
+  checksum: 10/963bcc5812739263399fb07d5de2893ed26d0a0442f0c8fdf6664f2f4f75d7a6518dde1c5517e63179f6a1e97c40c9eaca15ee5bdf64b9d6893e25a534dccfb2
   languageName: node
   linkType: hard
 
@@ -3698,7 +3711,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@patternfly/react-core@npm:^6.0.0, @patternfly/react-core@npm:^6.5.1, @patternfly/react-core@npm:~6.5.1":
+"@patternfly/react-core@npm:^6.5.1, @patternfly/react-core@npm:~6.5.1":
   version: 6.5.1
   resolution: "@patternfly/react-core@npm:6.5.1"
   dependencies:
@@ -3715,7 +3728,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@patternfly/react-icons@npm:^6.0.0, @patternfly/react-icons@npm:^6.5.1, @patternfly/react-icons@npm:~6.5.1":
+"@patternfly/react-icons@npm:^6.5.1, @patternfly/react-icons@npm:~6.5.1":
   version: 6.5.1
   resolution: "@patternfly/react-icons@npm:6.5.1"
   peerDependencies:
@@ -3725,7 +3738,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@patternfly/react-styles@npm:^6.0.0, @patternfly/react-styles@npm:^6.5.1":
+"@patternfly/react-styles@npm:^6.5.1":
   version: 6.5.1
   resolution: "@patternfly/react-styles@npm:6.5.1"
   checksum: 10/fbde0dc871a67fd4e41284bf3290ce215b424c04b6f4ef5474941e182a638100e082bda40ab45658fae035e971377eae0760a6509655e461553d62e1e870cb0a
@@ -3756,14 +3769,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@patternfly/react-topology@npm:~6.4.0":
-  version: 6.4.0
-  resolution: "@patternfly/react-topology@npm:6.4.0"
+"@patternfly/react-topology@npm:~6.6.0":
+  version: 6.6.0
+  resolution: "@patternfly/react-topology@npm:6.6.0"
   dependencies:
     "@dagrejs/dagre": "npm:1.1.2"
-    "@patternfly/react-core": "npm:^6.0.0"
-    "@patternfly/react-icons": "npm:^6.0.0"
-    "@patternfly/react-styles": "npm:^6.0.0"
+    "@patternfly/react-core": "npm:^6.5.1"
+    "@patternfly/react-icons": "npm:^6.5.1"
+    "@patternfly/react-styles": "npm:^6.5.1"
     "@types/d3": "npm:^7.4.0"
     "@types/d3-force": "npm:^1.2.1"
     d3: "npm:^7.8.0"
@@ -3776,7 +3789,7 @@ __metadata:
   peerDependencies:
     react: ^17 || ^18 || ^19
     react-dom: ^17 || ^18 || ^19
-  checksum: 10/ffc972fa7c06e4609f6a8f679c96054b8bd9145b9f410b75404e03a80dea3e8ce7bfe2fb0f560fab8e21692cb875cfa8ed1c9c3c0e189e42803b09e746a7f805
+  checksum: 10/efd2f74c7e58194ec87c0219766bbd95f959b7b8ff20ddb189904b5105d282bc636877309d88cfe2d8ecb97b5871aff80b9ed0359ae80d1b0f6ea31811b86dd5
   languageName: node
   linkType: hard
 
@@ -7364,7 +7377,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"brace-expansion@npm:^1.1.18":
+"brace-expansion@npm:^1.1.21":
   version: 1.1.21
   resolution: "brace-expansion@npm:1.1.21"
   dependencies:
@@ -10655,10 +10668,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-uri@npm:^3.1.7":
-  version: 3.1.8
-  resolution: "fast-uri@npm:3.1.8"
-  checksum: 10/d3dfa29fd2e5fa2371833699f3f78c975b79f65e52e0ce37604db10dffb85b5b448b5075e93453272cb95fb1c6a759495164e60649ffd69e59ec43f20d44f791
+"fast-uri@npm:^3.1.9":
+  version: 3.1.9
+  resolution: "fast-uri@npm:3.1.9"
+  checksum: 10/4276cf58661e68b4fefcbc3308a2c8429e5664d2a77b393a79c1cdbe9e5ba80617d27c7ce6685194ae40e4816df73dbd72a0324e5012d94a7e9cf85ee711f658
   languageName: node
   linkType: hard
 
@@ -11367,14 +11380,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gettext-converter@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "gettext-converter@npm:1.3.0"
+"gettext-converter@npm:^1.4.0":
+  version: 1.4.1
+  resolution: "gettext-converter@npm:1.4.1"
   dependencies:
     arrify: "npm:^2.0.1"
     content-type: "npm:1.0.5"
     encoding: "npm:0.1.13"
-  checksum: 10/332220b8f9f260851915202d44a423b5a4528bec97f7a488b5d0c2552c6926edb5902dfa67728727babfa7a289f1ab6d7d7330e1c34983a4633e61dddeb884cf
+  checksum: 10/508e7ae473c9f21791a6dddb1522b300ac4486310fcb86441a761c6c838a20395ad94261c0a126f407e7367ec6b03ccbcadb2bfcdcbd8c644cbd4a575a04a8e4
   languageName: node
   linkType: hard
 
@@ -11431,20 +11444,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:7.x":
-  version: 7.2.3
-  resolution: "glob@npm:7.2.3"
-  dependencies:
-    fs.realpath: "npm:^1.0.0"
-    inflight: "npm:^1.0.4"
-    inherits: "npm:2"
-    minimatch: "npm:^3.1.1"
-    once: "npm:^1.3.0"
-    path-is-absolute: "npm:^1.0.0"
-  checksum: 10/59452a9202c81d4508a43b8af7082ca5c76452b9fcc4a9ab17655822e6ce9b21d4f8fbadabe4fe3faef448294cec249af305e2cd824b7e9aaf689240e5e96a7b
-  languageName: node
-  linkType: hard
-
 "glob@npm:^10.3.10":
   version: 10.4.5
   resolution: "glob@npm:10.4.5"
@@ -11477,7 +11476,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^13.0.0, glob@npm:^13.0.1":
+"glob@npm:^13.0.0, glob@npm:^13.0.1, glob@npm:^13.0.6":
   version: 13.0.6
   resolution: "glob@npm:13.0.6"
   dependencies:
@@ -12380,10 +12379,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip-address@npm:^10.1.1":
-  version: 10.2.0
-  resolution: "ip-address@npm:10.2.0"
-  checksum: 10/12fec399e1af5753ac322e47a6d81a50d3a528b3abb17c09525b2a2edcaedcca628c40520706f7037bc4d8e951b0296c47e7b86d0a8e6e2335c8f0ba4afcfac1
+"ip-address@npm:^10.7.4":
+  version: 10.7.5
+  resolution: "ip-address@npm:10.7.5"
+  checksum: 10/30e328a30851fa944260acd6a618c9a32e7a8f16ff033bab0e7da46beb8572fc9c77514a57e777ba9e0c4e571bab24842c10d2bab96b2856ab602e4ecdd669e1
   languageName: node
   linkType: hard
 
@@ -15203,9 +15202,9 @@ __metadata:
     "@aws-sdk/s3-request-presigner": "npm:^3.1011.0"
     "@cypress/webpack-preprocessor": "npm:^7.0.2"
     "@discoveryjs/json-ext": "npm:^1.0.0"
-    "@openshift-console/dynamic-plugin-sdk": "npm:4.22.0"
-    "@openshift-console/dynamic-plugin-sdk-internal": "npm:4.22.0"
-    "@openshift-console/dynamic-plugin-sdk-webpack": "npm:4.22.0"
+    "@openshift-console/dynamic-plugin-sdk": "npm:4.23.0"
+    "@openshift-console/dynamic-plugin-sdk-internal": "npm:4.23.0"
+    "@openshift-console/dynamic-plugin-sdk-webpack": "npm:4.23.0"
     "@patternfly/patternfly": "npm:~6.5.2"
     "@patternfly/react-charts": "npm:~8.5.1"
     "@patternfly/react-code-editor": "npm:~6.5.1"
@@ -15213,7 +15212,7 @@ __metadata:
     "@patternfly/react-icons": "npm:~6.5.1"
     "@patternfly/react-table": "npm:~6.5.1"
     "@patternfly/react-tokens": "npm:~6.5.1"
-    "@patternfly/react-topology": "npm:~6.4.0"
+    "@patternfly/react-topology": "npm:~6.6.0"
     "@swc/core": "npm:^1.15.18"
     "@swc/jest": "npm:^0.2.39"
     "@testing-library/jest-dom": "npm:^6.9.1"
@@ -15286,7 +15285,7 @@ __metadata:
     react-i18next: "npm:~16.5.8"
     react-linkify: "npm:^0.2.2"
     react-redux: "npm:~9.2.0"
-    react-router: "npm:~7.13.1"
+    react-router: "npm:~7.18.4"
     react-tagsinput: "npm:^3.20.3"
     react-virtualized-auto-sizer: "npm:^1.0.26"
     react-window: "npm:^1.8.11"
@@ -15816,13 +15815,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-selector-parser@npm:^7.1.3":
-  version: 7.1.4
-  resolution: "postcss-selector-parser@npm:7.1.4"
+"postcss-selector-parser@npm:^7.1.7":
+  version: 7.1.7
+  resolution: "postcss-selector-parser@npm:7.1.7"
   dependencies:
     cssesc: "npm:^3.0.0"
     util-deprecate: "npm:^1.0.2"
-  checksum: 10/c6d36b37defd387d65b5e0b778cd441303d147eb4a4b7135c6a0452fa777310027218db3ff71a19fb831d067bcdf45a776c6ed71d83bd2ced8afc2e3d5b03385
+  checksum: 10/9413749ad38d8e22e4a5e47287e5501493238ab73eea276381476933332604df49468451e99a3d6614463fd3ee96655a80821a93949cfe425ecd6acf210535b0
   languageName: node
   linkType: hard
 
@@ -15849,14 +15848,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.5.10":
-  version: 8.5.19
-  resolution: "postcss@npm:8.5.19"
+"postcss@npm:^8.5.31":
+  version: 8.5.32
+  resolution: "postcss@npm:8.5.32"
   dependencies:
-    nanoid: "npm:^3.3.12"
+    nanoid: "npm:^3.3.20"
     picocolors: "npm:^1.1.1"
-    source-map-js: "npm:^1.2.1"
-  checksum: 10/f51162887cd683afc02fa6c1f06b6485ebc18c62eec7dc2841c8fe0a0c4b53b9a834cc26aa1a233e87f0e3a10179db916a276464c0ee1d00354d1670ebc32953
+    source-map-js: "npm:^1.2.2"
+  checksum: 10/c86fd279d9f29d34bbec6482e01f54effe00eaf8f4dadbe17f8345d11eac68439da45d642b04bfb5d704886f665d2c31f9a0904f2a3f1b9f8098ee0894f76cea
   languageName: node
   linkType: hard
 
@@ -16306,9 +16305,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:~7.13.1":
-  version: 7.13.2
-  resolution: "react-router@npm:7.13.2"
+"react-router@npm:~7.18.4":
+  version: 7.18.5
+  resolution: "react-router@npm:7.18.5"
   dependencies:
     cookie: "npm:^1.0.1"
     set-cookie-parser: "npm:^2.6.0"
@@ -16318,7 +16317,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10/86e3538e4b50402bb15ac7b0938fdace5947a45d418bd1713b15288a208a5b102dfa599a3e5c4a86e136331b5dafaacfe57d93d2cc48241cf48fe770190cfbda
+  checksum: 10/e95a532085bfcf6820cc85255343c7fbba75682ac50d3c8e1e4bc1254f30b1e6e1216b61254cc44d78361a9d87cf1d745f833db88a8aae39d4809c954bb85d5a
   languageName: node
   linkType: hard
 
@@ -17074,7 +17073,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:6.x, semver@npm:^6.0.0, semver@npm:^6.3.0, semver@npm:^6.3.1":
+"semver@npm:^6.0.0, semver@npm:^6.3.0, semver@npm:^6.3.1":
   version: 6.3.1
   resolution: "semver@npm:6.3.1"
   bin:
@@ -17107,6 +17106,15 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10/26bdc6d58b29528f4142d29afb8526bc335f4fc04c4a10f2b98b217f277a031c66736bf82d3d3bb354a2f6a3ae50f18fd62b053c4ac3f294a3d10a61f5075b75
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.8.5":
+  version: 7.8.5
+  resolution: "semver@npm:7.8.5"
+  bin:
+    semver: bin/semver.js
+  checksum: 10/9b01d2ff11e6e4a4539b7ca3c5f280c8704cb397a28504469f2ed4f00ad2194748d756647362a9712fff30984d15772ab7f083108c2fb508e2096ae9e708f22c
   languageName: node
   linkType: hard
 
@@ -17423,10 +17431,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map-js@npm:>=0.6.2 <2.0.0, source-map-js@npm:^1.0.1, source-map-js@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "source-map-js@npm:1.2.1"
-  checksum: 10/ff9d8c8bf096d534a5b7707e0382ef827b4dd360a577d3f34d2b9f48e12c9d230b5747974ee7c607f0df65113732711bb701fe9ece3c7edbd43cb2294d707df3
+"source-map-js@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "source-map-js@npm:1.2.2"
+  checksum: 10/4807c894bb6280c8b84886159b96080e3996f42c6e8015e647881edfd4f955f6024ceebb8bb40d33ce8b106e24b2e29c133575e1c60c01c8aae57a05fdf17761
   languageName: node
   linkType: hard
 
@@ -18884,10 +18892,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:^6.28.1":
-  version: 6.29.0
-  resolution: "undici@npm:6.29.0"
-  checksum: 10/fd4969cfc846cb4da7f7b1b225536d629e17b17b4a1913287f1264f30c855b9eb65a6da6cde46ba1ddfe42f113a3969ab2697029c2b920401be2b7b3b40abef8
+"undici@npm:^6.29.1":
+  version: 6.29.1
+  resolution: "undici@npm:6.29.1"
+  checksum: 10/92acb64ec190fe3499dec69830fdfc48e28f6f19627bad7563cfd57c37b4e95379c12b8ac15a2e6a8739eaac358f17503a229c160d3dc8774141b1e270d8aa57
   languageName: node
   linkType: hard
 
@@ -20258,5 +20266,12 @@ __metadata:
     toposort: "npm:^2.0.2"
     type-fest: "npm:^2.19.0"
   checksum: 10/90cef0ebe3ba37d329e9e3f2a7a20b3d84572aeccffd81681e5eaaf6145cb03c0737603f3f57bc60723592cc0323886e69f4e0f76ccb299ca3f9ce8ead3b6496
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.25.67":
+  version: 3.25.76
+  resolution: "zod@npm:3.25.76"
+  checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
   languageName: node
   linkType: hard
