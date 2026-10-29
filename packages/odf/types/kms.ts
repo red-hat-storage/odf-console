@@ -4,6 +4,7 @@ export enum ProviderNames {
   VAULT = 'vault',
   HPCS = 'hpcs',
   THALES = 'thales',
+  GKLM = 'gklm',
   AZURE = 'azure',
 }
 
@@ -109,7 +110,7 @@ export type HpcsConfig = {
   hasHandled: boolean;
 };
 
-export type ThalesConfig = {
+export type KmipConfig = {
   name: {
     value: string;
     valid: boolean;
@@ -173,7 +174,7 @@ export type AzureConfig = {
 export type KMSConfiguration =
   | VaultConfig
   | HpcsConfig
-  | ThalesConfig
+  | KmipConfig
   | AzureConfig;
 
 export type KMSConfig = {
@@ -236,6 +237,10 @@ export type ThalesConfigMap = {
   TLS_SERVER_NAME: string;
 };
 
+export type GklmConfigMap = ThalesConfigMap & {
+  USE_CRYPTO_RPC: string;
+};
+
 export type AzureConfigMap = {
   KMS_PROVIDER: string;
   KMS_SERVICE_NAME: string;
@@ -274,4 +279,5 @@ export type KMSConfigMap =
   | VaultConfigMap
   | HpcsConfigMap
   | ThalesConfigMap
+  | GklmConfigMap
   | AzureConfigMap;

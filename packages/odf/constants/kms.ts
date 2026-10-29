@@ -3,7 +3,7 @@ import { TFunction } from 'i18next';
 import {
   VaultConfig,
   HpcsConfig,
-  ThalesConfig,
+  KmipConfig,
   ProviderNames,
   KmsImplementations,
   KMSConfig,
@@ -24,7 +24,29 @@ export enum KmsProviderNames {
   AZURE = 'Azure Key Vault',
   HPCS = 'Hyper Protect Crypto Services',
   THALES = 'Thales CipherTrust Manager (using KMIP)',
+  GKLM = 'IBM Guardium Key Lifecycle Manager (using KMIP)',
 }
+
+const isGklmCsiConfigMap = (kms: KMSConfigMap) =>
+  'USE_CRYPTO_RPC' in kms && kms.USE_CRYPTO_RPC === 'false';
+
+const filterKmipProvider = (
+  kms: KMSConfigMap,
+  secretsList: SecretKind[],
+  isGklmProvider: boolean
+) => {
+  if (isGklmCsiConfigMap(kms) !== isGklmProvider) {
+    return true;
+  }
+  const kmipKms = kms as ThalesConfigMap;
+  const kmsSecret = secretsList?.find(
+    (secret: SecretKind) =>
+      secret?.metadata?.name === kmipKms?.['KMIP_SECRET_NAME']
+  );
+  // if "UNIQUE_IDENTIFIER" is empty, means we need to filter this out
+  // "UNIQUE_IDENTIFIER" is required for ceph-csi, not required for rook/noobaa
+  return !kmsSecret?.data?.['UNIQUE_IDENTIFIER'];
+};
 
 type SupportedProvidersProps = {
   [key: string]: {
@@ -56,15 +78,14 @@ export const SupportedProviders: SupportedProvidersProps = {
   [ProviderNames.THALES]: {
     group: ProviderNames.THALES,
     supported: [KmsImplementations.KMIP],
-    filter: (kms: ThalesConfigMap, secretsList: SecretKind[]) => {
-      const kmsSecret = secretsList?.find(
-        (secret: SecretKind) =>
-          secret?.metadata?.name === kms?.['KMIP_SECRET_NAME']
-      );
-      // if "UNIQUE_IDENTIFIER" is empty, means we need to filter this out
-      // "UNIQUE_IDENTIFIER" is required for ceph-csi, not required for rook/noobaa
-      return !kmsSecret?.data?.['UNIQUE_IDENTIFIER'];
-    },
+    filter: (kms: KMSConfigMap, secretsList: SecretKind[]) =>
+      filterKmipProvider(kms, secretsList, false),
+  },
+  [ProviderNames.GKLM]: {
+    group: KmsProviderNames.GKLM,
+    supported: [KmsImplementations.KMIP],
+    filter: (kms: KMSConfigMap, secretsList: SecretKind[]) =>
+      filterKmipProvider(kms, secretsList, true),
   },
   [ProviderNames.AZURE]: {
     group: ProviderNames.AZURE,
@@ -138,7 +159,7 @@ const HpcsEmptyState: HpcsConfig = Object.seal({
   hasHandled: true,
 });
 
-const ThalesEmptyState: ThalesConfig = Object.seal({
+const KmipEmptyState: KmipConfig = Object.seal({
   name: {
     value: '',
     valid: true,
@@ -202,7 +223,8 @@ const AzureEmptyState: AzureConfig = Object.seal({
 export const ProviderStateMap = {
   [ProviderNames.VAULT]: VaultEmptyState,
   [ProviderNames.HPCS]: HpcsEmptyState,
-  [ProviderNames.THALES]: ThalesEmptyState,
+  [ProviderNames.THALES]: KmipEmptyState,
+  [ProviderNames.GKLM]: KmipEmptyState,
   [ProviderNames.AZURE]: AzureEmptyState,
 };
 
