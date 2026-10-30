@@ -1,6 +1,8 @@
 import {
   BucketVersioningStatus,
   GetBucketVersioningCommandOutput,
+  GetObjectLockConfigurationCommandOutput,
+  ObjectLockEnabled,
 } from '@aws-sdk/client-s3';
 import { TFunction } from 'i18next';
 
@@ -30,3 +32,16 @@ export const getIsVersioningSuspended = (
 
 export const isNoCorsRuleError = (error) =>
   error?.name === 'NoSuchCORSConfiguration';
+
+export const isNoObjectLockConfigurationError = (error) =>
+  error?.name === 'ObjectLockConfigurationNotFoundError';
+
+export const getIsObjectLockEnabled = (
+  objectLockData: GetObjectLockConfigurationCommandOutput
+) =>
+  objectLockData?.ObjectLockConfiguration?.ObjectLockEnabled ===
+  ObjectLockEnabled.Enabled;
+
+export const getDefaultRetention = (
+  objectLockData: GetObjectLockConfigurationCommandOutput
+) => objectLockData?.ObjectLockConfiguration?.Rule?.DefaultRetention;
