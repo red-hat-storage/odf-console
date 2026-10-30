@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { CronTime, getCronTimeFromSchedule } from '@odf/core/constants';
 import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import {
@@ -9,6 +10,7 @@ import {
 import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
 import {
   Card,
   CardHeader,
@@ -16,6 +18,19 @@ import {
   CardBody,
   DescriptionList,
 } from '@patternfly/react-core';
+
+const getReadableSchedule = (schedule: string, t: TFunction): string => {
+  switch (getCronTimeFromSchedule(schedule)) {
+    case CronTime.DAILY:
+      return t('Daily');
+    case CronTime.WEEKLY:
+      return t('Weekly');
+    case CronTime.MONTHLY:
+      return t('Monthly');
+    default:
+      return schedule;
+  }
+};
 
 const storageClusterResource = {
   kind: referenceForModel(StorageClusterModel),
@@ -49,7 +64,7 @@ const AutomaticBackupCard: React.FC = () => {
               isLoading={!ocsLoaded}
               error={ocsError}
             >
-              {dbBackup.schedule}
+              {getReadableSchedule(dbBackup.schedule, t)}
             </DetailItem>
 
             <DetailItem
