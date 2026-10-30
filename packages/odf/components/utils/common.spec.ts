@@ -1,14 +1,18 @@
+import { NetworkAttachmentDefinitionKind } from '@odf/shared/types';
 import {
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
   TNF_MIN_CPU,
   TNF_MIN_MEMORY_GIB,
 } from '../../constants';
+import { NetworkType, ResourceProfile } from '../../types';
 import { WizardNodeState } from '../create-storage-system/reducer';
 import {
   getDeviceSetReplica,
+  getOCSRequestData,
   getReplicasFromSelectedNodes,
   isTNFRunnable,
+  OCSRequestData,
 } from './common';
 
 const tnfNodes = (
@@ -174,6 +178,93 @@ describe('ODF common utilities', () => {
     it('documents the expected TNF aggregate thresholds', () => {
       expect(TNF_MIN_CPU).toBe(12);
       expect(minAggregateMemoryGiB).toBe(46.56);
+    });
+  });
+
+  describe('getOCSRequestData TNF network', () => {
+    const nad = (
+      name: string,
+      namespace: string
+    ): NetworkAttachmentDefinitionKind =>
+      ({
+        apiVersion: 'k8s.cni.cncf.io/v1',
+        kind: 'NetworkAttachmentDefinition',
+        metadata: { name, namespace, uid: `${namespace}/${name}` },
+      }) as NetworkAttachmentDefinitionKind;
+
+    const publicNetwork = nad('public-nad', 'openshift-storage');
+    const clusterNetwork = nad('cluster-nad', 'openshift-multus');
+
+    const request = (
+      isTNFEnabled: boolean,
+      networkOverrides: Partial<OCSRequestData['networkConfiguration']> = {}
+    ) =>
+      getOCSRequestData({
+        storageClass: { name: 'localblock', provisioner: 'example.com/test' },
+        storage: '1Ti',
+        encryption: {
+          inTransit: true,
+          clusterWide: false,
+          storageClass: false,
+          advanced: false,
+          hasHandled: true,
+        },
+        resourceProfile: ResourceProfile.Balanced,
+        nodes: [],
+        flexibleScaling: true,
+        networkConfiguration: {
+          useClusterNetwork: false,
+          publicNetwork,
+          clusterNetwork,
+          addressRanges: { cluster: [] },
+          networkType: NetworkType.MULTUS,
+          isMultusAcknowledged: true,
+          ...networkOverrides,
+        },
+        storageClusterNamespace: 'openshift-storage',
+        storageClusterName: 'ocs-storagecluster',
+        availablePvsCount: 2,
+        isTNFEnabled,
+      });
+
+    it('submits the cluster network and omits the public network for TNF', () => {
+      const spec = request(true).spec;
+
+      expect(spec.flexibleScaling).toBe(true);
+      expect(spec.network).toEqual({
+        provider: 'multus',
+        selectors: {
+          cluster: 'openshift-multus/cluster-nad',
+        },
+        connections: {
+          encryption: {
+            enabled: true,
+          },
+        },
+      });
+      expect(spec.network.selectors).not.toHaveProperty('public');
+    });
+
+    it('omits multus selectors when TNF has no cluster network', () => {
+      const spec = request(true, { clusterNetwork: null }).spec;
+
+      expect(spec.network).toEqual({
+        connections: {
+          encryption: {
+            enabled: true,
+          },
+        },
+      });
+      expect(spec.network).not.toHaveProperty('selectors');
+    });
+
+    it('submits both multus selectors when TNF is disabled', () => {
+      const selectors = request(false).spec.network.selectors;
+
+      expect(selectors).toEqual({
+        public: 'openshift-storage/public-nad',
+        cluster: 'openshift-multus/cluster-nad',
+      });
     });
   });
 });
