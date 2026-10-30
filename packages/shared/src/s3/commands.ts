@@ -12,6 +12,8 @@ import {
   GetBucketEncryptionCommand,
   GetBucketVersioningCommand,
   PutBucketVersioningCommand,
+  GetObjectLockConfigurationCommand,
+  PutObjectLockConfigurationCommand,
   GetBucketTaggingCommand,
   GetBucketAclCommand,
   GetBucketPolicyCommand,
@@ -48,6 +50,8 @@ import {
   GetBucketEncryption,
   GetBucketVersioning,
   PutBucketVersioning,
+  GetObjectLockConfiguration,
+  PutObjectLockConfiguration,
   GetBucketTagging,
   GetBucketAcl,
   GetBucketPolicy,
@@ -148,6 +152,12 @@ export class S3Commands extends S3Client {
 
     return { ...response, supportedStorageClasses };
   };
+
+  getObjectLockConfiguration: GetObjectLockConfiguration = (input) =>
+    this.send(new GetObjectLockConfigurationCommand(input));
+
+  putObjectLockConfiguration: PutObjectLockConfiguration = (input) =>
+    this.send(new PutObjectLockConfigurationCommand(input));
 
   listBuckets: ListBuckets = (input) =>
     this.send(new ListBucketsCommand(input));

@@ -15,6 +15,10 @@ import {
   PutBucketVersioningCommandOutput,
   HeadBucketCommandInput,
   HeadBucketCommandOutput,
+  GetObjectLockConfigurationCommandInput,
+  GetObjectLockConfigurationCommandOutput,
+  PutObjectLockConfigurationCommandInput,
+  PutObjectLockConfigurationCommandOutput,
   ListBucketsCommandInput,
   ListBucketsCommandOutput,
   ListObjectsV2CommandInput,
@@ -107,6 +111,13 @@ export type HeadBucket = (
   input: HeadBucketCommandInput
 ) => Promise<HeadBucketOutput>;
 
+export type GetObjectLockConfiguration = (
+  input: GetObjectLockConfigurationCommandInput
+) => Promise<GetObjectLockConfigurationCommandOutput>;
+
+export type PutObjectLockConfiguration = (
+  input: PutObjectLockConfigurationCommandInput
+) => Promise<PutObjectLockConfigurationCommandOutput>;
 export type ListBuckets = (
   input: ListBucketsCommandInput
 ) => Promise<ListBucketsCommandOutput>;
