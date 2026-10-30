@@ -100,6 +100,8 @@ export type StoragePoolBodyProps = {
   placeholder?: string;
   erasureCodingDeviceClass?: string;
   showErasureCodingOptions?: boolean;
+  /** False while the CephCluster watch/list is still in flight. */
+  cephClusterLoaded?: boolean;
 };
 
 export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
@@ -117,6 +119,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   placeholder,
   erasureCodingDeviceClass,
   showErasureCodingOptions = true,
+  cephClusterLoaded = true,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -204,9 +207,13 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       });
   }, [storageCluster, storageClusterLoaded, storageClusterLoadError, dispatch]);
 
-  // Check storage cluster is in ready state
-  const isClusterReady: boolean =
-    cephCluster?.status?.phase === PoolState.READY;
+  // CephCluster phase — only meaningful after the watch has finished and phase is present.
+  const cephClusterPhase = cephCluster?.status?.phase;
+  const isClusterReady: boolean = cephClusterPhase === PoolState.READY;
+  const isClusterStatusLoading =
+    !cephClusterLoaded ||
+    (cephCluster != null && cephClusterPhase == null) ||
+    (!!poolNs && !storageClusterLoaded);
 
   const currentStorageCluster = storageCluster?.items?.[0];
   const flexibleScaling = checkFlexibleScaling(currentStorageCluster);
@@ -316,6 +323,14 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
         : t('Select replication')}
     </MenuToggle>
   );
+
+  if (isClusterStatusLoading) {
+    return (
+      <div data-test="storage-pool-body-loading">
+        <LoadingInline />
+      </div>
+    );
+  }
 
   return isClusterReady || !showPoolStatus ? (
     <>
