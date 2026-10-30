@@ -81,6 +81,7 @@ type MultusDropdownProps = {
   clusterNetwork: NetworkAttachmentDefinitionKind;
   publicNetwork: NetworkAttachmentDefinitionKind;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isTNFEnabled: boolean;
 };
 
 export const MultusNetworkConfigurationComponent: React.FC<
@@ -119,7 +120,6 @@ export const MultusNetworkConfigurationComponent: React.FC<
         label={t('Isolate network using Multus')}
         id="multus-checkbox"
         className="pf-v6-u-mb-md"
-        isDisabled={isTNFEnabled}
       />
 
       {networkType === NetworkType.MULTUS && (
@@ -178,6 +178,7 @@ export const MultusNetworkConfigurationComponent: React.FC<
             clusterNetwork={clusterNetwork}
             publicNetwork={publicNetwork}
             systemNamespace={systemNamespace}
+            isTNFEnabled={isTNFEnabled}
           />
         </div>
       )}
@@ -211,6 +212,7 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
   clusterNetwork,
   publicNetwork,
   systemNamespace,
+  isTNFEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -258,6 +260,9 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
 
   const onSelectPublicNetwork = React.useCallback(
     (uid: string) => {
+      if (isTNFEnabled) {
+        return;
+      }
       if (!(uid === publicNetworkUID)) {
         const resource = memoizedNetworkDevices.find(
           (res) => getUID(res) === uid
@@ -267,7 +272,7 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
         setNetwork(NADSelectorType.PUBLIC, null);
       }
     },
-    [memoizedNetworkDevices, setNetwork, publicNetworkUID]
+    [isTNFEnabled, memoizedNetworkDevices, setNetwork, publicNetworkUID]
   );
 
   const onSelectClusterNetwork = React.useCallback(
@@ -302,7 +307,8 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
           className="ceph__multus-dropdown"
           placeholderText={t('Select NetworkAttachmentDefinition')}
           onFilter={filter}
-          hasInlineFilter
+          hasInlineFilter={!isTNFEnabled}
+          isDisabled={isTNFEnabled}
         />
       </FormGroup>
       <FormGroup
