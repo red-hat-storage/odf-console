@@ -23,11 +23,17 @@ import {
 } from '@odf/shared/utils';
 import classNames from 'classnames';
 import { SortByDirection, Td } from '@patternfly/react-table';
+import { NodeTaintsCell } from './NodeTaintsCell';
 import './NodesTable.scss';
 
 const tableColumnClasses = {
   name: classNames('pf-v6-u-w-33-on-md', 'pf-v6-u-w-50-on-sm'),
   role: classNames(
+    'pf-m-hidden',
+    'pf-m-visible-on-xl',
+    'pf-v6-u-w-inherit-on-xl'
+  ),
+  taints: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
     'pf-v6-u-w-inherit-on-xl'
@@ -45,8 +51,12 @@ const tableColumnClasses = {
   zone: classNames('pf-v6-u-w-inherit'),
 };
 
-const NodeRow: React.FC<RowComponentType<NodeData>> = ({ row: node }) => {
+const NodeRow: React.FC<RowComponentType<NodeData>> = ({
+  row: node,
+  extraProps,
+}) => {
   const { t } = useCustomTranslation();
+  const { showTaints } = extraProps || {};
   const roles = getNodeRoles(node).sort();
   const cpuSpec: string = getNodeCPUCapacity(node);
   const memSpec: string = getNodeTotalMemory(node);
@@ -61,6 +71,11 @@ const NodeRow: React.FC<RowComponentType<NodeData>> = ({ row: node }) => {
         />
       </Td>
       <Td dataLabel={t('Role')}>{roles.join(', ') ?? '-'}</Td>
+      {showTaints && (
+        <Td dataLabel={t('Taints')}>
+          <NodeTaintsCell node={node} />
+        </Td>
+      )}
       <Td dataLabel={t('CPU')}>{humanizeCpuCores(cpuSpec).string || '-'}</Td>
       <Td dataLabel={t('Memory')}>{getConvertedUnits(memSpec)}</Td>
       <Td dataLabel={t('Zone')}>{getZone(node) || '-'}</Td>
@@ -82,6 +97,7 @@ type NodesTableProps = {
   isRowSelectable?: (node: NodeData) => boolean;
   hideSelectAll?: boolean;
   nameColumnTitle?: string;
+  showTaints?: boolean;
 };
 
 export const NodesTable: React.FC<NodesTableProps> = ({
@@ -92,6 +108,7 @@ export const NodesTable: React.FC<NodesTableProps> = ({
   isRowSelectable,
   hideSelectAll,
   nameColumnTitle,
+  showTaints = false,
 }) => {
   const { t } = useCustomTranslation();
   const columns = React.useMemo<TableColumnProps[]>(
@@ -109,6 +126,14 @@ export const NodesTable: React.FC<NodesTableProps> = ({
         columnName: t('Role'),
         thProps: { className: tableColumnClasses.role },
       },
+      ...(showTaints
+        ? [
+            {
+              columnName: t('Taints'),
+              thProps: { className: tableColumnClasses.taints },
+            },
+          ]
+        : []),
       {
         columnName: t('CPU'),
         thProps: { className: tableColumnClasses.cpu },
@@ -122,7 +147,7 @@ export const NodesTable: React.FC<NodesTableProps> = ({
         thProps: { className: tableColumnClasses.zone },
       },
     ],
-    [nameColumnTitle, t]
+    [nameColumnTitle, t, showTaints]
   );
 
   return (
@@ -131,6 +156,7 @@ export const NodesTable: React.FC<NodesTableProps> = ({
         columns={columns}
         rows={nodes}
         RowComponent={NodeRow}
+        extraProps={{ showTaints }}
         selectedRows={selectedNodes}
         setSelectedRows={setSelectedNodes}
         loaded={loaded}

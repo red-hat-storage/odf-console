@@ -1,11 +1,17 @@
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
+import { Taint } from '@odf/shared/types';
+import { WizardNodeState } from '../create-storage-system/reducer';
 import {
   digestDeviceKey,
   filterUsedDiscoveredDevices,
   getDiscoveredDeviceKey,
   getLocalDiskNameFromDeviceKey,
+  getTolerationsFromNodes,
   toLocalDiskNameToken,
 } from './scale';
+
+const makeNode = (taints?: Taint[]): WizardNodeState =>
+  ({ name: 'node', taints }) as WizardNodeState;
 
 const makeDevice = (
   overrides: Partial<DiscoveredDevice> = {}
@@ -237,6 +243,149 @@ describe('filterUsedDiscoveredDevices', () => {
 
     expect(filterUsedDiscoveredDevices(devices, localDisks)).toEqual([
       makeDevice({ WWN: '', deviceID: '', path: hyphenPath }),
+    ]);
+  });
+});
+
+describe('getTolerationsFromNodes', () => {
+  it('returns an empty array when there are no nodes', () => {
+    expect(getTolerationsFromNodes()).toEqual([]);
+    expect(getTolerationsFromNodes([])).toEqual([]);
+  });
+
+  it('returns an empty array when nodes carry no taints', () => {
+    expect(getTolerationsFromNodes([makeNode(), makeNode([])])).toEqual([]);
+  });
+
+  it('uses operator Equal for a taint with a value', () => {
+    const node = makeNode([
+      { key: 'dedicated', value: 'storage', effect: 'NoSchedule' },
+    ]);
+    expect(getTolerationsFromNodes([node])).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+    ]);
+  });
+
+  it('uses operator Exists for a taint without a value', () => {
+    const node = makeNode([
+      {
+        key: 'node.kubernetes.io/disk-pressure',
+        value: '',
+        effect: 'NoExecute',
+      },
+    ]);
+    expect(getTolerationsFromNodes([node])).toEqual([
+      {
+        key: 'node.kubernetes.io/disk-pressure',
+        operator: 'Exists',
+        effect: 'NoExecute',
+      },
+    ]);
+  });
+
+  it('builds the de-duplicated union across nodes', () => {
+    const shared: Taint = {
+      key: 'dedicated',
+      value: 'storage',
+      effect: 'NoSchedule',
+    };
+    const nodeA = makeNode([shared]);
+    const nodeB = makeNode([
+      shared,
+      { key: 'tenant', value: 'a', effect: 'NoSchedule' },
+    ]);
+
+    expect(getTolerationsFromNodes([nodeA, nodeB])).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+      { key: 'tenant', operator: 'Equal', value: 'a', effect: 'NoSchedule' },
+    ]);
+  });
+
+  it('keeps taints with the same key but different value or effect distinct', () => {
+    const node = makeNode([
+      { key: 'dedicated', value: 'storage', effect: 'NoSchedule' },
+      { key: 'dedicated', value: 'storage', effect: 'NoExecute' },
+      { key: 'dedicated', value: 'other', effect: 'NoSchedule' },
+    ]);
+
+    expect(getTolerationsFromNodes([node])).toHaveLength(3);
+  });
+
+  it('collapses an identical taint repeated within a single node', () => {
+    const taint: Taint = {
+      key: 'dedicated',
+      value: 'storage',
+      effect: 'NoSchedule',
+    };
+    const node = makeNode([taint, { ...taint }, { ...taint }]);
+
+    expect(getTolerationsFromNodes([node])).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+    ]);
+  });
+
+  it('collapses the same taint appearing across multiple nodes into one toleration', () => {
+    const taint: Taint = {
+      key: 'dedicated',
+      value: 'storage',
+      effect: 'NoSchedule',
+    };
+    const nodes = [
+      makeNode([{ ...taint }]),
+      makeNode([{ ...taint }]),
+      makeNode([{ ...taint }]),
+    ];
+
+    expect(getTolerationsFromNodes(nodes)).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+    ]);
+  });
+
+  it('emits exactly one toleration per distinct taint when duplicates are mixed in', () => {
+    const dedicated: Taint = {
+      key: 'dedicated',
+      value: 'storage',
+      effect: 'NoSchedule',
+    };
+    const tenant: Taint = { key: 'tenant', value: '', effect: 'NoExecute' };
+    const nodes = [
+      // duplicate within the node + a unique taint
+      makeNode([{ ...dedicated }, { ...dedicated }, { ...tenant }]),
+      // same taints repeated on another node
+      makeNode([{ ...dedicated }, { ...tenant }]),
+    ];
+
+    const result = getTolerationsFromNodes(nodes);
+
+    expect(result).toHaveLength(2);
+    expect(result).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+      { key: 'tenant', operator: 'Exists', effect: 'NoExecute' },
     ]);
   });
 });

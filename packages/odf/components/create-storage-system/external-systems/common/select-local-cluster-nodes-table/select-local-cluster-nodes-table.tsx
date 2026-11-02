@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NodeTaintsCell } from '@odf/core/components/nodes-table/NodeTaintsCell';
 import { getDefaultLocalClusterRole } from '@odf/core/components/utils/scale';
 import { ARBITER_ZONE, NodeType } from '@odf/core/constants/scale';
 import { useNodesData } from '@odf/core/hooks';
@@ -11,12 +12,11 @@ import {
   getNodeTotalMemory,
   nodesWithoutTaints,
 } from '@odf/core/utils';
-import { ListPageFilterWrapper } from '@odf/shared';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
-import { getName } from '@odf/shared/selectors';
+import { getLabels, getName } from '@odf/shared/selectors';
 import {
   SelectableTable,
   TableVariant,
@@ -29,18 +29,19 @@ import {
   getConvertedUnits,
   getNodeRoles,
   humanizeCpuCores,
+  fuzzyCaseInsensitive,
 } from '@odf/shared/utils';
-import {
-  ListPageBody,
-  useListPageFilter,
-} from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import {
   Alert,
   AlertActionLink,
   Button,
   Popover,
+  SearchInput,
   SelectOption,
+  Toolbar,
+  ToolbarContent,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import {
   ExternalLinkAltIcon,
@@ -55,6 +56,11 @@ import './select-local-cluster-nodes-table.scss';
 const tableColumnClasses = {
   name: classNames('pf-v6-u-w-33-on-md', 'pf-v6-u-w-50-on-sm'),
   role: classNames(
+    'pf-m-hidden',
+    'pf-m-visible-on-xl',
+    'pf-v6-u-w-inherit-on-xl'
+  ),
+  taints: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
     'pf-v6-u-w-inherit-on-xl'
@@ -132,6 +138,9 @@ const NodeRow: React.FC<RowComponentType<NodeData>> = ({
       <Td dataLabel={t('OCP node role')}>
         {getNodeRoles(node).sort().join(', ') || '-'}
       </Td>
+      <Td dataLabel={t('Taints')}>
+        <NodeTaintsCell node={node} />
+      </Td>
       <Td dataLabel={t('Local cluster role')}>
         {showArbiterNode ? (
           t('Arbiter node')
@@ -156,9 +165,48 @@ const NodeRow: React.FC<RowComponentType<NodeData>> = ({
 };
 
 const nameSort = (a: NodeData, b: NodeData, direction: SortByDirection) => {
-  const negation = direction !== 'asc';
+  const negation = direction !== SortByDirection.asc;
   const sortVal = getName(a).localeCompare(getName(b));
   return negation ? -sortVal : sortVal;
+};
+
+// Sort by number of taints; asc = untainted first, desc = most-tainted first
+// (groups tainted nodes together). Falls back to name for a stable order.
+const taintsSort = (a: NodeData, b: NodeData, direction: SortByDirection) => {
+  const negation = direction !== SortByDirection.asc;
+  const sortVal = (a.spec?.taints?.length ?? 0) - (b.spec?.taints?.length ?? 0);
+  if (sortVal !== 0) {
+    return negation ? -sortVal : sortVal;
+  }
+  const nameSortVal = getName(a).localeCompare(getName(b));
+  return negation ? -nameSortVal : nameSortVal;
+};
+
+// Unified free-text filter: fuzzy, case-insensitive matching (repo standard,
+// cf. HealthOverview/s3-browser) of the typed query against the node name, any
+// label key/value, or any taint key/value.
+const matchesNodeQuery = (node: NodeData, query: string): boolean => {
+  if (!query) {
+    return true;
+  }
+  if (fuzzyCaseInsensitive(query, getName(node))) {
+    return true;
+  }
+  const labels = getLabels(node) ?? {};
+  if (
+    Object.entries(labels).some(
+      ([key, value]) =>
+        fuzzyCaseInsensitive(query, key) ||
+        fuzzyCaseInsensitive(query, value ?? '')
+    )
+  ) {
+    return true;
+  }
+  return (node.spec?.taints ?? []).some(
+    (taint) =>
+      fuzzyCaseInsensitive(query, taint.key) ||
+      fuzzyCaseInsensitive(query, taint.value ?? '')
+  );
 };
 
 const InternalNodeTable: React.FC<NodeTableProps> = ({
@@ -173,7 +221,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
 
   const localClusterRoleSort = React.useCallback(
     (a: NodeData, b: NodeData, direction: SortByDirection) => {
-      const negation = direction !== 'asc';
+      const negation = direction !== SortByDirection.asc;
       const sortVal = getLocalClusterRole(
         a,
         nodes,
@@ -198,6 +246,15 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
       {
         columnName: t('OCP node role'),
         thProps: { className: tableColumnClasses.role },
+      },
+      {
+        columnName: t('Taints'),
+        sortFunction: taintsSort as <T>(
+          a: T,
+          b: T,
+          c: SortByDirection
+        ) => number,
+        thProps: { className: tableColumnClasses.taints },
       },
       {
         columnName: (
@@ -269,22 +326,27 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     ];
   }, [t, enableStretchCluster]);
 
-  const filteredData = React.useMemo(() => {
-    const nodeList =
-      includeControlPlane || enableStretchCluster
-        ? nodesIncludingControlPlane(nodesData)
-        : nodesWithoutTaints(nodesData);
-    return [...nodeList].sort((a, b) =>
-      localClusterRoleSort(a, b, SortByDirection.asc)
-    );
-  }, [
-    includeControlPlane,
-    enableStretchCluster,
-    nodesData,
-    localClusterRoleSort,
-  ]);
+  // Show every role-appropriate node (incl. tainted workers); useNodesData
+  // already scopes worker/control-plane roles, so no taint filtering here.
+  const filteredData = React.useMemo(
+    () =>
+      [...nodesData].sort((a, b) =>
+        localClusterRoleSort(a, b, SortByDirection.asc)
+      ),
+    [nodesData, localClusterRoleSort]
+  );
 
-  // Initialize with all nodes selected (only once on first load, not when user deselects all)
+  // Pre-select only the untainted (and opted-in control-plane) nodes. Tainted
+  // workers stay visible but unchecked until the user opts into them.
+  const defaultSelectedNodes = React.useMemo(
+    () =>
+      includeControlPlane || enableStretchCluster
+        ? nodesIncludingControlPlane(filteredData)
+        : nodesWithoutTaints(filteredData),
+    [includeControlPlane, enableStretchCluster, filteredData]
+  );
+
+  // Initialize with the default nodes selected (only once on first load, not when user deselects all)
   const [selectedRows, setSelectedRows] = React.useState<NodeData[]>([]);
   const hasInitializedSelection = React.useRef(false);
 
@@ -299,10 +361,10 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
       onRowSelected([]);
       return;
     }
-    setSelectedRows(filteredData);
-    onRowSelected(filteredData);
+    setSelectedRows(defaultSelectedNodes);
+    onRowSelected(defaultSelectedNodes);
     hasInitializedSelection.current = true;
-  }, [filteredData, onRowSelected]);
+  }, [filteredData, defaultSelectedNodes, onRowSelected]);
 
   const handleRowSelection = React.useCallback(
     (selected: NodeData[]) => {
@@ -353,7 +415,14 @@ export const SelectLocalClusterNodesTable: React.FC<
     true,
     controlPlaneOrStretchCluster
   );
-  const [data, filteredData, onFilterChange] = useListPageFilter(nodesData);
+  const [query, setQuery] = React.useState('');
+
+  const filteredData = React.useMemo(
+    () => nodesData.filter((node) => matchesNodeQuery(node, query)),
+    [nodesData, query]
+  );
+
+  const searchPlaceholder = t('Find by name, label, or taint');
 
   return (
     <div className="odf-capacity-and-nodes__select-nodes">
@@ -379,29 +448,34 @@ export const SelectLocalClusterNodesTable: React.FC<
           )}
         </Alert>
       )}
-      <ListPageBody>
-        <ListPageFilterWrapper
-          data={data}
-          loaded={nodesLoaded}
-          onFilterChange={onFilterChange}
-          hideColumnManagement={true}
+      <Toolbar>
+        <ToolbarContent>
+          <ToolbarItem>
+            <SearchInput
+              placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
+              value={query}
+              onChange={(_event, value) => setQuery(value)}
+              onClear={() => setQuery('')}
+            />
+          </ToolbarItem>
+        </ToolbarContent>
+      </Toolbar>
+      <StatusBox
+        skeleton={<div className="loading-skeleton--table" />}
+        data={filteredData}
+        loaded={nodesLoaded}
+        loadError={nodesLoadError}
+      >
+        <InternalNodeTable
+          nodes={nodes}
+          onRowSelected={onRowSelected}
+          onLocalClusterRoleChange={onLocalClusterRoleChange}
+          nodesData={filteredData}
+          includeControlPlane={includeControlPlane}
+          enableStretchCluster={enableStretchCluster}
         />
-        <StatusBox
-          skeleton={<div className="loading-skeleton--table" />}
-          data={filteredData}
-          loaded={nodesLoaded}
-          loadError={nodesLoadError}
-        >
-          <InternalNodeTable
-            nodes={nodes}
-            onRowSelected={onRowSelected}
-            onLocalClusterRoleChange={onLocalClusterRoleChange}
-            nodesData={filteredData}
-            includeControlPlane={includeControlPlane}
-            enableStretchCluster={enableStretchCluster}
-          />
-        </StatusBox>
-      </ListPageBody>
+      </StatusBox>
       {!!nodes.length && <SelectLocalClusterNodesTableFooter nodes={nodes} />}
     </div>
   );

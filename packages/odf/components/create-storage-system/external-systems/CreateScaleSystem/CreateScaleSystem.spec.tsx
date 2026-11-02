@@ -95,6 +95,7 @@ jest.mock('@odf/core/hooks', () => ({
 
 jest.mock('@odf/core/components/utils', () => ({
   createWizardNodeState: jest.fn((nodes: any[]) => nodes),
+  getTolerationsFromNodes: jest.fn(() => []),
 }));
 
 // Capture setSelectedNodes so tests can directly control node selection
