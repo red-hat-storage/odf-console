@@ -1,4 +1,9 @@
 import * as React from 'react';
+import { mergePreservedSelection } from '@odf/core/components/nodes-table/node-filter';
+import { NodeBulkSelect } from '@odf/core/components/nodes-table/NodeBulkSelect';
+import { NodeSearchToolbar } from '@odf/core/components/nodes-table/NodeSearchToolbar';
+import { useNodeBulkSelect } from '@odf/core/components/nodes-table/useNodeBulkSelect';
+import { useNodeSearch } from '@odf/core/components/nodes-table/useNodeSearch';
 import { createWizardNodeState } from '@odf/core/components/utils';
 import { NodeType } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
@@ -25,6 +30,7 @@ import {
   HelperTextItem,
   HelperTextItemVariant,
   Spinner,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import { NodesTable } from '../../../nodes-table/NodesTable';
 import { WizardNodeState } from '../../reducer';
@@ -150,12 +156,28 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
       ],
       [allNodes]
     );
+    // Show every role-appropriate node (incl. tainted workers). Control-plane
+    // nodes are included only when the user opts in.
     const tableNodes = React.useMemo(
       () =>
         includeControlPlaneNodes
-          ? nodesIncludingControlPlane([...workerNodes, ...controlPlaneNodes])
-          : nodesWithoutTaints(workerNodes),
+          ? [...workerNodes, ...controlPlaneNodes]
+          : workerNodes,
       [controlPlaneNodes, includeControlPlaneNodes, workerNodes]
+    );
+
+    // Free-text search shared with the SAN flow. `filteredNodes` is the visible
+    // (search-matched) subset of `tableNodes`.
+    const { query, setQuery, filteredNodes } = useNodeSearch(tableNodes);
+
+    // Pre-select only the untainted (and opted-in control-plane) nodes. Tainted
+    // workers stay visible but unchecked until the user opts into them.
+    const defaultSelectableNodes = React.useMemo(
+      () =>
+        includeControlPlaneNodes
+          ? nodesIncludingControlPlane(tableNodes)
+          : nodesWithoutTaints(tableNodes),
+      [includeControlPlaneNodes, tableNodes]
     );
 
     const onNodeSelect = React.useCallback(
@@ -180,10 +202,16 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
       }
 
       if (tableNodes.length > 0 && !selectedNodes.length) {
-        onNodeSelect(tableNodes);
+        onNodeSelect(defaultSelectableNodes);
       }
       hasInitializedSelection.current = true;
-    }, [allNodesLoaded, onNodeSelect, selectedNodes.length, tableNodes]);
+    }, [
+      allNodesLoaded,
+      onNodeSelect,
+      selectedNodes.length,
+      tableNodes,
+      defaultSelectableNodes,
+    ]);
 
     const selectedNodeNames = React.useMemo(
       () => new Set(selectedNodes.map((node) => node.name)),
@@ -197,6 +225,35 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
       [isNodeFixed, selectedNodeNames, tableNodes]
     );
 
+    // A search-filtered table reports selections only among the currently-visible
+    // rows, so merge them back with selections hidden by the active search.
+    const handleRowSelection = React.useCallback(
+      (visibleSelected: NodeData[]) => {
+        onNodeSelect(
+          mergePreservedSelection(
+            selectedNodeData,
+            visibleSelected,
+            filteredNodes
+          )
+        );
+      },
+      [filteredNodes, onNodeSelect, selectedNodeData]
+    );
+
+    // "Select all / none" operates on the visible, selectable rows and preserves
+    // search-hidden selections (same contract as the SAN flow).
+    const selectableFilteredNodes = React.useMemo(
+      () => filteredNodes.filter(isNodeSelectable),
+      [filteredNodes, isNodeSelectable]
+    );
+    const bulkSelect = useNodeBulkSelect({
+      selectableNodes: selectableFilteredNodes,
+      selectedNodes: selectedNodeData,
+      onChange: onNodeSelect,
+    });
+
+    // Control-plane nodes are shown (but left unselected) when the box is
+    // checked; unchecking drops them while preserving the worker selection.
     const handleIncludeControlPlaneNodes = React.useCallback(
       (_event: React.FormEvent<HTMLInputElement>, isChecked: boolean) => {
         const nextSelectedNodes = selectedNodeData.filter(
@@ -217,13 +274,20 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
           onChange={handleIncludeControlPlaneNodes}
           className="pf-v6-u-mb-sm"
         />
+        <NodeSearchToolbar query={query} onQueryChange={setQuery}>
+          <ToolbarItem>
+            <NodeBulkSelect {...bulkSelect} />
+          </ToolbarItem>
+        </NodeSearchToolbar>
         <NodesTable
-          nodes={tableNodes}
+          nodes={filteredNodes}
           selectedNodes={selectedNodeData}
-          setSelectedNodes={onNodeSelect}
+          setSelectedNodes={handleRowSelection}
           loaded={allNodesLoaded}
           isRowSelectable={isNodeSelectable}
           nameColumnTitle={t('Node')}
+          roleColumnTitle={t('OCP Node role')}
+          showTaints
         />
         {selectedNodes.length > 0 && (
           <KernelDevelStatus eligibility={kernelDevelEligibility} />

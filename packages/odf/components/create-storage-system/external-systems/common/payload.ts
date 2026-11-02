@@ -15,6 +15,7 @@ import {
   SecretKind,
   SecretModel,
 } from '@odf/shared';
+import { Toleration } from '@odf/shared/types';
 import { k8sPatchByName } from '@odf/shared/utils';
 import { createOrUpdate } from '@odf/shared/utils/k8s';
 import {
@@ -120,7 +121,8 @@ export const createScaleLocalClusterPayload = (
   addClusterLabels?: boolean,
   addResourceLimits?: boolean,
   cpuLimit?: string,
-  memoryLimit?: string
+  memoryLimit?: string,
+  tolerations?: Toleration[]
 ) => {
   const spec: ClusterKind['spec'] = {
     daemon: {
@@ -186,6 +188,17 @@ export const createScaleLocalClusterPayload = (
       },
     };
   }
+
+  // Tolerate the taints on the selected nodes so the daemon pods can schedule
+  // onto them. Omitted entirely when there are no taints so the CR stays
+  // byte-identical to the previous (no-taint) behavior.
+  if (tolerations && tolerations.length > 0) {
+    spec.daemon = {
+      ...spec.daemon,
+      tolerations,
+    };
+  }
+
   const payload: ClusterKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
     kind: 'Cluster',

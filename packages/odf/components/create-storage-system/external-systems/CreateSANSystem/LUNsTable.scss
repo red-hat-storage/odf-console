@@ -20,7 +20,11 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background-color: var(--pf-t--global--background--color--100);
+      // Use the theme-aware primary background token so the sticky header is
+      // legible in both light and dark modes. (`--background--color--100`
+      // resolves to white in every theme and left the header text unreadable
+      // in dark mode.)
+      background-color: var(--pf-t--global--background--color--primary--default);
     }
 
     .pf-v6-c-table__check {

@@ -94,7 +94,10 @@ describe('AddLocalScaleNodesModal', () => {
 
     expect(screen.getByText('worker-candidate')).toBeInTheDocument();
     expect(screen.getByText('worker-cordoned')).toBeInTheDocument();
-    expect(screen.queryByText('worker-tainted')).not.toBeInTheDocument();
+    // Tainted workers are now shown but left unchecked by default.
+    const taintedRow = screen.getByText('worker-tainted').closest('tr');
+    expect(taintedRow).toBeInTheDocument();
+    expect(taintedRow.querySelector('input')).not.toBeChecked();
     expect(screen.getByText('worker-assigned')).toBeInTheDocument();
     expect(
       screen.getByText('worker-assigned').closest('tr').querySelector('input')

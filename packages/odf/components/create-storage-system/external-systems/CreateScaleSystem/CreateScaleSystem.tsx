@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useExistingFileSystemNames } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
+import { getTolerationsFromNodes } from '@odf/core/components/utils';
 import {
   PageHeading,
   useCustomTranslation,
@@ -142,7 +143,8 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           undefined,
           true,
           cpuRequest.toString(),
-          memoryRequest
+          memoryRequest,
+          getTolerationsFromNodes(componentState.selectedNodes)
         );
         await localClusterPromise();
         await configureMetricsNamespaceLabels();

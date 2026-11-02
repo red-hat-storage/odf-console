@@ -2,6 +2,8 @@ import { CONTROL_PLANE } from '@odf/core/constants/common';
 import { ARBITER_ZONE, NodeType } from '@odf/core/constants/scale';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
 import { getName } from '@odf/shared';
+import { Taint, Toleration } from '@odf/shared/types';
+import { WizardNodeState } from '../create-storage-system/reducer';
 
 const LOCAL_DISK_NAME_PREFIX = 'localdisk-';
 const MAX_LOCAL_DISK_NAME_LENGTH = 253;
@@ -111,4 +113,51 @@ export const getDefaultLocalClusterRole = (
     return NodeType.CLUSTER;
   }
   return NodeType.DISK;
+};
+
+/** Stable de-duplication key for a taint/toleration (key + value + effect). */
+const getTaintKey = (taint: Pick<Taint, 'key' | 'value' | 'effect'>): string =>
+  `${taint.key ?? ''}|${taint.value ?? ''}|${taint.effect ?? ''}`;
+
+/**
+ * Builds the de-duplicated union of tolerations required to schedule pods onto
+ * the taints carried by the given nodes.
+ *
+ * Every distinct taint (by key + value + effect) across all nodes yields one
+ * toleration so that operator/daemon pods can schedule even when the selected
+ * nodes carry non-overlapping taints (the "all workers tainted" scenario).
+ *
+ * - A taint with a value -> `operator: Equal` (matches that exact value).
+ * - A taint without a value -> `operator: Exists` (matches any value for the key).
+ * - `tolerationSeconds` is intentionally left unset (tolerate forever).
+ */
+export const getTolerationsFromNodes = (
+  nodes: WizardNodeState[] = []
+): Toleration[] => {
+  // Keyed by taint identity so duplicates collapse automatically (last write
+  // wins, but the value is identical for a given key). Insertion order of the
+  // first occurrence is preserved.
+  const byTaint = new Map<string, Toleration>();
+
+  nodes.forEach((node) => {
+    (node.taints ?? []).forEach((taint) => {
+      byTaint.set(
+        getTaintKey(taint),
+        taint.value
+          ? {
+              key: taint.key,
+              operator: 'Equal',
+              value: taint.value,
+              effect: taint.effect,
+            }
+          : {
+              key: taint.key,
+              operator: 'Exists',
+              effect: taint.effect,
+            }
+      );
+    });
+  });
+
+  return [...byTaint.values()];
 };
