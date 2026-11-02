@@ -2,6 +2,8 @@ import { CONTROL_PLANE } from '@odf/core/constants/common';
 import { ARBITER_ZONE, NodeType } from '@odf/core/constants/scale';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
 import { getName } from '@odf/shared';
+import { Taint, Toleration } from '@odf/shared/types';
+import { WizardNodeState } from '../create-storage-system/reducer';
 
 const LOCAL_DISK_NAME_PREFIX = 'localdisk-';
 const MAX_LOCAL_DISK_NAME_LENGTH = 253;
@@ -111,4 +113,113 @@ export const getDefaultLocalClusterRole = (
     return NodeType.CLUSTER;
   }
   return NodeType.DISK;
+};
+
+/**
+ * Effective local-cluster role for an already-selected node, derived live.
+ *
+ * The Arbiter role is never stored on the node (see {@link createWizardNodeState}'s
+ * options): it is purely a function of the live "Stretch cluster" toggle plus the
+ * node being a control-plane node in the arbiter zone. Computing it here — rather
+ * than snapshotting it at selection time — keeps the role consistent with the
+ * table display no matter when (or in which order) the stretch/control-plane
+ * toggles are flipped. For every other case the node's stored base role
+ * (Cluster/Disk, including any manual override) is returned unchanged.
+ */
+export const getEffectiveLocalClusterRole = (
+  node: WizardNodeState,
+  enableStretchCluster?: boolean
+): NodeType =>
+  enableStretchCluster &&
+  node.zone === ARBITER_ZONE &&
+  (node.roles ?? []).includes(CONTROL_PLANE)
+    ? NodeType.ARBITER
+    : (node.localClusterRole ??
+      getDefaultLocalClusterRole(node.roles ?? [], node.zone ?? ''));
+
+/**
+ * Stable de-duplication identity for a taint/toleration
+ * (key + operator + value + effect + tolerationSeconds).
+ *
+ * All fields are optional here so the helper accepts both a Taint (which has no
+ * `operator`/`tolerationSeconds`) and a Toleration. Including `operator` and
+ * `tolerationSeconds` keeps genuinely distinct tolerations apart — e.g. an
+ * `Equal` toleration with an empty value is NOT the same as an `Exists`
+ * toleration, and two tolerations differing only by `tolerationSeconds` are
+ * distinct. For plain taints the extra fields are absent and collapse to the
+ * previous key + value + effect behavior.
+ */
+export const getTaintOrTolerationIdentity = (entry: {
+  key?: Taint['key'];
+  value?: Taint['value'];
+  effect?: Taint['effect'];
+  operator?: Toleration['operator'];
+  tolerationSeconds?: Toleration['tolerationSeconds'];
+}): string =>
+  `${entry.key ?? ''}|${entry.operator ?? ''}|${entry.value ?? ''}|${entry.effect ?? ''}|${entry.tolerationSeconds ?? ''}`;
+
+/**
+ * Builds the de-duplicated union of tolerations required to schedule pods onto
+ * the taints carried by the given nodes.
+ *
+ * Every distinct taint (by key + value + effect) across all nodes yields one
+ * toleration so that operator/daemon pods can schedule even when the selected
+ * nodes carry non-overlapping taints (the "all workers tainted" scenario).
+ *
+ * - A taint with a value -> `operator: Equal` (matches that exact value).
+ * - A taint without a value -> `operator: Exists` (matches any value for the key).
+ * - `tolerationSeconds` is intentionally left unset (tolerate forever).
+ */
+export const getTolerationsFromNodes = (
+  nodes: WizardNodeState[] = []
+): Toleration[] => {
+  // Keyed by taint identity so duplicates collapse automatically (last write
+  // wins, but the value is identical for a given key). Insertion order of the
+  // first occurrence is preserved.
+  const byTaint = new Map<string, Toleration>();
+
+  nodes.forEach((node) => {
+    (node.taints ?? []).forEach((taint) => {
+      byTaint.set(
+        getTaintOrTolerationIdentity(taint),
+        taint.value
+          ? {
+              key: taint.key,
+              operator: 'Equal',
+              value: taint.value,
+              effect: taint.effect,
+            }
+          : {
+              key: taint.key,
+              operator: 'Exists',
+              effect: taint.effect,
+            }
+      );
+    });
+  });
+
+  return [...byTaint.values()];
+};
+
+/**
+ * Merges existing tolerations with newly-derived ones, de-duplicating on the
+ * full {@link getTaintOrTolerationIdentity} (key + operator + value + effect +
+ * tolerationSeconds).
+ * Existing tolerations are preserved (and win on collision); only genuinely new
+ * tolerations are appended. Used when expanding a local cluster so a newly-added
+ * tainted node's toleration is added to the Cluster without dropping the ones
+ * written at create time.
+ */
+export const mergeTolerations = (
+  existing: Toleration[] = [],
+  incoming: Toleration[] = []
+): Toleration[] => {
+  const byIdentity = new Map<string, Toleration>();
+  [...existing, ...incoming].forEach((toleration) => {
+    const identity = getTaintOrTolerationIdentity(toleration);
+    if (!byIdentity.has(identity)) {
+      byIdentity.set(identity, toleration);
+    }
+  });
+  return [...byIdentity.values()];
 };

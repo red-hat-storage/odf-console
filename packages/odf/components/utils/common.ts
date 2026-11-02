@@ -120,7 +120,14 @@ export const getExternalStorage = (
  * successfully applied performance mode.
  */
 export type CreateWizardNodeStateOptions = {
-  enableStretchCluster?: boolean;
+  /**
+   * When true, seed each node's base local-cluster role (Cluster/Disk) from its
+   * OCP roles. The stretch-cluster "Arbiter" role is intentionally NOT stored
+   * here: it is derived live at the point of use (table display + node labeling)
+   * from the current stretch toggle, so the stored role can never drift out of
+   * sync when "Stretch cluster" is toggled after a node is already selected.
+   */
+  assignLocalClusterRole?: boolean;
 };
 
 export const createWizardNodeState = (
@@ -153,12 +160,9 @@ export const createWizardNodeState = (
       taints,
       architecture,
       annotations,
-      ...(options && {
-        localClusterRole: getDefaultLocalClusterRole(
-          roles,
-          zone ?? '',
-          options.enableStretchCluster
-        ),
+      ...(options?.assignLocalClusterRole && {
+        // Base role only (Cluster/Disk). Arbiter is derived live elsewhere.
+        localClusterRole: getDefaultLocalClusterRole(roles, zone ?? ''),
       }),
     };
   });

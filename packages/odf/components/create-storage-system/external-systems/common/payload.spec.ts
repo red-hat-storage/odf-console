@@ -1,10 +1,13 @@
 import { SCALE_DAEMON_NODE_LABEL } from '@odf/core/constants';
+import { ClusterKind } from '@odf/core/types/scale';
 import { NodeModel } from '@odf/shared';
+import { Toleration } from '@odf/shared/types';
 import { Patch } from '@openshift-console/dynamic-plugin-sdk';
 import { WizardNodeState } from '../../reducer';
 import {
   labelNodes,
   createScaleLocalClusterPayload,
+  patchScaleLocalClusterTolerations,
   ExternalKMMRegistryConfig,
 } from './payload';
 
@@ -657,6 +660,256 @@ describe('payload', () => {
         'app.kubernetes.io/instance': 'ibm-spectrum-scale',
         'app.kubernetes.io/name': 'cluster',
       });
+    });
+
+    it('should not set spec.daemon.tolerations when tolerations are not provided', async () => {
+      const execute = createScaleLocalClusterPayload();
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.daemon).not.toHaveProperty('tolerations');
+      expect(payload.spec.gui).toBeUndefined();
+      expect(payload.spec.pmcollector).toBeUndefined();
+      expect(payload.spec.grafanaBridge).not.toHaveProperty('tolerations');
+    });
+
+    it('should not set spec.daemon.tolerations when the tolerations array is empty', async () => {
+      const execute = createScaleLocalClusterPayload(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        []
+      );
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.daemon).not.toHaveProperty('tolerations');
+    });
+
+    it('should set spec.daemon.tolerations when tolerations are provided', async () => {
+      const tolerations: Toleration[] = [
+        {
+          key: 'dedicated',
+          operator: 'Equal',
+          value: 'storage',
+          effect: 'NoSchedule',
+        },
+        {
+          key: 'node.kubernetes.io/disk-pressure',
+          operator: 'Exists',
+          effect: 'NoExecute',
+        },
+      ];
+      const execute = createScaleLocalClusterPayload(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        tolerations
+      );
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.daemon.tolerations).toEqual(tolerations);
+    });
+
+    it('should set tolerations on gui, pmcollector and grafanaBridge too (not just daemon)', async () => {
+      const tolerations: Toleration[] = [
+        {
+          key: 'dedicated',
+          operator: 'Equal',
+          value: 'storage',
+          effect: 'NoSchedule',
+        },
+      ];
+      const execute = createScaleLocalClusterPayload(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        tolerations
+      );
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.gui.tolerations).toEqual(tolerations);
+      expect(payload.spec.pmcollector.tolerations).toEqual(tolerations);
+      expect(payload.spec.grafanaBridge.tolerations).toEqual(tolerations);
+      // Pre-existing grafanaBridge config must be preserved alongside the toleration.
+      expect(payload.spec.grafanaBridge.enablePrometheusExporter).toBe(true);
+    });
+  });
+
+  describe('patchScaleLocalClusterTolerations', () => {
+    // Mirrors a cluster produced by the (fixed) create payload: every
+    // taint-sensitive section is present and shares the same tolerations.
+    const makeCluster = (tolerations?: Toleration[]): ClusterKind =>
+      ({
+        apiVersion: 'scale.spectrum.ibm.com/v1beta1',
+        kind: 'Cluster',
+        metadata: { name: 'ibm-spectrum-scale' },
+        spec: {
+          daemon: { ...(tolerations ? { tolerations } : {}) },
+          gui: { ...(tolerations ? { tolerations } : {}) },
+          pmcollector: { ...(tolerations ? { tolerations } : {}) },
+          grafanaBridge: {
+            enablePrometheusExporter: true,
+            ...(tolerations ? { tolerations } : {}),
+          },
+        },
+      }) as ClusterKind;
+
+    const taintedNode = (
+      taint = { key: 'dedicated', value: 'storage', effect: 'NoSchedule' }
+    ): WizardNodeState =>
+      ({ name: 'node-1', taints: [taint] }) as WizardNodeState;
+
+    it('does not patch when the added nodes carry no taints', async () => {
+      await patchScaleLocalClusterTolerations(makeCluster(), [
+        { name: 'node-1' } as WizardNodeState,
+      ])();
+
+      expect(mockK8sPatchByName).not.toHaveBeenCalled();
+    });
+
+    it('adds tolerations to every taint-sensitive section when the cluster has none yet', async () => {
+      await patchScaleLocalClusterTolerations(makeCluster(), [taintedNode()])();
+
+      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
+      const [model, name, namespace, patch] = mockK8sPatchByName.mock.calls[0];
+      expect(model.kind).toBe('Cluster');
+      expect(name).toBe('ibm-spectrum-scale');
+      expect(namespace).toBeNull();
+      const value = [
+        {
+          key: 'dedicated',
+          operator: 'Equal',
+          value: 'storage',
+          effect: 'NoSchedule',
+        },
+      ];
+      expect(patch).toEqual([
+        { op: 'add', path: '/spec/daemon/tolerations', value },
+        { op: 'add', path: '/spec/gui/tolerations', value },
+        { op: 'add', path: '/spec/pmcollector/tolerations', value },
+        { op: 'add', path: '/spec/grafanaBridge/tolerations', value },
+      ]);
+    });
+
+    it('adds the whole section when a taint-sensitive section is missing (pre-fix cluster)', async () => {
+      // A cluster created before the GUI/pmcollector/grafana-bridge sections were
+      // tolerated: only `daemon` exists. The patch must add the missing sections
+      // as objects (a JSON Patch `add` on `/spec/gui/tolerations` would fail when
+      // `/spec/gui` does not exist).
+      const preFixCluster = {
+        apiVersion: 'scale.spectrum.ibm.com/v1beta1',
+        kind: 'Cluster',
+        metadata: { name: 'ibm-spectrum-scale' },
+        spec: { daemon: {} },
+      } as ClusterKind;
+
+      await patchScaleLocalClusterTolerations(preFixCluster, [taintedNode()])();
+
+      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
+      const patch = mockK8sPatchByName.mock.calls[0][3] as Patch[];
+      const value = [
+        {
+          key: 'dedicated',
+          operator: 'Equal',
+          value: 'storage',
+          effect: 'NoSchedule',
+        },
+      ];
+      expect(patch).toEqual([
+        { op: 'add', path: '/spec/daemon/tolerations', value },
+        { op: 'add', path: '/spec/gui', value: { tolerations: value } },
+        {
+          op: 'add',
+          path: '/spec/pmcollector',
+          value: { tolerations: value },
+        },
+        {
+          op: 'add',
+          path: '/spec/grafanaBridge',
+          value: { tolerations: value },
+        },
+      ]);
+    });
+
+    it('replaces and merges with the existing tolerations', async () => {
+      const existing: Toleration = {
+        key: 'existing',
+        operator: 'Exists',
+        effect: 'NoExecute',
+      };
+      await patchScaleLocalClusterTolerations(makeCluster([existing]), [
+        taintedNode(),
+      ])();
+
+      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
+      const patch = mockK8sPatchByName.mock.calls[0][3] as Patch[];
+      expect(patch[0].op).toBe('replace');
+      expect(patch[0].path).toBe('/spec/daemon/tolerations');
+      expect(patch[0].value).toEqual([
+        existing,
+        {
+          key: 'dedicated',
+          operator: 'Equal',
+          value: 'storage',
+          effect: 'NoSchedule',
+        },
+      ]);
+    });
+
+    it('does not patch when the node taint already exists in the cluster tolerations', async () => {
+      const existing: Toleration = {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      };
+      await patchScaleLocalClusterTolerations(makeCluster([existing]), [
+        taintedNode(),
+      ])();
+
+      expect(mockK8sPatchByName).not.toHaveBeenCalled();
+    });
+
+    it('patches a genuinely new toleration even when duplicates keep the merged length equal', async () => {
+      // The existing list carries a duplicate, so merging a new taint de-dupes it
+      // and the merged length equals the existing length. A length-based check
+      // would wrongly skip the patch; identity-based detection must still patch.
+      const duplicated: Toleration = {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      };
+      await patchScaleLocalClusterTolerations(
+        makeCluster([duplicated, { ...duplicated }]),
+        [taintedNode({ key: 'tenant', value: 'a', effect: 'NoSchedule' })]
+      )();
+
+      expect(mockK8sPatchByName).toHaveBeenCalledTimes(1);
+      const patch = mockK8sPatchByName.mock.calls[0][3] as Patch[];
+      expect(patch[0].op).toBe('replace');
+      expect(patch[0].value).toEqual([
+        duplicated,
+        {
+          key: 'tenant',
+          operator: 'Equal',
+          value: 'a',
+          effect: 'NoSchedule',
+        },
+      ]);
     });
   });
 });
