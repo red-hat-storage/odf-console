@@ -5479,6 +5479,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"attr-accept@npm:^4.0.0":
+  version: 4.0.1
+  resolution: "attr-accept@npm:4.0.1"
+  checksum: 10/7224dcbd49df255511aa09897d5bcd49ac667887cf67beef5a392f9fd5117fb299ed7211780b14ed9a1d4063423945c075a2670692cdea1dfbebdd41b2dcefd0
+  languageName: node
+  linkType: hard
+
 "available-typed-arrays@npm:^1.0.5":
   version: 1.0.5
   resolution: "available-typed-arrays@npm:1.0.5"
@@ -9101,6 +9108,13 @@ __metadata:
   dependencies:
     tslib: "npm:^2.7.0"
   checksum: 10/2a6be0e1904df85f8705a5171fd3b93c1b1ff2ad0143556adb78ac4de899bfc0ba1a20083b4febd4f7000759ec9119a31af76a057e29dd9215907da69ac95e50
+  languageName: node
+  linkType: hard
+
+"file-selector@npm:^5.0.1":
+  version: 5.0.2
+  resolution: "file-selector@npm:5.0.2"
+  checksum: 10/2d95dde432fea4141beb374b234df7d8431d9410a27b8b20479ed70a3bcc55af4a5fefc8b52f9c27acf46ab4e84318b99f566bdab1bbd43ed851a2b9d0c9c279
   languageName: node
   linkType: hard
 
@@ -13624,7 +13638,7 @@ __metadata:
     react-dnd: "npm:^16.0.1"
     react-dnd-html5-backend: "npm:^16.0.1"
     react-dom: "npm:^18.0.0"
-    react-dropzone: "npm:^15.0.0"
+    react-dropzone: "npm:^20.1.4"
     react-helmet: "npm:^6.1.0"
     react-hook-form: "npm:^7.91.0"
     react-i18next: "npm:~16.5.8"
@@ -14532,16 +14546,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dropzone@npm:^15.0.0":
-  version: 15.0.0
-  resolution: "react-dropzone@npm:15.0.0"
+"react-dropzone@npm:^20.1.4":
+  version: 20.1.4
+  resolution: "react-dropzone@npm:20.1.4"
   dependencies:
-    attr-accept: "npm:^2.2.4"
-    file-selector: "npm:^2.1.0"
-    prop-types: "npm:^15.8.1"
+    attr-accept: "npm:^4.0.0"
+    file-selector: "npm:^5.0.1"
   peerDependencies:
-    react: ">= 16.8 || 18.0.0"
-  checksum: 10/1c465e16af658ea73002fffddd164ddc85ef745daac620c378eda8a938e2d28a558348831fdcfcf20dfed8a6c4579894adf6a5adc6165ce20cdc25f036d1c3ca
+    "@types/react": "*"
+    react: ">= 18"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10/6d81b46be854e3ca6c7fb051b570077177c4379c20fcd8173de5d033f243508c5b7609f4a8e148b047e99efa89417c79e5c2874863e53e4660fef317c92fdf09
   languageName: node
   linkType: hard
 
