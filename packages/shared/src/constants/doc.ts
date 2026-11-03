@@ -45,3 +45,8 @@ export const externalSystemsDoc = (odfDocVersion: string): string =>
 
 export const tnfHomePage = (odfDocVersion: string): string =>
   `${odfDocHome(odfDocVersion)}/html/deploying_openshift_data_foundation_on_two-node_clusters`;
+
+export const iamUserDoc = (odfDocVersion: string): string =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/managing_hybrid_and_multicloud_resources/index#creating_and_managing_iam_user`;

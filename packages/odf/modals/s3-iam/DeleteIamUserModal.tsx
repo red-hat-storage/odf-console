@@ -168,6 +168,15 @@ export const DeleteIamUserModal: React.FC<
 
       await Promise.all(deleteAccessKeysPromises);
 
+      // Remove description tags (Key = AccessKeyId)
+      const tagKeys = accessKeys.map((key) => key.AccessKeyId).filter(Boolean);
+      if (tagKeys.length > 0) {
+        await iamClient.untagUser({
+          UserName: userName,
+          TagKeys: tagKeys,
+        });
+      }
+
       setDeleteSuccess(true);
     } catch (err) {
       setError(err as Error);
