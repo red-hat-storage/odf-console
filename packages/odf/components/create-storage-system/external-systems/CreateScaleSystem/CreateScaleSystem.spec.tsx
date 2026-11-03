@@ -1,8 +1,10 @@
 import React from 'react';
+import { getTolerationsFromNodes } from '@odf/core/components/utils';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { enableScaleEncryption } from '../../../scale-encryption/enableScaleEncryption';
+import { createScaleLocalClusterPayload } from '../common/payload';
 import { CreateScaleSystem } from './CreateScaleSystem';
 import { useKernelDevelEligibility } from './hooks/useKernelDevelEligibility';
 
@@ -403,6 +405,70 @@ describe('CreateScaleSystem', () => {
           screen.getByRole('button', { name: 'Connect and create' })
         ).toBeDisabled()
       );
+    });
+
+    it('passes the tolerations derived from the selected nodes to the local cluster payload', async () => {
+      const user = userEvent.setup();
+      mockWatchedValue = 'valid';
+
+      const tolerations = [
+        {
+          key: 'dedicated',
+          operator: 'Equal',
+          value: 'storage',
+          effect: 'NoSchedule',
+        },
+      ];
+      (getTolerationsFromNodes as jest.Mock).mockReturnValue(tolerations);
+
+      const { container } = render(<CreateScaleSystem />);
+
+      const selectedNodes = [
+        { name: 'node1' },
+        { name: 'node2' },
+        { name: 'node3' },
+      ];
+      act(() => {
+        capturedSetSelectedNodes(selectedNodes);
+      });
+
+      mockFormValues = {
+        name: 'scale-system',
+        'mandatory-endpoint-host': 'scale.example.com',
+        'mandatory-endpoint-port': '8843',
+        userName: 'admin',
+        password: 'secret',
+        fileSystemName: 'filesystem',
+        encryptionUserName: 'encryption-user',
+        encryptionPassword: 'encryption-password',
+        encryptionPort: '9444',
+        client: 'client',
+        remoteRKM: 'remote_rkm_1',
+        serverInformation: 'server.example.com',
+        tenantId: 'tenant',
+      };
+      await user.click(screen.getByLabelText('Enable data encryption'));
+      await user.upload(
+        container.querySelectorAll('input[type="file"]')[1] as HTMLInputElement,
+        new File(['certificate'], 'ca.crt')
+      );
+
+      const submitButton = screen.getByRole('button', {
+        name: 'Connect and create',
+      });
+      await waitFor(() => expect(submitButton).toBeEnabled());
+      await user.click(submitButton);
+
+      await waitFor(() =>
+        expect(createScaleLocalClusterPayload).toHaveBeenCalled()
+      );
+
+      // The derivation runs against the selected nodes...
+      expect(getTolerationsFromNodes).toHaveBeenCalledWith(selectedNodes);
+      // ...and the result is forwarded as the 6th arg of the CR payload builder.
+      const payloadArgs = (createScaleLocalClusterPayload as jest.Mock).mock
+        .calls[0];
+      expect(payloadArgs[5]).toBe(tolerations);
     });
   });
 

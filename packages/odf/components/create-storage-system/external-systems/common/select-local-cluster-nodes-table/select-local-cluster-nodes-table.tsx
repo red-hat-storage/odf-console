@@ -172,7 +172,11 @@ const nameSort = (a: NodeData, b: NodeData, direction: SortByDirection) => {
 
 // Sort by number of taints; asc = untainted first, desc = most-tainted first
 // (groups tainted nodes together). Falls back to name for a stable order.
-const taintsSort = (a: NodeData, b: NodeData, direction: SortByDirection) => {
+export const taintsSort = (
+  a: NodeData,
+  b: NodeData,
+  direction: SortByDirection
+) => {
   const negation = direction !== SortByDirection.asc;
   const sortVal = (a.spec?.taints?.length ?? 0) - (b.spec?.taints?.length ?? 0);
   if (sortVal !== 0) {
@@ -185,7 +189,7 @@ const taintsSort = (a: NodeData, b: NodeData, direction: SortByDirection) => {
 // Unified free-text filter: fuzzy, case-insensitive matching (repo standard,
 // cf. HealthOverview/s3-browser) of the typed query against the node name, any
 // label key/value, or any taint key/value.
-const matchesNodeQuery = (node: NodeData, query: string): boolean => {
+export const matchesNodeQuery = (node: NodeData, query: string): boolean => {
   if (!query) {
     return true;
   }
