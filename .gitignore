@@ -12,6 +12,12 @@ yarn-error.log
 test-report.html
 .vscode/launch.json
 
+# CVE sweep/report output
+cve-report-*.md
+cve-report-*.json
+cve-sweep-result.json
+sweep-output.txt
+
 # Yarn v4 (Berry)
 .yarn/*
 install-state.gz

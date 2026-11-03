@@ -104,6 +104,8 @@ module.exports = {
           './jest/setup.ts',
           './cypress/**',
           './analyzeTest.ts',
+          './webpack.config.ts',
+          './scripts/**',
         ],
         optionalDependencies: false,
         peerDependencies: false,

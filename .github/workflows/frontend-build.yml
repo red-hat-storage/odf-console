@@ -9,18 +9,24 @@ on:
 jobs:
   sanity-checks:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         node-version: [20.19.2, 22]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - run: corepack enable
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
       - name: Install dependencies
         run: yarn install --immutable
+      - name: Check shared module alignment
+        run: yarn tsx scripts/check-shared-modules.mts
       - run: yarn build
       - run: yarn build-mco
       - run: yarn build-client
