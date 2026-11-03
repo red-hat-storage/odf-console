@@ -1092,12 +1092,7 @@ export type Condition = {
 };
 
 export type ThinDiskType =
-  | 'no'
-  | 'nvme'
-  | 'nvme-thin'
-  | 'scsi'
-  | 'scsi-recl'
-  | 'auto';
+  'no' | 'nvme' | 'nvme-thin' | 'scsi' | 'scsi-recl' | 'auto';
 
 export type LocalDiskType = 'shared' | 'partially-shared' | 'unshared';
 

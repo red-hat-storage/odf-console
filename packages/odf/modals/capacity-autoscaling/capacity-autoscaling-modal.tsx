@@ -67,8 +67,7 @@ const CapacityAutoscalingCurrentStatus: React.FC<
   const { t } = useCustomTranslation();
 
   let StatusIcon:
-    | React.ComponentClass<SVGIconProps>
-    | React.FC<ColoredIconProps>;
+    React.ComponentClass<SVGIconProps> | React.FC<ColoredIconProps>;
   let statusText: string;
   switch (currentStatus) {
     case CapacityAutoscalingStatus.NotStarted:

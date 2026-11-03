@@ -117,8 +117,7 @@ export type MapLimitsRequest = {
   xMutator?: XMutator;
   description?: string | ((result: PrometheusResult, index: number) => string);
   thresholdDescription?:
-    | string
-    | ((result: PrometheusResult, index: number) => string);
+    string | ((result: PrometheusResult, index: number) => string);
   t?: any;
 };
 
