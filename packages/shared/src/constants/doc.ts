@@ -39,3 +39,8 @@ export const externalSystemsDoc = (odfDocVersion: string): string =>
   `${odfDocBasePath(
     odfDocVersion
   )}/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhods`;
+
+export const iamUserDoc = (odfDocVersion: string): string =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/managing_hybrid_and_multicloud_resources/index#creating_and_managing_iam_user`;
