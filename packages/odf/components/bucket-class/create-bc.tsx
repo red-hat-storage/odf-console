@@ -204,7 +204,7 @@ const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
           },
         },
       };
-    } else {
+    } else if (state.bucketClassType === BucketClassType.NAMESPACE) {
       switch (state.namespacePolicyType) {
         case NamespacePolicyType.SINGLE:
           payload = {
@@ -457,6 +457,13 @@ const CreateBucketClass: React.FC = () => {
             state={state}
             dispatcher={dispatch}
             namespace={namespace}
+          />
+        ) : state.bucketClassType === BucketClassType.VECTOR ? (
+          <SingleNamespaceStorePage
+            state={state}
+            dispatch={dispatch}
+            namespace={namespace}
+            launchModal={launchNamespaceStoreModal}
           />
         ) : (
           renderNamespaceStorePage()
