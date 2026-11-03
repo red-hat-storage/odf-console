@@ -67,7 +67,7 @@ export const reducer = (state: State, action: Action) => {
     case 'setBucketClassName':
       return Object.assign({}, state, { bucketClassName: action.name });
     case 'setBucketClassType':
-      return Object.assign({}, state, { bucketClassType: action.value });
+      return Object.assign({}, initialState, { bucketClassType: action.value });
     case 'setNamespacePolicyType':
       return Object.assign({}, state, { namespacePolicyType: action.value });
     case 'setReadNamespaceStore':
