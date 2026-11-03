@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v7
       - name: Login to Quay Registry
         run: echo ${{ secrets.QUAY_SECRET }} | docker login quay.io -u ${{ secrets.QUAY_UNAME }} --password-stdin
       - name: Get the version
