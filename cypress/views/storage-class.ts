@@ -33,14 +33,10 @@ export const createStorageClass = (
 
   cy.log('Selecting Ceph RBD provisioner');
   cy.byTestID('storage-class-provisioner-dropdown').click();
-  cy.byLegacyTestID('dropdown-text-filter').type(
+  cy.byTestID('console-select-search-input').type(
     'openshift-storage.rbd.csi.ceph.com'
   );
-  cy.byTestID('dropdown-menu-item-link').should(
-    'contain',
-    'openshift-storage.rbd.csi.ceph.com'
-  );
-  cy.byTestID('dropdown-menu-item-link').click();
+  cy.contains('openshift-storage.rbd.csi.ceph.com').click();
 
   if (encrypted) {
     cy.log('Enabling encryption');
