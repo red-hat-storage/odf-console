@@ -2,6 +2,12 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
+export interface AuditInstance {
+  version: string;
+  /** Immediate parent package names (for nested resolutions like eslint/ajv). */
+  parents: string[];
+}
+
 export interface AuditEntry {
   value: string;
   children?: {
@@ -11,8 +17,26 @@ export interface AuditEntry {
     Severity?: string;
     'Vulnerable Versions'?: string;
     'Tree Versions'?: string[];
+    Instances?: AuditInstance[];
   };
 }
+
+/** `eslint>ajv` / `@scope/pkg>dep>ajv` → immediate parent name. */
+const parentFromClassicPath = (depPath: string): string | null => {
+  const segs = depPath.split('>').filter(Boolean);
+  if (segs.length < 2) return null;
+  return segs[segs.length - 2] || null;
+};
+
+/** `eslint@npm:8.57.0` / `@scope/pkg@workspace:.` → package name. */
+export const nameFromLocator = (locator: string): string | null => {
+  const m = locator.match(/^(.*?)@(?:npm|workspace|patch):/);
+  return m?.[1] || null;
+};
+
+const unique = (items: string[]): string[] => [
+  ...new Set(items.filter(Boolean)),
+];
 
 export const runAudit = (opts: {
   severity?: string | null;
@@ -79,6 +103,18 @@ export const runAudit = (opts: {
         // Yarn Classic emits { type, data: { advisory } }; normalize to Berry shape.
         if (!berry && parsed.type === 'auditAdvisory') {
           const a = parsed.data.advisory;
+          const instances: AuditInstance[] = (a.findings || [])
+            .filter((f: { version?: string }) => f.version)
+            .map(
+              (f: { version: string; paths?: string[] }): AuditInstance => ({
+                version: f.version,
+                parents: unique(
+                  (f.paths || [])
+                    .map(parentFromClassicPath)
+                    .filter((p): p is string => Boolean(p))
+                ),
+              })
+            );
           return {
             value: a.module_name,
             children: {
@@ -87,14 +123,35 @@ export const runAudit = (opts: {
               URL: a.url,
               Severity: a.severity,
               'Vulnerable Versions': a.vulnerable_versions,
-              'Tree Versions': (a.findings || [])
-                .map((f: { version?: string }) => f.version)
-                .filter(Boolean),
+              'Tree Versions': unique(instances.map((i) => i.version)),
+              Instances: instances,
             },
           } as AuditEntry;
         }
         if (!berry && parsed.type) return null;
-        return parsed as AuditEntry;
+
+        // Berry: Dependents correlate to Tree Versions only when there is a
+        // single vulnerable version; otherwise leave parents empty so the
+        // sweep won't invent wrong nested pins.
+        const treeVersions: string[] = parsed.children?.['Tree Versions'] || [];
+        const dependents = unique(
+          (parsed.children?.Dependents || [])
+            .map(nameFromLocator)
+            .filter((p: string | null): p is string => Boolean(p))
+        ).filter((p: string) => p !== parsed.value);
+        const instances: AuditInstance[] =
+          treeVersions.length === 1
+            ? [{ version: treeVersions[0], parents: dependents }]
+            : treeVersions.map((version) => ({ version, parents: [] }));
+
+        return {
+          value: parsed.value,
+          children: {
+            ...parsed.children,
+            'Tree Versions': treeVersions,
+            Instances: instances,
+          },
+        } as AuditEntry;
       } catch {
         return null;
       }
