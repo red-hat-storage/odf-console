@@ -14,8 +14,8 @@ import {
   ModalVariant,
   Title,
   Label,
-  Flex,
-  FlexItem,
+  InputGroup,
+  InputGroupItem,
 } from '@patternfly/react-core';
 import { CopyIcon, EyeIcon, EyeSlashIcon } from '@patternfly/react-icons';
 
@@ -117,30 +117,34 @@ export const AccessKeySecretKeyDisplayModal: React.FC<
             <TextInput readOnly readOnlyVariant="plain" value={AccessKeyId} />
           </FormGroup>
           <FormGroup label={t('Secret key')}>
-            <Flex spaceItems={{ default: 'spaceItemsNone' }}>
-              <FlexItem>
+            <InputGroup>
+              <InputGroupItem isFill>
                 <TextInput
                   readOnly
                   readOnlyVariant="plain"
-                  value={!hide ? SecretKey : '*'.repeat(SecretKey.length)}
+                  type={hide ? 'password' : 'text'}
+                  value={SecretKey}
                 />
-              </FlexItem>
-              <FlexItem>
+              </InputGroupItem>
+              <InputGroupItem>
                 <Button
+                  icon={hide ? <EyeIcon /> : <EyeSlashIcon />}
                   variant="plain"
+                  aria-label={t('Toggle secret visibility')}
                   onClick={() => {
                     setHide(!hide);
                   }}
-                >
-                  {hide ? <EyeIcon /> : <EyeSlashIcon />}
-                </Button>
-              </FlexItem>
-              <FlexItem>
-                <Button variant="plain" onClick={handleCopy}>
-                  <CopyIcon />
-                </Button>
-              </FlexItem>
-            </Flex>
+                />
+              </InputGroupItem>
+              <InputGroupItem>
+                <Button
+                  icon={<CopyIcon />}
+                  variant="plain"
+                  aria-label={t('Copy to clipboard')}
+                  onClick={handleCopy}
+                />
+              </InputGroupItem>
+            </InputGroup>
           </FormGroup>
         </FormSection>
       </Form>
