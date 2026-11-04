@@ -3,7 +3,10 @@ import {
   TEST_FAILOVER_DRYRUN_ANNOTATION,
 } from '@odf/mco/constants';
 import { DRPlacementControlKind, VRGConditionReason } from '@odf/mco/types';
-import { getLastAppDeploymentClusterName } from '@odf/mco/utils';
+import {
+  getLastAppDeploymentClusterName,
+  isDiscoveredDRPC,
+} from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { getAnnotations } from '@odf/shared/selectors';
 import {
@@ -21,6 +24,8 @@ type ProgressionFields = Pick<
   | 'applicationName'
   | 'dryRun'
   | 'testFailoverCleanupCluster'
+  | 'drpcName'
+  | 'drpcNamespace'
 >;
 
 /**
@@ -36,13 +41,13 @@ type ProgressionFields = Pick<
 const getTestFailoverCleanupCluster = (
   drPlacementControl: DRPlacementControlKind
 ): string | undefined => {
-  const hasTestAnnotation =
-    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
-    'true';
-
   // Ramen keeps the annotation until cleanup is done, so this is "a test ran
   // and has now ended".
-  if (drPlacementControl.spec?.dryRun || !hasTestAnnotation) {
+  if (
+    drPlacementControl.spec?.dryRun ||
+    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] !==
+      'true'
+  ) {
     return undefined;
   }
 
@@ -55,12 +60,11 @@ const getTestFailoverCleanupCluster = (
   // re-points the action and leaves the deployment cluster behind. Mirrors
   // Ramen's isFailoverPromotion(), dryRun included so the three conditions read
   // together even though the guard above has already ruled it out.
-  const isPromotion =
-    drPlacementControl.spec?.action === DRActionType.FAILOVER &&
+  return drPlacementControl.spec?.action === DRActionType.FAILOVER &&
     testCluster === getLastAppDeploymentClusterName(drPlacementControl) &&
-    !drPlacementControl.spec?.dryRun;
-
-  return isPromotion ? undefined : testCluster;
+    !drPlacementControl.spec?.dryRun
+    ? undefined
+    : testCluster;
 };
 
 const parseTime = (value?: string): number => {
@@ -123,11 +127,6 @@ export const getProgressionFields = (
       'drplacementcontrol.ramendr.openshift.io/app-namespace'
     ];
 
-  // Check if it's a discovered app: has protectedNamespaces defined and non-empty
-  const isDiscoveredApp =
-    drPlacementControl.spec?.protectedNamespaces !== undefined &&
-    drPlacementControl.spec.protectedNamespaces.length > 0;
-
   return {
     progression: drPlacementControl.status?.progression,
     actionStartTime: drPlacementControl.status?.actionStartTime,
@@ -137,6 +136,8 @@ export const getProgressionFields = (
       getTestFailoverCleanupCluster(drPlacementControl),
     progressionDetails: detailMessages.length ? detailMessages : undefined,
     applicationName,
-    isDiscoveredApp,
+    isDiscoveredApp: isDiscoveredDRPC(drPlacementControl),
+    drpcName: drPlacementControl.metadata?.name,
+    drpcNamespace: drPlacementControl.metadata?.namespace,
   };
 };
