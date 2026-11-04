@@ -257,6 +257,66 @@ describe('DRStatusPopover Component', () => {
     );
   });
 
+  // DFBUGS-8070: reverting a dry run puts the phase back to Deployed and
+  // restores a now-stale lastGroupSyncTime. That used to fall through to the
+  // replication-health check and report a spurious Warning on a healthy
+  // workload, while the cleanup itself was shown nowhere.
+  it('renders Cleaning up rather than a stale-sync Warning during a dry-run revert', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.Deployed,
+          progression: Progression.CleaningUp,
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+          kubeObjectReplicationHealth: VolumeReplicationHealth.WARNING,
+          testFailoverCleanupCluster: 'test-cluster',
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      /Cleaning up/
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Cleaning up/
+    );
+    // The global t() mock does not interpolate, so assert on the branch rather
+    // than the resolved cluster name.
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Removing the failover test resources from cluster/
+    );
+    expect(screen.getByTestId('popover-description')).not.toHaveTextContent(
+      /left behind by the last operation/
+    );
+  });
+
+  // The same stale timestamp crosses into Critical once it exceeds 3x the
+  // scheduling interval, so a longer dry run must not turn the status red.
+  it('keeps showing Cleaning up when the stale sync has aged into Critical', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.Deployed,
+          progression: Progression.CleaningUp,
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+          kubeObjectReplicationHealth: VolumeReplicationHealth.CRITICAL,
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Cleaning up/
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Removing resources left behind by the last operation/
+    );
+  });
+
   it('renders Critical state when replication health is critical', async () => {
     const criticalStatus: DRStatusProps = {
       ...baseStatus,
@@ -668,7 +728,7 @@ describe('DRStatusPopover Component', () => {
         expectedStatus: 'Relocated',
         overrides: {
           phase: Phase.Relocated,
-          progression: 'CleaningUp',
+          progression: Progression.CleaningUp,
           volumeLastGroupSyncTime: noSync,
         },
       },

@@ -73,6 +73,7 @@ const DR_STATUS_CLASS_NAMES = {
   UNKNOWN: 'dr-status-unknown',
   PROTECTING: 'dr-status-protecting',
   PROTECTION_ERROR: 'dr-status-protection-error',
+  CLEANING_UP: 'dr-status-cleaning-up',
 } as const;
 
 const shouldShowSyncDetails = ({
@@ -117,13 +118,18 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.Protecting]: <InProgressIcon />,
     [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
     [DRStatus.TestingFailover]: <InProgressIcon />,
+    [DRStatus.CleaningUp]: <InProgressIcon />,
   };
 
   return iconMap[status] ?? null;
 };
 
-const getStatusLabel = (status: DRStatus, t: TFunction): string =>
-  status === DRStatus.WaitForUser ? t('Action needed') : status;
+const getStatusLabel = (status: DRStatus, t: TFunction): string => {
+  if (status === DRStatus.WaitForUser) return t('Action needed');
+  // Ramen spells this "Cleaning Up"; show a translated, sentence-cased label.
+  if (status === DRStatus.CleaningUp) return t('Cleaning up');
+  return status;
+};
 
 const DescriptionItem: React.FC<{ term: string; description?: string }> = ({
   term,
@@ -572,6 +578,21 @@ const getDRStatusDetails = ({
           { primaryCluster }
         ),
         DR_STATUS_CLASS_NAMES.FAILOVER
+      );
+
+    case DRStatus.CleaningUp:
+      return createStatus(
+        DRStatus.CleaningUp,
+        t('Cleaning up'),
+        testFailoverCleanupCluster
+          ? t(
+              'Removing the failover test resources from cluster {{cluster}}. No action is needed.',
+              { cluster: testFailoverCleanupCluster }
+            )
+          : t(
+              'Removing resources left behind by the last operation. No action is needed.'
+            ),
+        DR_STATUS_CLASS_NAMES.CLEANING_UP
       );
 
     case DRStatus.FailingOver:
