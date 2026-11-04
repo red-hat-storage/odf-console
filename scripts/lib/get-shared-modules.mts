@@ -7,6 +7,22 @@ const projectRoot = path.resolve(scriptDir, '../..');
 
 let cached: string[] | null = null;
 
+const SHARED_MODULES_META =
+  '@openshift-console/dynamic-plugin-sdk-webpack/lib/shared-modules/shared-modules-meta.js';
+// Pre-4.21 SDK packages export the list from lib/shared-modules.js instead.
+const SHARED_MODULES_LEGACY =
+  '@openshift-console/dynamic-plugin-sdk-webpack/lib/shared-modules.js';
+
+const loadSharedPluginModules = (req: NodeRequire): string[] => {
+  try {
+    const meta = req(SHARED_MODULES_META);
+    return meta.sharedPluginModules || [];
+  } catch {
+    const legacy = req(SHARED_MODULES_LEGACY);
+    return legacy.sharedPluginModules || [];
+  }
+};
+
 /**
  * Returns the list of shared plugin modules from the Console SDK,
  * merged with its peerDependencies.
@@ -19,12 +35,9 @@ export const getSharedModules = (): string[] => {
   if (cached) return cached;
 
   const req = createRequire(path.join(projectRoot, 'package.json'));
-  const meta = req(
-    '@openshift-console/dynamic-plugin-sdk-webpack/lib/shared-modules/shared-modules-meta.js'
-  );
+  const fromSdk = loadSharedPluginModules(req);
   const sdkPkg = req('@openshift-console/dynamic-plugin-sdk/package.json');
 
-  const fromSdk: string[] = meta.sharedPluginModules || [];
   const fromPeers: string[] = Object.keys(sdkPkg.peerDependencies || {});
 
   const all = new Set([...fromSdk, ...fromPeers]);
