@@ -12,7 +12,7 @@ import {
   ValidatedOptions,
 } from '@patternfly/react-core';
 import { validateConnectionName } from '../../constants';
-import { VaultConfig, ThalesConfig } from '../../types';
+import { VaultConfig, KmipConfig } from '../../types';
 import { parseURL, isValidEndpoint, isValidName } from './utils';
 
 export const NameAddrPort: React.FC<NameAddrPortProps> = ({
@@ -160,9 +160,9 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
 };
 
 export type NameAddrPortProps = {
-  kmsState: VaultConfig | ThalesConfig;
+  kmsState: VaultConfig | KmipConfig;
   className: string;
-  kmsStateClone: VaultConfig | ThalesConfig;
-  updateKmsState: (kmsConfig: VaultConfig | ThalesConfig) => void;
+  kmsStateClone: VaultConfig | KmipConfig;
+  updateKmsState: (kmsConfig: VaultConfig | KmipConfig) => void;
   canAcceptIP: boolean;
 };
