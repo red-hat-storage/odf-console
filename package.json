@@ -159,7 +159,7 @@
     "redux": "~5.0.1",
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.107.1",
-    "sass-loader": "^16.0.7",
+    "sass-loader": "^17.1.0",
     "semver": "^7.8.5",
     "swr": "^2.5.1",
     "thread-loader": "^4.0.4",
