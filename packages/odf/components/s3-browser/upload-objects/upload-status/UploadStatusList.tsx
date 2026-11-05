@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { observer } from 'mobx-react-lite';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List } from 'react-window';
 import { uploadStore } from '../store';
 import { UploadProgress, UploadStatus } from '../types';
@@ -43,8 +43,8 @@ export const UploadStatusList: React.FC<UploadStatusListProps> = observer(
   () => {
     const items = Array.from(Object.values(uploadStore.getAll));
     return (
-      <AutoSizer>
-        {({ height, width }) => (
+      <AutoSizer
+        renderProp={({ height, width }) => (
           <List<{ items: UploadProgress[] }>
             height={height}
             itemCount={items.length}
@@ -55,7 +55,7 @@ export const UploadStatusList: React.FC<UploadStatusListProps> = observer(
             {UploadStatusListRow}
           </List>
         )}
-      </AutoSizer>
+      />
     );
   }
 );
