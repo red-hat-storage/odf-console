@@ -253,6 +253,10 @@ type StorageConsumerSpec = {
   volumeGroupSnapshotClasses?: {
     name: string;
   }[];
+  clientCAConfigMap?: {
+    name: string;
+  };
+  clientSAN?: string;
 };
 
 type CephResourcesSpec = {
