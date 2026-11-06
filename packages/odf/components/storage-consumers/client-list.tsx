@@ -54,6 +54,7 @@ import {
 } from './list-filter';
 import { StorageQuotaUtilizationProgress } from './QuotaUtilizationProgress';
 import { RotateKeysModal } from './rotate-keys-modal';
+import { ViewServerCAModal } from './view-server-ca-modal';
 import './client-list.scss';
 
 export const getClusterName = (client: StorageConsumerKind) => {
@@ -470,9 +471,16 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
         </Button>
         <Button
           variant="tertiary"
+          className="pf-v6-u-mr-sm"
           onClick={launchModalOnClick(RotateKeysModal)}
         >
           {t('Rotate signing keys')}
+        </Button>
+        <Button
+          variant="tertiary"
+          onClick={launchModalOnClick(ViewServerCAModal)}
+        >
+          {t('View Server CA')}
         </Button>
       </ListPageHeader>
       <ListPageBody>
