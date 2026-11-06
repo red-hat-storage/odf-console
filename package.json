@@ -128,7 +128,7 @@
     "fork-ts-checker-webpack-plugin": "^9.1.0",
     "fuzzysearch": "^1.0.3",
     "i18next": "^25.8.18",
-    "i18next-conv": "^16.0.0",
+    "i18next-conv": "^17.0.0",
     "immer": "^11.2.9",
     "is-ip": "^5.0.1",
     "js-base64": "^3.9.5",
