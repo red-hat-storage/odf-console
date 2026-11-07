@@ -5,7 +5,7 @@ import {
   useSubscriptionResourceWatch,
 } from '@odf/mco/hooks';
 import { useDisasterRecoveryResourceWatch } from '@odf/mco/hooks';
-import { Phase } from '@odf/mco/types';
+import { Phase, Progression } from '@odf/mco/types';
 import {
   findCluster,
   getDRPolicyName,
@@ -119,11 +119,15 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
 
     const mostSevereHealthStatus = getMostSevereHealthStatus(drStatusList);
 
-    const drpcInAction = drStatusList.find((status) =>
-      [Phase.FailingOver, Phase.Relocating].includes(status.phase as Phase)
-    );
-
-    const selectedDRPC = drpcInAction || drStatusList[0];
+    const selectedDRPC =
+      drStatusList.find(
+        (status) =>
+          [Phase.FailingOver, Phase.Relocating].includes(
+            status.phase as Phase
+          ) ||
+          status.dryRun ||
+          status.progression === Progression.TestingFailover
+      ) || drStatusList[0];
 
     return selectedDRPC
       ? {
@@ -141,6 +145,10 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
           progressionDetails: selectedDRPC.progressionDetails,
           applicationName: selectedDRPC.applicationName,
           protectedCondition: selectedDRPC.protectedCondition,
+          dryRun: selectedDRPC.dryRun,
+          testFailoverCleanupCluster: selectedDRPC.testFailoverCleanupCluster,
+          drpcName: selectedDRPC.drpcName,
+          drpcNamespace: selectedDRPC.drpcNamespace,
         }
       : null;
   }, [isLoadedWOError, subscriptionResourceList]);
@@ -169,6 +177,10 @@ type DRStatusForGroup = {
   | 'applicationName'
   | 'protectedCondition'
   | 'availableCondition'
+  | 'dryRun'
+  | 'testFailoverCleanupCluster'
+  | 'drpcName'
+  | 'drpcNamespace'
 >;
 
 export default SubscriptionParser;

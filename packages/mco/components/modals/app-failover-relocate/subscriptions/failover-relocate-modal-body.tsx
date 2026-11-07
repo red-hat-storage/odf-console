@@ -9,7 +9,11 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Flex, FlexItem, Alert, AlertVariant } from '@patternfly/react-core';
-import { DRActionType, ACM_OPERATOR_SPEC_NAME } from '../../../../constants';
+import {
+  DRActionType,
+  ACM_OPERATOR_SPEC_NAME,
+  ReplicationType,
+} from '../../../../constants';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -54,6 +58,7 @@ export const findErrorMessage = (
 ) =>
   [
     errorMessage.drPolicyControlStateErrorMessage,
+    errorMessage.testFailoverErrorMessage,
     errorMessage.managedClustersErrorMessage,
     errorMessage.targetClusterErrorMessage,
     errorMessage.subscriptionGroupErrorMessage,
@@ -90,7 +95,7 @@ const MessageStatus: React.FC<MessageKind> = ({ title, variant, message }) => (
 export const FailoverRelocateModalBody: React.FC<
   FailoverRelocateModalBodyProps
 > = (props) => {
-  const { application, action, state, dispatch } = props;
+  const { application, action, state, dispatch, isTestFailover } = props;
   const { t } = useCustomTranslation();
 
   const response = useK8sWatchResources<DRActionWatchResourceType>(
@@ -223,6 +228,21 @@ export const FailoverRelocateModalBody: React.FC<
     t,
   ]);
 
+  const isMetroTest =
+    !!isTestFailover &&
+    state.selectedDRPolicy.replicationType === ReplicationType.SYNC;
+
+  React.useEffect(() => {
+    dispatch({
+      type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
+      payload: {
+        testFailoverErrorMessage: isMetroTest
+          ? ErrorMessageType.TEST_FAILOVER_NOT_SUPPORTED
+          : 0,
+      },
+    });
+  }, [isMetroTest, dispatch]);
+
   return loaded && !loadError ? (
     <Flex
       direction={{ default: 'column' }}
@@ -274,15 +294,20 @@ export const FailoverRelocateModalBody: React.FC<
       </Flex>
       {(state.modalFooterStatus === ModalFooterStatus.FINISHED && (
         <MessageStatus
-          {...(action === DRActionType.FAILOVER
+          {...(isTestFailover
             ? {
-                title: t('Failover initiated'),
+                title: t('Test failover started'),
                 variant: AlertVariant.success,
               }
-            : {
-                title: t('Relocate initiated'),
-                variant: AlertVariant.success,
-              })}
+            : action === DRActionType.FAILOVER
+              ? {
+                  title: t('Failover initiated'),
+                  variant: AlertVariant.success,
+                }
+              : {
+                  title: t('Relocate initiated'),
+                  variant: AlertVariant.success,
+                })}
         />
       )) ||
         ((!!findErrorMessage(state.errorMessage, true) ||
@@ -308,6 +333,7 @@ type FailoverRelocateModalBodyProps = {
   action: DRActionType;
   state: FailoverAndRelocateState;
   dispatch: React.Dispatch<FailoverAndRelocateAction>;
+  isTestFailover?: boolean;
 };
 
 type DRActionWatchResourceType = {

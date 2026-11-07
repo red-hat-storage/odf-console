@@ -275,4 +275,33 @@ describe('Discovered application failover/relocate modal test', () => {
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /Initiate/i })).toBeEnabled();
   });
+
+  test('Starts a test failover with spec.dryRun', async () => {
+    const user = userEvent.setup();
+    type = 1;
+
+    render(
+      <ArogoApplicationSetParser
+        application={mockApplicationSet1}
+        action={DRActionType.FAILOVER}
+        isOpen={true}
+        close={jest.fn()}
+        isTestFailover
+      />
+    );
+
+    expect(
+      screen.getByRole('dialog', { name: /Test Disaster Recovery \(DR\)/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText('DR test readiness:')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Start' }));
+
+    expect(patchObj).toEqual([
+      { op: 'replace', path: '/spec/action', value: 'Failover' },
+      { op: 'replace', path: '/spec/failoverCluster', value: 'west-1' },
+      { op: 'replace', path: '/spec/preferredCluster', value: 'east-1' },
+      { op: 'add', path: '/spec/dryRun', value: true },
+    ]);
+  });
 });

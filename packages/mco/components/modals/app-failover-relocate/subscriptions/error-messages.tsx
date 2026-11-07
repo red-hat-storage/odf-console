@@ -19,6 +19,7 @@ export enum ErrorMessageType {
   PRIMARY_CLUSTER_IS_NOT_FENCED,
   TARGET_CLUSTER_IS_FENCED,
   NO_SUBSCRIPTION_GROUP_FOUND,
+  TEST_FAILOVER_NOT_SUPPORTED,
   // Warning Messages
   VOLUME_SYNC_DELAY_FAILOVER,
   VOLUME_SYNC_DELAY_RELOCATE,
@@ -247,6 +248,13 @@ export const ErrorMessages = (
   },
   [ErrorMessageType.NO_SUBSCRIPTION_GROUP_FOUND]: {
     title: t('No subscription groups are found.'),
+    variant: AlertVariant.danger,
+  },
+  [ErrorMessageType.TEST_FAILOVER_NOT_SUPPORTED]: {
+    title: t('Cannot test failover.'),
+    message: t(
+      'Testing is supported only for applications protected by a Regional-DR policy. A Metro-DR failover requires fencing the primary cluster.'
+    ),
     variant: AlertVariant.danger,
   },
   [ErrorMessageType.VOLUME_SYNC_DELAY_FAILOVER]: {

@@ -14,6 +14,7 @@ import {
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import {
+  BlueInfoCircleIcon,
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
@@ -36,6 +37,7 @@ import {
 } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
 import { ProgressionTrainView } from './progression-train-view';
+import { TestFailoverHoldAlert } from './test-failover-actions';
 import './dr-status-popover.scss';
 
 export type DRStatusProps = {
@@ -61,6 +63,8 @@ export type DRStatusProps = {
   dryRun?: boolean;
   // Cluster left holding the test workload after a failover test is reverted.
   testFailoverCleanupCluster?: string;
+  drpcName?: string;
+  drpcNamespace?: string;
 };
 
 const DR_STATUS_CLASS_NAMES = {
@@ -117,13 +121,26 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.Protecting]: <InProgressIcon />,
     [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
     [DRStatus.TestingFailover]: <InProgressIcon />,
+    [DRStatus.TestFailoverPaused]: <InProgressIcon />,
+    [DRStatus.TestFailoverActionRequired]: <BlueInfoCircleIcon />,
   };
 
   return iconMap[status] ?? null;
 };
 
-const getStatusLabel = (status: DRStatus, t: TFunction): string =>
-  status === DRStatus.WaitForUser ? t('Action needed') : status;
+const getStatusLabel = (status: DRStatus, t: TFunction): string => {
+  if (status === DRStatus.WaitForUser) return t('Action needed');
+  if (
+    status === DRStatus.TestingFailover ||
+    status === DRStatus.TestFailoverPaused
+  ) {
+    return t('Preparing');
+  }
+  if (status === DRStatus.TestFailoverActionRequired) {
+    return t('Action needed');
+  }
+  return status;
+};
 
 const DescriptionItem: React.FC<{ term: string; description?: string }> = ({
   term,
@@ -566,12 +583,27 @@ const getDRStatusDetails = ({
     case DRStatus.TestingFailover:
       return createStatus(
         DRStatus.TestingFailover,
-        t('Failover test active'),
-        t(
-          'Non-disruptive test in progress. Primary cluster {{primaryCluster}} is unaffected.',
-          { primaryCluster }
-        ),
+        targetCluster
+          ? t('Testing failover to {{targetCluster}}', { targetCluster })
+          : t('Testing Failover'),
+        '',
         DR_STATUS_CLASS_NAMES.FAILOVER
+      );
+
+    case DRStatus.TestFailoverPaused:
+      return createStatus(
+        DRStatus.TestFailoverPaused,
+        t('Awaiting resync'),
+        '',
+        DR_STATUS_CLASS_NAMES.FAILOVER
+      );
+
+    case DRStatus.TestFailoverActionRequired:
+      return createStatus(
+        DRStatus.TestFailoverActionRequired,
+        t('Failover Test - User action required'),
+        '',
+        DR_STATUS_CLASS_NAMES.ACTION_NEEDED
       );
 
     case DRStatus.FailingOver:
@@ -681,7 +713,46 @@ const DRStatusPopoverBody: React.FC<{
   message?: string | React.ReactNode;
   disasterRecoveryStatus: DRStatusProps;
   cleanupDocHref?: string;
-}> = ({ status, message, disasterRecoveryStatus, cleanupDocHref }) => {
+  onConvertTest?: () => void;
+}> = ({
+  status,
+  message,
+  disasterRecoveryStatus,
+  cleanupDocHref,
+  onConvertTest,
+}) => {
+  if (
+    status === DRStatus.TestingFailover ||
+    status === DRStatus.TestFailoverPaused ||
+    status === DRStatus.TestFailoverActionRequired
+  ) {
+    return (
+      <ProgressionTrainView
+        action={disasterRecoveryStatus.action || DRActionType.FAILOVER}
+        currentProgression={disasterRecoveryStatus.progression}
+        applicationName={
+          disasterRecoveryStatus.applicationName || 'Application'
+        }
+        actionStartTime={disasterRecoveryStatus.actionStartTime}
+        progressionDetails={disasterRecoveryStatus.progressionDetails}
+        isTest
+        isTestPaused={status === DRStatus.TestFailoverPaused}
+        isTestHold={status === DRStatus.TestFailoverActionRequired}
+        holdAlert={
+          status === DRStatus.TestFailoverActionRequired ? (
+            <TestFailoverHoldAlert
+              drpcName={disasterRecoveryStatus.drpcName}
+              drpcNamespace={disasterRecoveryStatus.drpcNamespace}
+              homeCluster={disasterRecoveryStatus.primaryCluster}
+              dryRun={disasterRecoveryStatus.dryRun}
+              onConvert={onConvertTest}
+            />
+          ) : undefined
+        }
+      />
+    );
+  }
+
   // Determine which cluster the user should clean up, based on action and phase.
   // - Failover: always clean up the failed/source cluster (the non-primary cluster).
   // - Relocate (discovered apps): cleanup happens first, before migration, on the current primary.
@@ -734,7 +805,6 @@ const DRStatusPopoverBody: React.FC<{
         DRStatus.Relocating,
         DRStatus.FailedOver,
         DRStatus.Relocated,
-        DRStatus.TestingFailover,
       ].includes(status) && (
         <div className="dr-status-popover__cluster-details">
           <ClusterDetails
@@ -816,6 +886,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
               message={message}
               disasterRecoveryStatus={disasterRecoveryStatus}
               cleanupDocHref={cleanupDocHref}
+              onConvertTest={() => setIsVisible(false)}
             />
 
             {shouldShowSyncDetails({

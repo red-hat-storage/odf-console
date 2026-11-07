@@ -49,10 +49,11 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
       const prevPhase = prevApp.status?.phase;
       const currentPhase = currentApp.status?.phase;
 
-      // Detect failover completion
+      // Detect failover completion (excluding test failovers)
       if (
         prevPhase === Phase.FailingOver &&
-        currentPhase === Phase.FailedOver
+        currentPhase === Phase.FailedOver &&
+        !currentApp.spec?.dryRun
       ) {
         const failoverCluster =
           currentApp.spec?.failoverCluster ||
