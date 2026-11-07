@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { getDiscoveredDeviceKey } from '@odf/core/components/utils';
+import {
+  getDiscoveredDeviceKey,
+  getTolerationsFromNodes,
+} from '@odf/core/components/utils';
 import { NodeType } from '@odf/core/constants';
 import {
   DiscoveredDevice,
@@ -7,34 +10,49 @@ import {
 } from '@odf/core/types/scale';
 import { UX_BACKEND_PROXY_ROOT_PATH } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks';
+import { Toleration } from '@odf/shared/types';
 import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { WizardNodeState } from '../../reducer';
 
 const DEVICE_FINDER_ENDPOINT = `${UX_BACKEND_PROXY_ROOT_PATH}/cnsa/devicefinder`;
 
+// Builds the shared devicefinder request body so the POST and PUT bodies cannot
+// drift. Tolerations are included only when present so the common no-taint case
+// sends the exact body as before (and matches the backend's omitempty).
+export const buildDiscoveryRequestBody = (
+  selectedHostnames: string[],
+  tolerations: Toleration[] = []
+) => ({
+  nodeSelector: {
+    nodeSelectorTerms: [
+      {
+        matchExpressions: [
+          {
+            key: 'kubernetes.io/hostname',
+            operator: 'In',
+            values: selectedHostnames,
+          },
+        ],
+      },
+    ],
+  },
+  ...(tolerations.length > 0 && { tolerations }),
+});
+
 // Starts devicefinder on disk-node hostnames only.
-const initiateDeviceFinder = async (selectedHostnames: string[]) => {
+const initiateDeviceFinder = async (
+  selectedHostnames: string[],
+  tolerations: Toleration[]
+) => {
   await consoleFetch(DEVICE_FINDER_ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      nodeSelector: {
-        nodeSelectorTerms: [
-          {
-            matchExpressions: [
-              {
-                key: 'kubernetes.io/hostname',
-                operator: 'In',
-                values: selectedHostnames,
-              },
-            ],
-          },
-        ],
-      },
-    }),
+    body: JSON.stringify(
+      buildDiscoveryRequestBody(selectedHostnames, tolerations)
+    ),
   });
 };
 
@@ -111,10 +129,13 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
         diskNodes
           ?.map((node) => node.labels?.['kubernetes.io/hostname'])
           .filter(Boolean) || [];
+      // Tolerate the taints on the disk nodes so the devicefinder daemonset can
+      // schedule onto them (it runs on these nodes only).
+      const tolerations = getTolerationsFromNodes(diskNodes);
       if (selectedHostnames.length > 0) {
         if (!discoveryStartedRef.current) {
           discoveryStartedRef.current = true;
-          initiateDeviceFinder(selectedHostnames)
+          initiateDeviceFinder(selectedHostnames, tolerations)
             .then(() => setPollingEnabled(true))
             .catch((error) => {
               discoveryStartedRef.current = false;
@@ -125,21 +146,10 @@ export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
         }
 
         // Call devicefinder with a PUT request to update selected hostnames
-        const payload = {
-          nodeSelector: {
-            nodeSelectorTerms: [
-              {
-                matchExpressions: [
-                  {
-                    key: 'kubernetes.io/hostname',
-                    operator: 'In',
-                    values: selectedHostnames,
-                  },
-                ],
-              },
-            ],
-          },
-        };
+        const payload = buildDiscoveryRequestBody(
+          selectedHostnames,
+          tolerations
+        );
 
         consoleFetch(DEVICE_FINDER_ENDPOINT, {
           method: 'PUT',

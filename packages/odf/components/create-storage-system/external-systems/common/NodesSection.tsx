@@ -150,12 +150,24 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
       ],
       [allNodes]
     );
+    // Show every role-appropriate node (incl. tainted workers). Control-plane
+    // nodes are included only when the user opts in.
     const tableNodes = React.useMemo(
       () =>
         includeControlPlaneNodes
-          ? nodesIncludingControlPlane([...workerNodes, ...controlPlaneNodes])
-          : nodesWithoutTaints(workerNodes),
+          ? [...workerNodes, ...controlPlaneNodes]
+          : workerNodes,
       [controlPlaneNodes, includeControlPlaneNodes, workerNodes]
+    );
+
+    // Pre-select only the untainted (and opted-in control-plane) nodes. Tainted
+    // workers stay visible but unchecked until the user opts into them.
+    const defaultSelectableNodes = React.useMemo(
+      () =>
+        includeControlPlaneNodes
+          ? nodesIncludingControlPlane(tableNodes)
+          : nodesWithoutTaints(tableNodes),
+      [includeControlPlaneNodes, tableNodes]
     );
 
     const onNodeSelect = React.useCallback(
@@ -180,10 +192,16 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
       }
 
       if (tableNodes.length > 0 && !selectedNodes.length) {
-        onNodeSelect(tableNodes);
+        onNodeSelect(defaultSelectableNodes);
       }
       hasInitializedSelection.current = true;
-    }, [allNodesLoaded, onNodeSelect, selectedNodes.length, tableNodes]);
+    }, [
+      allNodesLoaded,
+      onNodeSelect,
+      selectedNodes.length,
+      tableNodes,
+      defaultSelectableNodes,
+    ]);
 
     const selectedNodeNames = React.useMemo(
       () => new Set(selectedNodes.map((node) => node.name)),
@@ -224,6 +242,7 @@ export const ScaleNodesSection: React.FC<ScaleNodesSectionProps> = React.memo(
           loaded={allNodesLoaded}
           isRowSelectable={isNodeSelectable}
           nameColumnTitle={t('Node')}
+          showTaints
         />
         {selectedNodes.length > 0 && (
           <KernelDevelStatus eligibility={kernelDevelEligibility} />
