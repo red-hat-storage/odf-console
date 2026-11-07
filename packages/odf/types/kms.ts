@@ -172,10 +172,7 @@ export type AzureConfig = {
 };
 
 export type KMSConfiguration =
-  | VaultConfig
-  | HpcsConfig
-  | KmipConfig
-  | AzureConfig;
+  VaultConfig | HpcsConfig | KmipConfig | AzureConfig;
 
 export type KMSConfig = {
   providerState: KMSConfiguration;
