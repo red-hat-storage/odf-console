@@ -14,6 +14,7 @@ import {
   ClusterServiceVersionKind,
   PersistentVolumeClaimKind,
   StorageClusterKind,
+  StorageClusterPhase,
   StorageSystemKind,
 } from '@odf/shared/types';
 import { getGVKLabel } from '@odf/shared/utils/common';
@@ -73,6 +74,9 @@ export const getStorageSizeInTiBWithoutUnit = (
 
 export const getStorageAutoScalerName = (storageCluster: StorageClusterKind) =>
   `${getName(storageCluster)}-${DEFAULT_DEVICECLASS}`;
+
+export const isClusterDeleting = (storageCluster?: K8sResourceKind) =>
+  storageCluster?.status?.phase === StorageClusterPhase.Deleting;
 
 export const isOCSStorageSystem = (
   resource: K8sResourceKind
