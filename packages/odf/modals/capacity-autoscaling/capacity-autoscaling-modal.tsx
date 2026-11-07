@@ -39,6 +39,7 @@ import {
   k8sPatch,
   Patch,
   useK8sWatchResource,
+  useToast,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { SVGIconProps } from '@patternfly/react-icons/dist/esm/createIcon';
@@ -158,6 +159,8 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
     ?.filter((sc) => sc.provisioner === NO_PROVISIONER)
     .map((sc) => getName(sc));
 
+  const { addToast } = useToast();
+
   const isLoaded = storageAutoScalerLoaded && scLoaded;
   const isLoadError = storageAutoScalerLoadError || scLoadError;
 
@@ -269,6 +272,31 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
 
       setInProgress(false);
       closeModal();
+      if (!enable && alreadyEnabled) {
+        addToast({
+          title: t('Automatic capacity scaling is disabled'),
+          variant: AlertVariant.success,
+          content: '',
+          dismissible: true,
+          timeout: true,
+        });
+      } else if (enable && !alreadyEnabled) {
+        addToast({
+          title: t('Automatic capacity scaling is enabled'),
+          variant: AlertVariant.success,
+          content: '',
+          dismissible: true,
+          timeout: true,
+        });
+      } else if (enable && alreadyEnabled) {
+        addToast({
+          title: t('Automatic capacity scaling limit updated'),
+          variant: AlertVariant.success,
+          content: '',
+          dismissible: true,
+          timeout: true,
+        });
+      }
     } catch (error) {
       setError(error);
       setInProgress(false);

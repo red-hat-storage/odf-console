@@ -24,10 +24,11 @@ import {
   consoleFetch,
   K8sResourceCommon,
   useK8sWatchResource,
+  useToast,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
-import { Content, ContentVariants } from '@patternfly/react-core';
+import { AlertVariant, Content, ContentVariants } from '@patternfly/react-core';
 import { createWizardNodeState, getDeviceSetReplica } from '../utils';
 import { AttachStorageFormFooter } from './attach-storage-footer';
 import './attach-storage.scss';
@@ -92,6 +93,8 @@ const AttachStorage = () => {
     );
 
   const [nodesData, nodesLoaded, nodesLoadError] = useNodesData();
+
+  const { addToast } = useToast();
 
   const breadcrumbs = [
     {
@@ -168,6 +171,13 @@ const AttachStorage = () => {
         deviceSetCount
       );
       await sendPostRequest(payload);
+      addToast({
+        title: t('Storage attached'),
+        variant: AlertVariant.success,
+        content: t('A new storage device class set is being provisioned.'),
+        dismissible: true,
+        timeout: true,
+      });
       onClose();
     } catch (error) {
       dispatch({
@@ -195,6 +205,7 @@ const AttachStorage = () => {
     namespace,
     dispatch,
     clusterName,
+    addToast,
     onClose,
   ]);
 
