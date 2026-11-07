@@ -105,16 +105,14 @@ export const runAudit = (opts: {
           const a = parsed.data.advisory;
           const instances: AuditInstance[] = (a.findings || [])
             .filter((f: { version?: string }) => f.version)
-            .map(
-              (f: { version: string; paths?: string[] }): AuditInstance => ({
-                version: f.version,
-                parents: unique(
-                  (f.paths || [])
-                    .map(parentFromClassicPath)
-                    .filter((p): p is string => Boolean(p))
-                ),
-              })
-            );
+            .map((f: { version: string; paths?: string[] }): AuditInstance => ({
+              version: f.version,
+              parents: unique(
+                (f.paths || [])
+                  .map(parentFromClassicPath)
+                  .filter((p): p is string => Boolean(p))
+              ),
+            }));
           return {
             value: a.module_name,
             children: {
