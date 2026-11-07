@@ -31,6 +31,7 @@ export enum DRStatus {
 
   // Progressions from ramen.ts
   WaitOnUserToCleanUp = Progression.WaitOnUserToCleanUp,
+  CleaningUp = Progression.CleaningUp,
 
   // Volume replication health
   Critical = VolumeReplicationHealth.CRITICAL,
@@ -241,6 +242,17 @@ export const getDRStatus = ({
   // When schedulingInterval is 0m (e.g. FusionAccess), no replication occurs,
   // so sync will never start. Skip the hasSyncStarted gate for these policies.
   const isNoReplicationRequired = schedulingInterval === '0m';
+
+  // Reverting a failover test puts the phase back to Deployed while Ramen is
+  // still removing the test copy from the failover cluster. The revert also
+  // restores lastGroupSyncTime to its pre-test value, which is stale by then,
+  // so without this branch the status falls through to the replication-health
+  // check and reports a spurious Warning/Critical on a healthy workload.
+  // Unlike FailedOver/Relocated below, Deployed has no phase-based status to
+  // hold, so surface the cleanup itself.
+  if (phase === Phase.Deployed && progression === Progression.CleaningUp) {
+    return DRStatus.CleaningUp;
+  }
 
   if (phase === Phase.FailedOver || phase === Phase.Relocated) {
     // If sync hasn't started yet and replication is expected, show completion message (phase status)
