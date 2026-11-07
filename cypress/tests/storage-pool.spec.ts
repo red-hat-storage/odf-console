@@ -19,6 +19,7 @@ import {
   openStoragePoolKebab,
   fillStoragePoolForm,
   deleteStoragePool,
+  waitForStoragePoolForm,
 } from '../views/storage-pool';
 
 describe('Storage pools', () => {
@@ -104,6 +105,7 @@ describe('Storage pools', () => {
     beforeEach(() => {
       navigateToStoragePoolList();
       cy.byTestID('item-create').click();
+      waitForStoragePoolForm();
     });
 
     fieldValidationOnWizardFormsTests(nameFieldTestId, 'Create', () =>
