@@ -6,7 +6,11 @@ import {
 } from '@odf/core/components/utils';
 import { NetworkTypeLabels, NO_PROVISIONER } from '@odf/core/constants';
 import { FDF_FLAG } from '@odf/core/redux';
-import { BackingStorageType, DeploymentType } from '@odf/core/types';
+import {
+  BackingStorageType,
+  DeploymentType,
+  NetworkType,
+} from '@odf/core/types';
 import { getAllZone } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { StorageSizeUnitName } from '@odf/shared/types/storage';
@@ -66,7 +70,16 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   } = state;
   const { capacity, arbiterLocation, enableTaint, enableArbiter } =
     capacityAndNodes;
-  const { encryption, kms, networkType } = securityAndNetwork;
+  const { encryption, kms, networkType, addressRanges, useClusterNetwork } =
+    securityAndNetwork;
+
+  const formatCidrList = (cidrs?: string[]) =>
+    (cidrs || [])
+      .map((c) => c.trim())
+      .filter(Boolean)
+      .join(', ');
+
+  const clusterNetworkCidrSummary = formatCidrList(addressRanges?.cluster);
   const { deployment, externalStorage, type } = backingStorage;
   const { useErasureCoding, erasureCodingScheme, enableForcefulDeployment } =
     advancedSettings;
@@ -321,6 +334,15 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
                 networkType: NetworkTypeLabels[networkType],
               })}
             </ListItem>
+            {networkType === NetworkType.NIC &&
+              useClusterNetwork &&
+              !!clusterNetworkCidrSummary && (
+                <ListItem>
+                  {t('Cluster network CIDR: {{cidr}}', {
+                    cidr: clusterNetworkCidrSummary,
+                  })}
+                </ListItem>
+              )}
           </ReviewItem>
         ))}
       {isRhcs && (
