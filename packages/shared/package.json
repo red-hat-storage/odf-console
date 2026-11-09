@@ -44,7 +44,7 @@
     "sass": "^1.107.1",
     "typescript": "^5.9.3",
     "victory": "^37.4.1",
-    "victory-core": "^37.4.1",
+    "victory-core": "^38.0.0",
     "yup": "^1.7.1"
   },
   "peerDependencies": {
