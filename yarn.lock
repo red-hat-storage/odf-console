@@ -13052,17 +13052,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mobx@npm:^6.15.0":
-  version: 6.15.0
-  resolution: "mobx@npm:6.15.0"
-  checksum: 10/cf7fd4f96d521962c87883a7d41d745ba35af6130265f619e22c2d1ddff875e7f766726984f53bf5d5e215074146e6b190bc0e8668eb675cca9cb5d5204987fa
-  languageName: node
-  linkType: hard
-
 "mobx@npm:^6.9.0":
   version: 6.10.2
   resolution: "mobx@npm:6.10.2"
   checksum: 10/3c9c50cd4f499f83426b5a4058fe4eea96c35e953946328bc6ecdfa4753fc8d35fbe879ba16957b347d03e267ea775f4bfacf096c8132064509ccd6aebc0aa1a
+  languageName: node
+  linkType: hard
+
+"mobx@npm:^7.1.4":
+  version: 7.1.4
+  resolution: "mobx@npm:7.1.4"
+  checksum: 10/84febdd1a7936467d41f32fb4481bdefc9be4b4ef85acec9728be4576a4b031fdda62d45ec6b9cca4c407a4f82eb5809e0e8379345a724a4ade74f89f921d78f
   languageName: node
   linkType: hard
 
@@ -13611,7 +13611,7 @@ __metadata:
     lodash-es: "npm:^4.17.23"
     luxon: "npm:^3.7.2"
     mini-css-extract-plugin: "npm:^2.10.1"
-    mobx: "npm:^6.15.0"
+    mobx: "npm:^7.1.4"
     mobx-react-lite: "npm:^5.1.2"
     mocha-junit-reporter: "npm:^2.2.1"
     mochawesome: "npm:^7.1.4"
