@@ -22,7 +22,7 @@ const body = execSync(`gh pr view ${prNumber} --json body --jq .body`, {
 }).trim();
 
 // Only look at the "Fixed" section — stop at the next heading or end
-const fixedMatch = body.match(/### Fixed[\s\S]*?(?=\n###\s|$)/);
+const fixedMatch = body.match(/^### Fixed[\s\S]*?(?=\n###?\s|$)/m);
 if (!fixedMatch) {
   console.log('No "### Fixed" section found in PR body.');
   process.exit(0);
@@ -65,7 +65,8 @@ const section = lines.join('\n');
 
 // Replace existing Jira section or append
 const sectionRe = new RegExp(
-  `\n?${JIRA_SECTION_HEADER}[\\s\\S]*?(?=\n###\\s|$)`
+  `\\n?^${JIRA_SECTION_HEADER}\\n[\\s\\S]*?(?=\\n###?\\s|$)`,
+  'm'
 );
 const updated = sectionRe.test(body)
   ? body.replace(sectionRe, () => section)
