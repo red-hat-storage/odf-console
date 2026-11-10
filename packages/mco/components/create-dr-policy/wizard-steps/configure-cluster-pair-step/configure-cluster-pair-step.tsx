@@ -15,7 +15,6 @@ import {
   Title,
 } from '@patternfly/react-core';
 import { BackendType } from '../../../../constants';
-import { DRClusterKind } from '../../../../types';
 import { DRPolicyAction, DRPolicyState } from '../../utils/reducer';
 import {
   PrePairNetworkValidation,
@@ -38,7 +37,8 @@ type ConfigureClusterPairStepProps = Pick<
   > &
   Omit<PrePairNetworkValidationProps, 'clusterNames'> & {
     dispatch: React.Dispatch<DRPolicyAction>;
-    selectedDRClusters: DRClusterKind[];
+    /** Selected clusters already backed by an S3Configuration. */
+    clustersWithS3Configuration: Set<string>;
     errorMessage?: string;
     onReplicationBackendChange?: () => void;
   };
@@ -53,7 +53,7 @@ export const ConfigureClusterPairStep: React.FC<
   cluster2S3Details,
   useSameS3Connection,
   dispatch,
-  selectedDRClusters,
+  clustersWithS3Configuration,
   validation,
   acknowledgedUnvalidatedSubmariner,
   onAcknowledgeUnvalidatedSubmariner,
@@ -144,7 +144,7 @@ export const ConfigureClusterPairStep: React.FC<
               cluster1Details={cluster1S3Details}
               cluster2Details={cluster2S3Details}
               useSameConnection={useSameS3Connection}
-              existingDRClusterNames={new Set(selectedDRClusters.map(getName))}
+              clustersWithS3Configuration={clustersWithS3Configuration}
               dispatch={dispatch}
             />
           </FormGroup>

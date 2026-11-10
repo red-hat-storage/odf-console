@@ -8,7 +8,6 @@ export const emptyS3Details: S3Details = {
   accessKeyId: '',
   secretKey: '',
   region: '',
-  s3ProfileName: '',
 };
 
 export type DRPolicyState = {

@@ -15,6 +15,3 @@ export const isValidBucketName = (name: string): boolean => {
   if (/^\d+\.\d+\.\d+\.\d+$/.test(name)) return false;
   return true;
 };
-
-export const isValidS3ProfileName = (name: string): boolean =>
-  /^[a-zA-Z0-9_-]+$/.test(name);

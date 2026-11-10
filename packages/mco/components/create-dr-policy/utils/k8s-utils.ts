@@ -1,32 +1,29 @@
 import {
   BackendType,
-  MAX_ALLOWED_CLUSTERS,
-  ODFMCO_OPERATOR_NAMESPACE,
+  MirrorPeerStorageVendor,
   RBD_IMAGE_FLATTEN_LABEL,
   ReplicationType,
 } from '@odf/mco/constants';
 import {
-  DRClusterKind,
   DRPolicyKind,
   ManagedClusterInfoType,
   MirrorPeerKind,
+  S3ConfigurationKind,
   S3Details,
-  S3StoreProfile,
 } from '@odf/mco/types';
 import { isMirrorPeerReady, parseNamespaceName } from '@odf/mco/utils';
 import {
-  createSecretNameFromS3,
-  createOrUpdateRamenS3Secret,
-  updateRamenHubOperatorConfig,
-  deleteDRCluster,
-  createDRCluster,
-} from '@odf/mco/utils/tps-payload-creator';
-import {
-  DRPolicyModel,
-  getName,
-  MirrorPeerModel,
-  SecretModel,
-} from '@odf/shared';
+  createExternalS3Configuration,
+  createExternalS3Secret,
+  createInternalS3Configuration,
+  deleteS3ConfigurationByName,
+  deleteSecretByName,
+  findS3Configuration,
+  findS3ConfigurationForCluster,
+  getExternalS3SecretName,
+  getS3ConfigurationName,
+} from '@odf/mco/utils/s3-configuration';
+import { DRPolicyModel, getName, MirrorPeerModel } from '@odf/shared';
 import {
   createOrUpdate,
   type CreateOrUpdateMutationDetails,
@@ -38,6 +35,7 @@ import {
   k8sGet,
   k8sUpdate,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { t } from 'i18next';
 import type { DRPolicyState } from './reducer';
 
 const getODFPeers = (cluster: ManagedClusterInfoType) => {
@@ -95,7 +93,8 @@ const createMirrorPeer = (
     kind: MirrorPeerModel.kind,
     metadata: { generateName: 'mirrorpeer-' },
     spec: {
-      manageS3: true,
+      // manageS3 is deprecated; S3Configuration owns the profile and DRClusters.
+      storageVendor: MirrorPeerStorageVendor.ODF,
       type: replicationType,
       items: getPeerClustersRef(selectedClusters),
     },
@@ -173,20 +172,30 @@ export type CreatePolicyResult = {
   mirrorPeerName?: string;
   isNewMirrorPeer?: boolean;
   skipPairingProgress?: boolean;
+  /** S3Configurations created by this run, for progress tracking. */
+  s3ConfigurationNames?: string[];
+};
+
+/** DRClusters, Ramen secret and profile belong to the S3Configuration and are GC'd with it. */
+type CreatedResources = {
+  s3Configurations: string[];
+  secrets: string[];
 };
 
 export const createPolicyPromises = async (
   state: DRPolicyState,
   mirrorPeers: MirrorPeerKind[],
-  selectedDRClusters?: DRClusterKind[]
+  s3Configurations: S3ConfigurationKind[] = []
 ): Promise<CreatePolicyResult> => {
   const peerNames = state.clusters.selectedClusters.map(getName);
+  const created: CreatedResources = { s3Configurations: [], secrets: [] };
 
   if (state.configure.replicationBackend === BackendType.DataFoundation) {
     let createdMirrorPeer: MirrorPeerKind | undefined;
     let peering: OdfPeeringResult;
     let policyResult: CreateDRPolicyResult;
     try {
+      await prepareInternalS3(state, s3Configurations, created);
       peering = await prepareOdfPeering(state, mirrorPeers, peerNames);
       createdMirrorPeer = peering.isNew ? peering.mirrorPeer : undefined;
       policyResult = await createDRPolicy(
@@ -206,12 +215,14 @@ export const createPolicyPromises = async (
           console.error('Rollback: failed to delete MirrorPeer', e)
         );
       }
+      await rollbackS3Resources(created);
       throw error;
     }
 
     const mirrorPeerName = getName(peering.mirrorPeer);
     return {
       isNewPolicy: !policyResult.isUpdated,
+      s3ConfigurationNames: created.s3Configurations,
       ...(policyResult.previousPolicySpec
         ? { previousPolicySpec: policyResult.previousPolicySpec }
         : {}),
@@ -220,16 +231,16 @@ export const createPolicyPromises = async (
             mirrorPeerName,
             isNewMirrorPeer: peering.isNew,
             skipPairingProgress:
-              !peering.isNew && isMirrorPeerReady(peering.mirrorPeer),
+              !peering.isNew &&
+              isMirrorPeerReady(peering.mirrorPeer) &&
+              !created.s3Configurations.length,
           }
         : {}),
     };
   } else {
-    const allDRClustersExist =
-      selectedDRClusters?.length === MAX_ALLOWED_CLUSTERS;
     let policyResult: CreateDRPolicyResult;
-
-    if (allDRClustersExist) {
+    try {
+      await prepareExternalS3(state, s3Configurations, created);
       policyResult = await createDRPolicy(
         state.policy.policyName,
         state.policy.replicationType,
@@ -237,29 +248,14 @@ export const createPolicyPromises = async (
         state.policy.enableRBDImageFlatten,
         peerNames
       );
-    } else {
-      const created: CreatedResources = {
-        secrets: [],
-        profiles: [],
-        drClusters: [],
-      };
-      try {
-        await prepareThirdPartyPeering(state, selectedDRClusters, created);
-        policyResult = await createDRPolicy(
-          state.policy.policyName,
-          state.policy.replicationType,
-          state.policy.syncIntervalTime,
-          state.policy.enableRBDImageFlatten,
-          peerNames
-        );
-      } catch (error) {
-        await rollbackThirdPartyResources(created);
-        throw error;
-      }
+    } catch (error) {
+      await rollbackS3Resources(created);
+      throw error;
     }
 
     return {
       isNewPolicy: !policyResult.isUpdated,
+      s3ConfigurationNames: created.s3Configurations,
       ...(policyResult.previousPolicySpec
         ? { previousPolicySpec: policyResult.previousPolicySpec }
         : {}),
@@ -335,15 +331,104 @@ const prepareOdfPeering = async (
   return { mirrorPeer, isNew: false };
 };
 
-type CreatedResources = {
-  secrets: string[];
-  profiles: S3StoreProfile[];
-  drClusters: string[];
+/** Mirrors MCO: Sync shares one bucket, Async gets one per cluster so metadata survives a site loss. */
+const getS3ClusterGroups = (
+  state: DRPolicyState
+): ManagedClusterInfoType[][] => {
+  const { selectedClusters } = state.clusters;
+  return state.policy.replicationType === ReplicationType.SYNC
+    ? [selectedClusters]
+    : selectedClusters.map((cluster) => [cluster]);
 };
 
-const prepareThirdPartyPeering = async (
+const getStorageClusterNamespace = (
+  cluster: ManagedClusterInfoType
+): string => {
+  const [, namespace] = parseNamespaceName(
+    cluster?.odfInfo?.storageClusterInfo?.storageClusterNamespacedName
+  );
+  return namespace;
+};
+
+/** Existing S3Configuration to reuse, or undefined to create one. Throws on a cluster conflict. */
+const resolveExistingS3Configuration = (
+  s3Configurations: S3ConfigurationKind[],
+  clusterNames: string[]
+): S3ConfigurationKind | undefined => {
+  const exactMatch = findS3Configuration(s3Configurations, clusterNames);
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const conflict = clusterNames
+    .map((clusterName) => ({
+      clusterName,
+      s3Configuration: findS3ConfigurationForCluster(
+        s3Configurations,
+        clusterName
+      ),
+    }))
+    .find(({ s3Configuration }) => !!s3Configuration);
+
+  if (conflict) {
+    throw new Error(
+      t(
+        'Cluster {{clusterName}} is already used by the S3 configuration {{name}}. A cluster can belong to only one S3 configuration. Remove the existing one before creating a new policy with a different S3 setup.',
+        {
+          clusterName: conflict.clusterName,
+          name: getName(conflict.s3Configuration),
+        }
+      )
+    );
+  }
+
+  return undefined;
+};
+
+const prepareInternalS3 = async (
   state: DRPolicyState,
-  selectedDRClusters: DRClusterKind[] = [],
+  s3Configurations: S3ConfigurationKind[],
+  created: CreatedResources
+): Promise<void> => {
+  const groups = getS3ClusterGroups(state);
+
+  for (const group of groups) {
+    const clusterNames = group.map(getName);
+
+    if (resolveExistingS3Configuration(s3Configurations, clusterNames)) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // OBC is provisioned on the first cluster of the group and shared by the rest.
+    const providerCluster = group[0];
+    const storageClusterNamespace = getStorageClusterNamespace(providerCluster);
+
+    // Do not gate on clientInfo: ODF reports a local StorageClient even for internal mode.
+    if (!storageClusterNamespace) {
+      throw new Error(
+        t(
+          'Could not determine the Data Foundation namespace for cluster {{clusterName}}. S3 cannot be configured automatically.',
+          { clusterName: getName(providerCluster) }
+        )
+      );
+    }
+
+    const name = getS3ConfigurationName(clusterNames);
+    // eslint-disable-next-line no-await-in-loop
+    await createInternalS3Configuration(
+      name,
+      clusterNames,
+      getName(providerCluster),
+      storageClusterNamespace
+    );
+    created.s3Configurations.push(name);
+  }
+};
+
+const prepareExternalS3 = async (
+  state: DRPolicyState,
+  s3Configurations: S3ConfigurationKind[],
   created: CreatedResources
 ): Promise<void> => {
   const detailsByCluster: Record<string, S3Details> = {
@@ -353,86 +438,40 @@ const prepareThirdPartyPeering = async (
       state.configure.cluster2S3Details,
   };
 
-  // Sequential: avoid ConfigMap update races across clusters.
+  // Per cluster even when the connection details are shared.
   for (const cluster of state.clusters.selectedClusters) {
-    const name = getName(cluster);
-    const det = detailsByCluster[name];
+    const clusterName = getName(cluster);
+    const details = detailsByCluster[clusterName];
 
-    if (!det) continue; // eslint-disable-line no-continue
+    if (!details) continue; // eslint-disable-line no-continue
 
-    const secretName = createSecretNameFromS3(det, 's3');
-    const s3Profile: S3StoreProfile = {
-      s3Bucket: det.bucketName,
-      s3Region: det.region,
-      s3CompatibleEndpoint: det.endpoint,
-      s3SecretRef: { name: secretName },
-      s3ProfileName: det.s3ProfileName,
-    };
-
-    const existingDRCluster = selectedDRClusters.find(
-      (drCluster) => getName(drCluster) === name
-    );
-
-    // DRCluster spec is immutable - delete first if s3ProfileName changed.
-    const needsRecreate =
-      existingDRCluster &&
-      existingDRCluster.spec.s3ProfileName !== det.s3ProfileName;
-
-    if (needsRecreate) {
-      // eslint-disable-next-line no-await-in-loop
-      await deleteDRCluster(name);
+    if (resolveExistingS3Configuration(s3Configurations, [clusterName])) {
+      // eslint-disable-next-line no-continue
+      continue;
     }
 
+    const name = getS3ConfigurationName([clusterName]);
+    const secretName = getExternalS3SecretName(name);
+
     // eslint-disable-next-line no-await-in-loop
-    await createOrUpdateRamenS3Secret({
-      name: secretName,
-      accessKeyId: det.accessKeyId,
-      secretAccessKey: det.secretKey,
-    });
+    await createExternalS3Secret(secretName, details);
     created.secrets.push(secretName);
 
     // eslint-disable-next-line no-await-in-loop
-    await updateRamenHubOperatorConfig({
-      namespace: ODFMCO_OPERATOR_NAMESPACE,
-      profile: s3Profile,
-    });
-    created.profiles.push(s3Profile);
-
-    if (!existingDRCluster || needsRecreate) {
-      // eslint-disable-next-line no-await-in-loop
-      await createDRCluster({
-        name,
-        s3ProfileName: det.s3ProfileName,
-      });
-      created.drClusters.push(name);
-    }
+    await createExternalS3Configuration(name, [clusterName], secretName);
+    created.s3Configurations.push(name);
   }
 };
 
-const rollbackThirdPartyResources = async (
+const rollbackS3Resources = async (
   resources: CreatedResources
 ): Promise<void> => {
   // Best-effort cleanup - settle all, log failures but do not throw.
   const results = await Promise.allSettled([
-    ...resources.drClusters.map((name) => deleteDRCluster(name)),
-    ...resources.profiles.map((profile) =>
-      updateRamenHubOperatorConfig({
-        namespace: ODFMCO_OPERATOR_NAMESPACE,
-        profile,
-        remove: true,
-      })
+    ...resources.s3Configurations.map((name) =>
+      deleteS3ConfigurationByName(name)
     ),
-    ...resources.secrets.map((secretName) =>
-      k8sDelete({
-        model: SecretModel,
-        resource: {
-          metadata: {
-            name: secretName,
-            namespace: ODFMCO_OPERATOR_NAMESPACE,
-          },
-        },
-      })
-    ),
+    ...resources.secrets.map((secretName) => deleteSecretByName(secretName)),
   ]);
 
   results

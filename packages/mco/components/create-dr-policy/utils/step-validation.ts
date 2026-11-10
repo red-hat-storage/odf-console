@@ -4,12 +4,9 @@ import {
   SubmarinerStatus,
 } from '@odf/mco/constants';
 import type { S3Details } from '@odf/mco/types';
+import { getName } from '@odf/shared/selectors';
 import type { DRPolicyState } from './reducer';
-import {
-  isValidBucketName,
-  isValidEndpoint,
-  isValidS3ProfileName,
-} from './s3-validators';
+import { isValidBucketName, isValidEndpoint } from './s3-validators';
 
 const isFilled = (v: string) => !!v && v.trim().length > 0;
 
@@ -18,8 +15,7 @@ const areS3DetailsFormatValid = (d: S3Details): boolean =>
   isValidEndpoint(d.endpoint) &&
   isFilled(d.accessKeyId) &&
   isFilled(d.secretKey) &&
-  isFilled(d.region) &&
-  isValidS3ProfileName(d.s3ProfileName);
+  isFilled(d.region);
 
 export const validateClustersStepInputs = (state: DRPolicyState): boolean =>
   state.clusters.isClusterSelectionValid &&
@@ -50,36 +46,35 @@ export const isPrePairValidationPassed = (
 
 export const validateConfigureStepInputs = (
   state: DRPolicyState,
-  allDRClustersExist: boolean,
+  clustersWithS3Configuration: Set<string>,
   prePairValidationPassed: boolean
 ): boolean => {
   if (state.configure.replicationBackend === BackendType.DataFoundation) {
     return validateClustersStepInputs(state) && prePairValidationPassed;
   }
-  return validateThirdPartyConfigureInputs(state, allDRClustersExist);
+  return validateThirdPartyConfigureInputs(state, clustersWithS3Configuration);
 };
 
 export const validateThirdPartyConfigureInputs = (
   state: DRPolicyState,
-  allDRClustersExist = false
+  clustersWithS3Configuration: Set<string> = new Set()
 ): boolean => {
-  if (allDRClustersExist) {
-    return true;
-  }
+  const { cluster1S3Details, cluster2S3Details } = state.configure;
+  const detailsByCluster: Record<string, S3Details> = {
+    [cluster1S3Details.clusterName]: cluster1S3Details,
+    [cluster2S3Details.clusterName]: cluster2S3Details,
+  };
 
-  const { cluster1S3Details, cluster2S3Details, useSameS3Connection } =
-    state.configure;
-  const c2ProfileValid = isValidS3ProfileName(cluster2S3Details.s3ProfileName);
-  const profileNamesAreUnique =
-    cluster1S3Details.s3ProfileName.trim() !==
-    cluster2S3Details.s3ProfileName.trim();
-
-  return (
-    areS3DetailsFormatValid(cluster1S3Details) &&
-    c2ProfileValid &&
-    profileNamesAreUnique &&
-    (useSameS3Connection || areS3DetailsFormatValid(cluster2S3Details))
-  );
+  // A cluster already backed by an S3Configuration needs no input: its spec is
+  // immutable and its fields are shown read-only.
+  return state.clusters.selectedClusters.every((cluster) => {
+    const clusterName = getName(cluster);
+    if (clustersWithS3Configuration.has(clusterName)) {
+      return true;
+    }
+    const details = detailsByCluster[clusterName];
+    return !!details && areS3DetailsFormatValid(details);
+  });
 };
 
 export const validatePolicyStepInputs = (state: DRPolicyState): boolean =>
@@ -87,13 +82,13 @@ export const validatePolicyStepInputs = (state: DRPolicyState): boolean =>
 
 export const validateReviewStepInputs = (
   state: DRPolicyState,
-  allDRClustersExist = false,
+  clustersWithS3Configuration: Set<string> = new Set(),
   prePairValidationPassed = true
 ): boolean =>
   validatePolicyStepInputs(state) &&
   validateClustersStepInputs(state) &&
   validateConfigureStepInputs(
     state,
-    allDRClustersExist,
+    clustersWithS3Configuration,
     prePairValidationPassed
   );

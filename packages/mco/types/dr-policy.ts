@@ -49,5 +49,4 @@ export type S3Details = {
   accessKeyId: string;
   secretKey: string;
   region: string;
-  s3ProfileName: string;
 };

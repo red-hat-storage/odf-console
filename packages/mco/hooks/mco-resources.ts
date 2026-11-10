@@ -9,6 +9,7 @@ import {
   DRPlacementControlModel,
   DRPolicyModel,
   MirrorPeerModel,
+  S3ConfigurationModel,
 } from '@odf/shared';
 import {
   ApplicationModel,
@@ -45,6 +46,17 @@ export const getMirrorPeerResourceObj = (props?: ClusterScopeObjectType) => ({
   cluster: HUB_CLUSTER_NAME,
   ...(!!props?.name ? { name: props?.name } : {}),
   kind: referenceForModel(MirrorPeerModel),
+  ...(!props?.name ? { isList: true } : {}),
+  namespaced: false,
+  optional: true,
+});
+
+export const getS3ConfigurationResourceObj = (
+  props?: ClusterScopeObjectType
+) => ({
+  cluster: HUB_CLUSTER_NAME,
+  ...(!!props?.name ? { name: props?.name } : {}),
+  kind: referenceForModel(S3ConfigurationModel),
   ...(!props?.name ? { isList: true } : {}),
   namespaced: false,
   optional: true,

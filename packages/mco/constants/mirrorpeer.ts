@@ -1,5 +1,11 @@
 import { TFunction } from 'i18next';
 
+// Storage backend a MirrorPeer is created for. MCO's enum currently allows
+// only `odf`; other vendors are not expressible yet.
+export enum MirrorPeerStorageVendor {
+  ODF = 'odf',
+}
+
 export enum MirrorPeerPhase {
   Initializing = 'Initializing',
   Configuring = 'Configuring',

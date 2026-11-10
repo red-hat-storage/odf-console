@@ -122,11 +122,17 @@ export const ReviewDRPolicyStep: React.FC<ReviewDRPolicyStepProps> = ({
         </ReviewAndCreationGroup>
         {state.configure.replicationBackend === BackendType.ThirdParty && (
           <ReviewAndCreationGroup title={t('Replication site')}>
-            <ReviewAndCreationItem label={t('S3 profile (cluster 1)')}>
-              {state.configure.cluster1S3Details.s3ProfileName}
+            <ReviewAndCreationItem label={t('S3 bucket (cluster 1)')}>
+              {state.configure.cluster1S3Details.bucketName}
             </ReviewAndCreationItem>
-            <ReviewAndCreationItem label={t('S3 profile (cluster 2)')}>
-              {state.configure.cluster2S3Details.s3ProfileName}
+            <ReviewAndCreationItem label={t('S3 endpoint (cluster 1)')}>
+              {state.configure.cluster1S3Details.endpoint}
+            </ReviewAndCreationItem>
+            <ReviewAndCreationItem label={t('S3 bucket (cluster 2)')}>
+              {state.configure.cluster2S3Details.bucketName}
+            </ReviewAndCreationItem>
+            <ReviewAndCreationItem label={t('S3 endpoint (cluster 2)')}>
+              {state.configure.cluster2S3Details.endpoint}
             </ReviewAndCreationItem>
           </ReviewAndCreationGroup>
         )}

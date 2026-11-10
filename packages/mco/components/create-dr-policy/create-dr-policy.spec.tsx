@@ -186,7 +186,9 @@ jest.mock('react-router', () => ({
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
-  useK8sWatchResource: jest.fn(({ kind }) => {
+  // Hooks such as useSubmarinerAddons pass `undefined` when inactive.
+  useK8sWatchResource: jest.fn((resource) => {
+    const kind = resource?.kind;
     if (
       kind ===
       `${ACMManagedClusterModel.apiGroup}~${ACMManagedClusterModel.apiVersion}~${ACMManagedClusterModel.kind}`
@@ -222,12 +224,17 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   }),
   useListPageFilter: jest.fn((clusters) => [clusters, clusters, jest.fn()]),
   ListPageFilter: jest.fn(() => null),
+  // Used by the ACM search queries behind useStorageProvisioner.
+  consoleFetchJSON: jest.fn(() => Promise.resolve({ data: {} })),
 }));
 
 jest.mock('@odf/shared/hooks/use-fetch-csv', () => ({
   useFetchCsv: jest.fn(() => [csv]),
 }));
 
+// FIXME: still skipped. The payload assertions and SDK mocks below are current,
+// but the DOM selectors ('create-button', 'Select row N') no longer match the
+// PatternFly 6 markup, so reviving this suite needs a separate selector pass.
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip('Test drpolicy list page', () => {
   test('Regional-DR policy creation happy path testing', async () => {
@@ -288,7 +295,7 @@ describe.skip('Test drpolicy list page', () => {
     ).toBeTruthy();
     expect(
       JSON.stringify(mirrorPeerObj) ===
-        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"manageS3":true,"type":"async","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"west-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
+        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"storageVendor":"odf","type":"async","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"west-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
     ).toBeTruthy();
   });
 
@@ -332,7 +339,7 @@ describe.skip('Test drpolicy list page', () => {
     ).toBeTruthy();
     expect(
       JSON.stringify(mirrorPeerObj) ===
-        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"manageS3":true,"type":"sync","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"east-2","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
+        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"storageVendor":"odf","type":"sync","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"east-2","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
     ).toBeTruthy();
   });
 
