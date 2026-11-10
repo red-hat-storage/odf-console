@@ -2510,7 +2510,7 @@ __metadata:
     sass: "npm:^1.107.1"
     typescript: "npm:^5.9.3"
     victory: "npm:^37.4.1"
-    victory-core: "npm:^37.4.1"
+    victory-core: "npm:^38.0.0"
     yup: "npm:^1.7.1"
   peerDependencies:
     "@openshift-console/dynamic-plugin-sdk": 4.23.0
@@ -13657,7 +13657,7 @@ __metadata:
     typesafe-actions: "npm:^5.1.0"
     typescript: "npm:^5.9.3"
     victory: "npm:^37.4.1"
-    victory-core: "npm:^37.4.1"
+    victory-core: "npm:^38.0.0"
     webpack: "npm:^5.112.2"
     webpack-bundle-analyzer: "npm:^5.4.0"
     webpack-cli: "npm:^7.3.1"
@@ -17607,7 +17607,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"victory-core@npm:37.4.1, victory-core@npm:^37.4.1":
+"victory-core@npm:37.4.1":
   version: 37.4.1
   resolution: "victory-core@npm:37.4.1"
   dependencies:
@@ -17617,6 +17617,19 @@ __metadata:
   peerDependencies:
     react: ">=16.6.0"
   checksum: 10/3c14f6e857c5d85b305681ba4d476dbf440c85154313935ac250a407285ec83b613040ef6b989d931e8c72b2838ffd75fb37e2721566f0ed5886d3bf5b2c8564
+  languageName: node
+  linkType: hard
+
+"victory-core@npm:^38.0.0":
+  version: 38.0.0
+  resolution: "victory-core@npm:38.0.0"
+  dependencies:
+    lodash: "npm:^4.17.21"
+    react-fast-compare: "npm:^3.2.0"
+    victory-vendor: "npm:38.0.0"
+  peerDependencies:
+    react: ">=18"
+  checksum: 10/e647ef1ab17214706f6e0907ade6762b55e1119fb26ac1d95dc24407f0e77fe8fbc61893472e32d74ffcce75e7adfd4d9b5882fd1ab73bd87cd48234a375b6d3
   languageName: node
   linkType: hard
 
@@ -17823,6 +17836,28 @@ __metadata:
     d3-time: "npm:^3.0.0"
     d3-timer: "npm:^3.0.1"
   checksum: 10/3862d8f6edf1a7c6c13a2fff90cbaf2d92084213f765a62c7d1bf3d31779cbe12c163c8b066cefef863907030933e9bfe5efe204dd02171b5fb8b5d4054e6a97
+  languageName: node
+  linkType: hard
+
+"victory-vendor@npm:38.0.0":
+  version: 38.0.0
+  resolution: "victory-vendor@npm:38.0.0"
+  dependencies:
+    "@types/d3-array": "npm:^3.0.3"
+    "@types/d3-ease": "npm:^3.0.0"
+    "@types/d3-interpolate": "npm:^3.0.1"
+    "@types/d3-scale": "npm:^4.0.2"
+    "@types/d3-shape": "npm:^3.1.0"
+    "@types/d3-time": "npm:^3.0.0"
+    "@types/d3-timer": "npm:^3.0.0"
+    d3-array: "npm:^3.1.6"
+    d3-ease: "npm:^3.0.1"
+    d3-interpolate: "npm:^3.0.1"
+    d3-scale: "npm:^4.0.2"
+    d3-shape: "npm:^3.1.0"
+    d3-time: "npm:^3.0.0"
+    d3-timer: "npm:^3.0.1"
+  checksum: 10/d46d94bb0c1d12bf044ec80bfc6ebcbb3031034557cdd86d8f045bc773d0a7c931f46783049b5312f4c17fcb4c006857601118b38737f87842c5ce0c17f88b0b
   languageName: node
   linkType: hard
 
