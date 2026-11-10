@@ -148,7 +148,9 @@ export enum Progression {
   Relocating = 'Relocating',
   FailedOver = 'FailedOver',
   WaitOnUserToCleanUp = 'WaitOnUserToCleanUp',
-  CleaningUp = 'CleaningUp',
+  // Ramen emits this with a space, see ProgressionCleaningUp in
+  // api/v1alpha1/drplacementcontrol_types.go.
+  CleaningUp = 'Cleaning Up',
   WaitForUserAction = 'WaitForUserAction',
   TestingFailover = 'TestingFailover',
 }
