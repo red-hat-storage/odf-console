@@ -2,7 +2,7 @@ import * as React from 'react';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { observer } from 'mobx-react-lite';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
-import { FixedSizeList as List } from 'react-window';
+import { List, RowComponentProps } from 'react-window';
 import { uploadStore } from '../store';
 import { UploadProgress, UploadStatus } from '../types';
 import { UploadStatusItem } from './UploadStatusItem';
@@ -11,16 +11,12 @@ type UploadStatusListProps = {
   currentWidth?: number;
 };
 
-type UploadStatusListRowProps = {
-  data: {
-    items: UploadProgress[];
-  };
-  index: number;
-  style: any;
+type RowProps = {
+  items: UploadProgress[];
 };
 
-const UploadStatusListRow: React.FC<UploadStatusListRowProps> = observer(
-  ({ data: { items }, index, style }) => {
+const UploadStatusListRow = observer(
+  ({ items, index, style }: RowComponentProps<RowProps>) => {
     const item = uploadStore.getFile(items[index].key);
     return (
       <div style={style} key={item.key}>
@@ -45,15 +41,13 @@ export const UploadStatusList: React.FC<UploadStatusListProps> = observer(
     return (
       <AutoSizer
         renderProp={({ height, width }) => (
-          <List<{ items: UploadProgress[] }>
-            height={height}
-            itemCount={items.length}
-            itemData={{ items }}
-            itemSize={100}
-            width={width}
-          >
-            {UploadStatusListRow}
-          </List>
+          <List<RowProps>
+            rowComponent={UploadStatusListRow}
+            rowCount={items.length}
+            rowProps={{ items }}
+            rowHeight={100}
+            style={{ height, width }}
+          />
         )}
       />
     );
