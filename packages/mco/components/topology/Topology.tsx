@@ -281,14 +281,15 @@ const Topology: React.FC = () => {
   const [clusterPairOperationsMap, operationsLoaded, operationsLoadError] =
     useActiveDROperations();
 
-  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
+  const [csv] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
-  // Filter clusters to only include those with valid ODF installed
+  // Joined managed clusters are shown even when the hub has no ODF
+  // multicluster orchestrator (for example an RHDR hub).
   const clustersWithODF = React.useMemo(() => {
-    if (!loaded || !mcvsLoaded || !odfMCOVersion || !csvLoaded) {
+    if (!loaded || !mcvsLoaded) {
       return [];
     }
 
@@ -299,16 +300,10 @@ const Topology: React.FC = () => {
       undefined // We don't need provisioners for this filtering
     );
 
-    // Filter to only include clusters with valid ODF version
-    const validClusters = allClusters.filter(
-      (cluster) => cluster?.odfInfo?.isValidODFVersion
-    );
-
-    // Return the original ACMManagedClusterKind objects
     return managedClusters.filter((cluster) =>
-      validClusters.some((valid) => getName(valid) === getName(cluster))
+      allClusters.some((visible) => getName(visible) === getName(cluster))
     );
-  }, [managedClusters, mcvs, odfMCOVersion, loaded, mcvsLoaded, csvLoaded]);
+  }, [managedClusters, mcvs, odfMCOVersion, loaded, mcvsLoaded]);
 
   const topologyDataContextData = React.useMemo(() => {
     return {
@@ -334,7 +329,6 @@ const Topology: React.FC = () => {
   const allLoaded =
     loaded &&
     mcvsLoaded &&
-    csvLoaded &&
     appsLoaded &&
     policiesLoaded &&
     operationsLoaded;
@@ -363,8 +357,7 @@ const Topology: React.FC = () => {
                   mcvsLoadError ||
                   appsLoadError ||
                   policiesLoadError ||
-                  operationsLoadError ||
-                  csvLoadError;
+                  operationsLoadError;
                 return (err instanceof Error ? err.message : err) || '';
               })()}
             >
