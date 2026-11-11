@@ -265,7 +265,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   const anyError = loadError || mcvsLoadError || error;
 
   const allClusters: ManagedClusterInfoType[] = React.useMemo(() => {
-    if (!!requiredODFVersion && allLoaded && !anyError)
+    if (allLoaded && !anyError)
       // TODO: Switch from using the MCV-based odf-info ConfigMap to using
       // the odf-client-info ConfigMap from the openshift-operators namespace
       return getManagedClusterInfoTypes(
@@ -353,7 +353,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     }
   }, [preSelectedClusterNames, clusters, selectedClusters.length, onChange]);
 
-  const clustersLoaded = allLoaded && !!requiredODFVersion;
+  const clustersLoaded = allLoaded;
 
   return (
     <PaginatedClusterTable

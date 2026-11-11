@@ -55,10 +55,10 @@ const getODFInfo = (
     );
     const cephFSID = odfInfo?.storageCluster?.cephClusterFSID;
 
-    const isValidODFVersion = isMinimumSupportedODFVersion(
-      odfVersion,
-      requiredODFVersion
-    );
+    const isValidODFVersion =
+      !!odfVersion &&
+      !!requiredODFVersion &&
+      isMinimumSupportedODFVersion(odfVersion, requiredODFVersion);
 
     const deploymentType = odfInfo?.deploymentType;
 
