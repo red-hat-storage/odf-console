@@ -320,13 +320,15 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
           }}
           render={({ value, onChange, onBlur }) => (
             <StaticDropdown
+              key={isVector ? 'disabled' : 'enabled'}
               className="nb-endpoints-form-entry__dropdown"
               onSelect={onChange}
               onBlur={onBlur}
               dropdownItems={providerDropdownItems}
-              defaultSelection={value}
+              defaultSelection={isVector ? StoreProviders.FILESYSTEM : value}
               data-test="namespacestore-provider"
               isFullWidth
+              isDisabled={isVector}
             />
           )}
         />
@@ -371,7 +373,8 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
                     pvcObj?.status?.phase === 'Bound' &&
                     pvcObj?.spec?.accessModes.some(
                       (mode) => mode === 'ReadWriteMany'
-                    )
+                    ) &&
+                    pvcObj.spec.volumeMode === 'Filesystem'
                   }
                 />
               )}

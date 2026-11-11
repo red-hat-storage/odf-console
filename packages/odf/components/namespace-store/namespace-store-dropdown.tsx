@@ -118,8 +118,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
       isDisabled={
         !!nnsLoadErr ||
         (namespacePolicy === NamespacePolicyType.MULTI &&
-          enabledItems?.length === 0) ||
-        (filterFilesystem && nnsfsData.length === 0)
+          enabledItems?.length === 0)
       }
       isFullWidth
     >

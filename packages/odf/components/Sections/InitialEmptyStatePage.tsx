@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
 import { StorageClusterCreateModal } from '@odf/core/modals/ConfigureDF/StorageClusterCreateModal';
 import { getModalStartPoint } from '@odf/core/modals/ConfigureDF/util';
+import { FDF_FLAG } from '@odf/core/redux';
 import { StartingPoint } from '@odf/core/types/install-ui';
 import {
   externalSystemsDoc,
@@ -11,6 +12,7 @@ import {
 import { useModalWrapper } from '@odf/shared';
 import { DOC_VERSION } from '@odf/shared/hooks/use-doc-version';
 import { ViewDocumentation } from '@odf/shared/utils';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { TFunction, Trans } from 'react-i18next';
 import { useLocation } from 'react-router-dom-v5-compat';
@@ -73,11 +75,16 @@ const EmptyStateBodyOverviewPage: React.FC = () => {
 
 const EmptyStateBodyExternalSystemPage: React.FC = () => {
   const { t } = useCustomTranslation();
+  const isFDF = useFlag(FDF_FLAG);
+  const cephBrand = isFDF
+    ? t('IBM Ceph Storage')
+    : t('Red Hat/IBM Ceph Storage');
+
   return (
-    <Trans t={t}>
+    <Trans t={t} values={{ cephBrand }}>
       Connect an external storage system to get started. Add{' '}
       <span className="pf-v6-u-font-weight-bold">
-        IBM FlashSystem, IBM Scale or Red Hat Ceph Storage{' '}
+        {'IBM FlashSystem, IBM Storage Scale or {{cephBrand}}'}
       </span>{' '}
       to begin managing it.
     </Trans>

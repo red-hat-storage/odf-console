@@ -307,7 +307,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           <HelperText>
             <HelperTextItem>
               {t(
-                'Enter at least one IBM Scale management endpoint to authenticate and configure the remote cluster (For high availability, define 2 or more endpoints). Use valid credentials to verify and establish a connection to the remote cluster.'
+                'Enter at least one IBM Storage Scale management endpoint to authenticate and configure the remote cluster (For high availability, define 2 or more endpoints). Use valid credentials to verify and establish a connection to the remote cluster.'
               )}
             </HelperTextItem>
           </HelperText>
@@ -752,7 +752,7 @@ export const CreateScaleSystem: React.FC = () => {
   return (
     <>
       <PageHeading
-        title={t('Connect IBM Scale (CNSA)')}
+        title={t('Connect IBM Storage Scale')}
         hasUnderline={false}
         breadcrumbs={[
           {
@@ -760,13 +760,13 @@ export const CreateScaleSystem: React.FC = () => {
             path: '/odf/external-systems',
           },
           {
-            name: t('Create IBM Scale (CNSA)'),
+            name: t('Create IBM Storage Scale'),
             path: '/odf/external-systems/scale/~create',
           },
         ]}
       >
         {t(
-          'Connect to IBM Scale (CNSA) to power Data Foundation with fast, reliable file storage optimized for enterprise performance.'
+          'Connect to IBM Storage Scale to power Data Foundation with fast, reliable file storage optimized for enterprise performance.'
         )}
       </PageHeading>
       <div className="odf-m-pane__body">

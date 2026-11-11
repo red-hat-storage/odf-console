@@ -18,6 +18,7 @@ import {
   NO_PROVISIONER,
   requestedCapacityTooltip,
   attachDevices,
+  attachDevicesTNF,
   attachDevicesWithArbiter,
 } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
@@ -406,9 +407,11 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
           <GridItem span={11}>
             <SelectNodesText
               text={
-                enableArbiter
-                  ? attachDevicesWithArbiter(t, storageClassName)
-                  : attachDevices(t, storageClassName)
+                isTNFEnabled
+                  ? attachDevicesTNF(t, storageClassName)
+                  : enableArbiter
+                    ? attachDevicesWithArbiter(t, storageClassName)
+                    : attachDevices(t, storageClassName)
               }
               systemNamespace={systemNamespace}
             />

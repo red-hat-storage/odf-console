@@ -33,6 +33,7 @@ import {
   TAG_VALUE_MAX_LENGTH,
   IAM_BASE_ROUTE,
   CREATE_IAM_USER_MUTATION_KEY,
+  MAX_TAGS,
   POLICY_DOCUMENT,
   POLICY_NAME,
 } from '../../../constants/s3-iam';
@@ -95,14 +96,18 @@ export const CreateUserFormContent = () => {
       });
 
       const allTags: KeyValuePair[] = [...pairsArg];
-      allTags.push({
-        Key: accessKeyResponse.AccessKey.AccessKeyId,
-        Value: descriptionTagValueArg,
-      });
-      await iamClient.tagUser({
-        UserName: userNameArg,
-        Tags: allTags,
-      });
+      if (descriptionTagValueArg.trim() && accessKeyResponse.AccessKey) {
+        allTags.push({
+          Key: accessKeyResponse.AccessKey.AccessKeyId,
+          Value: descriptionTagValueArg.trim(),
+        });
+      }
+      if (allTags.length > 0) {
+        await iamClient.tagUser({
+          UserName: userNameArg,
+          Tags: allTags,
+        });
+      }
 
       await iamClient.putUserPolicy({
         UserName: userNameArg,
@@ -195,6 +200,17 @@ export const CreateUserFormContent = () => {
       return;
     }
 
+    const descriptionTagCount = descriptionTagValue.trim() ? 1 : 0;
+    if (pairs.length + descriptionTagCount > MAX_TAGS) {
+      setTagErrors(
+        t(
+          'A maximum of {{max}} tags is allowed, including the description tag.',
+          { max: MAX_TAGS }
+        )
+      );
+      return;
+    }
+
     try {
       const result = await createUser({
         userName,
@@ -272,7 +288,11 @@ export const CreateUserFormContent = () => {
               }}
             />
 
-            <AddKeyValuePairs pairs={pairs} setPairs={setPairs} />
+            <AddKeyValuePairs
+              pairs={pairs}
+              setPairs={setPairs}
+              descriptionTagValue={descriptionTagValue}
+            />
 
             <FormGroup>
               <label className="pf-v6-u-pt-sm">
