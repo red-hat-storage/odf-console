@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { DRPlacementControlModel } from '@odf/shared';
 import {
   CommonModalProps,
   ModalBody,
@@ -8,7 +7,6 @@ import {
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
-import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { chunk } from 'lodash-es';
 import {
@@ -27,6 +25,7 @@ import {
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../constants';
 import { DRPlacementControlKind } from '../../../types';
+import { patchDRPCWithStartGate } from '../../../utils';
 import { DRPCClusterInfo } from '../../../utils/pav';
 
 const BATCH_SIZE = 6;
@@ -58,24 +57,6 @@ const isDRActionReady = (
   !!clusterInfo.targetCluster &&
   clusterInfo.isPeerReady &&
   (action === DRActionType.RELOCATE ? clusterInfo.isAvailable : true);
-
-const buildDRPCPatch = (action: DRActionType, clusterInfo: DRPCClusterInfo) => {
-  const { primaryCluster, targetCluster } = clusterInfo;
-
-  return [
-    { op: 'replace', path: '/spec/action', value: action },
-    {
-      op: 'replace',
-      path: '/spec/failoverCluster',
-      value: action === DRActionType.FAILOVER ? targetCluster : primaryCluster,
-    },
-    {
-      op: 'replace',
-      path: '/spec/preferredCluster',
-      value: action === DRActionType.FAILOVER ? primaryCluster : targetCluster,
-    },
-  ];
-};
 
 export const BatchFailoverRelocateModal: React.FC<
   CommonModalProps<BatchFailoverRelocateExtraProps>
@@ -142,17 +123,24 @@ export const BatchFailoverRelocateModal: React.FC<
     for (const batch of batches) {
       // eslint-disable-next-line no-await-in-loop
       await Promise.all(
-        batch.map(({ drpc, clusterInfo }) =>
-          k8sPatch({
-            model: DRPlacementControlModel,
-            resource: {
-              metadata: {
-                name: getName(drpc),
-                namespace: getNamespace(drpc),
-              },
+        batch.map(({ drpc, clusterInfo }) => {
+          const { primaryCluster, targetCluster } = clusterInfo;
+          return patchDRPCWithStartGate(
+            {
+              name: getName(drpc),
+              namespace: getNamespace(drpc),
+              action: selectedAction,
+              failoverCluster:
+                selectedAction === DRActionType.FAILOVER
+                  ? targetCluster
+                  : primaryCluster,
+              preferredCluster:
+                selectedAction === DRActionType.FAILOVER
+                  ? primaryCluster
+                  : targetCluster,
             },
-            data: buildDRPCPatch(selectedAction, clusterInfo),
-          })
+            t
+          )
             .catch((error) => {
               failedItems.push({
                 drpc,
@@ -161,8 +149,8 @@ export const BatchFailoverRelocateModal: React.FC<
             })
             .finally(() => {
               setCompletedCount((prev) => prev + 1);
-            })
-        )
+            });
+        })
       );
     }
 
