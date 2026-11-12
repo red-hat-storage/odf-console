@@ -212,6 +212,9 @@ describe('Subscription manage disaster recovery modal', () => {
         isOpen={true}
       />
     );
+    expect(
+      screen.getByText('Replication without consistency groups is deprecated')
+    ).toBeInTheDocument();
     // Ensure empty state
     expect(
       screen.getByText('No assigned disaster recovery policy found')
@@ -240,6 +243,19 @@ describe('Subscription manage disaster recovery modal', () => {
 
     // Modal headers
     expect(screen.getByText('Manage disaster recovery')).toBeInTheDocument();
+    expect(
+      screen.getByText('Replication without consistency groups is deprecated')
+    ).toBeInTheDocument();
+    const docLink = screen.getByRole('link', {
+      name: 'Learn about volume group replication',
+    });
+    expect(docLink).toHaveAttribute(
+      'href',
+      expect.stringMatching(
+        /\/index#create-sample-application-for-testing-mdrsolution_manage-rdr$/
+      )
+    );
+    expect(docLink.getAttribute('href')).not.toMatch(/\/index\//);
 
     // DR information
     expect(
