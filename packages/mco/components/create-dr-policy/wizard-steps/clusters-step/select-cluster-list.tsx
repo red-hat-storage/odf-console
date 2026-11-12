@@ -353,13 +353,11 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     }
   }, [preSelectedClusterNames, clusters, selectedClusters.length, onChange]);
 
-  const clustersLoaded = allLoaded;
-
   return (
     <PaginatedClusterTable
       selectedClusters={selectedClusters}
       clusters={clusters}
-      isLoaded={clustersLoaded}
+      isLoaded={allLoaded}
       error={anyError}
       onChange={onChange}
     />

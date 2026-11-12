@@ -286,28 +286,27 @@ const Topology: React.FC = () => {
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
-  // Joined managed clusters are shown even when the hub has no ODF
-  // multicluster orchestrator (for example an RHDR hub).
-  const clustersWithODF = React.useMemo(() => {
+  // Membership is the joined-cluster list. The ODF version is not a gate.
+  const joinedClusters = React.useMemo(() => {
     if (!loaded || !mcvsLoaded) {
       return [];
     }
 
-    const allClusters = getManagedClusterInfoTypes(
+    const visibleClusters = getManagedClusterInfoTypes(
       managedClusters,
       mcvs,
       odfMCOVersion,
-      undefined // We don't need provisioners for this filtering
+      undefined // Topology does not look up storage provisioners
     );
 
     return managedClusters.filter((cluster) =>
-      allClusters.some((visible) => getName(visible) === getName(cluster))
+      visibleClusters.some((visible) => getName(visible) === getName(cluster))
     );
   }, [managedClusters, mcvs, odfMCOVersion, loaded, mcvsLoaded]);
 
   const topologyDataContextData = React.useMemo(() => {
     return {
-      clusters: clustersWithODF || [],
+      clusters: joinedClusters,
       selectedElement,
       setSelectedElement,
       visualizationLevel: TopologyViewLevel.CLUSTERS,
@@ -317,7 +316,7 @@ const Topology: React.FC = () => {
       clusterPairOperationsMap,
     };
   }, [
-    clustersWithODF,
+    joinedClusters,
     selectedElement,
     setSelectedElement,
     odfMCOVersion,
@@ -327,13 +326,8 @@ const Topology: React.FC = () => {
   ]);
 
   const allLoaded =
-    loaded &&
-    mcvsLoaded &&
-    appsLoaded &&
-    policiesLoaded &&
-    operationsLoaded;
-  const hasNoClusters =
-    allLoaded && (!clustersWithODF || clustersWithODF.length === 0);
+    loaded && mcvsLoaded && appsLoaded && policiesLoaded && operationsLoaded;
+  const hasNoClusters = allLoaded && joinedClusters.length === 0;
 
   return (
     <TopologyDataContext.Provider value={topologyDataContextData}>
