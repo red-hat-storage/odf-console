@@ -12,6 +12,8 @@ import {
   GetBucketEncryptionCommand,
   GetBucketVersioningCommand,
   PutBucketVersioningCommand,
+  GetObjectLockConfigurationCommand,
+  PutObjectLockConfigurationCommand,
   GetBucketTaggingCommand,
   GetBucketAclCommand,
   GetBucketPolicyCommand,
@@ -28,6 +30,10 @@ import {
   GetBucketPolicyStatusCommand,
   GetPublicAccessBlockCommand,
   PutPublicAccessBlockCommand,
+  PutObjectRetentionCommand,
+  GetObjectRetentionCommand,
+  PutObjectLegalHoldCommand,
+  GetObjectLegalHoldCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -48,6 +54,8 @@ import {
   GetBucketEncryption,
   GetBucketVersioning,
   PutBucketVersioning,
+  GetObjectLockConfiguration,
+  PutObjectLockConfiguration,
   GetBucketTagging,
   GetBucketAcl,
   GetBucketPolicy,
@@ -62,6 +70,10 @@ import {
   GetBucketPolicyStatus,
   GetPublicAccessBlock,
   PutPublicAccessBlock,
+  PutObjectRetention,
+  GetObjectRetention,
+  PutObjectLegalHold,
+  GetObjectLegalHold,
 } from './types';
 
 export class S3Commands extends S3Client {
@@ -117,9 +129,6 @@ export class S3Commands extends S3Client {
   getBucketVersioning: GetBucketVersioning = (input) =>
     this.send(new GetBucketVersioningCommand(input));
 
-  putBucketVersioning: PutBucketVersioning = (input) =>
-    this.send(new PutBucketVersioningCommand(input));
-
   headBucket: HeadBucket = async (input) => {
     const command = new HeadBucketCommand(input);
 
@@ -148,6 +157,15 @@ export class S3Commands extends S3Client {
 
     return { ...response, supportedStorageClasses };
   };
+
+  getObjectLockConfiguration: GetObjectLockConfiguration = (input) =>
+    this.send(new GetObjectLockConfigurationCommand(input));
+
+  putBucketVersioning: PutBucketVersioning = (input) =>
+    this.send(new PutBucketVersioningCommand(input));
+
+  putObjectLockConfiguration: PutObjectLockConfiguration = (input) =>
+    this.send(new PutObjectLockConfigurationCommand(input));
 
   listBuckets: ListBuckets = (input) =>
     this.send(new ListBucketsCommand(input));
@@ -217,6 +235,18 @@ export class S3Commands extends S3Client {
 
   deleteObjects: DeleteObjects = (input) =>
     this.send(new DeleteObjectsCommand(input));
+
+  putObjectRetention: PutObjectRetention = (input) =>
+    this.send(new PutObjectRetentionCommand(input));
+
+  getObjectRetention: GetObjectRetention = (input) =>
+    this.send(new GetObjectRetentionCommand(input));
+
+  putObjectLegalHold: PutObjectLegalHold = (input) =>
+    this.send(new PutObjectLegalHoldCommand(input));
+
+  getObjectLegalHold: GetObjectLegalHold = (input) =>
+    this.send(new GetObjectLegalHoldCommand(input));
 
   getUploader = (file: File, key: string, bucketName: string): Upload => {
     const uploader = new Upload({

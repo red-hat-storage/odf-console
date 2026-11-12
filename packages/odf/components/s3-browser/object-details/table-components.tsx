@@ -1,10 +1,27 @@
 import * as React from 'react';
+import {
+  GetObjectLockConfigurationCommandOutput,
+  ObjectLockLegalHoldStatus,
+} from '@aws-sdk/client-s3';
+import { getName } from '@odf/shared';
+import {
+  getIsObjectLockEnabled,
+  isNoObjectLockConfigurationError,
+} from '@odf/shared/s3/utils';
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
+import useSWR from 'swr';
 import { Label } from '@patternfly/react-core';
 import { Tr, Td, ActionsColumn } from '@patternfly/react-table';
+import {
+  BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX,
+  getObjectVersionedCacheKey,
+  OBJECT_LEGAL_HOLD_CACHE_KEY_SUFFIX,
+  OBJECT_RETENTION_CACHE_KEY_SUFFIX,
+} from '../../../constants';
 import { ObjectCrFormat } from '../../../types';
+import { getObjectVersionId } from '../../../utils';
 import { DownloadAndPreviewState } from '../download-and-preview/download-and-preview';
 import { getInlineActionsItems } from '../objects-list/table-components';
 
@@ -50,6 +67,83 @@ export const ObjectVersionsTableRow: React.FC<
 
   const isLatest = object?.isLatest;
   const isDeleteMarker = object?.isDeleteMarker;
+  const objectKey = getName(object);
+  const versionId = getObjectVersionId(object);
+
+  // Bucket-level Object Lock check (SWR-deduped). Per-object retention /
+  // legal-hold fetches only run when Object Lock is enabled.
+  const { data: objectLockData } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX}`,
+    () =>
+      s3Client
+        .getObjectLockConfiguration({ Bucket: bucketName })
+        .catch((err) => {
+          if (isNoObjectLockConfigurationError(err)) {
+            return {} as GetObjectLockConfigurationCommandOutput;
+          }
+          throw err;
+        })
+  );
+  const isObjectLockEnabled = getIsObjectLockEnabled(objectLockData);
+
+  const { data: retentionData, mutate: retentionMutate } = useSWR(
+    isDeleteMarker || !isObjectLockEnabled
+      ? null
+      : getObjectVersionedCacheKey(
+          s3Client.providerType,
+          bucketName,
+          objectKey,
+          versionId,
+          OBJECT_RETENTION_CACHE_KEY_SUFFIX
+        ),
+    async () => {
+      try {
+        return await s3Client.getObjectRetention({
+          Bucket: bucketName,
+          Key: objectKey,
+          ...(versionId && { VersionId: versionId }),
+        });
+      } catch (err) {
+        if (
+          ['NoSuchObjectLockConfiguration', 'InvalidRequest'].includes(
+            err?.name
+          )
+        ) {
+          return null;
+        }
+        throw err;
+      }
+    }
+  );
+
+  const { data: legalHoldData, mutate: legalHoldMutate } = useSWR(
+    isDeleteMarker || !isObjectLockEnabled
+      ? null
+      : getObjectVersionedCacheKey(
+          s3Client.providerType,
+          bucketName,
+          objectKey,
+          versionId,
+          OBJECT_LEGAL_HOLD_CACHE_KEY_SUFFIX
+        ),
+    async () => {
+      try {
+        return await s3Client.getObjectLegalHold({
+          Bucket: bucketName,
+          Key: objectKey,
+          ...(versionId && { VersionId: versionId }),
+        });
+      } catch (err) {
+        if (err?.name === 'InvalidRequest') {
+          return null;
+        }
+        throw err;
+      }
+    }
+  );
+  const isLegalHoldApplied =
+    legalHoldData?.LegalHold?.Status === ObjectLockLegalHoldStatus.ON;
+
   const columnNames = getColumnNames(t);
   const actionItems = getInlineActionsItems(
     t,
@@ -65,7 +159,12 @@ export const ObjectVersionsTableRow: React.FC<
     closeObjectSidebar,
     true,
     undefined,
-    blockDataPath
+    blockDataPath,
+    isObjectLockEnabled,
+    retentionData?.Retention,
+    retentionMutate,
+    isLegalHoldApplied,
+    legalHoldMutate
   );
 
   return (
