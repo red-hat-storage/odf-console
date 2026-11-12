@@ -53,14 +53,9 @@ export const getDecoratorForStatus = (
       status = NodeStatus.info;
       break;
     case DRStatus.TestingFailover:
-      icon = DecoratorIcon.InProgress;
-      // Same label keys as the popover / sidebar (translated at render).
-      tooltip = 'Preparing';
-      status = NodeStatus.info;
-      break;
     case DRStatus.TestFailoverPaused:
       icon = DecoratorIcon.InProgress;
-      tooltip = 'Awaiting resync';
+      tooltip = 'Preparing...';
       status = NodeStatus.info;
       break;
     case DRStatus.TestFailoverActionRequired:

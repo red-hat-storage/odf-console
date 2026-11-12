@@ -15,11 +15,13 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../constants';
+import { getStartTestFailoverPatch } from '../../../utils';
 import {
   ApplicationProps,
   PlacementControlProps,
   FailoverRelocateModalBody,
 } from './failover-relocate-modal-body';
+import { getTestFailoverModalText } from './test-failover-alert';
 
 export enum ModalFooterStatus {
   INITIAL = 'intial',
@@ -44,11 +46,20 @@ const getModalText = (t: TFunction) => ({
 export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
   props
 ) => {
-  const { applicationNamespace, action, isOpen, loaded, loadError, close } =
-    props;
+  const {
+    applicationNamespace,
+    action,
+    isOpen,
+    loaded,
+    loadError,
+    close,
+    isTestFailover,
+  } = props;
 
   const { t } = useCustomTranslation();
-  const modalText = getModalText(t)[action];
+  const modalText = isTestFailover
+    ? getTestFailoverModalText(t)
+    : getModalText(t)[action];
   const [errorMessage, setErrorMessage] = React.useState('');
   const [footerStatus, setFooterStatus] = React.useState(
     ModalFooterStatus.INITIAL
@@ -82,6 +93,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
             ? placementControl?.primaryClusterName
             : placementControl?.targetClusterName,
       },
+      ...(isTestFailover ? getStartTestFailoverPatch() : []),
     ];
     k8sPatch({
       model: DRPlacementControlModel,
@@ -158,8 +170,12 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
           onClick={onClick}
         >
           {footerStatus === ModalFooterStatus.INITIAL
-            ? t('Initiate')
-            : t('Initiating')}
+            ? isTestFailover
+              ? t('Start')
+              : t('Initiate')
+            : isTestFailover
+              ? t('Starting')
+              : t('Initiating')}
         </Button>
       </ModalFooter>
     </Modal>

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Tooltip } from '@patternfly/react-core';
 import {
   CheckCircleIcon,
@@ -16,24 +15,6 @@ import {
 } from '@patternfly/react-topology';
 import { DecoratorIcon, TopologyDecorator, TopologyNodeData } from '../types';
 import './decorator-utils.scss';
-
-// Test-failover decorator tooltips use fixed English keys in
-// getDecoratorForStatus; translate them here so sidebar and topology match.
-const localizeDecoratorTooltip = (
-  tooltip: string,
-  t: (key: string) => string
-): string => {
-  switch (tooltip) {
-    case 'Preparing':
-      return t('Preparing');
-    case 'Awaiting resync':
-      return t('Awaiting resync');
-    case 'Action needed':
-      return t('Action needed');
-    default:
-      return tooltip;
-  }
-};
 
 /**
  * Maps icon string identifiers to their corresponding React icon components
@@ -86,16 +67,14 @@ export const DecoratorWithTooltip: React.FC<{
   decorator: TopologyDecorator;
   element: Node;
 }> = ({ decorator, element }) => {
-  const { t } = useCustomTranslation();
   const decoratorRef = React.useRef<SVGGElement>(null);
   const { quadrant, icon, tooltip } = decorator;
   const { x, y } = getDefaultShapeDecoratorCenter(quadrant, element);
   const decoratorIcon = icon ? getDecoratorIcon(icon) : null;
-  const tooltipContent = localizeDecoratorTooltip(tooltip, t);
 
   return (
     <>
-      <Tooltip content={tooltipContent} triggerRef={decoratorRef} />
+      <Tooltip content={tooltip} triggerRef={decoratorRef} />
       <Decorator
         innerRef={decoratorRef}
         x={x}

@@ -31,6 +31,7 @@ export type TargetClusterType = Partial<{
 
 export type ErrorMessage = Partial<{
   drPolicyControlStateErrorMessage: number;
+  testFailoverErrorMessage: number;
   managedClustersErrorMessage: number;
   targetClusterErrorMessage: number;
   subscriptionGroupErrorMessage: number;
@@ -71,6 +72,7 @@ export const failoverAndRelocateState = (
   selectedSubsGroups: [],
   errorMessage: {
     drPolicyControlStateErrorMessage: 0,
+    testFailoverErrorMessage: 0,
     managedClustersErrorMessage: 0,
     targetClusterErrorMessage: 0,
     subscriptionGroupErrorMessage: 0,
