@@ -118,10 +118,16 @@ export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
     );
   }
 
-  if (
-    status === DRStatus.TestingFailover ||
-    status === DRStatus.TestFailoverPaused
-  ) {
+  if (status === DRStatus.TestFailoverPaused) {
+    return (
+      <>
+        <InProgressIcon color={blueInfoColor.value} />
+        <span>{t('Awaiting resync')}</span>
+      </>
+    );
+  }
+
+  if (status === DRStatus.TestingFailover) {
     return (
       <>
         <InProgressIcon color={blueInfoColor.value} />

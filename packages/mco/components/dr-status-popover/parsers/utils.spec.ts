@@ -116,5 +116,21 @@ describe('getProgressionFields: test failover cleanup cluster', () => {
         })
       ).toBeUndefined();
     });
+
+    // Failover clean-up restores failoverCluster to the production cluster while
+    // last-app-deployment-cluster can still name the test target. That must not
+    // look like a promote (which keeps both on the test cluster).
+    it('does not treat Failover clean-up as a promotion', () => {
+      const fields = getProgressionFields(
+        drpc({
+          action: 'Failover',
+          dryRun: false,
+          failoverCluster: ORIGINAL,
+          lastAppDeploymentCluster: TEST,
+          progression: Progression.TestingFailover,
+        })
+      );
+      expect(fields.promotedFromTest).toBe(false);
+    });
   });
 });

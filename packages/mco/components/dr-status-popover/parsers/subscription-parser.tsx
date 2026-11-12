@@ -15,7 +15,9 @@ import {
   getProtectedCondition,
   getAvailableCondition,
 } from '@odf/mco/utils';
+import { shouldShowProtectionError } from '@odf/mco/utils/dr-status';
 import { getName, getNamespace, ApplicationKind } from '@odf/shared';
+import { K8sResourceCondition } from '@odf/shared/types';
 import { getSubscriptionResources } from '../../modals/app-manage-policies/parsers/subscription-parser';
 import { getDRResources } from '../../modals/app-manage-policies/utils/parser-utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
@@ -25,25 +27,56 @@ type SubscriptionStatus = {
   phase?: Phase | string;
   dryRun?: boolean;
   progression?: string;
+  protectedCondition?: K8sResourceCondition;
 };
 
+// ACM Applications shows one DR status cell per Subscription app. When that
+// app has several DRPC groups, pick the group that most needs attention.
+const SubscriptionDRStatusPriority = {
+  USER_ACTION: 0,
+  PROTECTION_ERROR: 1,
+  ACTIVE_TEST_HOLD: 2,
+  LIVE_OPERATION: 3,
+  TEST_IN_PROGRESS_OR_ENDING: 4,
+  IDLE: 5,
+} as const;
+
 const subscriptionStatusRank = (status: SubscriptionStatus): number => {
-  // Deleting can linger on TestingFailover; do not hide a real operation.
   if (
+    status.phase === Phase.WaitForUser ||
+    status.progression === Progression.WaitOnUserToCleanUp
+  ) {
+    return SubscriptionDRStatusPriority.USER_ACTION;
+  }
+  // Keep a deployed group's protection error visible even when another group
+  // is in a dry-run test — the cell forwards only the selected group's
+  // protectedCondition.
+  if (shouldShowProtectionError(status.protectedCondition)) {
+    return SubscriptionDRStatusPriority.PROTECTION_ERROR;
+  }
+  if (
+    status.dryRun &&
     status.progression === Progression.TestingFailover &&
     status.phase !== Phase.Deleting
   ) {
-    return 0;
+    return SubscriptionDRStatusPriority.ACTIVE_TEST_HOLD;
   }
-  if (status.dryRun) return 2;
-  if (status.phase === Phase.FailingOver || status.phase === Phase.Relocating) {
-    return 1;
+  if (
+    !status.dryRun &&
+    (status.phase === Phase.FailingOver || status.phase === Phase.Relocating)
+  ) {
+    return SubscriptionDRStatusPriority.LIVE_OPERATION;
   }
-  return 3;
+  if (
+    status.dryRun ||
+    (status.progression === Progression.TestingFailover &&
+      status.phase !== Phase.Deleting)
+  ) {
+    return SubscriptionDRStatusPriority.TEST_IN_PROGRESS_OR_ENDING;
+  }
+  return SubscriptionDRStatusPriority.IDLE;
 };
 
-// One popover represents one DRPC. Prefer the group waiting on the user,
-// then a failover or relocate already in progress, then a test still preparing.
 export const selectSubscriptionDRStatus = <T extends SubscriptionStatus>(
   statuses: T[]
 ): T | undefined =>

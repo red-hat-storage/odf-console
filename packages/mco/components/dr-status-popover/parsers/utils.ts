@@ -1,5 +1,7 @@
 import {
   DRActionType,
+  LAST_ACTION_ANNOTATION,
+  LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
   TEST_FAILOVER_DRYRUN_ANNOTATION,
 } from '@odf/mco/constants';
 import { DRPlacementControlKind, VRGConditionReason } from '@odf/mco/types';
@@ -25,6 +27,8 @@ type ProgressionFields = Pick<
   | 'dryRun'
   | 'testFailoverCleanupCluster'
   | 'promotedFromTest'
+  | 'lastAction'
+  | 'lastAppCluster'
   | 'drpcName'
   | 'drpcNamespace'
 >;
@@ -128,6 +132,8 @@ export const getProgressionFields = (
       'drplacementcontrol.ramendr.openshift.io/app-namespace'
     ];
 
+  const annotations = getAnnotations(drPlacementControl);
+
   return {
     progression: drPlacementControl.status?.progression,
     actionStartTime: drPlacementControl.status?.actionStartTime,
@@ -135,11 +141,18 @@ export const getProgressionFields = (
     dryRun: drPlacementControl.spec?.dryRun,
     testFailoverCleanupCluster:
       getTestFailoverCleanupCluster(drPlacementControl),
+    // Same promote shape as getTestFailoverCleanupCluster / Ramen
+    // isFailoverPromotion(). Failover clean-up can also leave action=Failover
+    // with dryRun cleared; only treat it as promote when failoverCluster still
+    // matches the deployment cluster (workload stayed on the test target).
     promotedFromTest:
       drPlacementControl.spec?.action === DRActionType.FAILOVER &&
       !drPlacementControl.spec?.dryRun &&
-      getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
-        'true',
+      annotations?.[TEST_FAILOVER_DRYRUN_ANNOTATION] === 'true' &&
+      drPlacementControl.spec?.failoverCluster ===
+        getLastAppDeploymentClusterName(drPlacementControl),
+    lastAction: annotations?.[LAST_ACTION_ANNOTATION] || '',
+    lastAppCluster: annotations?.[LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION] || '',
     progressionDetails: detailMessages.length ? detailMessages : undefined,
     applicationName,
     isDiscoveredApp: isDiscoveredDRPC(drPlacementControl),

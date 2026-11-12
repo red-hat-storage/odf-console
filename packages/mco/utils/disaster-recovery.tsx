@@ -708,26 +708,30 @@ export const isTestSyncLagging = (
   lastGroupSyncTime?: string,
   schedulingInterval?: string
 ): boolean => {
-  if (!lastGroupSyncTime || !schedulingInterval) return false;
+  if (!schedulingInterval) return false;
+  // 0m (e.g. FusionAccess) never replicates — not a lag condition.
   const [intervalSeconds] = convertSyncIntervalToSeconds(schedulingInterval);
   if (!intervalSeconds) return false;
+  // Async policies expect a sync. Missing lastGroupSyncTime means the first
+  // successful sync has not happened yet, so the dry-run stay blocked/paused.
+  if (!lastGroupSyncTime) return true;
   return getTimeDifferenceInSeconds(lastGroupSyncTime) > 3 * intervalSeconds;
 };
 
 /**
  * Cluster serving the real workload.
- * During a test, last-app-deployment-cluster names either the original primary
- * or, once Ramen reaches the hold, the test cluster (spec.failoverCluster).
- * In the second case the primary is the other cluster in the policy.
+ * During a dry-run test, last-app-deployment-cluster names either the original
+ * primary or, once Ramen reaches the hold, the test cluster
+ * (spec.failoverCluster). In the second case the primary is the other cluster
+ * in the policy. After clean up clears dryRun, prefer the placement
+ * getEndTestFailoverPatch restored — phase / last-app-deployment-cluster can
+ * still name the test cluster until Ramen catches up.
  */
 export const resolvePrimaryClusterName = (
   drPlacementControl: DRPlacementControlKind,
   drClusterNames: string[]
 ): string => {
-  if (
-    !!drPlacementControl?.spec?.dryRun ||
-    isTestFailoverActive(drPlacementControl)
-  ) {
+  if (drPlacementControl?.spec?.dryRun) {
     const deployedCluster = getLastAppDeploymentClusterName(drPlacementControl);
     const failoverCluster = drPlacementControl.spec?.failoverCluster || '';
 
@@ -739,6 +743,24 @@ export const resolvePrimaryClusterName = (
     return testCluster
       ? drClusterNames?.find((name) => name !== testCluster) || ''
       : '';
+  }
+
+  // Clean up clears dryRun and may remove failoverCluster (Deployed/Relocate
+  // restore) while phase stays FailedOver and the deployment annotation still
+  // names the test cluster. Trust the restored preferredCluster in that gap.
+  // Failover restore keeps failoverCluster = home and falls through below.
+  const progression = drPlacementControl?.status?.progression;
+  const lingeringAfterCleanup =
+    progression === Progression.TestingFailover ||
+    progression === Progression.WaitOnUserToCleanUp ||
+    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
+      'true';
+  if (
+    lingeringAfterCleanup &&
+    !drPlacementControl.spec?.failoverCluster &&
+    drPlacementControl.spec?.preferredCluster
+  ) {
+    return drPlacementControl.spec.preferredCluster;
   }
 
   return getPrimaryClusterName(drPlacementControl);

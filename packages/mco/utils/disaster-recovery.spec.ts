@@ -168,6 +168,46 @@ describe('resolvePrimaryClusterName', () => {
     ).toBe(C2);
   });
 
+  // Clean up restores failoverCluster to the workload cluster and clears
+  // dryRun while TestingFailover and the test annotation can still linger.
+  // Peer inference must not treat that restored failover cluster as a test.
+  it('uses phase logic after clean up clears dryRun', () => {
+    const cleaningUp = drpc({
+      dryRun: false,
+      phase: Phase.FailedOver,
+      progression: Progression.TestingFailover,
+      preferredCluster: C2,
+      failoverCluster: C1,
+      lastAppDeploymentCluster: C1,
+    });
+    cleaningUp.metadata.annotations = {
+      ...cleaningUp.metadata.annotations,
+      [TEST_FAILOVER_DRYRUN_ANNOTATION]: 'true',
+    };
+    expect(isTestFailoverActive(cleaningUp)).toBe(true);
+    expect(resolvePrimaryClusterName(cleaningUp, DR_CLUSTERS)).toBe(C1);
+  });
+
+  // Deployed/Relocate clean up removes failoverCluster and restores
+  // preferredCluster to the production home. Until Ramen updates phase and
+  // last-app-deployment-cluster, those still point at the test cluster.
+  it('keeps the restored preferredCluster when clean up removed failoverCluster', () => {
+    const cleaningUp = drpc({
+      dryRun: false,
+      phase: Phase.FailedOver,
+      progression: Progression.TestingFailover,
+      preferredCluster: C1,
+      failoverCluster: '',
+      lastAppDeploymentCluster: C2,
+    });
+    cleaningUp.metadata.annotations = {
+      ...cleaningUp.metadata.annotations,
+      [TEST_FAILOVER_DRYRUN_ANNOTATION]: 'true',
+    };
+    delete cleaningUp.spec.failoverCluster;
+    expect(resolvePrimaryClusterName(cleaningUp, DR_CLUSTERS)).toBe(C1);
+  });
+
   it('falls back to the failover cluster when the annotation is missing', () => {
     expect(
       resolvePrimaryClusterName(
