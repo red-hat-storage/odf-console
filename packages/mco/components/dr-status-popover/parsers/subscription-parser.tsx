@@ -5,7 +5,7 @@ import {
   useSubscriptionResourceWatch,
 } from '@odf/mco/hooks';
 import { useDisasterRecoveryResourceWatch } from '@odf/mco/hooks';
-import { Phase } from '@odf/mco/types';
+import { Phase, Progression } from '@odf/mco/types';
 import {
   findCluster,
   getDRPolicyName,
@@ -20,6 +20,42 @@ import { getSubscriptionResources } from '../../modals/app-manage-policies/parse
 import { getDRResources } from '../../modals/app-manage-policies/utils/parser-utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
 import { getProgressionFields } from './utils';
+
+type SubscriptionStatus = {
+  phase?: Phase | string;
+  dryRun?: boolean;
+  progression?: string;
+};
+
+const subscriptionStatusRank = (status: SubscriptionStatus): number => {
+  // Deleting can linger on TestingFailover; do not hide a real operation.
+  if (
+    status.progression === Progression.TestingFailover &&
+    status.phase !== Phase.Deleting
+  ) {
+    return 0;
+  }
+  if (status.dryRun) return 2;
+  if (status.phase === Phase.FailingOver || status.phase === Phase.Relocating) {
+    return 1;
+  }
+  return 3;
+};
+
+// One popover represents one DRPC. Prefer the group waiting on the user,
+// then a failover or relocate already in progress, then a test still preparing.
+export const selectSubscriptionDRStatus = <T extends SubscriptionStatus>(
+  statuses: T[]
+): T | undefined =>
+  statuses.reduce<T | undefined>((selected, status) => {
+    if (
+      !selected ||
+      subscriptionStatusRank(status) < subscriptionStatusRank(selected)
+    ) {
+      return status;
+    }
+    return selected;
+  }, undefined);
 
 const getMostSevereHealthStatus = (
   drStatusList: { volumeReplicationHealth: VolumeReplicationHealth }[]
@@ -119,11 +155,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
 
     const mostSevereHealthStatus = getMostSevereHealthStatus(drStatusList);
 
-    const drpcInAction = drStatusList.find((status) =>
-      [Phase.FailingOver, Phase.Relocating].includes(status.phase as Phase)
-    );
-
-    const selectedDRPC = drpcInAction || drStatusList[0];
+    const selectedDRPC = selectSubscriptionDRStatus(drStatusList);
 
     return selectedDRPC
       ? {
@@ -141,6 +173,13 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
           progressionDetails: selectedDRPC.progressionDetails,
           applicationName: selectedDRPC.applicationName,
           protectedCondition: selectedDRPC.protectedCondition,
+          dryRun: selectedDRPC.dryRun,
+          testFailoverCleanupCluster: selectedDRPC.testFailoverCleanupCluster,
+          promotedFromTest: selectedDRPC.promotedFromTest,
+          lastAction: selectedDRPC.lastAction,
+          lastAppCluster: selectedDRPC.lastAppCluster,
+          drpcName: selectedDRPC.drpcName,
+          drpcNamespace: selectedDRPC.drpcNamespace,
         }
       : null;
   }, [isLoadedWOError, subscriptionResourceList]);
@@ -169,6 +208,13 @@ type DRStatusForGroup = {
   | 'applicationName'
   | 'protectedCondition'
   | 'availableCondition'
+  | 'dryRun'
+  | 'testFailoverCleanupCluster'
+  | 'promotedFromTest'
+  | 'lastAction'
+  | 'lastAppCluster'
+  | 'drpcName'
+  | 'drpcNamespace'
 >;
 
 export default SubscriptionParser;

@@ -73,24 +73,28 @@ describe('getProgressionFields: test failover cleanup cluster', () => {
     // On promote the workload stays on the test cluster, so the deployment
     // cluster catches up to it and the action remains Failover.
     it('ignores a promotion', () => {
-      expect(
-        cleanupCluster({
+      const fields = getProgressionFields(
+        drpc({
           action: 'Failover',
           dryRun: false,
           lastAppDeploymentCluster: TEST,
         })
-      ).toBeUndefined();
+      );
+      expect(fields.testFailoverCleanupCluster).toBeUndefined();
+      expect(fields.promotedFromTest).toBe(true);
     });
 
     it('ignores a test that is still in flight', () => {
-      expect(
-        cleanupCluster({
+      const fields = getProgressionFields(
+        drpc({
           dryRun: true,
           action: 'Failover',
           lastAppDeploymentCluster: TEST,
           progression: Progression.TestingFailover,
         })
-      ).toBeUndefined();
+      );
+      expect(fields.testFailoverCleanupCluster).toBeUndefined();
+      expect(fields.promotedFromTest).toBe(false);
     });
 
     it('ignores a cleanup unrelated to any dry run', () => {
