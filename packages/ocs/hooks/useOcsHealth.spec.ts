@@ -98,6 +98,35 @@ describe('useGetOCSHealth', () => {
     jest.clearAllMocks();
   });
 
+  describe('StorageCluster phase overrides', () => {
+    it('returns PROGRESS when StorageCluster is in Deleting phase', () => {
+      const deletingStorageCluster = {
+        ...mockStorageCluster,
+        status: { phase: 'Deleting' },
+      };
+
+      (useK8sWatchResource as jest.Mock)
+        .mockReturnValueOnce([[mockCephCluster], true, null])
+        .mockReturnValueOnce([[mockCephObjectStore], true, null])
+        .mockReturnValueOnce([[mockNoobaaSystem], true, null]);
+
+      (useCustomPrometheusPoll as jest.Mock).mockReturnValue([
+        createPrometheusResponse('0'),
+        null,
+      ]);
+
+      const { result } = renderHook(() =>
+        useGetOCSHealth(deletingStorageCluster as any)
+      );
+
+      expect(result.current.healthState).toBe(HealthState.PROGRESS);
+      expect(result.current.message).toBe('Deleting');
+      expect(utils.getCephHealthState).not.toHaveBeenCalled();
+      expect(utils.getRGWHealthState).not.toHaveBeenCalled();
+      expect(utils.getNooBaaState).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Healthy scenarios', () => {
     it('returns OK when all subsystems are healthy', () => {
       (useK8sWatchResource as jest.Mock)

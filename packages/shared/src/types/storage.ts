@@ -22,6 +22,7 @@ export type DataPool = {
 export enum StorageClusterPhase {
   Ready = 'Ready',
   Error = 'Error',
+  Deleting = 'Deleting',
 }
 
 export type ManagedResourcesCephClusterKind = {
