@@ -1,9 +1,10 @@
-import { BackendType, ReplicationType } from '@odf/mco/constants';
+import { ReplicationType } from '@odf/mco/constants';
 import {
   ManagedClusterInfoType,
   MirrorPeerKind,
   S3ConfigurationKind,
 } from '@odf/mco/types';
+import { StorageVendorId } from '@odf/mco/utils/storage-vendor-registry';
 import {
   k8sCreate,
   k8sDelete,
@@ -66,9 +67,11 @@ const state: DRPolicyState = {
       managedCluster('west-1', 'ocs-storagecluster'),
     ],
   },
+  provider: {
+    storageVendor: 'data-foundation' as StorageVendorId,
+  },
   configure: {
     ...drPolicyInitialState.configure,
-    replicationBackend: BackendType.DataFoundation,
   },
   policy: {
     ...drPolicyInitialState.policy,
@@ -366,9 +369,11 @@ describe('createPolicyPromises S3Configuration', () => {
   it('creates a secret and an external S3Configuration per cluster for third-party', async () => {
     const thirdPartyState: DRPolicyState = {
       ...state,
+      provider: {
+        storageVendor: 'generic' as StorageVendorId,
+      },
       configure: {
         ...state.configure,
-        replicationBackend: BackendType.ThirdParty,
         cluster1S3Details: {
           clusterName: 'east-1',
           bucketName: 'bucket-east',

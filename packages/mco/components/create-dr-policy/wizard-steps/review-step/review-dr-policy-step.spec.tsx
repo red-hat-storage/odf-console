@@ -1,17 +1,19 @@
 import * as React from 'react';
 import {
-  BackendType,
   GlobalnetStatus,
   ReplicationType,
   SubmarinerStatus,
 } from '@odf/mco/constants';
 import type { PrePairNetworkValidationState } from '@odf/mco/hooks';
+import { StorageVendorId } from '@odf/mco/utils/storage-vendor-registry';
+import type { PrePairCheckResult } from '@odf/mco/utils/storage-vendor-registry';
 import { render, screen } from '@testing-library/react';
 import { drPolicyInitialState, type DRPolicyState } from '../../utils/reducer';
 import { ReviewDRPolicyStep } from './review-dr-policy-step';
 
 type ReviewStateOverrides = {
   clusters?: Partial<DRPolicyState['clusters']>;
+  provider?: Partial<DRPolicyState['provider']>;
   configure?: Partial<DRPolicyState['configure']>;
   policy?: Partial<DRPolicyState['policy']>;
 };
@@ -24,6 +26,10 @@ const reviewState = (overrides: ReviewStateOverrides = {}): DRPolicyState => ({
       { name: 'west-1' },
     ] as DRPolicyState['clusters']['selectedClusters'],
     ...overrides.clusters,
+  },
+  provider: {
+    ...drPolicyInitialState.provider,
+    ...overrides.provider,
   },
   configure: {
     ...drPolicyInitialState.configure,
@@ -49,13 +55,27 @@ describe('ReviewDRPolicyStep cluster pair summary', () => {
     ...overrides,
   });
 
+  const wrapValidationInCheckResults = (
+    validationState: PrePairNetworkValidationState
+  ): Map<string, PrePairCheckResult> => {
+    const results = new Map<string, PrePairCheckResult>();
+    results.set('submariner', {
+      id: 'submariner',
+      loaded: validationState.loaded,
+      loadError: validationState.loadError,
+      canProceed: validationState.canProceed,
+      data: validationState,
+    });
+    return results;
+  };
+
   const renderReview = (state: PrePairNetworkValidationState) =>
     render(
       <ReviewDRPolicyStep
         state={reviewState({
-          configure: { replicationBackend: BackendType.DataFoundation },
+          provider: { storageVendor: 'data-foundation' as StorageVendorId },
         })}
-        validation={state}
+        prePairCheckResults={wrapValidationInCheckResults(state)}
       />
     );
 
@@ -65,7 +85,6 @@ describe('ReviewDRPolicyStep cluster pair summary', () => {
     expect(screen.getByText('Submariner enabled')).toBeInTheDocument();
   });
 
-  // An acknowledged warning must not be summarised as a healthy pair.
   it('reports that the status could not be verified for an acknowledged Unknown pair', () => {
     renderReview(validation({ status: SubmarinerStatus.Unknown }));
 

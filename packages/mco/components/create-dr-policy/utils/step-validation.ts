@@ -1,9 +1,12 @@
 import {
-  BackendType,
+  CreateDRPolicyWizardSteps,
   MAX_ALLOWED_CLUSTERS,
-  SubmarinerStatus,
 } from '@odf/mco/constants';
 import type { S3Details } from '@odf/mco/types';
+import {
+  getDescriptorById,
+  type StorageVendorDescriptor,
+} from '@odf/mco/utils/storage-vendor-registry';
 import { getName } from '@odf/shared/selectors';
 import type { DRPolicyState } from './reducer';
 import { isValidBucketName, isValidEndpoint } from './s3-validators';
@@ -21,35 +24,24 @@ export const validateClustersStepInputs = (state: DRPolicyState): boolean =>
   state.clusters.isClusterSelectionValid &&
   state.clusters.selectedClusters.length === MAX_ALLOWED_CLUSTERS;
 
+export const validateProviderStepInputs = (state: DRPolicyState): boolean =>
+  !!state.provider.storageVendor;
+
 export const shouldRunPrePairValidation = (state: DRPolicyState): boolean =>
   validateClustersStepInputs(state) &&
-  state.configure.replicationBackend === BackendType.DataFoundation;
-
-type PrePairValidationSummary = {
-  canProceed: boolean;
-  status: SubmarinerStatus;
-};
-
-export const requiresSubmarinerAcknowledgement = (
-  status: SubmarinerStatus
-): boolean =>
-  status === SubmarinerStatus.NotInstalled ||
-  status === SubmarinerStatus.Unknown;
-
-export const isPrePairValidationPassed = (
-  { canProceed, status }: PrePairValidationSummary,
-  acknowledgedUnvalidatedSubmariner: boolean
-): boolean =>
-  canProceed &&
-  (!requiresSubmarinerAcknowledgement(status) ||
-    acknowledgedUnvalidatedSubmariner);
+  validateProviderStepInputs(state) &&
+  getDescriptorById(state.provider.storageVendor).prePairChecks.length > 0;
 
 export const validateConfigureStepInputs = (
   state: DRPolicyState,
   clustersWithS3Configuration: Set<string>,
   prePairValidationPassed: boolean
 ): boolean => {
-  if (state.configure.replicationBackend === BackendType.DataFoundation) {
+  if (!validateProviderStepInputs(state)) {
+    return false;
+  }
+  const descriptor = getDescriptorById(state.provider.storageVendor);
+  if (descriptor.id === 'data-foundation') {
     return validateClustersStepInputs(state) && prePairValidationPassed;
   }
   return validateThirdPartyConfigureInputs(state, clustersWithS3Configuration);
@@ -77,15 +69,26 @@ export const validateThirdPartyConfigureInputs = (
   });
 };
 
-export const validatePolicyStepInputs = (state: DRPolicyState): boolean =>
-  isFilled(state.policy.policyName) && !!state.policy.replicationType;
+export const validatePolicyStepInputs = (
+  state: DRPolicyState,
+  descriptor?: StorageVendorDescriptor
+): boolean => {
+  if (
+    descriptor &&
+    !descriptor.steps.includes(CreateDRPolicyWizardSteps.Policy)
+  ) {
+    return true;
+  }
+  return isFilled(state.policy.policyName) && !!state.policy.replicationType;
+};
 
 export const validateReviewStepInputs = (
   state: DRPolicyState,
   clustersWithS3Configuration: Set<string> = new Set(),
-  prePairValidationPassed = true
+  prePairValidationPassed = true,
+  descriptor?: StorageVendorDescriptor
 ): boolean =>
-  validatePolicyStepInputs(state) &&
+  validatePolicyStepInputs(state, descriptor) &&
   validateClustersStepInputs(state) &&
   validateConfigureStepInputs(
     state,

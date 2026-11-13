@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getDescriptorById } from '@odf/mco/utils/storage-vendor-registry';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ExternalLink } from '@odf/shared/utils';
 import { Trans } from 'react-i18next';
@@ -14,7 +15,7 @@ import {
   TextInput,
   Title,
 } from '@patternfly/react-core';
-import { BackendType, ReplicationType } from '../../../../constants';
+import { ReplicationType } from '../../../../constants';
 import {
   DRPolicyAction,
   DRPolicyActionType,
@@ -84,6 +85,12 @@ export const PolicyStep: React.FC<PolicyStepProps> = ({
   docHref,
 }) => {
   const { t } = useCustomTranslation();
+  const descriptor = state.provider.storageVendor
+    ? getDescriptorById(state.provider.storageVendor)
+    : null;
+  const showAdvancedSettings =
+    descriptor?.id === 'data-foundation' &&
+    state.policy.replicationType === ReplicationType.ASYNC;
 
   return (
     <Form className="mco-create-data-policy__body">
@@ -118,21 +125,21 @@ export const PolicyStep: React.FC<PolicyStepProps> = ({
         />
       </FormGroup>
       <SelectReplicationType
+        descriptor={descriptor}
         selectedClusters={state.clusters.selectedClusters}
         replicationType={state.policy.replicationType}
         syncIntervalTime={state.policy.syncIntervalTime}
         dispatch={dispatch}
       />
-      {state.configure.replicationBackend === BackendType.DataFoundation &&
-        state.policy.replicationType === ReplicationType.ASYNC && (
-          <FormGroup fieldId="advanced-settings">
-            <AdvancedSettings
-              enableRBDImageFlatten={state.policy.enableRBDImageFlatten}
-              docHref={docHref}
-              dispatch={dispatch}
-            />
-          </FormGroup>
-        )}
+      {showAdvancedSettings && (
+        <FormGroup fieldId="advanced-settings">
+          <AdvancedSettings
+            enableRBDImageFlatten={state.policy.enableRBDImageFlatten}
+            docHref={docHref}
+            dispatch={dispatch}
+          />
+        </FormGroup>
+      )}
     </Form>
   );
 };

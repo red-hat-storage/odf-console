@@ -33,6 +33,8 @@ jest.mock('@odf/shared/hooks/use-fetch-csv', () => ({
 
 jest.mock('../../hooks', () => ({
   getManagedClusterResourceObj: jest.fn(() => ({})),
+  getODFClientInfoConfigMapResourceObj: jest.fn(() => ({})),
+  getIBMStorageScaleInfoConfigMapResourceObj: jest.fn(() => ({})),
   useProtectedAppsByCluster: jest.fn(() => [{}, true, null]),
   useDRPoliciesByClusterPair: jest.fn(() => [{}, true, null]),
   useActiveDROperations: jest.fn(() => [{}, true, null]),
@@ -121,13 +123,15 @@ const mockUseK8sWatchResource = useK8sWatchResource as jest.MockedFunction<
 describe('Topology Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Storage vendor ConfigMap watches beyond the per-test stubs below.
+    mockUseK8sWatchResource.mockReturnValue([undefined, true, null]);
   });
 
   describe('Loading States', () => {
     it('should show loading state initially', () => {
       // First call: managedClusters
       mockUseK8sWatchResource.mockReturnValueOnce([[], false, null]);
-      // Second call: MCVs
+      // Second call: ODF client info ConfigMap
       mockUseK8sWatchResource.mockReturnValueOnce([[], false, null]);
 
       const { container } = render(<Topology />);
@@ -148,7 +152,7 @@ describe('Topology Integration Tests', () => {
 
       // First call: managedClusters
       mockUseK8sWatchResource.mockReturnValueOnce([mockClusters, true, null]);
-      // Second call: MCVs (empty but loaded)
+      // Second call: ODF client info ConfigMap
       mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { container } = render(<Topology />);
@@ -165,7 +169,7 @@ describe('Topology Integration Tests', () => {
     it('should show empty state when no clusters exist', () => {
       // First call: managedClusters (empty)
       mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
-      // Second call: MCVs (empty)
+      // Second call: ODF client info ConfigMap
       mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { getByText } = render(<Topology />);
@@ -182,7 +186,7 @@ describe('Topology Integration Tests', () => {
       const mockError = new Error('Failed to fetch clusters');
       // First call: managedClusters (error)
       mockUseK8sWatchResource.mockReturnValueOnce([[], false, mockError]);
-      // Second call: MCVs (loaded)
+      // Second call: ODF client info ConfigMap
       mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { container } = render(<Topology />);
@@ -209,7 +213,7 @@ describe('Topology Integration Tests', () => {
 
       // First call: managedClusters
       mockUseK8sWatchResource.mockReturnValueOnce([mockClusters, true, null]);
-      // Second call: MCVs
+      // Second call: ODF client info ConfigMap
       mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { container } = render(<Topology />);
@@ -234,7 +238,7 @@ describe('Topology Integration Tests', () => {
 
       // First call: managedClusters
       mockUseK8sWatchResource.mockReturnValueOnce([mockClusters, true, null]);
-      // Second call: MCVs
+      // Second call: ODF client info ConfigMap
       mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
       const { container } = render(<Topology />);
@@ -261,7 +265,7 @@ describe('Topology With Error Handler', () => {
 
     // First call: managedClusters
     mockUseK8sWatchResource.mockReturnValueOnce([mockClusters, true, null]);
-    // Second call: MCVs
+    // Second call: ODF client info ConfigMap
     mockUseK8sWatchResource.mockReturnValueOnce([[], true, null]);
 
     const { queryByText } = render(<Topology />);

@@ -5,7 +5,12 @@ import {
   deleteSecretByName,
   getExternalS3SecretName,
 } from '@odf/mco/utils/s3-configuration';
-import { DRPolicyModel, ListPageFilterWrapper } from '@odf/shared';
+import { findMirrorPeerForPair } from '@odf/mco/utils/storage-vendor-registry';
+import {
+  DRPolicyModel,
+  ListPageFilterWrapper,
+  MirrorPeerModel,
+} from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { useAccessReview } from '@odf/shared/hooks/rbac-hook';
 import { Kebab } from '@odf/shared/kebab/kebab';
@@ -32,8 +37,9 @@ import {
   getS3ConfigurationResourceObj,
   useProtectedApplicationsWatch,
 } from '../../hooks';
-import { DRPolicyKind, S3ConfigurationKind } from '../../types';
+import { DRPolicyKind, MirrorPeerKind, S3ConfigurationKind } from '../../types';
 import { getReplicationType, isDRPolicyValidated } from '../../utils';
+import { deleteMirrorPeerByName } from '../create-dr-policy/utils/k8s-utils';
 import { Header, kebabActionItems, tableColumnInfo } from './helper';
 import './drpolicy-list-page.scss';
 
@@ -49,6 +55,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
     appCountLoadedWOError,
     drClusterToPoliciesMap,
     s3Configurations,
+    mirrorPeers,
   } = rowData;
 
   const clusterNames = obj?.spec?.drClusters?.map((clusterName) => (
@@ -100,8 +107,22 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
         // eslint-disable-next-line no-await-in-loop
         await deleteS3ConfigurationByName(name);
       }
+
+      // Delete the MirrorPeer covering the pair when the last policy using it is gone.
+      const isLastPolicyForPair = policyClusters.every(
+        (clusterName) => (drClusterToPoliciesMap[clusterName] || []).length <= 1
+      );
+      if (policyClusters.length === 2 && isLastPolicyForPair) {
+        const mirrorPeer = findMirrorPeerForPair(
+          policyClusters as [string, string],
+          mirrorPeers
+        );
+        if (mirrorPeer) {
+          await deleteMirrorPeerByName(getName(mirrorPeer));
+        }
+      }
     },
-    [drClusterToPoliciesMap, s3Configurations]
+    [drClusterToPoliciesMap, s3Configurations, mirrorPeers]
   );
 
   return (
@@ -176,6 +197,12 @@ export const DRPolicyListPage: React.FC = () => {
   const [s3Configurations] = useK8sWatchResource<S3ConfigurationKind[]>(
     getS3ConfigurationResourceObj()
   );
+
+  const [mirrorPeers] = useK8sWatchResource<MirrorPeerKind[]>({
+    kind: referenceForModel(MirrorPeerModel),
+    isList: true,
+    namespaced: false,
+  });
 
   // Reference count clusters against the policies using them.
   const drClusterToPoliciesMap = React.useMemo(() => {
@@ -259,6 +286,7 @@ export const DRPolicyListPage: React.FC = () => {
               policyToAppCount,
               drClusterToPoliciesMap,
               s3Configurations,
+              mirrorPeers,
             }}
           />
         </>
@@ -273,6 +301,7 @@ type RowData = {
   policyToAppCount: DRPolicyToAppCount;
   drClusterToPoliciesMap: Record<string, DRPolicyKind[]>;
   s3Configurations: S3ConfigurationKind[];
+  mirrorPeers: MirrorPeerKind[];
 };
 
 type DRPolicyListProps = {

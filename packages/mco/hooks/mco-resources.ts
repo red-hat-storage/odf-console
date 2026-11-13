@@ -5,6 +5,7 @@ import {
   ACMPlacementRuleModel,
   ACMSubscriptionModel,
   ArgoApplicationSetModel,
+  ConfigMapModel,
   DRClusterModel,
   DRPlacementControlModel,
   DRPolicyModel,
@@ -19,6 +20,9 @@ import { referenceForModel } from '@odf/shared/utils';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk';
 import {
   HUB_CLUSTER_NAME,
+  IBM_STORAGE_SCALE_INFO_CONFIGMAP,
+  ODF_CLIENT_INFO_CONFIGMAP,
+  ODFMCO_OPERATOR_NAMESPACE,
   SUBMARINER_ADDON_KIND,
   SUBMARINER_BROKER_KIND,
   SUBMARINER_CLUSTER_KIND,
@@ -191,6 +195,21 @@ export const getSubmarinerBrokerListResourceObj = () =>
 
 export const getSubmarinerClusterListResourceObj = () =>
   getSubmarinerHubListResourceObj(SUBMARINER_CLUSTER_KIND);
+
+const getMCOConfigMapResourceObj = (name: string) => ({
+  cluster: HUB_CLUSTER_NAME,
+  kind: referenceForModel(ConfigMapModel),
+  name,
+  namespace: ODFMCO_OPERATOR_NAMESPACE,
+  namespaced: true,
+  optional: true,
+});
+
+export const getODFClientInfoConfigMapResourceObj = () =>
+  getMCOConfigMapResourceObj(ODF_CLIENT_INFO_CONFIGMAP);
+
+export const getIBMStorageScaleInfoConfigMapResourceObj = () =>
+  getMCOConfigMapResourceObj(IBM_STORAGE_SCALE_INFO_CONFIGMAP);
 
 type ClusterScopeObjectType = {
   name?: string;

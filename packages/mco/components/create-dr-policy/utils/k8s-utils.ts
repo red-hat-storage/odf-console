@@ -1,9 +1,4 @@
-import {
-  BackendType,
-  MirrorPeerStorageVendor,
-  RBD_IMAGE_FLATTEN_LABEL,
-  ReplicationType,
-} from '@odf/mco/constants';
+import { RBD_IMAGE_FLATTEN_LABEL, ReplicationType } from '@odf/mco/constants';
 import {
   DRPolicyKind,
   ManagedClusterInfoType,
@@ -23,6 +18,10 @@ import {
   getExternalS3SecretName,
   getS3ConfigurationName,
 } from '@odf/mco/utils/s3-configuration';
+import {
+  getDescriptorById,
+  type StorageVendorDescriptor,
+} from '@odf/mco/utils/storage-vendor-registry';
 import { DRPolicyModel, getName, MirrorPeerModel } from '@odf/shared';
 import {
   createOrUpdate,
@@ -37,6 +36,18 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { t } from 'i18next';
 import type { DRPolicyState } from './reducer';
+
+export const generatePolicyName = (
+  providerId: string,
+  clusterNames: string[]
+): string => {
+  const sanitize = (s: string) => s.toLowerCase().replace(/\s/g, '-');
+  const base = `${sanitize(providerId)}-${clusterNames
+    .map(sanitize)
+    .sort()
+    .join('-')}`;
+  return base.substring(0, 253).replace(/-+$/, '');
+};
 
 const getODFPeers = (cluster: ManagedClusterInfoType) => {
   const storageClusterInfo = cluster?.odfInfo?.storageClusterInfo;
@@ -85,6 +96,7 @@ const fetchMirrorPeer = (
   });
 
 const createMirrorPeer = (
+  descriptor: StorageVendorDescriptor,
   selectedClusters: ManagedClusterInfoType[],
   replicationType: ReplicationType
 ): Promise<MirrorPeerKind> => {
@@ -93,8 +105,7 @@ const createMirrorPeer = (
     kind: MirrorPeerModel.kind,
     metadata: { generateName: 'mirrorpeer-' },
     spec: {
-      // manageS3 is deprecated; S3Configuration owns the profile and DRClusters.
-      storageVendor: MirrorPeerStorageVendor.ODF,
+      storageVendor: descriptor.mirrorPeerVendor,
       type: replicationType,
       items: getPeerClustersRef(selectedClusters),
     },
@@ -189,17 +200,27 @@ export const createPolicyPromises = async (
 ): Promise<CreatePolicyResult> => {
   const peerNames = state.clusters.selectedClusters.map(getName);
   const created: CreatedResources = { s3Configurations: [], secrets: [] };
+  const descriptor = getDescriptorById(state.provider.storageVendor);
+  const policyName =
+    descriptor.policyName === 'generated'
+      ? generatePolicyName(descriptor.id, peerNames)
+      : state.policy.policyName;
 
-  if (state.configure.replicationBackend === BackendType.DataFoundation) {
+  if (descriptor.mirrorPeerVendor) {
     let createdMirrorPeer: MirrorPeerKind | undefined;
     let peering: OdfPeeringResult;
     let policyResult: CreateDRPolicyResult;
     try {
       await prepareInternalS3(state, s3Configurations, created);
-      peering = await prepareOdfPeering(state, mirrorPeers, peerNames);
+      peering = await prepareOdfPeering(
+        descriptor,
+        state,
+        mirrorPeers,
+        peerNames
+      );
       createdMirrorPeer = peering.isNew ? peering.mirrorPeer : undefined;
       policyResult = await createDRPolicy(
-        state.policy.policyName,
+        policyName,
         state.policy.replicationType,
         state.policy.syncIntervalTime,
         state.policy.enableRBDImageFlatten,
@@ -242,7 +263,7 @@ export const createPolicyPromises = async (
     try {
       await prepareExternalS3(state, s3Configurations, created);
       policyResult = await createDRPolicy(
-        state.policy.policyName,
+        policyName,
         state.policy.replicationType,
         state.policy.syncIntervalTime,
         state.policy.enableRBDImageFlatten,
@@ -302,6 +323,7 @@ type OdfPeeringResult = {
 };
 
 const prepareOdfPeering = async (
+  descriptor: StorageVendorDescriptor,
   state: DRPolicyState,
   mirrorPeers: MirrorPeerKind[],
   peerNames: string[]
@@ -322,6 +344,7 @@ const prepareOdfPeering = async (
   if (!mirrorPeer) {
     return {
       mirrorPeer: await createMirrorPeer(
+        descriptor,
         state.clusters.selectedClusters,
         state.policy.replicationType
       ),

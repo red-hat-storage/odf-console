@@ -26,6 +26,11 @@ export type ODFConfigInfoType = {
   storageClusterCount: number;
 };
 
+export type StorageVendorPresence = {
+  version: string;
+  clusterName: string;
+};
+
 // Using K8sResourceCommon to reuse shared components
 export type ManagedClusterInfoType = K8sResourceCommon & {
   // Cluster id
@@ -36,6 +41,10 @@ export type ManagedClusterInfoType = K8sResourceCommon & {
   // ToDo: Use list type after ODF starts supporting
   // multiple ODF clusters per managed cluster
   odfInfo?: ODFConfigInfoType;
+  storageProviders?: {
+    odf?: StorageVendorPresence;
+    scale?: StorageVendorPresence;
+  };
   providers?: Provider[];
   // Aggregates for cluster list column sorting.
   storageProvisionersCount?: number;

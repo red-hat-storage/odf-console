@@ -4,6 +4,8 @@ export const ODR_HUB_OPERATOR = 'odr-hub-operator';
 
 // Hub operator namespace
 export const ODFMCO_OPERATOR_NAMESPACE = 'openshift-operators';
+export const ODF_CLIENT_INFO_CONFIGMAP = 'odf-client-info';
+export const IBM_STORAGE_SCALE_INFO_CONFIGMAP = 'ibm-storage-scale-info';
 export const GITOPS_OPERATOR_NAMESPACE = 'openshift-gitops';
 export const AWS_ACCESS_KEY_ID = 'AWS_ACCESS_KEY_ID';
 export const AWS_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY';

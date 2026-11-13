@@ -1,5 +1,6 @@
-import { BackendType, ReplicationType } from '@odf/mco/constants';
+import { ReplicationType } from '@odf/mco/constants';
 import { ManagedClusterInfoType, S3Details } from '@odf/mco/types';
+import { StorageVendorId } from '@odf/mco/utils/storage-vendor-registry';
 
 export const emptyS3Details: S3Details = {
   clusterName: '',
@@ -18,8 +19,10 @@ export type DRPolicyState = {
     isClusterSelectionValid: boolean;
     selectedClustersHaveODF: boolean;
   };
+  provider: {
+    storageVendor: StorageVendorId;
+  };
   configure: {
-    replicationBackend: BackendType;
     cluster1S3Details: S3Details;
     cluster2S3Details: S3Details;
     useSameS3Connection: boolean;
@@ -38,7 +41,7 @@ export type DRPolicyState = {
 
 export enum DRPolicyActionType {
   SET_POLICY_NAME = 'SET_POLICY_NAME',
-  SET_REPLICATION_BACKEND = 'SET_REPLICATION_BACKEND',
+  SET_STORAGE_VENDOR = 'SET_STORAGE_VENDOR',
   SET_REPLICATION_TYPE = 'SET_REPLICATION_TYPE',
   SET_SYNC_INTERVAL_TIME = 'SET_SYNC_INTERVAL_TIME',
   SET_SELECTED_CLUSTERS = 'SET_SELECTED_CLUSTERS',
@@ -56,8 +59,10 @@ export const drPolicyInitialState: DRPolicyState = {
     selectedClustersHaveODF: false,
     isClusterSelectionValid: false,
   },
+  provider: {
+    storageVendor: null,
+  },
   configure: {
-    replicationBackend: BackendType.DataFoundation,
     cluster1S3Details: { ...emptyS3Details },
     cluster2S3Details: { ...emptyS3Details },
     useSameS3Connection: false,
@@ -72,7 +77,7 @@ export const drPolicyInitialState: DRPolicyState = {
 
 export type DRPolicyAction =
   | { type: DRPolicyActionType.SET_POLICY_NAME; payload: string }
-  | { type: DRPolicyActionType.SET_REPLICATION_BACKEND; payload: BackendType }
+  | { type: DRPolicyActionType.SET_STORAGE_VENDOR; payload: StorageVendorId }
   | { type: DRPolicyActionType.SET_REPLICATION_TYPE; payload: ReplicationType }
   | { type: DRPolicyActionType.SET_SYNC_INTERVAL_TIME; payload: string }
   | {
@@ -115,12 +120,12 @@ export const drPolicyReducer = (
         },
       };
     }
-    case DRPolicyActionType.SET_REPLICATION_BACKEND: {
+    case DRPolicyActionType.SET_STORAGE_VENDOR: {
       return {
         ...state,
-        configure: {
-          ...state.configure,
-          replicationBackend: action.payload,
+        provider: {
+          ...state.provider,
+          storageVendor: action.payload,
         },
       };
     }
