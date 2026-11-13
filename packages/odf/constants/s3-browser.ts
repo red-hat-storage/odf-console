@@ -49,6 +49,8 @@ export const BUCKET_ENCRYPTION_CACHE_KEY_SUFFIX = 'BUCKET_ENCRYPTION_CACHE_KEY';
 export const BUCKET_POLICY_CACHE_KEY_SUFFIX = 'BUCKET_POLICY_CACHE_KEY_SUFFIX';
 export const BUCKET_TAGGING_CACHE_KEY_SUFFIX = 'BUCKET_TAGGING_CACHE_KEY';
 export const BUCKET_VERSIONING_CACHE_KEY_SUFFIX = 'BUCKET_VERSIONING_CACHE_KEY';
+export const BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX =
+  'BUCKET_OBJECT_LOCK_CACHE_KEY';
 export const BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX =
   'BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX';
 export const LIST_BUCKET = 'LIST_BUCKET_CACHE_KEY';
@@ -56,6 +58,19 @@ export const LIST_OBJECTS = 'LIST_OBJECTS_CACHE_KEY';
 export const LIST_VERSIONED_OBJECTS = 'LIST_VERSIONED_OBJECTS';
 export const OBJECT_CACHE_KEY_SUFFIX = 'OBJECT_CACHE_KEY';
 export const OBJECT_TAGGING_CACHE_KEY_SUFFIX = 'OBJECT_TAGGING_CACHE_KEY';
+export const OBJECT_RETENTION_CACHE_KEY_SUFFIX = 'OBJECT_RETENTION_CACHE_KEY';
+export const OBJECT_LEGAL_HOLD_CACHE_KEY_SUFFIX = 'OBJECT_LEGAL_HOLD_CACHE_KEY';
+// Sentinel for SWR keys when VersionId is omitted. Must not equal the
+// literal S3 null-version ID string "null", or those two cases collide.
+export const LATEST_VERSION_CACHE_KEY = '__latest__';
+export const getObjectVersionedCacheKey = (
+  providerType: string,
+  bucketName: string,
+  objectKey: string,
+  versionId: string | undefined,
+  suffix: string
+) =>
+  `${providerType}-${bucketName}-${objectKey}-${versionId || LATEST_VERSION_CACHE_KEY}-${suffix}`;
 export const BUCKET_CORS_RULE_CACHE_KEY_SUFFIX =
   'BUCKET_CORS_RULE_CACHE_KEY_SUFFIX';
 export const BUCKET_POLICY_STATUS_CACHE_KEY_SUFFIX =

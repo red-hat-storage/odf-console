@@ -13,8 +13,10 @@ import {
   PutBucketVersioningCommandInput,
   GetBucketVersioningCommandOutput,
   PutBucketVersioningCommandOutput,
-  HeadBucketCommandInput,
-  HeadBucketCommandOutput,
+  GetObjectLockConfigurationCommandInput,
+  GetObjectLockConfigurationCommandOutput,
+  PutObjectLockConfigurationCommandInput,
+  PutObjectLockConfigurationCommandOutput,
   ListBucketsCommandInput,
   ListBucketsCommandOutput,
   ListObjectsV2CommandInput,
@@ -25,6 +27,8 @@ import {
   DeleteObjectsCommandOutput,
   GetObjectCommandInput,
   GetObjectCommandOutput,
+  HeadBucketCommandInput,
+  HeadBucketCommandOutput,
   HeadObjectCommandInput,
   HeadObjectCommandOutput,
   GetObjectTaggingCommandInput,
@@ -55,6 +59,14 @@ import {
   GetPublicAccessBlockCommandOutput,
   PutPublicAccessBlockCommandInput,
   PutPublicAccessBlockCommandOutput,
+  PutObjectRetentionCommandInput,
+  PutObjectRetentionCommandOutput,
+  GetObjectRetentionCommandInput,
+  GetObjectRetentionCommandOutput,
+  PutObjectLegalHoldCommandInput,
+  PutObjectLegalHoldCommandOutput,
+  GetObjectLegalHoldCommandInput,
+  GetObjectLegalHoldCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
@@ -106,6 +118,14 @@ export type HeadBucketOutput = HeadBucketCommandOutput & {
 export type HeadBucket = (
   input: HeadBucketCommandInput
 ) => Promise<HeadBucketOutput>;
+
+export type GetObjectLockConfiguration = (
+  input: GetObjectLockConfigurationCommandInput
+) => Promise<GetObjectLockConfigurationCommandOutput>;
+
+export type PutObjectLockConfiguration = (
+  input: PutObjectLockConfigurationCommandInput
+) => Promise<PutObjectLockConfigurationCommandOutput>;
 
 export type ListBuckets = (
   input: ListBucketsCommandInput
@@ -185,6 +205,22 @@ export type ListObjectsV2 = (
 export type ListObjectVersions = (
   input: ListObjectVersionsCommandInput
 ) => Promise<ListObjectVersionsCommandOutput>;
+
+export type PutObjectRetention = (
+  input: PutObjectRetentionCommandInput
+) => Promise<PutObjectRetentionCommandOutput>;
+
+export type GetObjectRetention = (
+  input: GetObjectRetentionCommandInput
+) => Promise<GetObjectRetentionCommandOutput>;
+
+export type PutObjectLegalHold = (
+  input: PutObjectLegalHoldCommandInput
+) => Promise<PutObjectLegalHoldCommandOutput>;
+
+export type GetObjectLegalHold = (
+  input: GetObjectLegalHoldCommandInput
+) => Promise<GetObjectLegalHoldCommandOutput>;
 
 // Bucket Policy
 

@@ -1,20 +1,41 @@
 import * as React from 'react';
-import { Tag, DeleteObjectsCommandOutput } from '@aws-sdk/client-s3';
+import {
+  Tag,
+  DeleteObjectsCommandOutput,
+  GetObjectLockConfigurationCommandOutput,
+  ObjectLockRetentionMode,
+  ObjectLockLegalHoldStatus,
+} from '@aws-sdk/client-s3';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import {
   OBJECT_CACHE_KEY_SUFFIX,
   OBJECT_TAGGING_CACHE_KEY_SUFFIX,
+  OBJECT_RETENTION_CACHE_KEY_SUFFIX,
+  OBJECT_LEGAL_HOLD_CACHE_KEY_SUFFIX,
+  BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX,
+  BUCKET_VERSIONING_CACHE_KEY_SUFFIX,
+  getObjectVersionedCacheKey,
   PREFIX,
 } from '@odf/core/constants';
+import ApplyLegalHoldModal, {
+  ApplyLegalHoldModalProps,
+} from '@odf/core/modals/s3-browser/apply-legal-hold/ApplyLegalHoldModal';
+import ObjectLockNotEnabledModal, {
+  ObjectLockNotEnabledModalProps,
+} from '@odf/core/modals/s3-browser/object-lock-not-enabled/ObjectLockNotEnabledModal';
+import RemoveLegalHoldModal, {
+  RemoveLegalHoldModalProps,
+} from '@odf/core/modals/s3-browser/remove-legal-hold/RemoveLegalHoldModal';
+import SetObjectRetentionModal, {
+  RetentionPeriodUnit,
+  SetObjectRetentionModalProps,
+} from '@odf/core/modals/s3-browser/set-object-retention/SetObjectRetentionModal';
 import { ObjectCrFormat } from '@odf/core/types';
 import {
   replacePathFromName,
   getObjectVersionId,
   convertObjectDataToCrFormat,
   sortByLastModified,
-  isObjectDeepArchived,
-  isObjectRestored,
-  getRestoreStatusText,
 } from '@odf/core/utils';
 import {
   DASH,
@@ -26,6 +47,12 @@ import {
 import { useModalWrapper } from '@odf/shared';
 import { PaginatedListPage } from '@odf/shared/list-page';
 import { S3Commands } from '@odf/shared/s3';
+import {
+  getIsObjectLockEnabled,
+  getIsVersioningEnabled,
+  getRetentionPeriodFromDate,
+  isNoObjectLockConfigurationError,
+} from '@odf/shared/s3/utils';
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
 import { TFunction } from 'i18next';
 import { useParams, useSearchParams } from 'react-router';
@@ -33,6 +60,8 @@ import useSWR from 'swr';
 import {
   Alert,
   AlertVariant,
+  Button,
+  ButtonVariant,
   Drawer,
   DrawerActions,
   DrawerCloseButton,
@@ -43,6 +72,8 @@ import {
   Dropdown,
   DropdownItem,
   DropdownList,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   Label,
@@ -50,6 +81,7 @@ import {
   Level,
   LevelItem,
   MenuToggle,
+  Switch,
   Title,
   Tab,
   Tabs,
@@ -301,6 +333,153 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
       })
   );
 
+  const { data: versioningData, mutate: versioningMutate } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
+    () => s3Client.getBucketVersioning({ Bucket: bucketName })
+  );
+
+  // Fetch bucket's object lock configuration to check if it's enabled
+  const { data: objectLockData, mutate: objectLockMutate } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX}`,
+    () =>
+      s3Client
+        .getObjectLockConfiguration({ Bucket: bucketName })
+        .catch((err) => {
+          if (isNoObjectLockConfigurationError(err)) {
+            return {} as GetObjectLockConfigurationCommandOutput;
+          }
+          throw err;
+        })
+  );
+
+  // purpose: to get the retention mode and retain until date for the object.
+  const { data: retentionData, mutate: retentionMutate } = useSWR(
+    isDeleteMarker
+      ? null
+      : getObjectVersionedCacheKey(
+          s3Client.providerType,
+          bucketName,
+          objectKey,
+          versionId,
+          OBJECT_RETENTION_CACHE_KEY_SUFFIX
+        ),
+    async () => {
+      try {
+        return await s3Client.getObjectRetention({
+          Bucket: bucketName,
+          Key: objectKey,
+          ...(versionId && { VersionId: versionId }),
+        });
+      } catch (err) {
+        // NoSuchObjectLockConfiguration: no retention set (also after disable)
+        // InvalidRequest: Object Lock not enabled on the bucket
+        if (
+          ['NoSuchObjectLockConfiguration', 'InvalidRequest'].includes(
+            err?.name
+          )
+        )
+          return null;
+        throw err;
+      }
+    }
+  );
+
+  //sample output:
+  /* Retention: {
+    Mode: "GOVERNANCE", // or "COMPLIANCE"
+    RetainUntilDate: new Date("2027-03-15T00:00:00.000Z"),
+  },
+  // + AWS SDK metadata ($metadata) on the response object
+} */
+  // Whether Object Lock is on for the bucket.
+  const isObjectLockEnabled = getIsObjectLockEnabled(objectLockData);
+  const isVersioningEnabled = getIsVersioningEnabled(versioningData);
+
+  const objectRetention = retentionData?.Retention;
+
+  // Whether this object currently has retention set.
+  //Syncs the switch checked state via useEffect → setIsObjectRetentionChecked
+  const isObjectRetentionEnabled = !!objectRetention;
+  const retentionMode = objectRetention?.Mode;
+  const retainUntilDate = objectRetention?.RetainUntilDate;
+  const { period: retentionPeriod, unit: retentionPeriodUnitValue } =
+    retainUntilDate
+      ? getRetentionPeriodFromDate(retainUntilDate)
+      : { period: 0, unit: 'Days' as const };
+  const retentionPeriodUnit =
+    retentionPeriodUnitValue === 'Years'
+      ? RetentionPeriodUnit.YEARS
+      : RetentionPeriodUnit.DAYS;
+  // Compliance retention cannot be cleared before RetainUntilDate.
+  const isComplianceRetentionActive =
+    retentionMode === ObjectLockRetentionMode.COMPLIANCE &&
+    !!retainUntilDate &&
+    new Date(retainUntilDate) > new Date();
+
+  const [isObjectRetentionChecked, setIsObjectRetentionChecked] =
+    React.useState<boolean>(false);
+  const [retentionError, setRetentionError] = React.useState<Error>();
+
+  const launcher = useModalWrapper();
+
+  const onDisableObjectRetention = async () => {
+    try {
+      await s3Client.putObjectRetention({
+        Bucket: bucketName,
+        Key: objectKey,
+        ...(versionId && { VersionId: versionId }),
+        Retention: {}, // empty = clear retention (NooBaa is_clear path)
+        BypassGovernanceRetention: true, // required to remove GOVERNANCE retention
+      });
+      setRetentionError(undefined);
+      setIsObjectRetentionChecked(false);
+      retentionMutate();
+    } catch (err) {
+      setRetentionError(err);
+    }
+  };
+
+  React.useEffect(
+    () => setIsObjectRetentionChecked(isObjectRetentionEnabled),
+    [isObjectRetentionEnabled, setIsObjectRetentionChecked]
+  );
+
+  // Fetch object's legal hold status
+  const { data: legalHoldData, mutate: legalHoldMutate } = useSWR(
+    isDeleteMarker
+      ? null
+      : getObjectVersionedCacheKey(
+          s3Client.providerType,
+          bucketName,
+          objectKey,
+          versionId,
+          OBJECT_LEGAL_HOLD_CACHE_KEY_SUFFIX
+        ),
+    async () => {
+      try {
+        return await s3Client.getObjectLegalHold({
+          Bucket: bucketName,
+          Key: objectKey,
+          ...(versionId && { VersionId: versionId }),
+        });
+      } catch (err) {
+        // InvalidRequest: Object Lock not enabled on the bucket
+        if (
+          [
+            'InvalidRequest',
+            'NoSuchObjectLockConfiguration',
+            'ObjectLockConfigurationNotFoundError',
+          ].includes(err?.name)
+        )
+          return null;
+        throw err;
+      }
+    }
+  );
+
+  const legalHoldStatus = legalHoldData?.LegalHold?.Status;
+  const isLegalHoldApplied = legalHoldStatus === ObjectLockLegalHoldStatus.ON;
+
   const tags = tagData?.TagSet?.map((tag: Tag) => (
     <Label className="pf-v6-u-mr-xs" color="grey" icon={<TagIcon />}>
       {tag.Key}
@@ -323,91 +502,218 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
 
   const isLoading = isObjectDataLoading || isTagDataLoading;
 
-  // Storage class and restore status are read from the list response (the
-  // single source of truth); the warning only applies while a usable restored
-  // copy is missing, as a restored object can be previewed/downloaded like any
-  // other.
-  const needsRestore =
-    isObjectDeepArchived(object) && !isObjectRestored(object);
-  const restoreStatusText = getRestoreStatusText(object, t);
-
   return isLoading ? (
     <LoadingBox />
   ) : (
-    <>
-      {needsRestore && (
-        <Alert
-          isInline
-          variant={AlertVariant.warning}
-          title={t('This object is archived')}
-          className="pf-v6-u-mt-sm"
-        >
-          {t(
-            'This object is stored in the Deep Archive storage class and can only be previewed or downloaded after it is restored.'
-          )}
-        </Alert>
-      )}
-      <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
+    <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
+      <GridItem span={6}>
+        <ItemHeading text={t('Name')} />
+        {objShortenedName}
+      </GridItem>
+      <GridItem span={6}>
+        <ItemHeading text={t('Key')} />
+        <Level>
+          <LevelItem className="odf-object-sidebar__key">{objectKey}</LevelItem>
+          <LevelItem>
+            <CopyToClipboard value={objectKey} iconOnly={true} />
+          </LevelItem>
+        </Level>
+      </GridItem>
+      {showVersioning && (
         <GridItem span={6}>
-          <ItemHeading text={t('Name')} />
-          {objShortenedName}
+          <ItemHeading text={t('Version')} />
+          {objectData?.VersionId || versionId || DASH}
         </GridItem>
-        <GridItem span={6}>
-          <ItemHeading text={t('Key')} />
+      )}
+      <GridItem span={6}>
+        <ItemHeading text={t('Owner')} />
+        {object.apiResponse?.ownerName}
+      </GridItem>
+      <GridItem span={6}>
+        <ItemHeading text={t('Type')} />
+        {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
+      </GridItem>
+      <GridItem span={6}>
+        <ItemHeading text={t('Last modified')} />
+        {lastModified}
+      </GridItem>
+      <GridItem span={6}>
+        <ItemHeading text={t('Size')} />
+        {object.apiResponse.size}
+      </GridItem>
+      <GridItem span={6}>
+        <ItemHeading text={t('Entity tag (ETag)')} />
+        {objectData?.ETag || DASH}
+      </GridItem>
+      <GridItem span={12}>
+        <ItemHeading text={t('Tags')} />
+        {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
+      </GridItem>
+      <GridItem span={12}>
+        <ItemHeading text={t('Metadata')} />
+        {metadata.length > 0 ? metadata : DASH}
+      </GridItem>
+      {!isDeleteMarker && (
+        <GridItem span={12}>
           <Level>
-            <LevelItem className="odf-object-sidebar__key">
-              {objectKey}
+            <LevelItem>
+              <Content>
+                <Content component={ContentVariants.h5}>
+                  {t('Retention')}
+                </Content>
+                <Content component={ContentVariants.small}>
+                  {t(
+                    'Prevents this object from being deleted or overwritten for a specified retention period,'
+                  )}
+                  <br />
+                  {t('ensuring data immutability and compliance.')}
+                </Content>
+              </Content>
             </LevelItem>
             <LevelItem>
-              <CopyToClipboard value={objectKey} iconOnly={true} />
+              <Switch
+                id="object-retention-switch"
+                label={isObjectRetentionChecked ? t('Enabled') : t('Disabled')}
+                isChecked={isObjectRetentionChecked}
+                isDisabled={isComplianceRetentionActive}
+                onChange={(_event, checked) => {
+                  if (!checked) {
+                    onDisableObjectRetention();
+                    return;
+                  }
+                  if (!isObjectLockEnabled) {
+                    launcher(ObjectLockNotEnabledModal, {
+                      extraProps: {
+                        bucketName,
+                        s3Client,
+                        mutate: objectLockMutate,
+                        versioningMutate,
+                        isVersioningEnabled,
+                      } as ObjectLockNotEnabledModalProps,
+                      isOpen: true,
+                    });
+                    return;
+                  }
+                  launcher(SetObjectRetentionModal, {
+                    extraProps: {
+                      bucketName,
+                      objectKey,
+                      versionId,
+                      s3Client,
+                      mutate: retentionMutate,
+                      onConfirm: () => setIsObjectRetentionChecked(true),
+                    } as SetObjectRetentionModalProps,
+                    isOpen: true,
+                  });
+                }}
+              />
             </LevelItem>
           </Level>
-        </GridItem>
-        {showVersioning && (
-          <GridItem span={6}>
-            <ItemHeading text={t('Version')} />
-            {objectData?.VersionId || versionId || DASH}
-          </GridItem>
-        )}
-        <GridItem span={6}>
-          <ItemHeading text={t('Owner')} />
-          {object.apiResponse?.ownerName}
-        </GridItem>
-        <GridItem span={6}>
-          <ItemHeading text={t('Type')} />
-          {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
-        </GridItem>
-        <GridItem span={6}>
-          <ItemHeading text={t('Last modified')} />
-          {lastModified}
-        </GridItem>
-        <GridItem span={6}>
-          <ItemHeading text={t('Size')} />
-          {object.apiResponse.size}
-        </GridItem>
-        <GridItem span={6}>
-          <ItemHeading text={t('Storage class')} />
-          {object.apiResponse?.storageClass || DASH}
-          {restoreStatusText && (
-            <Content component={ContentVariants.small}>
-              {restoreStatusText}
-            </Content>
+          {retentionError && (
+            <Alert
+              variant={AlertVariant.danger}
+              isInline
+              title={t('An error occurred')}
+              className="odf-alert pf-v6-u-mb-xs pf-v6-u-mt-sm"
+            >
+              {retentionError.message || JSON.stringify(retentionError)}
+            </Alert>
           )}
         </GridItem>
-        <GridItem span={6}>
-          <ItemHeading text={t('Entity tag (ETag)')} />
-          {objectData?.ETag || DASH}
-        </GridItem>
+      )}
+      {objectRetention && (
         <GridItem span={12}>
-          <ItemHeading text={t('Tags')} />
-          {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
+          <ItemHeading text={t('Edit retention')} />
+          <Flex
+            alignItems={{ default: 'alignItemsCenter' }}
+            className="pf-v6-u-mt-sm"
+          >
+            <FlexItem>
+              <Content component={ContentVariants.small}>
+                {t('{{mode}} mode until {{date}}.', {
+                  mode:
+                    retentionMode.charAt(0) +
+                    retentionMode.slice(1).toLowerCase(),
+                  date: retainUntilDate?.toLocaleString(),
+                })}
+              </Content>
+            </FlexItem>
+            <FlexItem>
+              <Button
+                variant={ButtonVariant.link}
+                isInline
+                onClick={() =>
+                  launcher(SetObjectRetentionModal, {
+                    extraProps: {
+                      bucketName,
+                      objectKey,
+                      versionId,
+                      s3Client,
+                      mutate: retentionMutate,
+                      onConfirm: () => setIsObjectRetentionChecked(true),
+                      currentRetentionMode: retentionMode,
+                      currentRetentionPeriod: retentionPeriod,
+                      currentRetentionPeriodUnit: retentionPeriodUnit,
+                      currentRetainUntilDate: retainUntilDate,
+                    } as SetObjectRetentionModalProps,
+                    isOpen: true,
+                  })
+                }
+              >
+                {t('Edit')}
+              </Button>
+            </FlexItem>
+          </Flex>
         </GridItem>
+      )}
+      {!isDeleteMarker && isObjectLockEnabled && (
         <GridItem span={12}>
-          <ItemHeading text={t('Metadata')} />
-          {metadata.length > 0 ? metadata : DASH}
+          <Level>
+            <LevelItem>
+              <ItemHeading text={t('Legal hold')} />
+            </LevelItem>
+            <LevelItem>
+              <Button
+                variant={ButtonVariant.link}
+                isInline
+                onClick={() => {
+                  if (isLegalHoldApplied) {
+                    launcher(RemoveLegalHoldModal, {
+                      extraProps: {
+                        bucketName,
+                        objectKey,
+                        versionId,
+                        s3Client,
+                        mutate: legalHoldMutate,
+                        onConfirm: () => legalHoldMutate(),
+                      } as RemoveLegalHoldModalProps,
+                      isOpen: true,
+                    });
+                  } else {
+                    launcher(ApplyLegalHoldModal, {
+                      extraProps: {
+                        bucketName,
+                        objectKey,
+                        versionId,
+                        s3Client,
+                        mutate: legalHoldMutate,
+                        onConfirm: () => legalHoldMutate(),
+                      } as ApplyLegalHoldModalProps,
+                      isOpen: true,
+                    });
+                  }
+                }}
+              >
+                {isLegalHoldApplied ? t('Remove') : t('Apply')}
+              </Button>
+            </LevelItem>
+          </Level>
+          <Content component={ContentVariants.small} className="pf-v6-u-mt-sm">
+            {isLegalHoldApplied ? t('Applied') : t('Not applied')}
+          </Content>
         </GridItem>
-      </Grid>
-    </>
+      )}
+    </Grid>
   );
 };
 
