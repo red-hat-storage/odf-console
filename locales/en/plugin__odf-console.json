@@ -528,6 +528,8 @@
   "Cannot proceed with policy creation.": "Cannot proceed with policy creation.",
   "Cannot proceed with selected device types": "Cannot proceed with selected device types",
   "Cannot relocate.": "Cannot relocate.",
+  "Cannot start this action because a failover test is in progress. Clean up or convert the test first, then try again.": "Cannot start this action because a failover test is in progress. Clean up or convert the test first, then try again.",
+  "Cannot start this action because another disaster recovery operation is already in progress. Wait for it to finish, then try again.": "Cannot start this action because another disaster recovery operation is already in progress. Wait for it to finish, then try again.",
   "Capacity": "Capacity",
   "Capacity and nodes": "Capacity and nodes",
   "Capacity breakdown": "Capacity breakdown",

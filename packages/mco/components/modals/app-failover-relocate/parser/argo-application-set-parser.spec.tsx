@@ -89,6 +89,12 @@ jest.mock('@openshift-console/dynamic-plugin-sdk/lib/api/core-api', () => ({
   useK8sWatchResource: jest.fn(() => {
     return [[mockManagedClusterEast1, mockManagedClusterWest1], true, ''];
   }),
+  k8sGet: jest.fn(() =>
+    Promise.resolve({
+      ...mockDRPC1,
+      metadata: { ...mockDRPC1.metadata, generation: 1 },
+    })
+  ),
   k8sPatch: jest.fn(({ data }) => {
     patchObj = data;
     return Promise.resolve({ data: {} });
@@ -147,10 +153,12 @@ describe('Discovered application failover/relocate modal test', () => {
 
     // Click initiate
     await user.click(screen.getByRole('button', { name: /Initiate/i }));
-    expect(
-      JSON.stringify(patchObj) ===
-        '[{"op":"replace","path":"/spec/action","value":"Failover"},{"op":"replace","path":"/spec/failoverCluster","value":"west-1"},{"op":"replace","path":"/spec/preferredCluster","value":"east-1"}]'
-    ).toBeTruthy();
+    expect(patchObj).toEqual([
+      { op: 'test', path: '/metadata/generation', value: 1 },
+      { op: 'replace', path: '/spec/action', value: 'Failover' },
+      { op: 'replace', path: '/spec/failoverCluster', value: 'west-1' },
+      { op: 'replace', path: '/spec/preferredCluster', value: 'east-1' },
+    ]);
   });
 
   test('Relocate test', async () => {
@@ -197,10 +205,12 @@ describe('Discovered application failover/relocate modal test', () => {
 
     // Click initiate
     await user.click(screen.getByRole('button', { name: /Initiate/i }));
-    expect(
-      JSON.stringify(patchObj) ===
-        '[{"op":"replace","path":"/spec/action","value":"Relocate"},{"op":"replace","path":"/spec/failoverCluster","value":"east-1"},{"op":"replace","path":"/spec/preferredCluster","value":"west-1"}]'
-    ).toBeTruthy();
+    expect(patchObj).toEqual([
+      { op: 'test', path: '/metadata/generation', value: 1 },
+      { op: 'replace', path: '/spec/action', value: 'Relocate' },
+      { op: 'replace', path: '/spec/failoverCluster', value: 'east-1' },
+      { op: 'replace', path: '/spec/preferredCluster', value: 'west-1' },
+    ]);
   });
 
   test('App set volume synchronization delay during relocate', async () => {

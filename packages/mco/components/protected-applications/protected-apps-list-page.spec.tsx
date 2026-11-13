@@ -213,6 +213,19 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
     return [[], true, ''];
   }),
   useModal: jest.fn(() => jest.fn()),
+  k8sGet: jest.fn(({ name, ns }) => {
+    const match = drpcs.find(
+      (drpc) => drpc.metadata.name === name && drpc.metadata.namespace === ns
+    );
+    return Promise.resolve(
+      match
+        ? {
+            ...match,
+            metadata: { ...match.metadata, generation: 1 },
+          }
+        : undefined
+    );
+  }),
   k8sPatch: jest.fn(() => Promise.resolve({})),
   AlertSeverity: { Critical: 'critical' },
   useK8sWatchResources: jest.fn(() => ({})),
@@ -276,6 +289,7 @@ jest.mock('./use-selection', () => ({
 }));
 
 jest.mock('@odf/mco/utils', () => ({
+  ...jest.requireActual('@odf/mco/utils'),
   buildClusterInfo: jest.fn((pav) => ({
     primaryCluster: pav.status?.drInfo?.primaryCluster || '',
     targetCluster:
