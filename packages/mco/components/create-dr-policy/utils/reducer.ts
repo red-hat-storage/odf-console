@@ -178,6 +178,8 @@ export const drPolicyReducer = (
           ...state.clusters,
           selectedClusters: action.payload,
         },
+        // Availability is per pair, so a provider picked for the old pair may no longer apply.
+        provider: { ...state.provider, storageVendor: null },
       };
     }
     case DRPolicyActionType.SET_RBD_IMAGE_FLATTEN: {

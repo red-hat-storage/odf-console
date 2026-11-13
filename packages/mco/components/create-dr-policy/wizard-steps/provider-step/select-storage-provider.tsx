@@ -14,6 +14,8 @@ import {
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
+  Alert,
+  AlertVariant,
   Card,
   CardBody,
   CardFooter,
@@ -122,6 +124,7 @@ export const SelectStorageProvider: React.FC<SelectStorageProviderProps> = ({
   dispatch,
   onProviderChange,
 }) => {
+  const { t } = useCustomTranslation();
   const clusterNames = selectedClusters.map(getName);
   const owner =
     clusterNames.length === 2
@@ -144,18 +147,34 @@ export const SelectStorageProvider: React.FC<SelectStorageProviderProps> = ({
     });
   };
 
+  const allPaired = vendors.length > 0 && vendors.every((v) => v.isDisabled);
+
   return (
-    <Gallery hasGutter>
-      {vendors.map(({ descriptor, isDisabled }) => (
-        <ProviderCard
-          key={descriptor.id}
-          descriptor={descriptor}
-          clusterNames={clusterNames}
-          isSelected={selectedVendor === descriptor.id}
-          isDisabled={isDisabled}
-          onSelect={handleSelect}
-        />
-      ))}
-    </Gallery>
+    <>
+      {allPaired && (
+        <Alert
+          className="odf-alert pf-v6-u-mb-md"
+          variant={AlertVariant.info}
+          isInline
+          title={t('This cluster pair is already paired')}
+        >
+          {t(
+            'Every storage provider available to these clusters is already paired. Go back and choose a different pair of clusters.'
+          )}
+        </Alert>
+      )}
+      <Gallery hasGutter>
+        {vendors.map(({ descriptor, isDisabled }) => (
+          <ProviderCard
+            key={descriptor.id}
+            descriptor={descriptor}
+            clusterNames={clusterNames}
+            isSelected={selectedVendor === descriptor.id}
+            isDisabled={isDisabled}
+            onSelect={handleSelect}
+          />
+        ))}
+      </Gallery>
+    </>
   );
 };
