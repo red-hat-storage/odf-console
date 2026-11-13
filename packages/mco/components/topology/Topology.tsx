@@ -281,38 +281,32 @@ const Topology: React.FC = () => {
   const [clusterPairOperationsMap, operationsLoaded, operationsLoadError] =
     useActiveDROperations();
 
-  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
+  const [csv] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
-  // Filter clusters to only include those with valid ODF installed
-  const clustersWithODF = React.useMemo(() => {
-    if (!loaded || !mcvsLoaded || !odfMCOVersion || !csvLoaded) {
+  // Membership is the joined-cluster list. The ODF version is not a gate.
+  const joinedClusters = React.useMemo(() => {
+    if (!loaded || !mcvsLoaded) {
       return [];
     }
 
-    const allClusters = getManagedClusterInfoTypes(
+    const visibleClusters = getManagedClusterInfoTypes(
       managedClusters,
       mcvs,
       odfMCOVersion,
-      undefined // We don't need provisioners for this filtering
+      undefined // Topology does not look up storage provisioners
     );
 
-    // Filter to only include clusters with valid ODF version
-    const validClusters = allClusters.filter(
-      (cluster) => cluster?.odfInfo?.isValidODFVersion
-    );
-
-    // Return the original ACMManagedClusterKind objects
     return managedClusters.filter((cluster) =>
-      validClusters.some((valid) => getName(valid) === getName(cluster))
+      visibleClusters.some((visible) => getName(visible) === getName(cluster))
     );
-  }, [managedClusters, mcvs, odfMCOVersion, loaded, mcvsLoaded, csvLoaded]);
+  }, [managedClusters, mcvs, odfMCOVersion, loaded, mcvsLoaded]);
 
   const topologyDataContextData = React.useMemo(() => {
     return {
-      clusters: clustersWithODF || [],
+      clusters: joinedClusters,
       selectedElement,
       setSelectedElement,
       visualizationLevel: TopologyViewLevel.CLUSTERS,
@@ -322,7 +316,7 @@ const Topology: React.FC = () => {
       clusterPairOperationsMap,
     };
   }, [
-    clustersWithODF,
+    joinedClusters,
     selectedElement,
     setSelectedElement,
     odfMCOVersion,
@@ -332,14 +326,8 @@ const Topology: React.FC = () => {
   ]);
 
   const allLoaded =
-    loaded &&
-    mcvsLoaded &&
-    csvLoaded &&
-    appsLoaded &&
-    policiesLoaded &&
-    operationsLoaded;
-  const hasNoClusters =
-    allLoaded && (!clustersWithODF || clustersWithODF.length === 0);
+    loaded && mcvsLoaded && appsLoaded && policiesLoaded && operationsLoaded;
+  const hasNoClusters = allLoaded && joinedClusters.length === 0;
 
   return (
     <TopologyDataContext.Provider value={topologyDataContextData}>
@@ -363,8 +351,7 @@ const Topology: React.FC = () => {
                   mcvsLoadError ||
                   appsLoadError ||
                   policiesLoadError ||
-                  operationsLoadError ||
-                  csvLoadError;
+                  operationsLoadError;
                 return (err instanceof Error ? err.message : err) || '';
               })()}
             >
