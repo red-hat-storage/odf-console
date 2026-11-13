@@ -39,6 +39,12 @@ export const gettingStartedDRDocs = (mcoDocVersion) => ({
   )}#enable-dr-monitoring_monitor-dr`,
 });
 
+// Hash on the DR guide index page. Do not append another path after /index.
+export const volumeGroupReplicationDoc = (odfDocVersion: string) =>
+  `${odfDRDocHome(
+    odfDocVersion
+  )}#create-sample-application-for-testing-mdrsolution_manage-rdr`;
+
 const odfDRDocTroubleshooting = (odfDocVersion) =>
   `${odfDRDocHome(odfDocVersion)}/troubleshooting_disaster_recovery`;
 
