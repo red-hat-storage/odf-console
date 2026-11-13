@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { DRPlacementControlModel } from '@odf/shared';
 import {
+  BlueInfoCircleIcon,
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { InProgressIcon } from '@patternfly/react-icons';
 import { t_color_blue_40 as blueInfoColor } from '@patternfly/react-tokens';
@@ -40,6 +42,8 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
     status === DRStatus.Deleting ||
     status === DRStatus.Protecting ||
     status === DRStatus.TestingFailover ||
+    status === DRStatus.TestFailoverPaused ||
+    status === DRStatus.TestFailoverActionRequired ||
     status === DRStatus.CleaningUp
   ) {
     return NodeStatus.info;
@@ -73,6 +77,7 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
 export const isDRStatusUserActionRequired = isUserActionRequiredUtil;
 
 export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
+  const { t } = useCustomTranslation();
   // Danger states (includes user action required — matches protected-applications)
   if (
     status === DRStatus.Critical ||
@@ -104,13 +109,39 @@ export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
     );
   }
 
+  if (status === DRStatus.TestFailoverActionRequired) {
+    return (
+      <>
+        <BlueInfoCircleIcon />
+        <span>{t('Action needed')}</span>
+      </>
+    );
+  }
+
+  if (status === DRStatus.TestFailoverPaused) {
+    return (
+      <>
+        <InProgressIcon color={blueInfoColor.value} />
+        <span>{t('Awaiting resync')}</span>
+      </>
+    );
+  }
+
+  if (status === DRStatus.TestingFailover) {
+    return (
+      <>
+        <InProgressIcon color={blueInfoColor.value} />
+        <span>{t('Preparing')}</span>
+      </>
+    );
+  }
+
   // In-progress states
   if (
     status === DRStatus.FailingOver ||
     status === DRStatus.Relocating ||
     status === DRStatus.Deleting ||
     status === DRStatus.Protecting ||
-    status === DRStatus.TestingFailover ||
     status === DRStatus.CleaningUp
   ) {
     return (

@@ -1,4 +1,7 @@
-import { LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION } from '@odf/mco/constants';
+import {
+  LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
+  TEST_FAILOVER_DRYRUN_ANNOTATION,
+} from '@odf/mco/constants';
 import type { DRPlacementControlKind } from '@odf/mco/types';
 import { Phase, Progression } from '@odf/mco/types';
 import {
@@ -48,8 +51,9 @@ const drpc = ({
   }) as unknown as DRPlacementControlKind;
 
 /**
- * An in-flight dry-run test: Ramen reports phase FailedOver and has moved the
- * last-app-deployment-cluster annotation to the test cluster.
+ * An in-flight dry-run test. failoverCluster is the test cluster.
+ * last-app-deployment-cluster defaults to that same name for the builds that
+ * move the annotation onto the test cluster.
  */
 const activeTest = (overrides: DRPCOverrides) =>
   drpc({
@@ -76,6 +80,17 @@ describe('isTestFailoverActive', () => {
 
   it('is false for a DRPC with no status yet', () => {
     expect(isTestFailoverActive(drpc({ dryRun: true }))).toBe(false);
+  });
+
+  // Clean up clears spec.dryRun before Ramen leaves TestingFailover.
+  // The hold must stay active so the page does not show Failover complete.
+  it('stays active after dryRun is cleared while progression is still TestingFailover', () => {
+    const cleared = activeTest({ dryRun: false });
+    cleared.metadata.annotations = {
+      ...cleared.metadata.annotations,
+      [TEST_FAILOVER_DRYRUN_ANNOTATION]: 'true',
+    };
+    expect(isTestFailoverActive(cleared)).toBe(true);
   });
 });
 
@@ -104,6 +119,40 @@ describe('resolvePrimaryClusterName', () => {
     ).toBe(C1);
   });
 
+  // odr-hub keeps last-app-deployment-cluster on the original primary for the
+  // whole dry run. Clean up must send that cluster as preferredCluster.
+  // The other name is the test cluster.
+  it('returns the annotation when Ramen left it on the original primary', () => {
+    expect(
+      resolvePrimaryClusterName(
+        activeTest({
+          preferredCluster: C1,
+          failoverCluster: C2,
+          lastAppDeploymentCluster: C1,
+        }),
+        DR_CLUSTERS
+      )
+    ).toBe(C1);
+  });
+
+  // The workload already failed over to C1 once, so the phase stays FailedOver
+  // while the test to C2 waits on a recent sync.
+  it('keeps the deployment cluster while a test is waiting to start', () => {
+    expect(
+      resolvePrimaryClusterName(
+        drpc({
+          dryRun: true,
+          phase: Phase.FailedOver,
+          progression: Progression.Completed,
+          preferredCluster: C2,
+          failoverCluster: C2,
+          lastAppDeploymentCluster: C1,
+        }),
+        DR_CLUSTERS
+      )
+    ).toBe(C1);
+  });
+
   it('falls back to the plain phase logic when no test is in flight', () => {
     expect(
       resolvePrimaryClusterName(
@@ -117,6 +166,46 @@ describe('resolvePrimaryClusterName', () => {
         DR_CLUSTERS
       )
     ).toBe(C2);
+  });
+
+  // Clean up restores failoverCluster to the workload cluster and clears
+  // dryRun while TestingFailover and the test annotation can still linger.
+  // Peer inference must not treat that restored failover cluster as a test.
+  it('uses phase logic after clean up clears dryRun', () => {
+    const cleaningUp = drpc({
+      dryRun: false,
+      phase: Phase.FailedOver,
+      progression: Progression.TestingFailover,
+      preferredCluster: C2,
+      failoverCluster: C1,
+      lastAppDeploymentCluster: C1,
+    });
+    cleaningUp.metadata.annotations = {
+      ...cleaningUp.metadata.annotations,
+      [TEST_FAILOVER_DRYRUN_ANNOTATION]: 'true',
+    };
+    expect(isTestFailoverActive(cleaningUp)).toBe(true);
+    expect(resolvePrimaryClusterName(cleaningUp, DR_CLUSTERS)).toBe(C1);
+  });
+
+  // Deployed/Relocate clean up removes failoverCluster and restores
+  // preferredCluster to the production home. Until Ramen updates phase and
+  // last-app-deployment-cluster, those still point at the test cluster.
+  it('keeps the restored preferredCluster when clean up removed failoverCluster', () => {
+    const cleaningUp = drpc({
+      dryRun: false,
+      phase: Phase.FailedOver,
+      progression: Progression.TestingFailover,
+      preferredCluster: C1,
+      failoverCluster: '',
+      lastAppDeploymentCluster: C2,
+    });
+    cleaningUp.metadata.annotations = {
+      ...cleaningUp.metadata.annotations,
+      [TEST_FAILOVER_DRYRUN_ANNOTATION]: 'true',
+    };
+    delete cleaningUp.spec.failoverCluster;
+    expect(resolvePrimaryClusterName(cleaningUp, DR_CLUSTERS)).toBe(C1);
   });
 
   it('falls back to the failover cluster when the annotation is missing', () => {

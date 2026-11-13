@@ -5,7 +5,7 @@ import {
   useSubscriptionResourceWatch,
 } from '@odf/mco/hooks';
 import { useDisasterRecoveryResourceWatch } from '@odf/mco/hooks';
-import { Phase } from '@odf/mco/types';
+import { Phase, Progression } from '@odf/mco/types';
 import {
   findCluster,
   getDRPolicyName,
@@ -15,11 +15,80 @@ import {
   getProtectedCondition,
   getAvailableCondition,
 } from '@odf/mco/utils';
+import { shouldShowProtectionError } from '@odf/mco/utils/dr-status';
 import { getName, getNamespace, ApplicationKind } from '@odf/shared';
+import { K8sResourceCondition } from '@odf/shared/types';
 import { getSubscriptionResources } from '../../modals/app-manage-policies/parsers/subscription-parser';
 import { getDRResources } from '../../modals/app-manage-policies/utils/parser-utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
 import { getProgressionFields } from './utils';
+
+type SubscriptionStatus = {
+  phase?: Phase | string;
+  dryRun?: boolean;
+  progression?: string;
+  protectedCondition?: K8sResourceCondition;
+};
+
+// ACM Applications shows one DR status cell per Subscription app. When that
+// app has several DRPC groups, pick the group that most needs attention.
+const SubscriptionDRStatusPriority = {
+  USER_ACTION: 0,
+  PROTECTION_ERROR: 1,
+  ACTIVE_TEST_HOLD: 2,
+  LIVE_OPERATION: 3,
+  TEST_IN_PROGRESS_OR_ENDING: 4,
+  IDLE: 5,
+} as const;
+
+const subscriptionStatusRank = (status: SubscriptionStatus): number => {
+  if (
+    status.phase === Phase.WaitForUser ||
+    status.progression === Progression.WaitOnUserToCleanUp
+  ) {
+    return SubscriptionDRStatusPriority.USER_ACTION;
+  }
+  // Keep a deployed group's protection error visible even when another group
+  // is in a dry-run test — the cell forwards only the selected group's
+  // protectedCondition.
+  if (shouldShowProtectionError(status.protectedCondition)) {
+    return SubscriptionDRStatusPriority.PROTECTION_ERROR;
+  }
+  if (
+    status.dryRun &&
+    status.progression === Progression.TestingFailover &&
+    status.phase !== Phase.Deleting
+  ) {
+    return SubscriptionDRStatusPriority.ACTIVE_TEST_HOLD;
+  }
+  if (
+    !status.dryRun &&
+    (status.phase === Phase.FailingOver || status.phase === Phase.Relocating)
+  ) {
+    return SubscriptionDRStatusPriority.LIVE_OPERATION;
+  }
+  if (
+    status.dryRun ||
+    (status.progression === Progression.TestingFailover &&
+      status.phase !== Phase.Deleting)
+  ) {
+    return SubscriptionDRStatusPriority.TEST_IN_PROGRESS_OR_ENDING;
+  }
+  return SubscriptionDRStatusPriority.IDLE;
+};
+
+export const selectSubscriptionDRStatus = <T extends SubscriptionStatus>(
+  statuses: T[]
+): T | undefined =>
+  statuses.reduce<T | undefined>((selected, status) => {
+    if (
+      !selected ||
+      subscriptionStatusRank(status) < subscriptionStatusRank(selected)
+    ) {
+      return status;
+    }
+    return selected;
+  }, undefined);
 
 const getMostSevereHealthStatus = (
   drStatusList: { volumeReplicationHealth: VolumeReplicationHealth }[]
@@ -119,11 +188,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
 
     const mostSevereHealthStatus = getMostSevereHealthStatus(drStatusList);
 
-    const drpcInAction = drStatusList.find((status) =>
-      [Phase.FailingOver, Phase.Relocating].includes(status.phase as Phase)
-    );
-
-    const selectedDRPC = drpcInAction || drStatusList[0];
+    const selectedDRPC = selectSubscriptionDRStatus(drStatusList);
 
     return selectedDRPC
       ? {
@@ -141,6 +206,13 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
           progressionDetails: selectedDRPC.progressionDetails,
           applicationName: selectedDRPC.applicationName,
           protectedCondition: selectedDRPC.protectedCondition,
+          dryRun: selectedDRPC.dryRun,
+          testFailoverCleanupCluster: selectedDRPC.testFailoverCleanupCluster,
+          promotedFromTest: selectedDRPC.promotedFromTest,
+          lastAction: selectedDRPC.lastAction,
+          lastAppCluster: selectedDRPC.lastAppCluster,
+          drpcName: selectedDRPC.drpcName,
+          drpcNamespace: selectedDRPC.drpcNamespace,
         }
       : null;
   }, [isLoadedWOError, subscriptionResourceList]);
@@ -169,6 +241,13 @@ type DRStatusForGroup = {
   | 'applicationName'
   | 'protectedCondition'
   | 'availableCondition'
+  | 'dryRun'
+  | 'testFailoverCleanupCluster'
+  | 'promotedFromTest'
+  | 'lastAction'
+  | 'lastAppCluster'
+  | 'drpcName'
+  | 'drpcNamespace'
 >;
 
 export default SubscriptionParser;

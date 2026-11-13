@@ -1,9 +1,14 @@
 import {
   DRActionType,
+  LAST_ACTION_ANNOTATION,
+  LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
   TEST_FAILOVER_DRYRUN_ANNOTATION,
 } from '@odf/mco/constants';
 import { DRPlacementControlKind, VRGConditionReason } from '@odf/mco/types';
-import { getLastAppDeploymentClusterName } from '@odf/mco/utils';
+import {
+  getLastAppDeploymentClusterName,
+  isDiscoveredDRPC,
+} from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { getAnnotations } from '@odf/shared/selectors';
 import {
@@ -21,6 +26,11 @@ type ProgressionFields = Pick<
   | 'applicationName'
   | 'dryRun'
   | 'testFailoverCleanupCluster'
+  | 'promotedFromTest'
+  | 'lastAction'
+  | 'lastAppCluster'
+  | 'drpcName'
+  | 'drpcNamespace'
 >;
 
 /**
@@ -36,13 +46,13 @@ type ProgressionFields = Pick<
 const getTestFailoverCleanupCluster = (
   drPlacementControl: DRPlacementControlKind
 ): string | undefined => {
-  const hasTestAnnotation =
-    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
-    'true';
-
   // Ramen keeps the annotation until cleanup is done, so this is "a test ran
   // and has now ended".
-  if (drPlacementControl.spec?.dryRun || !hasTestAnnotation) {
+  if (
+    drPlacementControl.spec?.dryRun ||
+    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] !==
+      'true'
+  ) {
     return undefined;
   }
 
@@ -55,12 +65,11 @@ const getTestFailoverCleanupCluster = (
   // re-points the action and leaves the deployment cluster behind. Mirrors
   // Ramen's isFailoverPromotion(), dryRun included so the three conditions read
   // together even though the guard above has already ruled it out.
-  const isPromotion =
-    drPlacementControl.spec?.action === DRActionType.FAILOVER &&
+  return drPlacementControl.spec?.action === DRActionType.FAILOVER &&
     testCluster === getLastAppDeploymentClusterName(drPlacementControl) &&
-    !drPlacementControl.spec?.dryRun;
-
-  return isPromotion ? undefined : testCluster;
+    !drPlacementControl.spec?.dryRun
+    ? undefined
+    : testCluster;
 };
 
 const parseTime = (value?: string): number => {
@@ -123,10 +132,7 @@ export const getProgressionFields = (
       'drplacementcontrol.ramendr.openshift.io/app-namespace'
     ];
 
-  // Check if it's a discovered app: has protectedNamespaces defined and non-empty
-  const isDiscoveredApp =
-    drPlacementControl.spec?.protectedNamespaces !== undefined &&
-    drPlacementControl.spec.protectedNamespaces.length > 0;
+  const annotations = getAnnotations(drPlacementControl);
 
   return {
     progression: drPlacementControl.status?.progression,
@@ -135,8 +141,22 @@ export const getProgressionFields = (
     dryRun: drPlacementControl.spec?.dryRun,
     testFailoverCleanupCluster:
       getTestFailoverCleanupCluster(drPlacementControl),
+    // Same promote shape as getTestFailoverCleanupCluster / Ramen
+    // isFailoverPromotion(). Failover clean-up can also leave action=Failover
+    // with dryRun cleared; only treat it as promote when failoverCluster still
+    // matches the deployment cluster (workload stayed on the test target).
+    promotedFromTest:
+      drPlacementControl.spec?.action === DRActionType.FAILOVER &&
+      !drPlacementControl.spec?.dryRun &&
+      annotations?.[TEST_FAILOVER_DRYRUN_ANNOTATION] === 'true' &&
+      drPlacementControl.spec?.failoverCluster ===
+        getLastAppDeploymentClusterName(drPlacementControl),
+    lastAction: annotations?.[LAST_ACTION_ANNOTATION] || '',
+    lastAppCluster: annotations?.[LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION] || '',
     progressionDetails: detailMessages.length ? detailMessages : undefined,
     applicationName,
-    isDiscoveredApp,
+    isDiscoveredApp: isDiscoveredDRPC(drPlacementControl),
+    drpcName: drPlacementControl.metadata?.name,
+    drpcNamespace: drPlacementControl.metadata?.namespace,
   };
 };

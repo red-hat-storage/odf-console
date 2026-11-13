@@ -13,11 +13,13 @@ import { UnknownIcon } from '@patternfly/react-icons';
 import {
   DRActionType,
   ReplicationType,
+  SYNC_SCHEDULE_DISPLAY_TEXT,
   VolumeReplicationHealth,
 } from '../../../../constants';
 import {
   checkDRActionReadiness,
   getReplicationHealth,
+  parseSyncInterval,
 } from '../../../../utils';
 import { DateTimeFormat } from '../failover-relocate-modal-body';
 import { ErrorMessageType } from './error-messages';
@@ -150,6 +152,7 @@ type StatusType = {
 export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
   state,
   dispatch,
+  isTestFailover,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -158,6 +161,9 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
     actionType,
     selectedDRPolicy,
   } = state;
+  const [intervalUnit, interval] = parseSyncInterval(
+    selectedDRPolicy.schedulingInterval
+  );
   const [peerStatus, setPeerStatus] = React.useState<StatusType>(
     initalPeerStatus(t)
   );
@@ -254,9 +260,11 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
         <FlexItem>
           <strong>
             {' '}
-            {t('{{actionType}} readiness:', {
-              actionType: state.actionType,
-            })}{' '}
+            {isTestFailover
+              ? t('DR test readiness:')
+              : t('{{actionType}} readiness:', {
+                  actionType: state.actionType,
+                })}{' '}
           </strong>
         </FlexItem>
         <FlexItem>
@@ -277,6 +285,20 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
           />
         </FlexItem>
       </Flex>
+      {isTestFailover && (
+        <Flex>
+          <FlexItem>
+            <strong> {t('Replication interval:')} </strong>
+          </FlexItem>
+          <FlexItem data-test="replication-interval">
+            {interval ? (
+              `${interval} ${SYNC_SCHEDULE_DISPLAY_TEXT(t)[intervalUnit]}`
+            ) : (
+              <StatusIconAndText title={t('Unknown')} icon={<UnknownIcon />} />
+            )}
+          </FlexItem>
+        </Flex>
+      )}
     </>
   );
 };
@@ -284,4 +306,5 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
 type PeerClusterStatusProps = {
   state: FailoverAndRelocateState;
   dispatch: React.Dispatch<FailoverAndRelocateAction>;
+  isTestFailover?: boolean;
 };

@@ -45,12 +45,27 @@ export const getDecoratorForStatus = (
     case DRStatus.Relocating:
     case DRStatus.Deleting:
     case DRStatus.Protecting:
-    case DRStatus.TestingFailover:
     case Phase.Initiating:
     case Phase.Deploying:
     case DRStatus.CleaningUp:
       icon = DecoratorIcon.InProgress;
       tooltip = `${drStatus}...`;
+      status = NodeStatus.info;
+      break;
+    case DRStatus.TestingFailover:
+      icon = DecoratorIcon.InProgress;
+      // Same label keys as the popover / sidebar (translated at render).
+      tooltip = 'Preparing';
+      status = NodeStatus.info;
+      break;
+    case DRStatus.TestFailoverPaused:
+      icon = DecoratorIcon.InProgress;
+      tooltip = 'Awaiting resync';
+      status = NodeStatus.info;
+      break;
+    case DRStatus.TestFailoverActionRequired:
+      icon = DecoratorIcon.InfoCircle;
+      tooltip = 'Action needed';
       status = NodeStatus.info;
       break;
     case DRStatus.Warning:

@@ -3,7 +3,7 @@ import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
 import { getNamespace } from '@odf/shared';
 import { getUID } from '@odf/shared/selectors';
 import { OnSelect } from '@patternfly/react-table';
-import { DRPlacementControlKind } from '../../types';
+import { DRPlacementControlKind, Progression } from '../../types';
 import { getDRPlacementControlRef } from '../../utils';
 import { isFailingOrRelocating } from './utils';
 
@@ -20,6 +20,14 @@ const isEligible = (
   if (!drpc) return false;
   if (drpc.metadata?.deletionTimestamp) return false;
   if (isFailingOrRelocating(drpc)) return false;
+  // A paused test keeps the pre-test phase and progression, check the spec as well
+  if (drpc.spec?.dryRun) return false;
+  if (drpc.status?.progression === Progression.TestingFailover) return false;
+  // Clean up can clear dryRun/action while leftover test resources still need
+  // manual cleanup — match getRowActions so bulk select stays blocked too.
+  if (drpc.status?.progression === Progression.WaitOnUserToCleanUp) {
+    return false;
+  }
   return true;
 };
 
