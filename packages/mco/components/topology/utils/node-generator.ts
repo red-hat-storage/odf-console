@@ -605,14 +605,14 @@ export const generateClusterNodesModel = (
 
     if (shouldFilterPolicies) {
       Object.entries(clusterPairPoliciesMap).forEach(([pairKey, policies]) => {
-        // Null safety: ensure policies array exists and has at least one policy
-        const policyName = policies?.[0]?.name;
-        if (!policyName) {
-          return; // Skip malformed policy data
+        if (!policies?.length) {
+          return;
         }
 
-        // If policy name matches the search, add its clusters to the set
-        if (matchesSearch(policyName, searchValue)) {
+        // If any policy name matches the search, add its clusters to the set
+        if (
+          policies.some((p) => p?.name && matchesSearch(p.name, searchValue))
+        ) {
           try {
             const [cluster1, cluster2] = getClustersFromPairKey(pairKey);
             // Only add if both clusters are valid
@@ -912,13 +912,14 @@ export const generateClusterNodesModel = (
       const filterTypes = filters?.filterTypes || [];
       const searchValue = filters?.searchValue || '';
 
-      // If there's a search value, check if policy name matches
+      // If there's a search value, check if any policy name matches
       if (searchValue) {
-        const policyName = policies[0]?.name || '';
-        // Only apply search if policy filter is selected or no specific filter type
         const shouldSearchPolicy =
           filterTypes.length === 0 || filterTypes.includes(FilterType.Policy);
-        if (shouldSearchPolicy && !matchesSearch(policyName, searchValue)) {
+        if (
+          shouldSearchPolicy &&
+          !policies.some((p) => p?.name && matchesSearch(p.name, searchValue))
+        ) {
           return; // Skip this pairing box
         }
       }
@@ -950,7 +951,13 @@ export const generateClusterNodesModel = (
           id: `pairing-box-${pairKey}`,
           type: 'pairing-box',
           group: true,
-          label: policies[0]?.name || '',
+          label:
+            (searchValue &&
+              policies.find(
+                (p) => p?.name && matchesSearch(p.name, searchValue)
+              )?.name) ||
+            policies[0]?.name ||
+            '',
           labelPosition: LabelPosition.bottom,
           children: [cluster1Id, cluster2Id],
           collapsed: false,
