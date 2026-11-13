@@ -155,6 +155,12 @@ export const getGVKLabel = ({ kind, apiGroup, apiVersion }: Model) =>
 
 export const getRandomChars = () => Math.random().toString(36).substring(2, 10);
 
+export const getResourceName = (baseName: string, resourceType: string) => {
+  const suffix = `-${resourceType}-${getRandomChars()}`;
+  const base = baseName.slice(0, 253 - suffix.length).replace(/\.$/, '');
+  return `${base}${suffix}`;
+};
+
 export const getErrorMessage = (error: Error) => error?.message;
 
 export const isValidIP = (address) =>
