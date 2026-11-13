@@ -10,3 +10,4 @@ export * from './data-protection';
 export * from './s3-browser';
 export * from './scale';
 export * from './storage-system';
+export * from './storage-consumer';
