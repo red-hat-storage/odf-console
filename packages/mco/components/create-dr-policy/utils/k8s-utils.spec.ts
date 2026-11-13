@@ -1,5 +1,10 @@
-import { BackendType, ReplicationType } from '@odf/mco/constants';
-import { ManagedClusterInfoType, MirrorPeerKind } from '@odf/mco/types';
+import { ReplicationType } from '@odf/mco/constants';
+import {
+  ManagedClusterInfoType,
+  MirrorPeerKind,
+  S3ConfigurationKind,
+} from '@odf/mco/types';
+import { StorageVendorId } from '@odf/mco/utils/storage-vendor-registry';
 import {
   k8sCreate,
   k8sDelete,
@@ -8,6 +13,14 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { createPolicyPromises } from './k8s-utils';
 import { drPolicyInitialState, DRPolicyState } from './reducer';
+
+// i18next is initialised by the Console at runtime, not in tests, so `t` would
+// otherwise return an empty string and hide the error copy under assertion.
+jest.mock('i18next', () => ({
+  ...jest.requireActual('i18next'),
+  t: (key: string, options?: Record<string, string>) =>
+    key.replace(/{{(\w+)}}/g, (_match, name) => options?.[name] ?? ''),
+}));
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
@@ -54,9 +67,11 @@ const state: DRPolicyState = {
       managedCluster('west-1', 'ocs-storagecluster'),
     ],
   },
+  provider: {
+    storageVendor: 'data-foundation' as StorageVendorId,
+  },
   configure: {
     ...drPolicyInitialState.configure,
-    replicationBackend: BackendType.DataFoundation,
   },
   policy: {
     ...drPolicyInitialState.policy,
@@ -83,6 +98,29 @@ const existingPolicy = {
   spec: { drClusters: ['east-1', 'west-1'], schedulingInterval: '10m' },
 };
 
+const s3Configuration = (
+  name: string,
+  managedClusters: string[]
+): S3ConfigurationKind =>
+  ({
+    metadata: { name },
+    spec: {
+      internalS3: {
+        providerCluster: managedClusters[0],
+        storageClassName: 'openshift-storage.noobaa.io',
+        namespace: 'openshift-storage',
+      },
+      managedClusters,
+    },
+  }) as S3ConfigurationKind;
+
+// Async topology: one S3Configuration per cluster. Supplied to the DRPolicy
+// focused tests so they exercise the policy path without also creating S3.
+const existingS3Configurations = [
+  s3Configuration('s3-east-1', ['east-1']),
+  s3Configuration('s3-west-1', ['west-1']),
+];
+
 const resolveCreate = ({ model, data }) =>
   Promise.resolve(
     model.kind === 'MirrorPeer'
@@ -101,7 +139,11 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
   it('sets isNewPolicy from createOrUpdate create vs update', async () => {
     mockK8sGet.mockRejectedValueOnce(notFound);
     await expect(
-      createPolicyPromises(state, [existingMirrorPeer])
+      createPolicyPromises(
+        state,
+        [existingMirrorPeer],
+        existingS3Configurations
+      )
     ).resolves.toMatchObject({
       isNewPolicy: true,
       isNewMirrorPeer: false,
@@ -113,7 +155,11 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
     mockK8sUpdate.mockImplementation(({ data }) => Promise.resolve(data));
     mockK8sGet.mockResolvedValue(existingPolicy);
     await expect(
-      createPolicyPromises(state, [existingMirrorPeer])
+      createPolicyPromises(
+        state,
+        [existingMirrorPeer],
+        existingS3Configurations
+      )
     ).resolves.toMatchObject({ isNewPolicy: false });
     expect(mockK8sCreate).not.toHaveBeenCalled();
   });
@@ -121,7 +167,11 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
   it('fails closed on forbidden GET; 404→409 race becomes an update', async () => {
     mockK8sGet.mockRejectedValue(forbidden);
     await expect(
-      createPolicyPromises(state, [existingMirrorPeer])
+      createPolicyPromises(
+        state,
+        [existingMirrorPeer],
+        existingS3Configurations
+      )
     ).rejects.toEqual(forbidden);
 
     mockK8sGet
@@ -129,14 +179,20 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
       .mockResolvedValue(existingPolicy);
     mockK8sCreate.mockRejectedValueOnce(conflict);
     await expect(
-      createPolicyPromises(state, [existingMirrorPeer])
+      createPolicyPromises(
+        state,
+        [existingMirrorPeer],
+        existingS3Configurations
+      )
     ).resolves.toMatchObject({ isNewPolicy: false });
   });
 
   it('creates MirrorPeer when missing and rolls it back if DRPolicy create fails', async () => {
     mockK8sGet.mockRejectedValue(notFound);
     mockK8sCreate.mockImplementation(resolveCreate);
-    await expect(createPolicyPromises(state, [])).resolves.toMatchObject({
+    await expect(
+      createPolicyPromises(state, [], existingS3Configurations)
+    ).resolves.toMatchObject({
       isNewMirrorPeer: true,
       mirrorPeerName: 'mirrorpeer-new',
       isNewPolicy: true,
@@ -144,7 +200,9 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
 
     mockK8sGet.mockRejectedValue(forbidden);
     mockK8sCreate.mockImplementation(resolveCreate);
-    await expect(createPolicyPromises(state, [])).rejects.toEqual(forbidden);
+    await expect(
+      createPolicyPromises(state, [], existingS3Configurations)
+    ).rejects.toEqual(forbidden);
     expect(mockK8sDelete).toHaveBeenCalledWith(
       expect.objectContaining({
         resource: expect.objectContaining({
@@ -180,10 +238,220 @@ describe('createPolicyPromises DRPolicy create vs update detection', () => {
     } as MirrorPeerKind;
 
     await expect(
-      createPolicyPromises(state, [staleMirrorPeer])
+      createPolicyPromises(state, [staleMirrorPeer], existingS3Configurations)
     ).resolves.toMatchObject({
       isNewMirrorPeer: true,
       mirrorPeerName: 'mirrorpeer-new',
     });
+  });
+});
+
+const s3ConfigurationCreates = () =>
+  mockK8sCreate.mock.calls
+    .map(([arg]) => arg)
+    .filter(({ model }) => model.kind === 'S3Configuration')
+    .map(({ data }) => data);
+
+const secretCreates = () =>
+  mockK8sCreate.mock.calls
+    .map(([arg]) => arg)
+    .filter(({ model }) => model.kind === 'Secret')
+    .map(({ data }) => data);
+
+describe('createPolicyPromises S3Configuration', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockK8sGet.mockRejectedValue(notFound);
+    mockK8sCreate.mockImplementation(resolveCreate);
+    mockK8sUpdate.mockImplementation(({ data }) => Promise.resolve(data));
+    mockK8sDelete.mockResolvedValue({});
+  });
+
+  it('creates one internal S3Configuration per cluster for Async', async () => {
+    await createPolicyPromises(state, [existingMirrorPeer], []);
+
+    expect(s3ConfigurationCreates()).toEqual([
+      {
+        apiVersion: 'multicluster.odf.openshift.io/v1alpha1',
+        kind: 'S3Configuration',
+        metadata: { name: 's3-east-1' },
+        spec: {
+          internalS3: {
+            providerCluster: 'east-1',
+            storageClassName: 'openshift-storage.noobaa.io',
+            namespace: 'openshift-storage',
+          },
+          managedClusters: ['east-1'],
+        },
+      },
+      expect.objectContaining({
+        metadata: { name: 's3-west-1' },
+        spec: expect.objectContaining({ managedClusters: ['west-1'] }),
+      }),
+    ]);
+  });
+
+  it('creates a single shared internal S3Configuration for Sync', async () => {
+    const syncState: DRPolicyState = {
+      ...state,
+      policy: { ...state.policy, replicationType: ReplicationType.SYNC },
+    };
+
+    await createPolicyPromises(syncState, [existingMirrorPeer], []);
+
+    const creates = s3ConfigurationCreates();
+    expect(creates).toHaveLength(1);
+    expect(creates[0]).toMatchObject({
+      metadata: { name: 's3-east-1-west-1' },
+      spec: {
+        // The bucket is provisioned on the first cluster and shared.
+        internalS3: expect.objectContaining({ providerCluster: 'east-1' }),
+        managedClusters: ['east-1', 'west-1'],
+      },
+    });
+  });
+
+  it('reuses an S3Configuration that already covers the clusters', async () => {
+    await createPolicyPromises(
+      state,
+      [existingMirrorPeer],
+      existingS3Configurations
+    );
+
+    expect(s3ConfigurationCreates()).toEqual([]);
+  });
+
+  it('fails when a cluster is claimed by a different S3Configuration', async () => {
+    await expect(
+      createPolicyPromises(
+        state,
+        [existingMirrorPeer],
+        [s3Configuration('s3-other', ['east-1', 'south-1'])]
+      )
+    ).rejects.toThrow(/already used by the S3 configuration s3-other/);
+  });
+
+  // Regression: Data Foundation publishes a local StorageClient even for a
+  // plain internal deployment, so odfInfo.clients is non-empty on virtually
+  // every cluster. Treating clientInfo as a provider/client-mode signal
+  // blocked DRPolicy creation on ordinary ODF clusters.
+  it('creates S3Configurations for internal ODF that reports a local client', async () => {
+    const withLocalClient: DRPolicyState = {
+      ...state,
+      clusters: {
+        ...state.clusters,
+        selectedClusters: state.clusters.selectedClusters.map((cluster) => ({
+          ...cluster,
+          odfInfo: {
+            ...cluster.odfInfo,
+            storageClusterInfo: {
+              ...cluster.odfInfo.storageClusterInfo,
+              clientInfo: { name: 'ocs-storagecluster', clusterId: cluster.id },
+            },
+          },
+        })),
+      },
+    };
+
+    await createPolicyPromises(withLocalClient, [existingMirrorPeer], []);
+
+    expect(s3ConfigurationCreates()).toHaveLength(2);
+    expect(s3ConfigurationCreates()[0]).toMatchObject({
+      spec: {
+        internalS3: expect.objectContaining({
+          providerCluster: 'east-1',
+          namespace: 'openshift-storage',
+        }),
+      },
+    });
+  });
+
+  it('creates a secret and an external S3Configuration per cluster for third-party', async () => {
+    const thirdPartyState: DRPolicyState = {
+      ...state,
+      provider: {
+        storageVendor: 'generic' as StorageVendorId,
+      },
+      configure: {
+        ...state.configure,
+        cluster1S3Details: {
+          clusterName: 'east-1',
+          bucketName: 'bucket-east',
+          endpoint: 'https://s3.east.example.com',
+          accessKeyId: 'key-east',
+          secretKey: 'secret-east',
+          region: 'east',
+        },
+        cluster2S3Details: {
+          clusterName: 'west-1',
+          bucketName: 'bucket-west',
+          endpoint: 'https://s3.west.example.com',
+          accessKeyId: 'key-west',
+          secretKey: 'secret-west',
+          region: 'west',
+        },
+      },
+    };
+
+    await createPolicyPromises(thirdPartyState, [], []);
+
+    expect(s3ConfigurationCreates()).toEqual([
+      expect.objectContaining({
+        metadata: { name: 's3-east-1' },
+        spec: {
+          externalS3: {
+            secretRef: {
+              name: 's3-east-1-credentials',
+              namespace: 'openshift-operators',
+            },
+          },
+          managedClusters: ['east-1'],
+        },
+      }),
+      expect.objectContaining({
+        metadata: { name: 's3-west-1' },
+        spec: expect.objectContaining({ managedClusters: ['west-1'] }),
+      }),
+    ]);
+
+    // MCO validates all five keys before it will configure anything.
+    const [secret] = secretCreates();
+    expect(secret.metadata).toEqual({
+      name: 's3-east-1-credentials',
+      namespace: 'openshift-operators',
+    });
+    expect(Object.keys(secret.data).sort()).toEqual([
+      'AWS_ACCESS_KEY_ID',
+      'AWS_SECRET_ACCESS_KEY',
+      's3Bucket',
+      's3CompatibleEndpoint',
+      's3Region',
+    ]);
+
+    // No MirrorPeer on the third-party path.
+    expect(
+      mockK8sCreate.mock.calls.some(
+        ([{ model }]) => model.kind === 'MirrorPeer'
+      )
+    ).toBe(false);
+  });
+
+  it('rolls back created S3Configurations when the policy fails', async () => {
+    mockK8sCreate.mockImplementation(({ model, data }) =>
+      model.kind === 'DRPolicy'
+        ? Promise.reject(forbidden)
+        : resolveCreate({ model, data })
+    );
+
+    await expect(
+      createPolicyPromises(state, [existingMirrorPeer], [])
+    ).rejects.toEqual(forbidden);
+
+    const deletedNames = mockK8sDelete.mock.calls
+      .map(([{ resource }]) => resource?.metadata?.name)
+      .filter(Boolean);
+    expect(deletedNames).toEqual(
+      expect.arrayContaining(['s3-east-1', 's3-west-1'])
+    );
   });
 });

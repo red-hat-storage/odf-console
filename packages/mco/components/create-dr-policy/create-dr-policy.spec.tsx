@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { ConfigMapKind } from '@odf/shared';
+import { ConfigMapKind, ConfigMapModel } from '@odf/shared';
 import {
   ACMManagedClusterModel,
-  ACMManagedClusterViewModel,
   DRPolicyModel,
   MirrorPeerModel,
 } from '@odf/shared';
@@ -16,7 +15,7 @@ import {
   mockManagedClusterWest1,
   mockManagedClusterWest2Down,
 } from '../../__mocks__/managedcluster';
-import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
+import { ACMManagedClusterKind } from '../../types';
 import CreateDRPolicy from './create-dr-policy';
 
 let drPolicyObj = {};
@@ -24,143 +23,117 @@ let mirrorPeerObj = {};
 let syncPolicyTest = false;
 let testcase = 1;
 
-const managedClusterViews: ACMManagedClusterViewKind[][] = [
-  [
-    {
-      apiVersion: 'cluster.open-cluster-management.io/v1',
-      kind: 'ManagedClusterView',
-      metadata: {
-        name: 'mcv',
-        namespace: 'east-1',
-      },
-      status: {
-        result: {
-          apiVersion: 'v1',
-          data: {
-            'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\n',
-          },
-          kind: 'ConfigMap',
-          metadata: {
-            name: 'odf-info',
+const odfClientInfoConfigMaps: ConfigMapKind[] = [
+  {
+    apiVersion: 'v1',
+    kind: 'ConfigMap',
+    metadata: {
+      name: 'odf-client-info',
+      namespace: 'openshift-operators',
+    },
+    data: {
+      'east-1_ocs-storagecluster': JSON.stringify({
+        clusterID: '',
+        name: 'ocs-storagecluster',
+        providerInfo: {
+          version: '4.18.0-103.stable',
+          deploymentType: 'internal',
+          cephClusterFSID: '3a9ba188-ce63-11ef-97e4-00505684c451',
+          storageProviderEndpoint: '',
+          namespacedName: {
+            name: 'ocs-storagecluster',
             namespace: 'openshift-storage',
           },
-        } as ConfigMapKind,
-      },
-    },
-    {
-      apiVersion: 'cluster.open-cluster-management.io/v1',
-      kind: 'ManagedClusterView',
-      metadata: {
-        name: 'mcv',
-        namespace: 'west-1',
-      },
-      status: {
-        result: {
-          apiVersion: 'v1',
-          data: {
-            'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: cb805a94-bd68-41a7-9a89-6d420ae02002\n  storageClusterUID: 9dd5f858-d6ec-4d38-af41-16cc9cacabd4\n',
-          },
-          kind: 'ConfigMap',
-          metadata: {
-            name: 'odf-info',
+          providerManagedClusterName: 'east-1',
+        },
+      }),
+      'west-1_ocs-storagecluster': JSON.stringify({
+        clusterID: '',
+        name: 'ocs-storagecluster',
+        providerInfo: {
+          version: '4.18.0-103.stable',
+          deploymentType: 'internal',
+          cephClusterFSID: 'cb805a94-bd68-41a7-9a89-6d420ae02002',
+          storageProviderEndpoint: '',
+          namespacedName: {
+            name: 'ocs-storagecluster',
             namespace: 'openshift-storage',
           },
-        } as ConfigMapKind,
-      },
-    },
-    {
-      apiVersion: 'cluster.open-cluster-management.io/v1',
-      kind: 'ManagedClusterView',
-      metadata: {
-        name: 'mcv',
-        namespace: 'east-2',
-      },
-      status: {
-        result: {
-          apiVersion: 'v1',
-          data: {
-            'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\n',
-          },
-          kind: 'ConfigMap',
-          metadata: {
-            name: 'odf-info',
+          providerManagedClusterName: 'west-1',
+        },
+      }),
+      'east-2_ocs-storagecluster': JSON.stringify({
+        clusterID: '',
+        name: 'ocs-storagecluster',
+        providerInfo: {
+          version: '4.18.0-103.stable',
+          deploymentType: 'internal',
+          cephClusterFSID: '3a9ba188-ce63-11ef-97e4-00505684c451',
+          storageProviderEndpoint: '',
+          namespacedName: {
+            name: 'ocs-storagecluster',
             namespace: 'openshift-storage',
           },
-        } as ConfigMapKind,
-      },
+          providerManagedClusterName: 'east-2',
+        },
+      }),
     },
-  ],
-  [
-    {
-      apiVersion: 'cluster.open-cluster-management.io/v1',
-      kind: 'ManagedClusterView',
-      metadata: {
-        name: 'mcv',
-        namespace: 'east-1',
-      },
-      status: {
-        result: {
-          apiVersion: 'v1',
-          data: {
-            'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\n',
-          },
-          kind: 'ConfigMap',
-          metadata: {
-            name: 'odf-info',
+  } as ConfigMapKind,
+  {
+    apiVersion: 'v1',
+    kind: 'ConfigMap',
+    metadata: {
+      name: 'odf-client-info',
+      namespace: 'openshift-operators',
+    },
+    data: {
+      'east-1_ocs-storagecluster': JSON.stringify({
+        clusterID: '',
+        name: 'ocs-storagecluster',
+        providerInfo: {
+          version: '4.18.0-103.stable',
+          deploymentType: 'internal',
+          cephClusterFSID: '3a9ba188-ce63-11ef-97e4-00505684c451',
+          storageProviderEndpoint: '',
+          namespacedName: {
+            name: 'ocs-storagecluster',
             namespace: 'openshift-storage',
           },
-        } as ConfigMapKind,
-      },
-    },
-    {
-      apiVersion: 'cluster.open-cluster-management.io/v1',
-      kind: 'ManagedClusterView',
-      metadata: {
-        name: 'mcv',
-        namespace: 'east-2',
-      },
-      status: {
-        result: {
-          apiVersion: 'v1',
-          data: {
-            'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\n',
-          },
-          kind: 'ConfigMap',
-          metadata: {
-            name: 'odf-info',
+          providerManagedClusterName: 'east-1',
+        },
+      }),
+      'east-2_ocs-storagecluster': JSON.stringify({
+        clusterID: '',
+        name: 'ocs-storagecluster',
+        providerInfo: {
+          version: '4.18.0-103.stable',
+          deploymentType: 'internal',
+          cephClusterFSID: '3a9ba188-ce63-11ef-97e4-00505684c451',
+          storageProviderEndpoint: '',
+          namespacedName: {
+            name: 'ocs-storagecluster',
             namespace: 'openshift-storage',
           },
-        } as ConfigMapKind,
-      },
-    },
-    {
-      apiVersion: 'cluster.open-cluster-management.io/v1',
-      kind: 'ManagedClusterView',
-      metadata: {
-        name: 'mcv',
-        namespace: 'west-1',
-      },
-      status: {
-        result: {
-          apiVersion: 'v1',
-          data: {
-            'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.17.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: cb805a94-bd68-41a7-9a89-6d420ae02002\n  storageClusterUID: 9dd5f858-d6ec-4d38-af41-16cc9cacabd4\n',
-          },
-          kind: 'ConfigMap',
-          metadata: {
-            name: 'odf-info',
+          providerManagedClusterName: 'east-2',
+        },
+      }),
+      'west-1_ocs-storagecluster': JSON.stringify({
+        clusterID: '',
+        name: 'ocs-storagecluster',
+        providerInfo: {
+          version: '4.17.0-103.stable',
+          deploymentType: 'internal',
+          cephClusterFSID: 'cb805a94-bd68-41a7-9a89-6d420ae02002',
+          storageProviderEndpoint: '',
+          namespacedName: {
+            name: 'ocs-storagecluster',
             namespace: 'openshift-storage',
           },
-        } as ConfigMapKind,
-      },
+          providerManagedClusterName: 'west-1',
+        },
+      }),
     },
-  ],
+  } as ConfigMapKind,
 ];
 
 const managedClusters: ACMManagedClusterKind[] = [
@@ -186,21 +159,24 @@ jest.mock('react-router', () => ({
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
-  useK8sWatchResource: jest.fn(({ kind }) => {
+  useK8sWatchResource: jest.fn((resource) => {
+    const kind = resource?.kind;
     if (
       kind ===
       `${ACMManagedClusterModel.apiGroup}~${ACMManagedClusterModel.apiVersion}~${ACMManagedClusterModel.kind}`
     ) {
       return [managedClusters, true, ''];
     }
-    if (
-      kind ===
-      `${ACMManagedClusterViewModel.apiGroup}~${ACMManagedClusterViewModel.apiVersion}~${ACMManagedClusterViewModel.kind}`
-    ) {
-      if ([1, 3, 4].includes(testcase)) {
-        return [managedClusterViews[0], true, ''];
-      } else if ([2, 5, 6].includes(testcase)) {
-        return [managedClusterViews[1], true, ''];
+    if (kind === ConfigMapModel.kind) {
+      if (resource.name === 'odf-client-info') {
+        if ([1, 3, 4].includes(testcase)) {
+          return [odfClientInfoConfigMaps[0], true, ''];
+        } else if ([2, 5, 6].includes(testcase)) {
+          return [odfClientInfoConfigMaps[1], true, ''];
+        }
+      }
+      if (resource.name === 'ibm-storage-scale-info') {
+        return [undefined, true, ''];
       }
     }
     if (
@@ -222,12 +198,17 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   }),
   useListPageFilter: jest.fn((clusters) => [clusters, clusters, jest.fn()]),
   ListPageFilter: jest.fn(() => null),
+  // Used by the ACM search queries behind useStorageProvisioner.
+  consoleFetchJSON: jest.fn(() => Promise.resolve({ data: {} })),
 }));
 
 jest.mock('@odf/shared/hooks/use-fetch-csv', () => ({
   useFetchCsv: jest.fn(() => [csv]),
 }));
 
+// FIXME: still skipped. The payload assertions and SDK mocks below are current,
+// but the DOM selectors ('create-button', 'Select row N') no longer match the
+// PatternFly 6 markup, so reviving this suite needs a separate selector pass.
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip('Test drpolicy list page', () => {
   test('Regional-DR policy creation happy path testing', async () => {
@@ -288,7 +269,7 @@ describe.skip('Test drpolicy list page', () => {
     ).toBeTruthy();
     expect(
       JSON.stringify(mirrorPeerObj) ===
-        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"manageS3":true,"type":"async","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"west-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
+        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"storageVendor":"odf","type":"async","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"west-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
     ).toBeTruthy();
   });
 
@@ -332,7 +313,7 @@ describe.skip('Test drpolicy list page', () => {
     ).toBeTruthy();
     expect(
       JSON.stringify(mirrorPeerObj) ===
-        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"manageS3":true,"type":"sync","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"east-2","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
+        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"storageVendor":"odf","type":"sync","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"east-2","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
     ).toBeTruthy();
   });
 

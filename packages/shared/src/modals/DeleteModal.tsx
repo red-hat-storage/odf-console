@@ -24,6 +24,8 @@ type DeleteModalExtraProps = {
   resourceModel: K8sModel;
   cluster?: string;
   cleanupBeforeDelete?: (resource: K8sResourceCommon) => Promise<void>;
+  /** Cleanup that can only run once the resource is gone (e.g. a dependency that blocks on it). */
+  cleanupAfterDelete?: (resource: K8sResourceCommon) => Promise<void>;
   confirmWithName?: boolean;
 };
 
@@ -35,6 +37,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
     resourceModel,
     cluster,
     cleanupBeforeDelete,
+    cleanupAfterDelete,
     confirmWithName,
   },
 }) => {
@@ -96,7 +99,17 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
       requestInit: null,
       ...(!!cluster ? { cluster } : {}),
     })
-      .then(() => {
+      .then(async () => {
+        if (cleanupAfterDelete) {
+          try {
+            await cleanupAfterDelete(resource);
+          } catch (cleanupError) {
+            // Resource is already gone; surface the failure so cleanup can be retried.
+            setError(cleanupError);
+            setLoading(false);
+            return;
+          }
+        }
         // If we are currently on the deleted resource's page, redirect to the resource list page
         const re = new RegExp(`/${resource.metadata.name}(/|$)`);
         const pathName = window.location.pathname;

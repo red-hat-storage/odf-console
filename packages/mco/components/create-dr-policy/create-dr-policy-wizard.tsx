@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { usePrePairNetworkValidation } from '@odf/mco/hooks';
+import { getS3ConfigurationResourceObj } from '@odf/mco/hooks';
 import { getMajorVersion } from '@odf/mco/utils';
+import { getThrownMessage } from '@odf/mco/utils/error-message';
+import { getDescriptorById } from '@odf/mco/utils/storage-vendor-registry';
 import {
   ACM_DEFAULT_DOC_VERSION,
   DOC_VERSION,
-  DRClusterModel,
   MirrorPeerModel,
   useDocVersion,
 } from '@odf/shared';
@@ -19,62 +20,37 @@ import {
   ACM_OPERATOR_SPEC_NAME,
   acmDocHome,
   acmSubmarinerDoc,
-  BackendType,
   CreateDRPolicyStepNames,
   CreateDRPolicyWizardSteps,
   gettingStartedDRDocs,
-  MAX_ALLOWED_CLUSTERS,
   ODFMCO_OPERATOR,
-  SubmarinerStatus,
 } from '../../constants';
+import { getDRPolicyResourceObj } from '../../hooks/mco-resources';
 import '../../style.scss';
-import {
-  DRClusterKind,
-  DRPolicyKind,
-  MirrorPeerKind,
-  S3StoreProfile,
-  type S3Details,
-} from '../../types';
-import { fetchRamenS3Profiles } from '../../utils/tps-payload-creator';
+import { DRPolicyKind, MirrorPeerKind, S3ConfigurationKind } from '../../types';
 import { ClusterPairingProgress } from './cluster-pairing-progress/cluster-pairing-progress';
 import { PairingSuccess } from './cluster-pairing-progress/pairing-success';
+import { S3ConfigurationProgress } from './cluster-pairing-progress/s3-configuration-progress';
 import './create-dr-policy.scss';
 import { CreateDRPolicyWizardFooter } from './footer';
 import { createPolicyPromises } from './utils/k8s-utils';
+import { drPolicyInitialState, drPolicyReducer } from './utils/reducer';
 import {
-  DRPolicyActionType,
-  drPolicyInitialState,
-  drPolicyReducer,
-} from './utils/reducer';
-import {
-  isPrePairValidationPassed,
   shouldRunPrePairValidation,
   validateClustersStepInputs,
   validateConfigureStepInputs,
   validatePolicyStepInputs,
+  validateProviderStepInputs,
   validateReviewStepInputs,
 } from './utils/step-validation';
 import {
   ClustersStep,
   ConfigureClusterPairStep,
   PolicyStep,
+  ProviderStep,
   ReviewDRPolicyStep,
 } from './wizard-steps';
-
-const convertS3ProfileToDetails = (
-  profile: S3StoreProfile,
-  clusterName: string
-): S3Details => {
-  return {
-    clusterName,
-    bucketName: profile.s3Bucket || '',
-    endpoint: profile.s3CompatibleEndpoint || '',
-    accessKeyId: '',
-    secretKey: '',
-    region: profile.s3Region || '',
-    s3ProfileName: profile.s3ProfileName || '',
-  };
-};
+import { usePrePairChecks } from './wizard-steps/configure-cluster-pair-step/pre-pair-checks-runner';
 
 export interface CreateDRPolicyWizardProps {
   preSelectedClusters?: string[];
@@ -92,12 +68,14 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
     drPolicyReducer,
     drPolicyInitialState
   );
-  const [s3ErrorMessage, setS3ErrorMessage] = React.useState('');
   const [createErrorMessage, setCreateErrorMessage] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [pendingS3ConfigurationNames, setPendingS3ConfigurationNames] =
+    React.useState<string[]>([]);
   const [step, setStep] = React.useState(CreateDRPolicyWizardSteps.Clusters);
-  const [acknowledgedStatus, setAcknowledgedStatus] =
-    React.useState<SubmarinerStatus | null>(null);
+  const [acknowledgedChecks, setAcknowledgedChecks] = React.useState<
+    Set<string>
+  >(new Set());
   const policyPeerRef = React.useRef<{
     pairingMirrorPeerName: string;
     skipPairingProgress: boolean;
@@ -111,9 +89,24 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
     isNewPolicy: false,
   });
 
-  const clearAcknowledgedStatus = React.useCallback(() => {
-    setAcknowledgedStatus(null);
+  const clearAcknowledgedChecks = React.useCallback(() => {
+    setAcknowledgedChecks(new Set());
   }, []);
+
+  const handleAcknowledgeCheck = React.useCallback(
+    (checkId: string, acknowledged: boolean) => {
+      setAcknowledgedChecks((prev) => {
+        const next = new Set(prev);
+        if (acknowledged) {
+          next.add(checkId);
+        } else {
+          next.delete(checkId);
+        }
+        return next;
+      });
+    },
+    []
+  );
 
   const [mirrorPeers, mirrorPeerLoaded, mirrorPeerLoadError] =
     useK8sWatchResource<MirrorPeerKind[]>({
@@ -122,140 +115,38 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
       namespaced: false,
     });
 
-  const [drClusters, drClustersLoaded, drClustersLoadError] =
-    useK8sWatchResource<DRClusterKind[]>({
-      kind: referenceForModel(DRClusterModel),
-      isList: true,
-      namespaced: false,
-    });
+  const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
+    useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
+
+  const [s3Configurations, s3ConfigurationsLoaded, s3ConfigurationsLoadError] =
+    useK8sWatchResource<S3ConfigurationKind[]>(getS3ConfigurationResourceObj());
 
   const [csv] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
-  const selectedDRClusters = React.useMemo(() => {
-    if (
-      state.clusters.selectedClusters.length === MAX_ALLOWED_CLUSTERS &&
-      drClustersLoaded &&
-      !drClustersLoadError
-    ) {
-      const drCluster1 = drClusters.find(
-        (drCluster) =>
-          getName(drCluster) === getName(state.clusters.selectedClusters[0])
-      );
-      const drCluster2 = drClusters.find(
-        (drCluster) =>
-          getName(drCluster) === getName(state.clusters.selectedClusters[1])
-      );
-      return [drCluster1, drCluster2].filter(Boolean) as DRClusterKind[];
+  // Already-claimed clusters are shown read-only and reused; the spec is immutable.
+  const clustersWithS3Configuration = React.useMemo(() => {
+    if (!s3ConfigurationsLoaded || s3ConfigurationsLoadError) {
+      return new Set<string>();
     }
-    return [];
+    const claimed = new Set(
+      (s3Configurations ?? []).flatMap(
+        (s3Configuration) => s3Configuration.spec?.managedClusters ?? []
+      )
+    );
+    return new Set(
+      state.clusters.selectedClusters
+        .map(getName)
+        .filter((clusterName) => claimed.has(clusterName))
+    );
   }, [
     state.clusters.selectedClusters,
-    drClusters,
-    drClustersLoaded,
-    drClustersLoadError,
+    s3Configurations,
+    s3ConfigurationsLoaded,
+    s3ConfigurationsLoadError,
   ]);
-
-  const prefilledPairRef = React.useRef<string>('');
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const loadS3ProfileDetails = async () => {
-      setS3ErrorMessage('');
-
-      if (state.configure.replicationBackend !== BackendType.ThirdParty) {
-        prefilledPairRef.current = '';
-        return;
-      }
-
-      if (selectedDRClusters.length !== MAX_ALLOWED_CLUSTERS) {
-        prefilledPairRef.current = '';
-        return;
-      }
-
-      const pairKey = selectedDRClusters.map(getName).join('/');
-      if (prefilledPairRef.current === pairKey) {
-        return;
-      }
-
-      try {
-        const ramenS3Profiles = await fetchRamenS3Profiles();
-
-        if (cancelled) {
-          return;
-        }
-
-        // Ignore stale responses if the active pair or backend changed mid-flight.
-        const activePairKey = selectedDRClusters.map(getName).join('/');
-        if (
-          state.configure.replicationBackend !== BackendType.ThirdParty ||
-          selectedDRClusters.length !== MAX_ALLOWED_CLUSTERS ||
-          activePairKey !== pairKey
-        ) {
-          return;
-        }
-
-        prefilledPairRef.current = pairKey;
-
-        const cluster1S3ProfileName =
-          selectedDRClusters[0]?.spec?.s3ProfileName;
-        const cluster2S3ProfileName =
-          selectedDRClusters[1]?.spec?.s3ProfileName;
-
-        const cluster1Name = getName(selectedDRClusters[0]);
-        const cluster2Name = getName(selectedDRClusters[1]);
-
-        if (cluster1S3ProfileName) {
-          const cluster1Profile = ramenS3Profiles.find(
-            (profile) => profile.s3ProfileName === cluster1S3ProfileName
-          );
-          if (cluster1Profile) {
-            const cluster1Details = convertS3ProfileToDetails(
-              cluster1Profile,
-              cluster1Name
-            );
-            dispatch({
-              type: DRPolicyActionType.SET_CLUSTER1_S3_DETAILS,
-              payload: cluster1Details,
-            });
-          }
-        }
-
-        if (cluster2S3ProfileName) {
-          const cluster2Profile = ramenS3Profiles.find(
-            (profile) => profile.s3ProfileName === cluster2S3ProfileName
-          );
-          if (cluster2Profile) {
-            const cluster2Details = convertS3ProfileToDetails(
-              cluster2Profile,
-              cluster2Name
-            );
-            dispatch({
-              type: DRPolicyActionType.SET_CLUSTER2_S3_DETAILS,
-              payload: cluster2Details,
-            });
-          }
-        }
-      } catch (error) {
-        if (cancelled) {
-          return;
-        }
-        prefilledPairRef.current = '';
-        setS3ErrorMessage(
-          t('Failed to load S3 profile details: {{error}}', {
-            error: (error as Error)?.message || JSON.stringify(error),
-          })
-        );
-      }
-    };
-
-    loadS3ProfileDetails();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedDRClusters, dispatch, state.configure.replicationBackend, t]);
 
   const onCreate = async () => {
     try {
@@ -264,9 +155,14 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
       const result = await createPolicyPromises(
         state,
         mirrorPeers,
-        selectedDRClusters
+        s3Configurations
       );
       setIsLoading(false);
+
+      if (result.s3ConfigurationNames?.length) {
+        // MCO provisions bucket, profile and DRClusters asynchronously.
+        setPendingS3ConfigurationNames(result.s3ConfigurationNames);
+      }
 
       if (result.mirrorPeerName) {
         policyPeerRef.current = {
@@ -279,15 +175,17 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
         return;
       }
 
-      onSuccess();
+      if (!result.s3ConfigurationNames?.length) {
+        onSuccess();
+      }
     } catch (error) {
       setIsLoading(false);
-      setCreateErrorMessage((error as Error)?.message || JSON.stringify(error));
+      setCreateErrorMessage(getThrownMessage(error));
     }
   };
 
   const onCancelPairing = () => {
-    clearAcknowledgedStatus();
+    clearAcknowledgedChecks();
     policyPeerRef.current = {
       pairingMirrorPeerName: '',
       skipPairingProgress: false,
@@ -299,8 +197,17 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
     setStep(CreateDRPolicyWizardSteps.Clusters);
   };
 
-  const loaded = mirrorPeerLoaded && drClustersLoaded;
-  const loadedError = mirrorPeerLoadError || drClustersLoadError;
+  const onS3ConfigurationComplete = React.useCallback(() => {
+    setPendingS3ConfigurationNames([]);
+    // Third-party has no MirrorPeer, so S3 ready is the last step.
+    if (!policyPeerRef.current.pairingMirrorPeerName) {
+      onSuccess();
+    }
+  }, [onSuccess]);
+
+  const loaded = mirrorPeerLoaded && drPoliciesLoaded && s3ConfigurationsLoaded;
+  const loadedError =
+    mirrorPeerLoadError || drPoliciesLoadError || s3ConfigurationsLoadError;
 
   const clusterNames = React.useMemo(
     () => state.clusters.selectedClusters.map(getName),
@@ -309,19 +216,42 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
   const shouldRunValidation = shouldRunPrePairValidation(state);
   const validationActive =
     shouldRunValidation && step !== CreateDRPolicyWizardSteps.Clusters;
-  const prePairValidation = usePrePairNetworkValidation(
-    clusterNames,
-    validationActive
+  const descriptor = state.provider.storageVendor
+    ? getDescriptorById(state.provider.storageVendor)
+    : null;
+  const { allLoaded, allPassed, requiresAcknowledgement } = usePrePairChecks(
+    descriptor,
+    validationActive,
+    clusterNames
   );
-  const acknowledgedUnvalidatedSubmariner =
-    acknowledgedStatus === prePairValidation.status;
+
+  const prePairCheckResults = React.useMemo(() => {
+    if (!descriptor) return new Map();
+    const results = new Map();
+    descriptor.prePairChecks.forEach((check) => {
+      results.set(check.id, check.useCheck(clusterNames, validationActive));
+    });
+    return results;
+  }, [descriptor, clusterNames, validationActive]);
+
+  const allRequiredChecksAcknowledged = React.useMemo(() => {
+    if (!descriptor) return true;
+    return descriptor.prePairChecks.every((check) => {
+      const result = check.useCheck(clusterNames, validationActive);
+      const needsAck = requiresAcknowledgement(check.id, result);
+      return !needsAck || acknowledgedChecks.has(check.id);
+    });
+  }, [
+    descriptor,
+    clusterNames,
+    validationActive,
+    requiresAcknowledgement,
+    acknowledgedChecks,
+  ]);
 
   const prePairValidationPassed =
     !validationActive ||
-    isPrePairValidationPassed(
-      prePairValidation,
-      acknowledgedUnvalidatedSubmariner
-    );
+    (allLoaded && allPassed && allRequiredChecksAcknowledged);
 
   const acmDocVersion = useDocVersion({
     defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
@@ -331,10 +261,20 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
   const acmDoc = acmDocHome(acmDocVersion);
   const submarinerDoc = acmSubmarinerDoc(acmDocVersion);
 
-  const allDRClustersExist = selectedDRClusters.length === MAX_ALLOWED_CLUSTERS;
-
   if (!loaded || loadedError) {
     return <StatusBox loaded={loaded} loadError={loadedError} />;
+  }
+
+  // S3 creates the DRClusters the policy references, so it must settle first.
+  if (pendingS3ConfigurationNames.length) {
+    return (
+      <S3ConfigurationProgress
+        s3ConfigurationNames={pendingS3ConfigurationNames}
+        s3Configurations={s3Configurations}
+        onComplete={onS3ConfigurationComplete}
+        onClose={onCancel}
+      />
+    );
   }
 
   if (
@@ -365,18 +305,28 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
   const stepNames = CreateDRPolicyStepNames(t);
   const stepValidity: Record<CreateDRPolicyWizardSteps, boolean> = {
     [CreateDRPolicyWizardSteps.Clusters]: validateClustersStepInputs(state),
+    [CreateDRPolicyWizardSteps.Provider]: validateProviderStepInputs(state),
     [CreateDRPolicyWizardSteps.Configure]: validateConfigureStepInputs(
       state,
-      allDRClustersExist,
+      clustersWithS3Configuration,
       prePairValidationPassed
     ),
-    [CreateDRPolicyWizardSteps.Policy]: validatePolicyStepInputs(state),
+    [CreateDRPolicyWizardSteps.Policy]: validatePolicyStepInputs(
+      state,
+      descriptor
+    ),
     [CreateDRPolicyWizardSteps.Review]: validateReviewStepInputs(
       state,
-      allDRClustersExist,
-      prePairValidationPassed
+      clustersWithS3Configuration,
+      prePairValidationPassed,
+      descriptor
     ),
   };
+
+  const wizardSteps = descriptor?.steps ?? [
+    CreateDRPolicyWizardSteps.Clusters,
+    CreateDRPolicyWizardSteps.Provider,
+  ];
 
   return (
     <Wizard
@@ -385,10 +335,19 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
       isVisitRequired
       onStepChange={(_event, currentStep) => {
         const nextStep = currentStep.id as CreateDRPolicyWizardSteps;
-        if (nextStep === CreateDRPolicyWizardSteps.Clusters) {
-          clearAcknowledgedStatus();
+        if (
+          nextStep === CreateDRPolicyWizardSteps.Clusters ||
+          nextStep === CreateDRPolicyWizardSteps.Provider
+        ) {
+          clearAcknowledgedChecks();
         }
-        setStep(nextStep);
+        if (
+          wizardSteps.includes(nextStep) ||
+          nextStep === CreateDRPolicyWizardSteps.Clusters ||
+          nextStep === CreateDRPolicyWizardSteps.Provider
+        ) {
+          setStep(nextStep);
+        }
       }}
       footer={
         <CreateDRPolicyWizardFooter
@@ -400,64 +359,73 @@ export const CreateDRPolicyWizard: React.FC<CreateDRPolicyWizardProps> = ({
         />
       }
     >
-      <WizardStep
-        id={CreateDRPolicyWizardSteps.Clusters}
-        name={stepNames[CreateDRPolicyWizardSteps.Clusters]}
-      >
-        <ClustersStep
-          state={state}
-          dispatch={dispatch}
-          requiredODFVersion={odfMCOVersion}
-          preSelectedClusters={preSelectedClusters}
-          acmDoc={acmDoc}
-          mirrorPeers={mirrorPeers}
-          onSelectedClustersChange={clearAcknowledgedStatus}
-        />
-      </WizardStep>
-      <WizardStep
-        id={CreateDRPolicyWizardSteps.Configure}
-        name={stepNames[CreateDRPolicyWizardSteps.Configure]}
-      >
-        <ConfigureClusterPairStep
-          replicationBackend={state.configure.replicationBackend}
-          selectedClusters={state.clusters.selectedClusters}
-          selectedClustersHaveODF={state.clusters.selectedClustersHaveODF}
-          cluster1S3Details={state.configure.cluster1S3Details}
-          cluster2S3Details={state.configure.cluster2S3Details}
-          useSameS3Connection={state.configure.useSameS3Connection}
-          dispatch={dispatch}
-          selectedDRClusters={selectedDRClusters}
-          validation={prePairValidation}
-          acknowledgedUnvalidatedSubmariner={acknowledgedUnvalidatedSubmariner}
-          onAcknowledgeUnvalidatedSubmariner={(acknowledged) =>
-            setAcknowledgedStatus(
-              acknowledged ? prePairValidation.status : null
-            )
+      {wizardSteps.map((stepId) => {
+        const stepComponent = (() => {
+          switch (stepId) {
+            case CreateDRPolicyWizardSteps.Clusters:
+              return (
+                <ClustersStep
+                  state={state}
+                  dispatch={dispatch}
+                  requiredODFVersion={odfMCOVersion}
+                  preSelectedClusters={preSelectedClusters}
+                  acmDoc={acmDoc}
+                  mirrorPeers={mirrorPeers}
+                  onSelectedClustersChange={clearAcknowledgedChecks}
+                />
+              );
+            case CreateDRPolicyWizardSteps.Provider:
+              return (
+                <ProviderStep
+                  selectedClusters={state.clusters.selectedClusters}
+                  selectedVendor={state.provider.storageVendor}
+                  mirrorPeers={mirrorPeers}
+                  drPolicies={drPolicies}
+                  dispatch={dispatch}
+                  onProviderChange={clearAcknowledgedChecks}
+                />
+              );
+            case CreateDRPolicyWizardSteps.Configure:
+              return (
+                <ConfigureClusterPairStep
+                  storageVendor={state.provider.storageVendor}
+                  selectedClusters={state.clusters.selectedClusters}
+                  cluster1S3Details={state.configure.cluster1S3Details}
+                  cluster2S3Details={state.configure.cluster2S3Details}
+                  useSameS3Connection={state.configure.useSameS3Connection}
+                  dispatch={dispatch}
+                  clustersWithS3Configuration={clustersWithS3Configuration}
+                  acknowledgedChecks={acknowledgedChecks}
+                  onAcknowledgeCheck={handleAcknowledgeCheck}
+                  docHref={submarinerDoc}
+                />
+              );
+            case CreateDRPolicyWizardSteps.Policy:
+              return (
+                <PolicyStep
+                  state={state}
+                  dispatch={dispatch}
+                  docHref={gettingStartedDRDocs(DOC_VERSION).CREATE_POLICY_RDR}
+                />
+              );
+            case CreateDRPolicyWizardSteps.Review:
+              return (
+                <ReviewDRPolicyStep
+                  state={state}
+                  prePairCheckResults={prePairCheckResults}
+                />
+              );
+            default:
+              return null;
           }
-          onReplicationBackendChange={clearAcknowledgedStatus}
-          docHref={submarinerDoc}
-          errorMessage={s3ErrorMessage}
-        />
-      </WizardStep>
-      <WizardStep
-        id={CreateDRPolicyWizardSteps.Policy}
-        name={stepNames[CreateDRPolicyWizardSteps.Policy]}
-      >
-        <PolicyStep
-          state={state}
-          dispatch={dispatch}
-          docHref={gettingStartedDRDocs(DOC_VERSION).CREATE_POLICY_RDR}
-        />
-      </WizardStep>
-      <WizardStep
-        id={CreateDRPolicyWizardSteps.Review}
-        name={stepNames[CreateDRPolicyWizardSteps.Review]}
-      >
-        <ReviewDRPolicyStep
-          state={state}
-          validation={shouldRunValidation ? prePairValidation : undefined}
-        />
-      </WizardStep>
+        })();
+
+        return (
+          <WizardStep key={stepId} id={stepId} name={stepNames[stepId]}>
+            {stepComponent}
+          </WizardStep>
+        );
+      })}
     </Wizard>
   );
 };

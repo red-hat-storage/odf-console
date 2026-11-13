@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
-import { ACMManagedClusterViewModel } from '@odf/shared';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
@@ -11,8 +10,8 @@ import {
   useTopologyControls,
   useVisualizationSetup,
 } from '@odf/shared/topology';
+import { ConfigMapKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { EmptyState, EmptyStateBody, Title } from '@patternfly/react-core';
 import { TopologyIcon } from '@patternfly/react-icons';
@@ -21,18 +20,16 @@ import {
   useVisualizationController,
   VisualizationProvider,
 } from '@patternfly/react-topology';
-import {
-  MCO_CREATED_BY_LABEL_KEY,
-  MCO_CREATED_BY_MC_CONTROLLER,
-  ODFMCO_OPERATOR,
-} from '../../constants';
+import { ODFMCO_OPERATOR } from '../../constants';
 import {
   getManagedClusterResourceObj,
+  getODFClientInfoConfigMapResourceObj,
+  getIBMStorageScaleInfoConfigMapResourceObj,
   useProtectedAppsByCluster,
   useDRPoliciesByClusterPair,
   useActiveDROperations,
 } from '../../hooks';
-import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
+import { ACMManagedClusterKind } from '../../types';
 import { getManagedClusterInfoTypes } from '../../utils/managed-cluster-info';
 import { TopologyDataContext } from './context/TopologyContext';
 import { mcoLayoutFactory } from './factory/MCOLayoutFactory';
@@ -262,15 +259,12 @@ const Topology: React.FC = () => {
     ACMManagedClusterKind[]
   >(getManagedClusterResourceObj());
 
-  const [mcvs, mcvsLoaded, mcvsLoadError] = useK8sWatchResource<
-    ACMManagedClusterViewKind[]
-  >({
-    kind: referenceForModel(ACMManagedClusterViewModel),
-    selector: {
-      matchLabels: { [MCO_CREATED_BY_LABEL_KEY]: MCO_CREATED_BY_MC_CONTROLLER },
-    },
-    isList: true,
-  });
+  const [odfClientInfoCM, odfCMLoaded, odfCMLoadError] =
+    useK8sWatchResource<ConfigMapKind>(getODFClientInfoConfigMapResourceObj());
+
+  const [scaleCM, scaleCMLoaded] = useK8sWatchResource<ConfigMapKind>(
+    getIBMStorageScaleInfoConfigMapResourceObj()
+  );
 
   const [clusterAppsMap, appsLoaded, appsLoadError] =
     useProtectedAppsByCluster();
@@ -286,29 +280,42 @@ const Topology: React.FC = () => {
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
-  // Filter clusters to only include those with valid ODF installed
   const clustersWithODF = React.useMemo(() => {
-    if (!loaded || !mcvsLoaded || !odfMCOVersion || !csvLoaded) {
+    if (
+      !loaded ||
+      !odfCMLoaded ||
+      !scaleCMLoaded ||
+      !odfMCOVersion ||
+      !csvLoaded
+    ) {
       return [];
     }
 
     const allClusters = getManagedClusterInfoTypes(
       managedClusters,
-      mcvs,
+      odfClientInfoCM,
+      scaleCM,
       odfMCOVersion,
-      undefined // We don't need provisioners for this filtering
+      undefined
     );
 
-    // Filter to only include clusters with valid ODF version
     const validClusters = allClusters.filter(
       (cluster) => cluster?.odfInfo?.isValidODFVersion
     );
 
-    // Return the original ACMManagedClusterKind objects
     return managedClusters.filter((cluster) =>
       validClusters.some((valid) => getName(valid) === getName(cluster))
     );
-  }, [managedClusters, mcvs, odfMCOVersion, loaded, mcvsLoaded, csvLoaded]);
+  }, [
+    managedClusters,
+    odfClientInfoCM,
+    scaleCM,
+    odfMCOVersion,
+    loaded,
+    odfCMLoaded,
+    scaleCMLoaded,
+    csvLoaded,
+  ]);
 
   const topologyDataContextData = React.useMemo(() => {
     return {
@@ -333,7 +340,8 @@ const Topology: React.FC = () => {
 
   const allLoaded =
     loaded &&
-    mcvsLoaded &&
+    odfCMLoaded &&
+    scaleCMLoaded &&
     csvLoaded &&
     appsLoaded &&
     policiesLoaded &&
@@ -351,7 +359,8 @@ const Topology: React.FC = () => {
             <HandleErrorAndLoading
               loading={
                 !loaded ||
-                !mcvsLoaded ||
+                !odfCMLoaded ||
+                !scaleCMLoaded ||
                 !appsLoaded ||
                 !policiesLoaded ||
                 !operationsLoaded ||
@@ -360,7 +369,7 @@ const Topology: React.FC = () => {
               error={(() => {
                 const err =
                   loadError ||
-                  mcvsLoadError ||
+                  odfCMLoadError ||
                   appsLoadError ||
                   policiesLoadError ||
                   operationsLoadError ||

@@ -1,7 +1,11 @@
 import * as React from 'react';
-import { getManagedClusterResourceObj } from '@odf/mco/hooks';
+import {
+  getManagedClusterResourceObj,
+  getODFClientInfoConfigMapResourceObj,
+  getIBMStorageScaleInfoConfigMapResourceObj,
+} from '@odf/mco/hooks';
 import { useStorageProvisioners } from '@odf/mco/hooks/use-storage-provisioner';
-import { ACMManagedClusterViewModel, ListPageFilterWrapper } from '@odf/shared';
+import { ListPageFilterWrapper } from '@odf/shared';
 import { DASH } from '@odf/shared/constants';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName } from '@odf/shared/selectors';
@@ -15,13 +19,14 @@ import {
   SelectableTable,
   TableVariant,
 } from '@odf/shared/table/selectable-table';
+import { ConfigMapKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getPageRange, referenceForModel } from '@odf/shared/utils';
+import { getPageRange } from '@odf/shared/utils';
 import {
   useK8sWatchResource,
   useListPageFilter,
+  RowFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import cn from 'classnames';
 import {
   Grid,
   GridItem,
@@ -33,61 +38,84 @@ import {
 } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {
-  BackendType,
-  MCO_CREATED_BY_LABEL_KEY,
-  MCO_CREATED_BY_MC_CONTROLLER,
-} from '../../../../constants';
-import {
   ACMManagedClusterKind,
-  ACMManagedClusterViewKind,
   ManagedClusterInfoType,
 } from '../../../../types';
 import { getManagedClusterInfoTypes } from '../../../../utils/managed-cluster-info';
+import {
+  getStorageVendorLabel,
+  StorageVendorId,
+} from '../../../../utils/storage-vendor-registry';
 import { DRPolicyAction, DRPolicyActionType } from '../../utils/reducer';
 import {
   ClusterListColumns,
   COUNT_PER_PAGE_NUMBER,
+  getClusterVendorIds,
   getColumnHelper,
   getColumns,
   INITIAL_PAGE_NUMBER,
   isRowSelectable,
 } from './cluster-list-columns';
 
+const storageProviderFilter = (t): RowFilter<ManagedClusterInfoType> => ({
+  type: 'storage-provider',
+  filterGroupName: t('Storage provider'),
+  reducer: (cluster) => {
+    const vendorIds = getClusterVendorIds(cluster);
+    if (vendorIds.includes('data-foundation')) return 'data-foundation';
+    if (vendorIds.includes('ibm-storage-scale')) return 'ibm-storage-scale';
+    return 'generic';
+  },
+  items: (
+    ['data-foundation', 'ibm-storage-scale', 'generic'] as StorageVendorId[]
+  ).map((id) => ({ id, title: getStorageVendorLabel(id, t) })),
+  filter: (selected, cluster) => {
+    const chosen = selected?.selected;
+    if (!chosen?.length) return true;
+    const vendorIds = getClusterVendorIds(cluster);
+    const isGeneric = !vendorIds.length || !!cluster.providers?.length;
+    return (
+      vendorIds.some((id) => chosen.includes(id)) ||
+      (chosen.includes('generic') && isGeneric)
+    );
+  },
+});
+
 const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
   row: cluster,
 }) => {
   const { t } = useCustomTranslation();
-  const { odfInfo, isManagedClusterAvailable } = cluster;
-  const clientName = odfInfo?.storageClusterInfo?.clientInfo?.name;
-  const odfVersion = odfInfo?.odfVersion;
-  const providers = cluster.providers || [];
-  const count = providers.reduce((acc, provider) => acc + provider.count, 0);
-  const storageProvisioners = !count ? (
-    DASH
-  ) : (
-    <Popover
-      headerContent={t('Storage provisioners')}
-      bodyContent={
-        <ul className="pf-v6-u-m-0 pf-v6-u-pl-xs">
-          {providers.map((p) => (
-            <li key={p.displayName}>
-              {p.displayName}
-              {p.count > 1 && ` (${p.count})`}
-            </li>
-          ))}
-        </ul>
-      }
-      maxWidth="20rem"
-    >
-      <Button variant="link" isInline>
-        {count > 1
-          ? t('{{count}} provisioners', {
-              count: count,
-            })
-          : t('{{count}} provisioner', { count })}
-      </Button>
-    </Popover>
+  const { isManagedClusterAvailable } = cluster;
+  const vendorIds = getClusterVendorIds(cluster);
+  const thirdPartyProvisioners = cluster.providers || [];
+  const vendorLabels = vendorIds.map((id) => getStorageVendorLabel(id, t));
+  const thirdPartyLabels = thirdPartyProvisioners.map((p) =>
+    p.count > 1 ? `${p.displayName} (${p.count})` : p.displayName
   );
+  const allLabels = [...vendorLabels, ...thirdPartyLabels];
+  const storageProvider =
+    allLabels.length === 0 ? (
+      DASH
+    ) : allLabels.length > 2 ? (
+      <Popover
+        headerContent={t('Storage provider')}
+        bodyContent={
+          <ul className="pf-v6-u-m-0 pf-v6-u-pl-xs">
+            {allLabels.map((label) => (
+              <li key={label}>{label}</li>
+            ))}
+          </ul>
+        }
+        maxWidth="20rem"
+      >
+        <Button variant="link" isInline>
+          {t('{{count}} providers', { count: allLabels.length })}
+        </Button>
+      </Popover>
+    ) : (
+      <Content component="p">{allLabels.join(', ')}</Content>
+    );
+
   return (
     <>
       <Td
@@ -116,28 +144,10 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
       </Td>
       <Td
         dataLabel={
-          getColumnHelper(ClusterListColumns.DataFoundation, t).columnName
+          getColumnHelper(ClusterListColumns.StorageProvider, t).columnName
         }
       >
-        <Content component="p" className={cn({ 'text-muted': !odfVersion })}>
-          {odfVersion || t('Not Installed')}
-        </Content>
-      </Td>
-      <Td
-        dataLabel={
-          getColumnHelper(ClusterListColumns.StorageProvisioners, t).columnName
-        }
-      >
-        {storageProvisioners}
-      </Td>
-      <Td
-        dataLabel={
-          getColumnHelper(ClusterListColumns.StorageClients, t).columnName
-        }
-      >
-        <Content component="p" className={cn({ 'text-muted': !clientName })}>
-          {!!clientName ? clientName : t('Unavailable')}
-        </Content>
+        {storageProvider}
       </Td>
     </>
   );
@@ -153,7 +163,11 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
   const { t } = useCustomTranslation();
   const [page, setPage] = React.useState(INITIAL_PAGE_NUMBER);
   const [perPage, setPerPage] = React.useState(COUNT_PER_PAGE_NUMBER);
-  const [data, filteredData, onFilterChange] = useListPageFilter(clusters);
+  const rowFilters = React.useMemo(() => [storageProviderFilter(t)], [t]);
+  const [data, filteredData, onFilterChange] = useListPageFilter(
+    clusters,
+    rowFilters
+  );
   const paginatedData: ManagedClusterInfoType[] = React.useMemo(() => {
     const [start, end] = getPageRange(page, perPage);
     return filteredData.slice(start, end) || [];
@@ -187,6 +201,7 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
             data={data}
             loaded={isLoaded}
             onFilterChange={onFilterChange}
+            rowFilters={rowFilters}
             hideColumnManagement={true}
           />
         </GridItem>
@@ -239,16 +254,12 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     ACMManagedClusterKind[]
   >(getManagedClusterResourceObj());
 
-  const [mcvs, mcvsLoaded, mcvsLoadError] = useK8sWatchResource<
-    ACMManagedClusterViewKind[]
-  >({
-    kind: referenceForModel(ACMManagedClusterViewModel),
-    selector: {
-      // https://github.com/red-hat-storage/odf-multicluster-orchestrator/blob/release-4.17/controllers/utils/managedclusterview.go#L43
-      matchLabels: { [MCO_CREATED_BY_LABEL_KEY]: MCO_CREATED_BY_MC_CONTROLLER },
-    },
-    isList: true,
-  });
+  const [odfClientInfoCM, odfCMLoaded, odfCMLoadError] =
+    useK8sWatchResource<ConfigMapKind>(getODFClientInfoConfigMapResourceObj());
+
+  const [scaleCM, scaleCMLoaded] = useK8sWatchResource<ConfigMapKind>(
+    getIBMStorageScaleInfoConfigMapResourceObj()
+  );
 
   const clusterNames = useDeepCompareMemoize(
     managedClusters.map((c) => getName(c)),
@@ -261,16 +272,15 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     error,
   } = useStorageProvisioners(clusterNames);
 
-  const allLoaded = loaded && mcvsLoaded && providersLoaded;
-  const anyError = loadError || mcvsLoadError || error;
+  const allLoaded = loaded && odfCMLoaded && scaleCMLoaded && providersLoaded;
+  const anyError = loadError || odfCMLoadError || error;
 
   const allClusters: ManagedClusterInfoType[] = React.useMemo(() => {
     if (!!requiredODFVersion && allLoaded && !anyError)
-      // TODO: Switch from using the MCV-based odf-info ConfigMap to using
-      // the odf-client-info ConfigMap from the openshift-operators namespace
       return getManagedClusterInfoTypes(
         managedClusters,
-        mcvs,
+        odfClientInfoCM,
+        scaleCM,
         requiredODFVersion,
         providersByCluster
       );
@@ -279,7 +289,8 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   }, [
     requiredODFVersion,
     managedClusters,
-    mcvs,
+    odfClientInfoCM,
+    scaleCM,
     allLoaded,
     anyError,
     providersByCluster,
@@ -303,30 +314,9 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
         payload: selectedClusterList,
       });
 
-      if (selectedClusterList?.length >= 2) {
-        const doClustersHaveODF = selectedClusterList?.every(
-          (cluster) => cluster?.odfInfo?.isValidODFVersion
-        );
-        dispatch({
-          type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
-          payload: doClustersHaveODF,
-        });
-
-        dispatch({
-          type: DRPolicyActionType.SET_REPLICATION_BACKEND,
-          payload: doClustersHaveODF
-            ? BackendType.DataFoundation
-            : BackendType.ThirdParty,
-        });
-      }
       if (selectedClusterList.length < 2) {
         dispatch({
           type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
-          payload: false,
-        });
-
-        dispatch({
-          type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
           payload: false,
         });
       }

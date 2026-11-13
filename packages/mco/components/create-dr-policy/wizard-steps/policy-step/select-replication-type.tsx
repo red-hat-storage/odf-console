@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ManagedClusterInfoType } from '@odf/mco/types';
 import { normalizeSyncTimeValue, parseSyncInterval } from '@odf/mco/utils';
+import { type StorageVendorDescriptor } from '@odf/mco/utils/storage-vendor-registry';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
@@ -44,6 +45,7 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({
 };
 
 export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
+  descriptor,
   selectedClusters,
   syncIntervalTime,
   replicationType,
@@ -52,25 +54,30 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
   const { t } = useCustomTranslation();
 
   React.useEffect(() => {
-    // Set replication type when two clusters are selected.
-    const cephFSID1 =
-      selectedClusters[0]?.odfInfo?.storageClusterInfo?.cephFSID;
-    const cephFSID2 =
-      selectedClusters[1]?.odfInfo?.storageClusterInfo?.cephFSID;
+    if (!descriptor) return;
 
-    // When neither cluster has a cephFSID this is the third-party storage path.
-    // Third-party providers (e.g. IBM Fusion Access) use async replication.
-    const isThirdPartyPath = !cephFSID1 && !cephFSID2;
+    let derivedReplicationType: ReplicationType;
+
+    if (descriptor.replication.mode === 'derived') {
+      const cephFSID1 =
+        selectedClusters[0]?.odfInfo?.storageClusterInfo?.cephFSID;
+      const cephFSID2 =
+        selectedClusters[1]?.odfInfo?.storageClusterInfo?.cephFSID;
+      derivedReplicationType =
+        !!cephFSID1 && cephFSID1 === cephFSID2
+          ? ReplicationType.SYNC
+          : ReplicationType.ASYNC;
+    } else if (descriptor.replication.mode === 'fixed') {
+      derivedReplicationType = descriptor.replication.type;
+    } else {
+      derivedReplicationType = ReplicationType.ASYNC;
+    }
 
     dispatch({
       type: DRPolicyActionType.SET_REPLICATION_TYPE,
-      payload: isThirdPartyPath
-        ? ReplicationType.ASYNC
-        : cephFSID1 === cephFSID2
-          ? ReplicationType.SYNC
-          : ReplicationType.ASYNC,
+      payload: derivedReplicationType,
     });
-  }, [selectedClusters, dispatch]);
+  }, [descriptor, selectedClusters, dispatch]);
 
   const replicationDropdownItems = Object.entries(
     REPLICATION_DISPLAY_TEXT(t)
@@ -91,6 +98,11 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
       payload: replType,
     });
 
+  const showInterval =
+    descriptor?.replication.mode === 'async' ||
+    (descriptor?.replication.mode === 'derived' &&
+      replicationType === ReplicationType.ASYNC);
+
   return (
     <>
       <FormGroup
@@ -106,7 +118,7 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
           onChange={onChange}
         />
       </FormGroup>
-      {replicationType === ReplicationType.ASYNC && (
+      {showInterval && (
         <FormGroup label={t('Replication interval')}>
           <SyncSchedule
             syncIntervalTime={syncIntervalTime}
@@ -124,6 +136,7 @@ type SyncScheduleProps = {
 };
 
 type SelectReplicationTypeProps = {
+  descriptor?: StorageVendorDescriptor;
   selectedClusters: ManagedClusterInfoType[];
   syncIntervalTime: string;
   replicationType: ReplicationType;

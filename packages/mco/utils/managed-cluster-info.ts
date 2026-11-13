@@ -1,26 +1,17 @@
 import { ClusterProviders } from '@odf/mco/hooks/use-storage-provisioner';
 import {
   ACMManagedClusterKind,
-  ACMManagedClusterViewKind,
   ConnectedClient,
   ManagedClusterInfoType,
   ODFConfigInfoType,
-  ODFInfoYamlObject,
+  StorageVendorPresence,
 } from '@odf/mco/types';
-import {
-  getLabel,
-  getName,
-  getNamespace,
-  getResourceCondition,
-} from '@odf/shared/selectors';
+import { getLabel, getName } from '@odf/shared/selectors';
 import { ConfigMapKind } from '@odf/shared/types';
-import { load } from 'js-yaml';
-import * as _ from 'lodash-es';
 import {
   CLUSTER_ID,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
   MANAGED_CLUSTER_JOINED,
-  MANAGED_CLUSTER_VIEW_PROCESSING,
 } from '../constants';
 import { getMajorVersion } from './common';
 import {
@@ -29,155 +20,155 @@ import {
   validateManagedClusterCondition,
 } from './disaster-recovery';
 
-type ClusterToODFInfoMap = {
-  [clusterId in string]: ODFConfigInfoType;
-};
-
-const getODFInfo = (
-  requiredODFVersion: string,
-  odfInfoConfigData: { [key: string]: string }
-): [ODFConfigInfoType, ConnectedClient[]] => {
-  try {
-    // Managed cluster with multiple StorageSystems is not currently supported for DR
-    // ToDo: Update this once we add support for multiple clusters
-    const odfInfoKey = Object.keys(odfInfoConfigData)[0];
-    const odfInfoYaml = odfInfoConfigData[odfInfoKey];
-    const odfInfo: ODFInfoYamlObject = load(odfInfoYaml);
-    const storageClusterName = odfInfo?.storageCluster?.namespacedName?.name;
-    const storageClusterNamespace =
-      odfInfo?.storageCluster?.namespacedName?.namespace;
-
-    const odfVersion = getMajorVersion(odfInfo?.version);
-    const storageClusterCount = Object.keys(odfInfoConfigData).length;
-    const storageClusterNamespacedName = getNameNamespace(
-      storageClusterName,
-      storageClusterNamespace
-    );
-    const cephFSID = odfInfo?.storageCluster?.cephClusterFSID;
-
-    const isValidODFVersion = isMinimumSupportedODFVersion(
-      odfVersion,
-      requiredODFVersion
-    );
-
-    const deploymentType = odfInfo?.deploymentType;
-
-    return [
-      {
-        odfVersion,
-        isValidODFVersion,
-        storageClusterCount,
-        storageClusterInfo: {
-          storageClusterNamespacedName,
-          cephFSID,
-          deploymentType,
-        },
-      },
-      odfInfo?.clients || [],
-    ];
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
-
-    return [
-      {
-        odfVersion: '',
-        isValidODFVersion: false,
-        storageClusterCount: 0,
-        storageClusterInfo: {
-          storageClusterNamespacedName: '',
-          cephFSID: '',
-          deploymentType: '',
-        },
-      },
-      [],
-    ];
-  }
-};
-
-const getManagedClusterInfo = (
-  cluster: ACMManagedClusterKind,
-  clusterToODFInfoMap: ClusterToODFInfoMap,
-  providersByCluster?: ClusterProviders[]
-): ManagedClusterInfoType => {
-  const clusterId = getLabel(cluster, CLUSTER_ID);
-  const clusterName = getName(cluster);
-  const odfInfo =
-    clusterToODFInfoMap?.[clusterId] || clusterToODFInfoMap?.[clusterName];
-  const providers = providersByCluster?.find(
-    (provider) => provider.cluster === clusterName
-  )?.providers;
-  return {
-    id: clusterId,
-    metadata: cluster.metadata,
-    isManagedClusterAvailable: validateManagedClusterCondition(
-      cluster,
-      MANAGED_CLUSTER_CONDITION_AVAILABLE
-    ),
-    odfInfo,
-    providers,
-    storageProvisionersCount:
-      providers?.reduce((acc, provider) => acc + provider.count, 0) ?? 0,
-    storageClientsCount: odfInfo?.storageClusterInfo?.clientInfo ? 1 : 0,
+type ClientInfo = {
+  clusterID: string;
+  name: string;
+  clientManagedClusterName?: string;
+  clientID?: string;
+  providerInfo: {
+    version: string;
+    deploymentType: string;
+    cephClusterFSID: string;
+    storageProviderEndpoint: string;
+    namespacedName: { name: string; namespace: string };
+    providerManagedClusterName: string;
   };
 };
 
-const clusterToODFInfoMapping = (
-  mcvs: ACMManagedClusterViewKind[],
-  requiredODFVersion: string
-): ClusterToODFInfoMap =>
-  mcvs?.reduce((acc, mcv) => {
-    const condition = getResourceCondition(
-      mcv,
-      MANAGED_CLUSTER_VIEW_PROCESSING
-    );
-    if (condition?.status !== 'True') {
-      // early exit for unprocessed mcvs
-      return acc;
-    }
+type IbmStorageScaleInfo = {
+  version: string;
+  operatorNamespace: string;
+  cluster: { name: string };
+  sourceManifests: string[];
+};
 
-    const odfInfoConfig = mcv?.status?.result as ConfigMapKind;
-    const odfInfoConfigData = odfInfoConfig?.data || {};
-    const [odfInfo, clients] = getODFInfo(
-      requiredODFVersion,
-      odfInfoConfigData
-    );
-    if (!!clients.length) {
-      // Copying the ODF config from provider cluster to client managed clusters.
-      // Client managed clusters will use cluster id as key to find the ODF config.
-      clients.forEach((client) => {
-        const odfInfoCopy = _.cloneDeep(odfInfo);
-        odfInfoCopy.storageClusterInfo.clientInfo = client;
-        acc[client.clusterId] = odfInfoCopy;
-      });
-    } else {
-      // Non-client managed clusters will use cluster name as key to find the ODF config.
-      acc[getNamespace(mcv)] = odfInfo;
-    }
-    return acc;
-  }, {} as ClusterToODFInfoMap);
+type ClusterStorageInfo = {
+  odfInfo?: ODFConfigInfoType;
+  odfEntryCount?: number;
+  storageProviders?: {
+    odf?: StorageVendorPresence;
+    scale?: StorageVendorPresence;
+  };
+};
+
+type ClusterToStorageInfoMap = {
+  [clusterNameOrId: string]: ClusterStorageInfo;
+};
+
+const ensureStorageInfo = (
+  map: ClusterToStorageInfoMap,
+  key: string
+): ClusterStorageInfo => {
+  if (!map[key]) {
+    map[key] = { storageProviders: {} };
+  } else if (!map[key].storageProviders) {
+    map[key].storageProviders = {};
+  }
+  return map[key];
+};
 
 export const getManagedClusterInfoTypes = (
   managedClusters: ACMManagedClusterKind[],
-  mcvs: ACMManagedClusterViewKind[],
+  odfClientInfoConfigMap: ConfigMapKind | undefined,
+  scaleInfoConfigMap: ConfigMapKind | undefined,
   requiredODFVersion: string,
   providersByCluster?: ClusterProviders[]
 ): ManagedClusterInfoType[] => {
-  const clusterIdToODFInfoMap = clusterToODFInfoMapping(
-    mcvs,
-    requiredODFVersion
-  );
+  const combinedMap: ClusterToStorageInfoMap = {};
+  const odfConfigData = odfClientInfoConfigMap?.data || {};
+
+  Object.entries(odfConfigData).forEach(([key, value]) => {
+    try {
+      const clientInfo: ClientInfo = JSON.parse(value);
+      const [managedClusterName] = key.split('_');
+      const version = getMajorVersion(clientInfo.providerInfo.version);
+      const isValidODFVersion = isMinimumSupportedODFVersion(
+        version,
+        requiredODFVersion
+      );
+      const storageClusterNamespacedName = getNameNamespace(
+        clientInfo.providerInfo.namespacedName.name,
+        clientInfo.providerInfo.namespacedName.namespace
+      );
+
+      const info = ensureStorageInfo(combinedMap, managedClusterName);
+      info.odfEntryCount = (info.odfEntryCount || 0) + 1;
+      info.odfInfo = {
+        odfVersion: version,
+        isValidODFVersion,
+        storageClusterCount: info.odfEntryCount,
+        storageClusterInfo: {
+          storageClusterNamespacedName,
+          cephFSID: clientInfo.providerInfo.cephClusterFSID,
+          deploymentType: clientInfo.providerInfo.deploymentType,
+          ...(clientInfo.clientID
+            ? {
+                clientInfo: {
+                  name: clientInfo.name,
+                  clusterId: clientInfo.clusterID,
+                } as ConnectedClient,
+              }
+            : {}),
+        },
+      };
+      info.storageProviders!.odf = {
+        version,
+        clusterName: clientInfo.providerInfo.namespacedName.name,
+      };
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to parse ODF client info:', err);
+    }
+  });
+
+  const scaleConfigData = scaleInfoConfigMap?.data || {};
+  Object.entries(scaleConfigData).forEach(([key, value]) => {
+    try {
+      const scaleInfo: IbmStorageScaleInfo = JSON.parse(value);
+      const [managedClusterName] = key.split('_');
+      const version = getMajorVersion(scaleInfo.version);
+
+      const info = ensureStorageInfo(combinedMap, managedClusterName);
+      info.storageProviders!.scale = {
+        version,
+        clusterName: scaleInfo.cluster.name,
+      };
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to parse IBM Storage Scale info:', err);
+    }
+  });
 
   return (managedClusters ?? []).reduce((acc, cluster) => {
-    if (validateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED))
-      return [
-        ...acc,
-        getManagedClusterInfo(
+    if (!validateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED))
+      return acc;
+
+    const clusterId = getLabel(cluster, CLUSTER_ID);
+    const clusterName = getName(cluster);
+    const storageInfo =
+      combinedMap[clusterId] || combinedMap[clusterName] || {};
+    const providers = providersByCluster?.find(
+      (provider) => provider.cluster === clusterName
+    )?.providers;
+
+    return [
+      ...acc,
+      {
+        id: clusterId,
+        metadata: cluster.metadata,
+        isManagedClusterAvailable: validateManagedClusterCondition(
           cluster,
-          clusterIdToODFInfoMap,
-          providersByCluster
+          MANAGED_CLUSTER_CONDITION_AVAILABLE
         ),
-      ];
-    return acc;
-  }, []);
+        odfInfo: storageInfo.odfInfo,
+        storageProviders: storageInfo.storageProviders,
+        providers,
+        storageProvisionersCount:
+          providers?.reduce((sum, provider) => sum + provider.count, 0) ?? 0,
+        storageClientsCount: storageInfo.odfInfo?.storageClusterInfo?.clientInfo
+          ? 1
+          : 0,
+      },
+    ];
+  }, [] as ManagedClusterInfoType[]);
 };

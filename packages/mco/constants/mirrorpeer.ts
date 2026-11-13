@@ -1,5 +1,11 @@
 import { TFunction } from 'i18next';
 
+// Storage backend a MirrorPeer is created for.
+export enum MirrorPeerStorageVendor {
+  ODF = 'odf',
+  SCALE = 'scale', // Placeholder; MCO enum value not yet declared in api/v1alpha1/mirrorpeer_types.go
+}
+
 export enum MirrorPeerPhase {
   Initializing = 'Initializing',
   Configuring = 'Configuring',

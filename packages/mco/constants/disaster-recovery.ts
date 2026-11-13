@@ -123,12 +123,14 @@ export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
 // Create DRPolicy wizard steps
 export enum CreateDRPolicyWizardSteps {
   Clusters = 'clusters',
+  Provider = 'provider',
   Configure = 'configure',
   Policy = 'policy',
   Review = 'review',
 }
 export const CreateDRPolicyStepNames = (t: TFunction) => ({
   [CreateDRPolicyWizardSteps.Clusters]: t('Clusters'),
+  [CreateDRPolicyWizardSteps.Provider]: t('Storage provider'),
   [CreateDRPolicyWizardSteps.Configure]: t('Configure'),
   [CreateDRPolicyWizardSteps.Policy]: t('Policy'),
   [CreateDRPolicyWizardSteps.Review]: t('Review'),
@@ -149,8 +151,3 @@ export const PROTECTED_VMS = 'PROTECTED_VMS';
 export const K8S_RESOURCE_SELECTOR_LABEL_KEY =
   'ramendr.openshift.io/k8s-resource-selector';
 export const STORAGE_ID_LABEL_KEY = 'ramendr.openshift.io/storageid';
-
-export enum BackendType {
-  DataFoundation = 'Data Foundation',
-  ThirdParty = 'Third Party Storage',
-}

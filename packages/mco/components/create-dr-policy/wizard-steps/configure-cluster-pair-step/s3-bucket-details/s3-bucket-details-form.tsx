@@ -27,7 +27,11 @@ type ClusterS3BucketDetailsFormProps = {
   cluster2Details: S3Details;
   useSameConnection: boolean;
   dispatch: React.Dispatch<DRPolicyAction>;
-  existingDRClusterNames: Set<string>;
+  /**
+   * Clusters already backed by an S3Configuration. Its spec is immutable, so
+   * their details are shown read-only rather than as editable inputs.
+   */
+  clustersWithS3Configuration: Set<string>;
 };
 
 export const ClusterS3BucketDetailsForm: React.FC<
@@ -37,7 +41,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
   cluster1Details,
   cluster2Details,
   useSameConnection,
-  existingDRClusterNames,
+  clustersWithS3Configuration,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
@@ -52,25 +56,21 @@ export const ClusterS3BucketDetailsForm: React.FC<
   const name1 = getName(selectedClusters[0]) || 'cluster-1';
   const name2 = getName(selectedClusters[1]) || 'cluster-2';
 
-  const cluster1Exists = existingDRClusterNames.has(name1);
-  const cluster2Exists = existingDRClusterNames.has(name2);
-  const allClustersExist = existingDRClusterNames.size === MAX_ALLOWED_CLUSTERS;
-
-  // Track cluster2's s3ProfileName via ref so the sync effect can read it
-  // without adding it as a dependency (avoids unnecessary re-runs on typing).
-  const cluster2ProfileRef = React.useRef(cluster2Details.s3ProfileName);
-  cluster2ProfileRef.current = cluster2Details.s3ProfileName;
+  const cluster1Exists = clustersWithS3Configuration.has(name1);
+  const cluster2Exists = clustersWithS3Configuration.has(name2);
+  const allClustersExist =
+    clustersWithS3Configuration.size === MAX_ALLOWED_CLUSTERS;
 
   React.useEffect(() => {
     if (useSameConnection) {
-      // Copy connection details but preserve cluster2's own s3ProfileName;
-      // each DRCluster must reference a unique profile.
+      // Both clusters share the same bucket and credentials. They still get one
+      // S3Configuration each; the profile name is derived from the cluster name,
+      // so there is nothing cluster-specific left to preserve here.
       dispatch({
         type: DRPolicyActionType.SET_CLUSTER2_S3_DETAILS,
         payload: {
           ...cluster1Details,
           clusterName: name2,
-          s3ProfileName: cluster2ProfileRef.current,
         },
       });
       setErrors2({});
@@ -84,7 +84,6 @@ export const ClusterS3BucketDetailsForm: React.FC<
 
   const validate = (cluster: 1 | 2, details: S3Details) => {
     const errs: Partial<S3Details> = {};
-    const otherDetails = cluster === 1 ? cluster2Details : cluster1Details;
 
     if (!details.bucketName.trim()) {
       errs.bucketName = t('This field is required');
@@ -110,20 +109,6 @@ export const ClusterS3BucketDetailsForm: React.FC<
 
     if (!details.region.trim()) {
       errs.region = t('This field is required');
-    }
-
-    if (!details.s3ProfileName.trim()) {
-      errs.s3ProfileName = t('This field is required');
-    } else if (!/^[a-zA-Z0-9_-]+$/.test(details.s3ProfileName)) {
-      errs.s3ProfileName = t(
-        'Profile name can only contain letters, numbers, hyphens, and underscores'
-      );
-    } else if (
-      !useSameConnection &&
-      otherDetails.s3ProfileName.trim() &&
-      details.s3ProfileName.trim() === otherDetails.s3ProfileName.trim()
-    ) {
-      errs.s3ProfileName = t('Profile name must be unique per cluster');
     }
 
     cluster === 1 ? setErrors1(errs) : setErrors2(errs);
@@ -164,7 +149,6 @@ export const ClusterS3BucketDetailsForm: React.FC<
     { key: 'accessKeyId', label: t('Access key ID') },
     { key: 'secretKey', label: t('Secret key') },
     { key: 'region', label: t('Region') },
-    { key: 's3ProfileName', label: t('S3 profile name') },
   ];
 
   const inputPadding = 'pf-v6-u-p-sm pf-v6-u-w-75';
@@ -298,10 +282,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
                 })}
                 onChange={(_, v) => update(2, key, v)}
                 validated={errors2[key] ? 'error' : 'default'}
-                isDisabled={
-                  cluster2Exists ||
-                  (useSameConnection && key !== 's3ProfileName')
-                }
+                isDisabled={cluster2Exists || useSameConnection}
                 onBlur={() => handleBlur(2)}
               />
             )}

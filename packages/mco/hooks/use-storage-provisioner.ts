@@ -56,10 +56,6 @@ export function useStorageProvisioners(clusters: string[]): {
     const supportedProvisioners = [...CEPH_PROVISIONERS, ...IBM_PROVISIONERS];
 
     return Object.entries(itemsByCluster).map(([cluster, items]) => {
-      const odfCount = items.filter((i) =>
-        supportedProvisioners.includes(i.provisioner)
-      ).length;
-
       const tpMap = new Map<string, number>();
       items.forEach(({ provisioner }) => {
         if (!supportedProvisioners.includes(provisioner)) {
@@ -68,9 +64,6 @@ export function useStorageProvisioners(clusters: string[]): {
       });
 
       const provs: Provider[] = [];
-      if (odfCount > 0) {
-        provs.push({ displayName: 'Data Foundation', count: odfCount });
-      }
       tpMap.forEach((cnt, prov) =>
         provs.push({ displayName: prov, count: cnt })
       );

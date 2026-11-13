@@ -1,27 +1,14 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
-import { ReplicationType, STORAGE_ID_LABEL_KEY } from '@odf/mco/constants';
-import { getDRPolicyResourceObj, useACMSafeFetch } from '@odf/mco/hooks';
+import { ReplicationType } from '@odf/mco/constants';
+import { getDRPolicyResourceObj } from '@odf/mco/hooks';
 import {
   DRPolicyKind,
   ManagedClusterInfoType,
   MirrorPeerKind,
-  SearchResult,
-  SearchResultItemType,
 } from '@odf/mco/types';
-import {
-  getLabelsFromSearchResult,
-  getReplicationType,
-  queryStorageClassesUsingClusterNames,
-} from '@odf/mco/utils';
-import { fireManagedClusterView } from '@odf/mco/utils/managed-cluster-view';
-import {
-  getName,
-  StatusBox,
-  CEPH_PROVISIONERS,
-  StorageClassModel,
-  IBM_PROVISIONERS,
-} from '@odf/shared';
+import { getReplicationType } from '@odf/mco/utils';
+import { getName, StatusBox } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   StatusIconAndText,
@@ -39,9 +26,6 @@ import { TimesIcon } from '@patternfly/react-icons';
 import { DRPolicyAction, DRPolicyActionType } from '../../utils/reducer';
 import '../../create-dr-policy.scss';
 import '../../../../style.scss';
-
-const PROVISIONER = 'provisioner';
-const EXTERNAL_DEPLOYMENT_TYPE = 'external';
 
 const checkSyncPolicyExists = (
   clusters: string[],
@@ -79,12 +63,8 @@ const verifyMirrorPeerExistence = (
 const validateClusterSelection = (
   clusters: ManagedClusterInfoType[],
   drPolicies: DRPolicyKind[],
-  mirrorPeers: MirrorPeerKind[],
-  isStorageClassesValid: boolean
+  mirrorPeers: MirrorPeerKind[]
 ): ValidationType => {
-  // Third-party storage path: all clusters lack ODF.
-  // ODF-specific checks (version, cephFSID, storage class provisioners)
-  // do not apply; replication is managed by the external storage provider.
   const isThirdPartyPath = clusters.every(
     (cluster) =>
       !cluster?.odfInfo || cluster?.odfInfo?.storageClusterCount === 0
@@ -123,18 +103,12 @@ const validateClusterSelection = (
   );
 
   validation.peeringValidation = {
-    // Client-to-ODF peering check is ODF-specific.
     unSupportedPeering: isThirdPartyPath
       ? false
       : checkClientToODFPeering(clusters),
     invalidPolicyCreation:
       checkSyncPolicyExists(clusters.map(getName), drPolicies) ||
       verifyMirrorPeerExistence(clusters, mirrorPeers),
-    // Storage class validation uses ODF/Ceph provisioner allowlists.
-    // For third-party storage, replication is externally managed.
-    unSupportedStorageClasses: isThirdPartyPath
-      ? false
-      : !isStorageClassesValid,
   };
 
   return validation;
@@ -159,15 +133,6 @@ const getPeeringValidationMessage = (
         'A mirror peer configuration already exists for one or more of the selected clusters, ' +
           'either from an existing or deleted DR policy. To create a new DR policy with these clusters, ' +
           'delete any existing mirror peer configurations associated with them and try again.'
-      ),
-    };
-  } else if (peeringValidation.unSupportedStorageClasses) {
-    return {
-      title: t('Cannot proceed with policy creation.'),
-      description: t(
-        'No common storage class found for the selected managed clusters. ' +
-          'To create a DR policy, a common storage class must exist, ' +
-          'if not configured already, provision a common storage class and try again.'
       ),
     };
   }
@@ -267,217 +232,21 @@ const PeeringValidationMessage: React.FC<PeeringValidationMessageProps> = ({
   );
 };
 
-// Fetch provisioner if missing
-const fetchProvisionerIfMissing = async (
-  scName: string,
-  clusterName: string,
-  t: TFunction
-) => {
-  const viewResponse = await fireManagedClusterView(
-    scName,
-    '',
-    StorageClassModel.kind,
-    StorageClassModel.apiVersion,
-    StorageClassModel.apiGroup,
-    clusterName,
-    t
-  );
-  return viewResponse;
-};
-
-type ClusterSCMapEntry = { clusterName: string; scString: string };
-
-// Build cluster-to-SC map with provisioner validation
-export const getClusterToSCMap = async (
-  searchResult: SearchResult,
-  searchLoaded: boolean,
-  searchError: any,
-  t: TFunction
-): Promise<Map<ClusterNameType, string[]>> => {
-  const clusterToSCMap: Map<ClusterNameType, string[]> = new Map();
-
-  if (searchLoaded && !searchError) {
-    const allSCs =
-      searchResult?.data?.searchResult?.flatMap((result) => result?.items) ||
-      [];
-    const provisionerResults = await Promise.allSettled(
-      allSCs.map(async (sc): Promise<ClusterSCMapEntry | null> => {
-        const clusterName = sc.cluster;
-        let provisioner: string = sc?.[PROVISIONER] ?? '';
-
-        // Fetch missing provisioner if necessary
-        if (!provisioner) {
-          const viewResponse = await fetchProvisionerIfMissing(
-            sc.name,
-            clusterName,
-            t
-          );
-          provisioner = viewResponse.result?.[PROVISIONER] ?? '';
-        }
-
-        const storageID = getStorageID(sc);
-        if (
-          (isValidCephProvisioner(provisioner) ||
-            isValidIBMProvisioner(provisioner)) &&
-          storageID !== ''
-        ) {
-          const scString = formatStorageClassString(sc.name, provisioner);
-
-          return { clusterName, scString };
-        }
-        // eslint-disable-next-line no-console
-        console.warn(`Skipping invalid provisioner: ${provisioner}`);
-        return null;
-      })
-    );
-
-    // Populate the map from fulfilled results; one SC failure must not discard others.
-    provisionerResults.forEach((result) => {
-      if (result.status !== 'fulfilled' || !result.value) {
-        return;
-      }
-      const { clusterName, scString } = result.value;
-      const existingSCs = clusterToSCMap.get(clusterName) ?? [];
-      existingSCs.push(scString);
-      clusterToSCMap.set(clusterName, existingSCs);
-    });
-  }
-
-  return clusterToSCMap;
-};
-
-// Optimized comparison using Set
-const findSupportedStorageClasses = (
-  firstClusterSCs: string[],
-  secondClusterSCs: string[]
-): boolean => {
-  const secondClusterSet = new Set(secondClusterSCs);
-  return firstClusterSCs.some((sc) => secondClusterSet.has(sc));
-};
-
-// Ensure both clusters have at least pair of valid storage class
-const validateClusterDetails = (
-  clusterToSCMap: Map<ClusterNameType, string[]>
-): boolean => {
-  const [firstClusterSCs = [], secondClusterSCs = []] = Array.from(
-    clusterToSCMap.values()
-  );
-
-  return findSupportedStorageClasses(firstClusterSCs, secondClusterSCs);
-};
-
-// Main hook for storage class validation
-const useStorageClassValidation = (
-  selectedClusters: ManagedClusterInfoType[],
-  t: TFunction
-): [boolean, boolean, any] => {
-  const [result, setResult] = React.useState<boolean>(false);
-  const [isCompleted, setCompleted] = React.useState(false);
-  const [clusterSCMapError, setClusterSCMapError] = React.useState<
-    string | null
-  >(null);
-
-  // Early return if both clusters are "external"
-  const allExternal = selectedClusters.every(
-    (cluster) =>
-      cluster.odfInfo?.storageClusterInfo?.deploymentType ===
-      EXTERNAL_DEPLOYMENT_TYPE
-  );
-
-  const searchQuery = React.useMemo(
-    () => queryStorageClassesUsingClusterNames(selectedClusters.map(getName)),
-    [selectedClusters]
-  );
-
-  const [searchResult, searchError, searchLoaded] =
-    useACMSafeFetch(searchQuery);
-
-  React.useEffect(() => {
-    if (!allExternal) {
-      setCompleted(false);
-      setClusterSCMapError(null);
-      if (searchLoaded && !searchError) {
-        getClusterToSCMap(searchResult, searchLoaded, searchError, t)
-          .then((clusterToSCMap) => {
-            setResult(validateClusterDetails(clusterToSCMap));
-            setCompleted(true);
-          })
-          .catch((error) => {
-            setClusterSCMapError(
-              error instanceof Error
-                ? error.message
-                : t('something went wrong while getting storageclasses')
-            );
-            setCompleted(true);
-          });
-      } else if (searchError) {
-        setCompleted(true);
-      }
-    } else {
-      // Ignore validation for external clusters
-      setClusterSCMapError(null);
-      setResult(true);
-      setCompleted(true);
-    }
-  }, [
-    allExternal,
-    searchResult,
-    searchError,
-    searchLoaded,
-    t,
-    setCompleted,
-    setResult,
-  ]);
-
-  return [result, isCompleted, searchError || clusterSCMapError];
-};
-
-// Helper functions
-const getStorageID = (sc: SearchResultItemType) => {
-  return getLabelsFromSearchResult(sc)?.[STORAGE_ID_LABEL_KEY]?.[0] ?? '';
-};
-
-const formatStorageClassString = (name: string, provisioner: string) => {
-  return `${name}/${provisioner}`;
-};
-
-const isValidCephProvisioner = (provisioner: string) => {
-  return CEPH_PROVISIONERS.some((allowedProvisioner) =>
-    provisioner.includes(allowedProvisioner)
-  );
-};
-const isValidIBMProvisioner = (provisioner: string) => {
-  return IBM_PROVISIONERS.some((allowedProvisioner) =>
-    provisioner.includes(allowedProvisioner)
-  );
-};
-
 export const SelectedClusterValidation: React.FC<
   SelectedClusterValidationProps
 > = ({ selectedClusters, requiredODFVersion, dispatch, mirrorPeers }) => {
   const { t } = useCustomTranslation();
 
-  // Fetch policies and storage class validation in parallel
   const [drPolicies, policyLoaded, policyLoadError] = useK8sWatchResource<
     DRPolicyKind[]
   >(getDRPolicyResourceObj());
-  const [isValidStorageClasses, scLoaded, scLoadError] =
-    useStorageClassValidation(selectedClusters, t);
 
-  // Consolidate loading and error states
-  const loaded = policyLoaded && scLoaded;
-  const loadError = policyLoadError || scLoadError;
+  const loaded = policyLoaded;
+  const loadError = policyLoadError;
 
-  // Memoized validations
   const validations: ValidationType = React.useMemo(
-    () =>
-      validateClusterSelection(
-        selectedClusters,
-        drPolicies,
-        mirrorPeers,
-        isValidStorageClasses
-      ),
-    [selectedClusters, drPolicies, mirrorPeers, isValidStorageClasses]
+    () => validateClusterSelection(selectedClusters, drPolicies, mirrorPeers),
+    [selectedClusters, drPolicies, mirrorPeers]
   );
 
   const { peeringValidation, clusterValidation } = validations;
@@ -588,7 +357,6 @@ type SelectedClusterValidationProps = {
 type PeeringValidationType = {
   unSupportedPeering: boolean;
   invalidPolicyCreation: boolean;
-  unSupportedStorageClasses: boolean;
 };
 
 type ClusterValidationType = {
@@ -617,5 +385,3 @@ type PeeringValidationMessageType = {
   title: string;
   description?: React.ReactNode;
 };
-
-type ClusterNameType = string;

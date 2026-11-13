@@ -1,76 +1,54 @@
 import * as React from 'react';
+import { getDescriptorById } from '@odf/mco/utils/storage-vendor-registry';
 import { DOC_VERSION, tpsDoc } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Alert,
   AlertVariant,
-  Content,
-  ContentVariants,
   Form,
   FormGroup,
-  FormHelperText,
-  HelperText,
-  HelperTextItem,
   Title,
 } from '@patternfly/react-core';
-import { BackendType } from '../../../../constants';
-import { DRClusterKind } from '../../../../types';
 import { DRPolicyAction, DRPolicyState } from '../../utils/reducer';
-import {
-  PrePairNetworkValidation,
-  PrePairNetworkValidationProps,
-} from './pre-pair-network-validation';
-import { SelectReplicationBackend } from './replication-backend/select-replication-backend';
+import { PrePairChecksRunner } from './pre-pair-checks-runner';
 import { ClusterS3BucketDetailsForm } from './s3-bucket-details/s3-bucket-details-form';
 import ThirdPartyStorageWarning from './third-party-storage-alert';
 
 type ConfigureClusterPairStepProps = Pick<
   DRPolicyState['configure'],
-  | 'replicationBackend'
-  | 'cluster1S3Details'
-  | 'cluster2S3Details'
-  | 'useSameS3Connection'
+  'cluster1S3Details' | 'cluster2S3Details' | 'useSameS3Connection'
 > &
-  Pick<
-    DRPolicyState['clusters'],
-    'selectedClusters' | 'selectedClustersHaveODF'
-  > &
-  Omit<PrePairNetworkValidationProps, 'clusterNames'> & {
+  Pick<DRPolicyState['clusters'], 'selectedClusters'> &
+  Pick<DRPolicyState['provider'], 'storageVendor'> & {
     dispatch: React.Dispatch<DRPolicyAction>;
-    selectedDRClusters: DRClusterKind[];
+    clustersWithS3Configuration: Set<string>;
+    acknowledgedChecks: Set<string>;
+    onAcknowledgeCheck: (checkId: string, acknowledged: boolean) => void;
+    docHref?: string;
     errorMessage?: string;
-    onReplicationBackendChange?: () => void;
   };
 
 export const ConfigureClusterPairStep: React.FC<
   ConfigureClusterPairStepProps
 > = ({
-  replicationBackend,
+  storageVendor,
   selectedClusters,
-  selectedClustersHaveODF,
   cluster1S3Details,
   cluster2S3Details,
   useSameS3Connection,
   dispatch,
-  selectedDRClusters,
-  validation,
-  acknowledgedUnvalidatedSubmariner,
-  onAcknowledgeUnvalidatedSubmariner,
-  onReplicationBackendChange,
+  clustersWithS3Configuration,
+  acknowledgedChecks,
+  onAcknowledgeCheck,
   docHref,
   errorMessage,
 }) => {
   const { t } = useCustomTranslation();
   const clusterNames = selectedClusters.map(getName);
-  const isDataFoundation = replicationBackend === BackendType.DataFoundation;
-  const isThirdParty = replicationBackend === BackendType.ThirdParty;
-  const showBackendSelection =
-    !selectedClustersHaveODF &&
-    selectedClusters.length > 0 &&
-    selectedClusters.every(
-      (cluster) => (cluster?.odfInfo?.storageClusterCount ?? 0) > 0
-    );
+  const descriptor = storageVendor ? getDescriptorById(storageVendor) : null;
+  const hasPrePairChecks = descriptor && descriptor.prePairChecks.length > 0;
+  const isThirdParty = descriptor && descriptor.id !== 'data-foundation';
 
   return (
     <Form className="mco-create-data-policy__body">
@@ -78,49 +56,15 @@ export const ConfigureClusterPairStep: React.FC<
         {t('Configure cluster pair')}
       </Title>
 
-      {showBackendSelection && (
-        <FormGroup fieldId="select-backend" className="pf-v6-u-mb-lg">
-          <FormHelperText>
-            <HelperText className="mco-create-data-policy__text-input">
-              <HelperTextItem>
-                {t(
-                  'Choose the storage system that will be used for disaster recovery replication.'
-                )}
-              </HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-          <SelectReplicationBackend
-            clusterNames={clusterNames}
-            dispatch={dispatch}
-            selectedKey={replicationBackend}
-            onReplicationBackendChange={onReplicationBackendChange}
-          />
-        </FormGroup>
-      )}
-
-      {isDataFoundation && (
-        <>
-          {!showBackendSelection && (
-            <Content className="pf-v6-u-mb-lg">
-              <Content component={ContentVariants.small}>
-                {t(
-                  'The first time a policy is created between two clusters, the clusters must be paired together.'
-                )}
-              </Content>
-            </Content>
-          )}
-          <PrePairNetworkValidation
-            clusterNames={clusterNames}
-            validation={validation}
-            acknowledgedUnvalidatedSubmariner={
-              acknowledgedUnvalidatedSubmariner
-            }
-            onAcknowledgeUnvalidatedSubmariner={
-              onAcknowledgeUnvalidatedSubmariner
-            }
-            docHref={docHref}
-          />
-        </>
+      {hasPrePairChecks && descriptor && (
+        <PrePairChecksRunner
+          clusterNames={clusterNames}
+          descriptor={descriptor}
+          enabled={true}
+          acknowledgedChecks={acknowledgedChecks}
+          onAcknowledgeCheck={onAcknowledgeCheck}
+          docHref={docHref}
+        />
       )}
 
       {isThirdParty && (
@@ -130,21 +74,12 @@ export const ConfigureClusterPairStep: React.FC<
             fieldId="add-s3-bucket-details"
             label={t('Replication site')}
           >
-            <FormHelperText>
-              <HelperText className="mco-create-data-policy__text-input">
-                <HelperTextItem>
-                  {t(
-                    'For secondary storage backends enter bucket details and connection credentials.'
-                  )}
-                </HelperTextItem>
-              </HelperText>
-            </FormHelperText>
             <ClusterS3BucketDetailsForm
               selectedClusters={selectedClusters}
               cluster1Details={cluster1S3Details}
               cluster2Details={cluster2S3Details}
               useSameConnection={useSameS3Connection}
-              existingDRClusterNames={new Set(selectedDRClusters.map(getName))}
+              clustersWithS3Configuration={clustersWithS3Configuration}
               dispatch={dispatch}
             />
           </FormGroup>
