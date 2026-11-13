@@ -11,6 +11,9 @@ import {
   ButtonVariant,
   Form,
   FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
   TextInput,
   Content,
   Checkbox,
@@ -33,6 +36,9 @@ type ReplicationFormProps = {
   className?: string;
   // For limiting the number of rules that can be added using add rule
   ruleCountLimit?: number;
+  showNamespaceStoreError?: boolean;
+  eventLogsSupported?: boolean;
+  savedRules?: Rule[];
 };
 
 export type Rule = {
@@ -40,6 +46,18 @@ export type Rule = {
   namespaceStore: string;
   prefix: string;
   syncDeletion?: boolean;
+};
+
+const toFormRules = (savedRules?: Rule[], keepSyncDeletion = true): Rule[] => {
+  if (!savedRules?.length) {
+    return [{ id: 1, namespaceStore: '', prefix: '' }];
+  }
+  return savedRules.map((rule) => ({
+    id: rule.id,
+    namespaceStore: rule.namespaceStore || '',
+    prefix: rule.prefix || '',
+    syncDeletion: keepSyncDeletion ? rule.syncDeletion : false,
+  }));
 };
 
 const ModalComponent = React.lazy(
@@ -51,10 +69,13 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
   updateParentState,
   ruleCountLimit = 10,
   className,
+  showNamespaceStoreError = false,
+  eventLogsSupported = false,
+  savedRules,
 }) => {
-  const [rules, setRules] = React.useState<Rule[]>([
-    { id: 1, namespaceStore: '', prefix: '' },
-  ]);
+  const [rules, setRules] = React.useState<Rule[]>(() =>
+    toFormRules(savedRules, eventLogsSupported)
+  );
 
   const [logReplicationInfo, setLogReplicationInfo] =
     React.useState<LogReplicationInfo>({
@@ -67,38 +88,68 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
   const launchModal = useModalWrapper();
 
   const [eventLogsEnabled, toggleEventLogs] = React.useState(false);
+  const rulesRef = React.useRef(rules);
+  rulesRef.current = rules;
+  const updateParentStateRef = React.useRef(updateParentState);
+  updateParentStateRef.current = updateParentState;
+
+  React.useEffect(() => {
+    if (eventLogsSupported) {
+      return;
+    }
+    const cleared = { logLocation: '', logPrefix: '' };
+    const nextRules = rulesRef.current.map((rule) => ({
+      ...rule,
+      syncDeletion: false,
+    }));
+    toggleEventLogs(false);
+    setLogReplicationInfo(cleared);
+    setRules(nextRules);
+    updateParentStateRef.current(nextRules, cleared);
+  }, [eventLogsSupported]);
+
+  const commitRules = (
+    nextRules: Rule[],
+    logInfo: LogReplicationInfo = logReplicationInfo
+  ) => {
+    setRules(nextRules);
+    updateParentState(nextRules, logInfo);
+  };
 
   const handleNSChange = (ns: NamespaceStoreKind, ruleId: number) => {
-    const newRules = [...rules];
-    const index = newRules.findIndex((rule) => rule.id === ruleId);
-    newRules[index].namespaceStore = getName(ns);
-    setRules(newRules);
-    updateParentState(rules);
+    commitRules(
+      rules.map((rule) =>
+        rule.id === ruleId
+          ? { ...rule, namespaceStore: getName(ns) || '' }
+          : rule
+      )
+    );
   };
 
   const handlePrefixChange = (value: string, ruleId: number) => {
-    const newRules = [...rules];
-    const index = newRules.findIndex((rule) => rule.id === ruleId);
-    newRules[index].prefix = value;
-    setRules(newRules);
-    updateParentState(rules);
+    commitRules(
+      rules.map((rule) =>
+        rule.id === ruleId ? { ...rule, prefix: value } : rule
+      )
+    );
   };
 
   const handleSyncDeletion = (value: boolean, ruleId: number) => {
-    const newRules = [...rules];
-    const index = newRules.findIndex((rule) => rule.id === ruleId);
-    newRules[index].syncDeletion = eventLogsEnabled ? value : false;
-    setRules(newRules);
+    const nextRules = rules.map((rule) =>
+      rule.id === ruleId
+        ? { ...rule, syncDeletion: eventLogsEnabled ? value : false }
+        : rule
+    );
     let temp = { ...logReplicationInfo };
-    if (!newRules.some((rule) => rule.syncDeletion)) {
-      temp = { logLocation: null, logPrefix: null };
+    if (!nextRules.some((rule) => rule.syncDeletion)) {
+      temp = { logLocation: '', logPrefix: '' };
       setLogReplicationInfo(temp);
     }
-    updateParentState(rules, temp);
+    commitRules(nextRules, temp);
   };
 
   const handleAddRule = () => {
-    setRules([
+    commitRules([
       ...rules,
       { id: rules.length + 1, namespaceStore: '', prefix: '' },
     ]);
@@ -116,12 +167,8 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
     updateParentState(rules, repInfo);
   };
   const handleRemoveRule = () => {
-    let newRules = [...rules];
-
     // will remove the last rule from the array
-    newRules.splice(-1, 1);
-    setRules(newRules);
-    updateParentState(rules);
+    commitRules(rules.slice(0, -1));
   };
 
   const disableSyncDeletions = React.useCallback(
@@ -151,17 +198,21 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
           <Checkbox
             id="enable-event-logs"
             label={t('Optimize replication using event logs')}
-            isChecked={eventLogsEnabled}
+            isChecked={eventLogsSupported && eventLogsEnabled}
+            isDisabled={!eventLogsSupported}
             description={t(
-              'You must enable and configure object logging in the cloud environment of your choice'
+              'You must enable and configure object logging in the cloud or MCG environment.'
             )}
-            onChange={(_event, isEventLogEnabled: boolean) =>
-              onChangeEventLogs(isEventLogEnabled)
-            }
+            onChange={(_event, isEventLogEnabled: boolean) => {
+              if (!eventLogsSupported) {
+                return;
+              }
+              onChangeEventLogs(isEventLogEnabled);
+            }}
           />
         </FormGroup>
         <FormGroup>
-          {eventLogsEnabled && (
+          {eventLogsSupported && eventLogsEnabled && (
             <LogReplicationInfoForm
               location={logReplicationInfo.logLocation}
               prefix={logReplicationInfo.logPrefix}
@@ -210,6 +261,11 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
                       handleSyncDeletion(val, rule.id)
                     }
                     isSyncDeletionDisabled={!eventLogsEnabled}
+                    namespaceStoreError={
+                      showNamespaceStoreError && !rule.namespaceStore
+                        ? t('Required')
+                        : undefined
+                    }
                   />
                 </SplitItem>
 
@@ -256,6 +312,7 @@ type RuleFormProps = {
   onPrefixChange: (val: string) => void;
   onSyncDeletions: (val: boolean) => void;
   isSyncDeletionDisabled: boolean;
+  namespaceStoreError?: string;
   index?: number;
 };
 
@@ -266,6 +323,7 @@ export const RuleForm: React.FC<RuleFormProps> = ({
   onPrefixChange,
   onSyncDeletions,
   isSyncDeletionDisabled,
+  namespaceStoreError,
   index,
 }) => {
   const { t } = useCustomTranslation();
@@ -287,6 +345,18 @@ export const RuleForm: React.FC<RuleFormProps> = ({
                 creatorDisabled={true}
                 namespace={namespace}
               />
+              {namespaceStoreError && (
+                <FormHelperText>
+                  <HelperText>
+                    <HelperTextItem
+                      variant="error"
+                      data-test="namespace-store-required-error"
+                    >
+                      {namespaceStoreError}
+                    </HelperTextItem>
+                  </HelperText>
+                </FormHelperText>
+              )}
             </FormGroup>
           </SplitItem>
           <SplitItem isFilled>

@@ -2828,7 +2828,7 @@
   "You have selected to apply this lifecycle rule to all objects in the bucket. This may impact objects that do not require the specified expirations. If your bucket contains a mix of object types, consider using filters like prefixes or tags to target specific objects.": "You have selected to apply this lifecycle rule to all objects in the bucket. This may impact objects that do not require the specified expirations. If your bucket contains a mix of object types, consider using filters like prefixes or tags to target specific objects.",
   "You must deactivate the access key before you can delete it. We recommend analyzing the impact of deactivating the access key before permanently deleting it.": "You must deactivate the access key before you can delete it. We recommend analyzing the impact of deactivating the access key before permanently deleting it.",
   "You must delete the access keys before deleting this user": "You must delete the access keys before deleting this user",
-  "You must enable and configure object logging in the cloud environment of your choice": "You must enable and configure object logging in the cloud environment of your choice",
+  "You must enable and configure object logging in the cloud or MCG environment.": "You must enable and configure object logging in the cloud or MCG environment.",
   "You must specify a prefix or another filter.": "You must specify a prefix or another filter.",
   "You must specify an object size or another filter.": "You must specify an object size or another filter.",
   "You must specify an object tag or another filter.": "You must specify an object tag or another filter.",
