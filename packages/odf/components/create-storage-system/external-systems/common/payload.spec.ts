@@ -1,5 +1,6 @@
 import { SCALE_DAEMON_NODE_LABEL } from '@odf/core/constants';
 import { NodeModel } from '@odf/shared';
+import { Toleration } from '@odf/shared/types';
 import { Patch } from '@openshift-console/dynamic-plugin-sdk';
 import { WizardNodeState } from '../../reducer';
 import {
@@ -657,6 +658,60 @@ describe('payload', () => {
         'app.kubernetes.io/instance': 'ibm-spectrum-scale',
         'app.kubernetes.io/name': 'cluster',
       });
+    });
+
+    it('should not set spec.daemon.tolerations when tolerations are not provided', async () => {
+      const execute = createScaleLocalClusterPayload();
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.daemon).not.toHaveProperty('tolerations');
+    });
+
+    it('should not set spec.daemon.tolerations when the tolerations array is empty', async () => {
+      const execute = createScaleLocalClusterPayload(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        []
+      );
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.daemon).not.toHaveProperty('tolerations');
+    });
+
+    it('should set spec.daemon.tolerations when tolerations are provided', async () => {
+      const tolerations: Toleration[] = [
+        {
+          key: 'dedicated',
+          operator: 'Equal',
+          value: 'storage',
+          effect: 'NoSchedule',
+        },
+        {
+          key: 'node.kubernetes.io/disk-pressure',
+          operator: 'Exists',
+          effect: 'NoExecute',
+        },
+      ];
+      const execute = createScaleLocalClusterPayload(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        tolerations
+      );
+      await execute();
+
+      expect(mockK8sCreate).toHaveBeenCalledTimes(1);
+      const payload = mockK8sCreate.mock.calls[0][0].data;
+      expect(payload.spec.daemon.tolerations).toEqual(tolerations);
     });
   });
 });

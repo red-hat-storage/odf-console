@@ -3,6 +3,7 @@ import { useExistingFileSystemNames } from '@odf/core/components/create-storage-
 import {
   filterUsedDiscoveredDevices,
   getDiscoveredDeviceKey,
+  getTolerationsFromNodes,
 } from '@odf/core/components/utils';
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
@@ -196,7 +197,8 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           false,
           true,
           cpuRequest.toString(),
-          memoryRequest
+          memoryRequest,
+          getTolerationsFromNodes(componentState.selectedNodes)
         )();
         await createCSIDriver();
         await configureMetricsNamespaceLabels();

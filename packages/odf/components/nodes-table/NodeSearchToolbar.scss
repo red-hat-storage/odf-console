@@ -1,0 +1,6 @@
+.odf-node-search-toolbar__search {
+  // Wide enough to show the full "Find by name, label, or taint" placeholder;
+  // collapses on narrow viewports.
+  width: 22rem;
+  max-width: 100%;
+}
