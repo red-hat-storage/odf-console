@@ -32,9 +32,16 @@ import {
   isFailingOrRelocating as isFailingOrRelocatingUtil,
   isCleanupRequired as isCleanupRequiredUtil,
 } from '../../utils/dr-status';
-import { DRPlacementControlParser } from '../modals/app-failover-relocate/parser/discovered-application-parser';
+import { isTestFailoverInProgress } from '../../utils/test-failover';
+import {
+  DRPlacementControlParser,
+  DRPlacementControlParserProps,
+} from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import { AppManagePoliciesModalWrapper } from '../modals/protected-applications/app-manage-policies-modal-wrapper';
-import { ApplicationActionModal } from '../modals/protected-applications/applications-action-modal';
+import {
+  ApplicationActionModal,
+  ApplicationActionModalProps,
+} from '../modals/protected-applications/applications-action-modal';
 import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';
 
 export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
@@ -235,12 +242,26 @@ export const getHeaderColumns = (t: TFunction<string>) => {
   ];
 };
 
+const getDisabledActionProps = (tooltip: string): Partial<IAction> => ({
+  isAriaDisabled: true,
+  tooltipProps: {
+    content: tooltip,
+    trigger: 'mouseenter focus',
+  },
+});
+
+export type GetRowActionsOptions = {
+  // Metro-DR does not support test failover; hide the action on the kebab.
+  isMetroDR?: boolean;
+};
+
 export const getRowActions = (
   t: TFunction<string>,
   launcher: LaunchModal,
   navigate: NavigateFunction,
   drpc: DRPlacementControlKind | undefined,
-  pav: ProtectedApplicationViewKind
+  pav: ProtectedApplicationViewKind,
+  options: GetRowActionsOptions = {}
 ): IAction[] => {
   if (!drpc) {
     return [];
@@ -248,6 +269,14 @@ export const getRowActions = (
 
   const appInfo = pav.status?.applicationInfo;
   const isDiscoveredApp = appInfo?.type === ApplicationType.Discovered;
+  // Subscription applications are deprecated; do not offer test failover.
+  const isSubscriptionApp = appInfo?.type === ApplicationType.Subscription;
+  // Managed path needs ApplicationSet + applicationRef (ApplicationActionModal).
+  const isManagedAppSet =
+    appInfo?.type === ApplicationType.ApplicationSet &&
+    !!appInfo?.applicationRef?.name;
+  const canOfferTestFailover = isDiscoveredApp || isManagedAppSet;
+  const { isMetroDR = false } = options;
 
   const launchDRAction = (action: DRActionType) =>
     isDiscoveredApp
@@ -259,6 +288,67 @@ export const getRowActions = (
           isOpen: true,
           extraProps: { pav, action },
         });
+
+  const launchTestFailover = () =>
+    isDiscoveredApp
+      ? launcher<{
+          isOpen: boolean;
+          extraProps: DRPlacementControlParserProps;
+        }>(DRPlacementControlParser, {
+          isOpen: true,
+          extraProps: {
+            application: drpc,
+            action: DRActionType.FAILOVER,
+            isTestFailover: true,
+          },
+        })
+      : launcher<{
+          isOpen: boolean;
+          extraProps: ApplicationActionModalProps;
+        }>(ApplicationActionModal, {
+          isOpen: true,
+          extraProps: {
+            pav,
+            action: DRActionType.FAILOVER,
+            isTestFailover: true,
+          },
+        });
+
+  const testInProgressProps =
+    isTestFailoverInProgress(drpc) &&
+    getDisabledActionProps(
+      t('Unavailable while a test failover is in progress.')
+    );
+
+  const testFailoverAction: IAction | null =
+    !canOfferTestFailover || isSubscriptionApp || isMetroDR
+      ? null
+      : {
+          title: (
+            <>
+              {t('Test failover')}
+              <p className="text-muted pf-v6-u-font-size-xs">
+                {t(
+                  'Start test failover. This action will not change the applications in the production environment.'
+                )}
+              </p>
+            </>
+          ),
+          ...(testInProgressProps ||
+            (_.has(drpc.metadata, 'deletionTimestamp') &&
+              getDisabledActionProps(t('Resource is being deleted.'))) ||
+            (drpc.status?.phase === Phase.WaitForUser &&
+              getDisabledActionProps(
+                t('Unavailable while waiting for user action.')
+              )) ||
+            (isFailingOrRelocating(drpc) &&
+              getDisabledActionProps(
+                t(
+                  'Unavailable while a disaster recovery operation is in progress.'
+                )
+              ))),
+          onClick: launchTestFailover,
+        };
 
   return [
     {
@@ -272,6 +362,7 @@ export const getRowActions = (
       ),
       onClick: () => navigate(`${drpcDetailsPageRoute(drpc)}/yaml`),
     },
+    ...(testFailoverAction ? [testFailoverAction] : []),
     {
       title: (
         <>
@@ -281,6 +372,7 @@ export const getRowActions = (
           </p>
         </>
       ),
+      ...testInProgressProps,
       onClick: () => launchDRAction(DRActionType.FAILOVER),
     },
     {
@@ -292,11 +384,13 @@ export const getRowActions = (
           </p>
         </>
       ),
+      ...testInProgressProps,
       onClick: () => launchDRAction(DRActionType.RELOCATE),
     },
     isDiscoveredApp
       ? {
           title: t('Remove disaster recovery'),
+          ...testInProgressProps,
           ...(_.has(drpc.metadata, 'deletionTimestamp') && {
             isAriaDisabled: true,
             tooltipProps: {
@@ -319,6 +413,7 @@ export const getRowActions = (
               </p>
             </>
           ),
+          ...testInProgressProps,
           onClick: () =>
             launcher(AppManagePoliciesModalWrapper, {
               isOpen: true,

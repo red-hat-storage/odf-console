@@ -290,6 +290,8 @@ jest.mock('@odf/mco/utils', () => ({
   getPAVDRPolicyName: jest.fn(() => drPolicyName),
   getPrimaryCluster: jest.fn(() => deploymentClusterName),
   getPrimaryClusterName: jest.fn(() => 'test-cluster-1'),
+  // Regional-DR in fixtures; Metro hide is covered in utils.spec.
+  getReplicationType: jest.fn(() => 'async'),
 }));
 
 // eslint-disable-next-line no-console
@@ -428,6 +430,7 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     expect(screen.getByText('Edit configuration')).toBeVisible();
     expect(screen.getByText('Failover')).toBeVisible();
     expect(screen.getByText('Relocate')).toBeVisible();
+    expect(screen.getByText('Test failover')).toBeVisible();
   });
 
   it('"FailingOver DRPC" expands to show namespaces when expand button is clicked', async () => {
