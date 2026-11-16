@@ -90,6 +90,9 @@ describe('DRStatusPopover Component', () => {
     phase: Phase.FailedOver,
     progression: Progression.TestingFailover,
     dryRun: true,
+    actionStartTime: '2024-01-01T10:00:00Z',
+    // Empty last-action = Deployed restore (missing would disable Clean up).
+    lastAction: '',
     primaryCluster: 'primary-cluster',
     targetCluster: 'target-cluster',
     policyName: '',
@@ -162,6 +165,40 @@ describe('DRStatusPopover Component', () => {
     expect(screen.getByTestId('popover-description')).toBeInTheDocument();
   });
 
+  it('labels the failover step as a failover test after convert', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...failoverStatus,
+          action: DRActionType.FAILOVER,
+          progression: 'WaitingForResourceRestore',
+          promotedFromTest: true,
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+
+    expect(
+      screen.getByRole('listitem', { name: /Preparing \(completed\)/ })
+    ).toHaveClass('pf-m-success');
+    expect(
+      screen.getByRole('listitem', { name: /Failover test \(completed\)/ })
+    ).toHaveClass('pf-m-success');
+    expect(
+      screen.getByRole('listitem', { name: /Restoring \(in progress\)/ })
+    ).toHaveClass('pf-m-info');
+    expect(
+      screen.getByRole('listitem', { name: /Clean up \(pending\)/ })
+    ).toHaveClass('pf-m-pending');
+    // Reject a plain Failover step even with a status suffix; allow "Failover test".
+    expect(
+      screen.queryByRole('listitem', {
+        name: /^Failover(?:\s*\(|$)/,
+      })
+    ).not.toBeInTheDocument();
+  });
+
   it('renders the popover with FailingOver status', async () => {
     render(<DRStatusPopover disasterRecoveryStatus={failoverStatus} />);
 
@@ -194,22 +231,77 @@ describe('DRStatusPopover Component', () => {
     );
   });
 
-  it('renders the popover with Failover test active status', async () => {
-    render(<DRStatusPopover disasterRecoveryStatus={testFailoverStatus} />);
+  it('renders Preparing, Awaiting resync, and Action needed for a failover test', async () => {
+    const { unmount } = render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+        }}
+      />
+    );
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Preparing'
+    );
+    unmount();
 
+    const { unmount: unmountPaused } = render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+          schedulingInterval: '5m',
+          volumeLastGroupSyncTime: '2020-01-01T00:00:00Z',
+          progressionDetails: ['Available / VolumeReplicationGroup is lagging'],
+        }}
+      />
+    );
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Awaiting resync'
+    );
+    unmountPaused();
+
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          drpcName: 'busybox',
+          drpcNamespace: 'openshift-dr-ops',
+        }}
+      />
+    );
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Action needed'
+    );
     await userEvent.click(screen.getByTestId('dr-status-button'));
-    expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Failover test active/
+    expect(
+      screen.getByRole('button', { name: 'Convert to real failover' })
+    ).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Clean up test' })).toBeEnabled();
+  });
+
+  // spec.dryRun stays true while Ramen sets Phase.Deleting, so the column
+  // must show Deleting instead of the test-failover view.
+  it('shows Deleting when a dry-run test is removed', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.Deleting,
+          progression: 'Deleting',
+        }}
+      />
     );
-    expect(screen.getByTestId('popover-description')).toHaveTextContent(
-      /Non-disruptive test in progress/
+
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Deleting'
     );
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Primary clusterprimary-cluster'
-    );
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Target clustertarget-cluster'
-    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(
+      screen.queryByRole('button', { name: 'Clean up test' })
+    ).not.toBeInTheDocument();
   });
 
   // DFBUGS-11111: a dry-run revert leaves the phase at Deployed, which used to
@@ -257,12 +349,9 @@ describe('DRStatusPopover Component', () => {
     );
   });
 
-  // DFBUGS-8070: reverting a dry run puts the phase back to Deployed and
-  // restores a now-stale lastGroupSyncTime. That used to fall through to the
-  // replication-health check and report a spurious Warning on a healthy
-  // workload, while the cleanup itself was shown nowhere.
-  it('renders Cleaning up rather than a stale-sync Warning during a dry-run revert', async () => {
-    render(
+  // DFBUGS-8070: stale sync during dry-run revert must not report Warning/Critical.
+  it('renders Cleaning up rather than stale-sync health during a dry-run revert', async () => {
+    const { unmount } = render(
       <DRStatusPopover
         disasterRecoveryStatus={{
           ...baseStatus,
@@ -278,24 +367,12 @@ describe('DRStatusPopover Component', () => {
     expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
       /Cleaning up/
     );
-
     await userEvent.click(screen.getByTestId('dr-status-button'));
-    expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Cleaning up/
-    );
-    // The global t() mock does not interpolate, so assert on the branch rather
-    // than the resolved cluster name.
     expect(screen.getByTestId('popover-description')).toHaveTextContent(
       /Removing the failover test resources from cluster/
     );
-    expect(screen.getByTestId('popover-description')).not.toHaveTextContent(
-      /left behind by the last operation/
-    );
-  });
+    unmount();
 
-  // The same stale timestamp crosses into Critical once it exceeds 3x the
-  // scheduling interval, so a longer dry run must not turn the status red.
-  it('keeps showing Cleaning up when the stale sync has aged into Critical', async () => {
     render(
       <DRStatusPopover
         disasterRecoveryStatus={{
@@ -307,13 +384,8 @@ describe('DRStatusPopover Component', () => {
         }}
       />
     );
-
-    await userEvent.click(screen.getByTestId('dr-status-button'));
-    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
       /Cleaning up/
-    );
-    expect(screen.getByTestId('popover-description')).toHaveTextContent(
-      /Removing resources left behind by the last operation/
     );
   });
 

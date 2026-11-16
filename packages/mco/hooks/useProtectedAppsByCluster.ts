@@ -1,18 +1,24 @@
 import * as React from 'react';
+import { useScheduler } from '@odf/shared/hooks';
+import { getAnnotations } from '@odf/shared/selectors';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { TEST_FAILOVER_DRYRUN_ANNOTATION } from '../constants';
 import {
   DRPlacementControlKind,
   DRPolicyKind,
   Phase,
+  Progression,
   ProtectedApplicationViewKind,
 } from '../types';
 import {
+  drpcHasVolumes,
   getReplicationHealth,
   getReplicationType,
   getProtectedCondition,
   getApplicationName,
 } from '../utils';
 import { DRStatus, getDRStatus, isCleanupRequired } from '../utils/dr-status';
+import { isRevertingTestFailover } from '../utils/test-failover';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -53,6 +59,24 @@ export const useProtectedAppsByCluster = (): [
 
   const loaded = pavsLoaded && drpcsLoaded && drPoliciesLoaded;
   const loadError = pavsLoadError || drpcsLoadError || drPoliciesLoadError;
+
+  // Same lag tick as popover/topology: Preparing → Awaiting resync without
+  // waiting for a DRPC watch. Skip once every dry-run test is held.
+  const needsLagTick = React.useMemo(
+    () =>
+      !!drpcs?.some(
+        (drpc) =>
+          !!drpc?.spec?.dryRun &&
+          drpc?.status?.progression !== Progression.TestingFailover
+      ),
+    [drpcs]
+  );
+  const [lagTick, setLagTick] = React.useState(0);
+  const bumpLagTick = React.useCallback(() => {
+    if (!needsLagTick) return;
+    setLagTick((tick) => tick + 1);
+  }, [needsLagTick]);
+  useScheduler(bumpLagTick, needsLagTick ? undefined : null);
 
   const clusterAppsMap = React.useMemo<ClusterAppsMap>(() => {
     const map: ClusterAppsMap = {};
@@ -119,6 +143,10 @@ export const useProtectedAppsByCluster = (): [
           actionStartTime: drpc?.status?.actionStartTime,
           action: drpc?.spec?.action,
           dryRun: drpc?.spec?.dryRun,
+          hasTestFailoverAnnotation:
+            getAnnotations(drpc)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] === 'true',
+          hasVolumes: drpcHasVolumes(drpc),
+          isRevertingTestFailover: isRevertingTestFailover(drpc),
         });
 
         // Get the list of clusters this app is deployed to
@@ -156,7 +184,9 @@ export const useProtectedAppsByCluster = (): [
     }
 
     return map;
-  }, [loaded, loadError, pavs, drpcs, drPolicies]);
+    // lagTick forces getDRStatus / isTestSyncLagging re-eval on the interval.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lagTick forces lag re-eval
+  }, [loaded, loadError, pavs, drpcs, drPolicies, lagTick]);
 
   return React.useMemo(
     () => [clusterAppsMap, loaded, loadError],

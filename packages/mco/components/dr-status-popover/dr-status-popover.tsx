@@ -4,7 +4,7 @@ import {
   VolumeReplicationHealth,
   DRActionType,
 } from '@odf/mco/constants';
-import { Phase } from '@odf/mco/types';
+import { Phase, Progression } from '@odf/mco/types';
 import {
   getDRStatus,
   isReplicationHealthy,
@@ -12,8 +12,9 @@ import {
   DRStatus,
 } from '@odf/mco/utils/dr-status';
 import { formatTime } from '@odf/shared/details-page/datetime';
-import { DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
+import { DOC_VERSION as mcoDocVersion, useScheduler } from '@odf/shared/hooks';
 import {
+  BlueInfoCircleIcon,
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
@@ -34,8 +35,9 @@ import {
   Popover,
   Content,
 } from '@patternfly/react-core';
-import { InProgressIcon } from '@patternfly/react-icons';
+import { ClockIcon, InProgressIcon } from '@patternfly/react-icons';
 import { ProgressionTrainView } from './progression-train-view';
+import { TestFailoverHoldAlert } from './test-failover-actions';
 import './dr-status-popover.scss';
 
 export type DRStatusProps = {
@@ -59,8 +61,23 @@ export type DRStatusProps = {
   protectedCondition?: K8sResourceCondition;
   availableCondition?: K8sResourceCondition;
   dryRun?: boolean;
+  // True when the Ramen test-failover-dryrun annotation is still present.
+  hasTestFailoverAnnotation?: boolean;
+  // False when the DRPC does not select PVCs (kube-object-only).
+  hasVolumes?: boolean;
   // Cluster left holding the test workload after a failover test is reverted.
   testFailoverCleanupCluster?: string;
+  // Convert has turned the test into a real failover, and Ramen still has the
+  // dry-run annotation. The train keeps four steps, with "Failover test" in
+  // place of "Failover".
+  promotedFromTest?: boolean;
+  // Clean up is restoring pre-test placement (annotation remains, not Convert).
+  isRevertingTestFailover?: boolean;
+  // Pre-test state Ramen preserved for clean-up revert validation.
+  lastAction?: string;
+  failoverCluster?: string;
+  drpcName?: string;
+  drpcNamespace?: string;
 };
 
 const DR_STATUS_CLASS_NAMES = {
@@ -118,6 +135,8 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.Protecting]: <InProgressIcon />,
     [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
     [DRStatus.TestingFailover]: <InProgressIcon />,
+    [DRStatus.TestFailoverPaused]: <ClockIcon />,
+    [DRStatus.TestFailoverActionRequired]: <BlueInfoCircleIcon />,
     [DRStatus.CleaningUp]: <InProgressIcon />,
   };
 
@@ -128,6 +147,15 @@ const getStatusLabel = (status: DRStatus, t: TFunction): string => {
   if (status === DRStatus.WaitForUser) return t('Action needed');
   // Ramen spells this "Cleaning Up"; show a translated, sentence-cased label.
   if (status === DRStatus.CleaningUp) return t('Cleaning up');
+  if (status === DRStatus.TestFailoverPaused) {
+    return t('Awaiting resync');
+  }
+  if (status === DRStatus.TestingFailover) {
+    return t('Preparing');
+  }
+  if (status === DRStatus.TestFailoverActionRequired) {
+    return t('Action needed');
+  }
   return status;
 };
 
@@ -414,7 +442,10 @@ type GetDRStatusDetailsParams = {
   actionStartTime?: string;
   action?: DRActionType;
   dryRun?: boolean;
+  hasTestFailoverAnnotation?: boolean;
+  hasVolumes?: boolean;
   testFailoverCleanupCluster?: string;
+  isRevertingTestFailover?: boolean;
 };
 
 const getDRStatusDetails = ({
@@ -433,7 +464,10 @@ const getDRStatusDetails = ({
   actionStartTime,
   action,
   dryRun,
+  hasTestFailoverAnnotation,
+  hasVolumes,
   testFailoverCleanupCluster,
+  isRevertingTestFailover,
 }: GetDRStatusDetailsParams): StatusContent => {
   const drStatus = getDRStatus({
     isCleanupRequired,
@@ -447,6 +481,9 @@ const getDRStatusDetails = ({
     actionStartTime,
     action,
     dryRun,
+    hasTestFailoverAnnotation,
+    hasVolumes,
+    isRevertingTestFailover,
   });
 
   switch (drStatus) {
@@ -572,11 +609,10 @@ const getDRStatusDetails = ({
     case DRStatus.TestingFailover:
       return createStatus(
         DRStatus.TestingFailover,
-        t('Failover test active'),
-        t(
-          'Non-disruptive test in progress. Primary cluster {{primaryCluster}} is unaffected.',
-          { primaryCluster }
-        ),
+        targetCluster
+          ? t('Testing failover to {{targetCluster}}', { targetCluster })
+          : t('Testing Failover'),
+        '',
         DR_STATUS_CLASS_NAMES.FAILOVER
       );
 
@@ -593,6 +629,22 @@ const getDRStatusDetails = ({
               'Removing resources left behind by the last operation. No action is needed.'
             ),
         DR_STATUS_CLASS_NAMES.CLEANING_UP
+      );
+
+    case DRStatus.TestFailoverPaused:
+      return createStatus(
+        DRStatus.TestFailoverPaused,
+        t('Awaiting resync'),
+        '',
+        DR_STATUS_CLASS_NAMES.FAILOVER
+      );
+
+    case DRStatus.TestFailoverActionRequired:
+      return createStatus(
+        DRStatus.TestFailoverActionRequired,
+        t('Action needed'),
+        '',
+        DR_STATUS_CLASS_NAMES.ACTION_NEEDED
       );
 
     case DRStatus.FailingOver:
@@ -702,7 +754,60 @@ const DRStatusPopoverBody: React.FC<{
   message?: string | React.ReactNode;
   disasterRecoveryStatus: DRStatusProps;
   cleanupDocHref?: string;
-}> = ({ status, message, disasterRecoveryStatus, cleanupDocHref }) => {
+  // Closes the popover before Convert / Clean up modals open outside it.
+  onExternalModalOpen?: () => void;
+}> = ({
+  status,
+  message,
+  disasterRecoveryStatus,
+  cleanupDocHref,
+  onExternalModalOpen,
+}) => {
+  const { t } = useCustomTranslation();
+  const applicationName =
+    disasterRecoveryStatus.applicationName || t('Application');
+  const peerCluster =
+    disasterRecoveryStatus.targetCluster &&
+    disasterRecoveryStatus.targetCluster !==
+      disasterRecoveryStatus.primaryCluster
+      ? disasterRecoveryStatus.targetCluster
+      : undefined;
+
+  if (
+    status === DRStatus.TestingFailover ||
+    status === DRStatus.TestFailoverPaused ||
+    status === DRStatus.TestFailoverActionRequired
+  ) {
+    return (
+      <ProgressionTrainView
+        action={disasterRecoveryStatus.action || DRActionType.FAILOVER}
+        currentProgression={disasterRecoveryStatus.progression}
+        applicationName={applicationName}
+        actionStartTime={disasterRecoveryStatus.actionStartTime}
+        progressionDetails={disasterRecoveryStatus.progressionDetails}
+        isTest
+        isTestPaused={status === DRStatus.TestFailoverPaused}
+        isTestHold={status === DRStatus.TestFailoverActionRequired}
+        holdAlert={
+          status === DRStatus.TestFailoverActionRequired ? (
+            <TestFailoverHoldAlert
+              drpcName={disasterRecoveryStatus.drpcName}
+              drpcNamespace={disasterRecoveryStatus.drpcNamespace}
+              homeCluster={disasterRecoveryStatus.primaryCluster}
+              peerCluster={peerCluster}
+              actionStartTime={disasterRecoveryStatus.actionStartTime}
+              lastAction={disasterRecoveryStatus.lastAction}
+              dryRun={disasterRecoveryStatus.dryRun}
+              currentFailoverCluster={disasterRecoveryStatus.failoverCluster}
+              onConvert={onExternalModalOpen}
+              onCleanUp={onExternalModalOpen}
+            />
+          ) : undefined
+        }
+      />
+    );
+  }
+
   // Determine which cluster the user should clean up, based on action and phase.
   // - Failover: always clean up the failed/source cluster (the non-primary cluster).
   // - Relocate (discovered apps): cleanup happens first, before migration, on the current primary.
@@ -726,15 +831,14 @@ const DRStatusPopoverBody: React.FC<{
       <ProgressionTrainView
         action={disasterRecoveryStatus.action}
         currentProgression={disasterRecoveryStatus.progression}
-        applicationName={
-          disasterRecoveryStatus.applicationName || 'Application'
-        }
+        applicationName={applicationName}
         actionStartTime={disasterRecoveryStatus.actionStartTime}
         progressionDetails={disasterRecoveryStatus.progressionDetails}
         isCleanupRequired={disasterRecoveryStatus.isCleanupRequired}
         cleanupCluster={cleanupCluster}
         isDiscoveredApp={disasterRecoveryStatus.isDiscoveredApp}
         learnMoreHref={cleanupDocHref}
+        promotedFromTest={disasterRecoveryStatus.promotedFromTest}
       />
     );
   }
@@ -755,7 +859,6 @@ const DRStatusPopoverBody: React.FC<{
         DRStatus.Relocating,
         DRStatus.FailedOver,
         DRStatus.Relocated,
-        DRStatus.TestingFailover,
       ].includes(status) && (
         <div className="dr-status-popover__cluster-details">
           <ClusterDetails
@@ -773,6 +876,18 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
   disasterRecoveryStatus,
 }) => {
   const [isVisible, setIsVisible] = React.useState(false);
+  // Re-evaluate isTestSyncLagging on an interval so Preparing can flip to
+  // Awaiting resync without waiting for a DRPC watch update. Skip once the
+  // test is held (TestingFailover) — lag no longer changes the status.
+  const [lagTick, setLagTick] = React.useState(0);
+  const needsLagTick =
+    !!disasterRecoveryStatus.dryRun &&
+    disasterRecoveryStatus.progression !== Progression.TestingFailover;
+  const bumpLagTick = React.useCallback(() => {
+    if (!needsLagTick) return;
+    setLagTick((tick) => tick + 1);
+  }, [needsLagTick]);
+  useScheduler(bumpLagTick, needsLagTick ? undefined : null);
   const { t } = useCustomTranslation();
 
   const { icon, title, message, className, status } = React.useMemo(
@@ -794,10 +909,20 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         actionStartTime: disasterRecoveryStatus.actionStartTime,
         action: disasterRecoveryStatus.action,
         dryRun: disasterRecoveryStatus.dryRun,
+        hasTestFailoverAnnotation:
+          disasterRecoveryStatus.hasTestFailoverAnnotation,
+        hasVolumes: disasterRecoveryStatus.hasVolumes,
         testFailoverCleanupCluster:
           disasterRecoveryStatus.testFailoverCleanupCluster,
+        isRevertingTestFailover:
+          disasterRecoveryStatus.isRevertingTestFailover ??
+          (!!disasterRecoveryStatus.hasTestFailoverAnnotation &&
+            !disasterRecoveryStatus.dryRun &&
+            !disasterRecoveryStatus.promotedFromTest),
       }),
-    [disasterRecoveryStatus, t]
+    // lagTick forces a recompute when volume sync age crosses the threshold.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [disasterRecoveryStatus, t, lagTick]
   );
 
   const togglePopover = () => {
@@ -837,6 +962,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
               message={message}
               disasterRecoveryStatus={disasterRecoveryStatus}
               cleanupDocHref={cleanupDocHref}
+              onExternalModalOpen={() => setIsVisible(false)}
             />
 
             {shouldShowSyncDetails({

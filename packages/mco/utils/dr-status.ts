@@ -15,6 +15,7 @@ import {
   DRPlacementControlConditionReason,
 } from '../types/ramen';
 import { getVolumeReplicationHealth } from '../utils';
+import { isTestSyncLagging } from './disaster-recovery';
 
 /**
  * Unified DR Status enum - Single source of truth for all DR status values.
@@ -44,6 +45,8 @@ export enum DRStatus {
 
   // DryRun testing failover
   TestingFailover = Progression.TestingFailover,
+  TestFailoverPaused = 'TestFailoverPaused',
+  TestFailoverActionRequired = 'TestFailoverActionRequired',
 
   // Additional statuses
   Unknown = 'Unknown',
@@ -165,12 +168,13 @@ export const shouldShowProtectionError = (
  *
  * Priority order:
  * 1. Cleanup requirements (WaitOnUserToCleanUp)
- * 2. User action requirements (WaitForUser)
- * 3. Deletion state
- * 4. Active operations (FailingOver/Relocating)
- * 5. Completed operations (FailedOver/Relocated) with sync state
- * 6. Protection status (Protecting/ProtectionError)
- * 7. Replication health (Critical/Warning/Healthy)
+ * 2. Deletion state
+ * 3. Dry-run test failover
+ * 4. User action requirements (WaitForUser)
+ * 5. Active operations (FailingOver/Relocating)
+ * 6. Completed operations (FailedOver/Relocated) with sync state
+ * 7. Protection status (Protecting/ProtectionError)
+ * 8. Replication health (Critical/Warning/Healthy)
  */
 export const getDRStatus = ({
   isCleanupRequired,
@@ -184,6 +188,9 @@ export const getDRStatus = ({
   actionStartTime,
   action,
   dryRun,
+  hasTestFailoverAnnotation,
+  hasVolumes,
+  isRevertingTestFailover,
 }: {
   isCleanupRequired?: boolean;
   phase: Phase;
@@ -196,6 +203,13 @@ export const getDRStatus = ({
   actionStartTime?: string;
   action?: DRActionType;
   dryRun?: boolean;
+  // True when Ramen still has the test-failover-dryrun annotation.
+  hasTestFailoverAnnotation?: boolean;
+  // False for kube-object-only apps (no pvcSelector); missing lastGroupSyncTime
+  // must not look like volume sync lag then.
+  hasVolumes?: boolean;
+  // Clean up is restoring pre-test placement (annotation remains, not Convert).
+  isRevertingTestFailover?: boolean;
 }): DRStatus => {
   // Check if cleanup is required — this has the highest priority.
   // If not explicitly provided, derive from progression.
@@ -203,25 +217,34 @@ export const getDRStatus = ({
     isCleanupRequired ?? progression === Progression.WaitOnUserToCleanUp;
   if (cleanupRequired) return DRStatus.WaitOnUserToCleanUp;
 
-  // DryRun test failover in hold state — test workload is running on secondary.
-  if (dryRun && progression === Progression.TestingFailover)
-    return DRStatus.TestingFailover;
-
-  // WaitForUser is always treated as action required
-  if (phase === Phase.WaitForUser) return DRStatus.WaitForUser;
-
-  // Deleting is always shown as an in-progress removal state
   if (phase === Phase.Deleting) return DRStatus.Deleting;
 
-  // Handle failover or relocation phases directly
-  if (phase === Phase.FailingOver) return DRStatus.FailingOver;
-  if (phase === Phase.Relocating) return DRStatus.Relocating;
+  // Check WaitForUser before dry-run so its availableCondition message is shown.
+  if (phase === Phase.WaitForUser) return DRStatus.WaitForUser;
 
-  // Map transitional phases to action-specific status when action is known.
-  // During initial enrollment (no action), fall through to Protecting/health logic.
-  if ((phase === Phase.Initiating || phase === Phase.Deploying) && action) {
-    if (action === DRActionType.FAILOVER) return DRStatus.FailingOver;
-    if (action === DRActionType.RELOCATE) return DRStatus.Relocating;
+  // Active hold: only while dryRun is still set. After Clean up clears dryRun,
+  // fall through to the revert branch below instead of Action needed + buttons.
+  if (progression === Progression.TestingFailover && dryRun) {
+    return DRStatus.TestFailoverActionRequired;
+  }
+
+  // Convert clears dryRun but keeps the promote shape; stay on the hold with a
+  // processing message until Ramen leaves TestingFailover.
+  if (
+    progression === Progression.TestingFailover &&
+    hasTestFailoverAnnotation &&
+    !isRevertingTestFailover
+  ) {
+    return DRStatus.TestFailoverActionRequired;
+  }
+
+  if (dryRun) {
+    if (
+      isTestSyncLagging(volumeLastGroupSyncTime, schedulingInterval, hasVolumes)
+    ) {
+      return DRStatus.TestFailoverPaused;
+    }
+    return DRStatus.TestingFailover;
   }
 
   // Combine health statuses into an array for easier checks (filter out undefined)
@@ -242,6 +265,37 @@ export const getDRStatus = ({
   // When schedulingInterval is 0m (e.g. FusionAccess), no replication occurs,
   // so sync will never start. Skip the hasSyncStarted gate for these policies.
   const isNoReplicationRequired = schedulingInterval === '0m';
+
+  // Clean up restores last-action (often Failover), so Ramen may run a real
+  // FailingOver progression while removing the test copy. Prefer "Cleaning up"
+  // over Action needed / the 4-stage failover train for that revert window.
+  if (isRevertingTestFailover) {
+    const revertingThroughFailover =
+      phase === Phase.FailingOver ||
+      phase === Phase.Relocating ||
+      ((phase === Phase.Initiating || phase === Phase.Deploying) && !!action);
+    const revertingCleanup =
+      progression === Progression.TestingFailover ||
+      progression === Progression.CleaningUp ||
+      (isProgressionActive(progression) &&
+        (phase === Phase.Deployed ||
+          phase === Phase.FailedOver ||
+          phase === Phase.Relocated));
+    if (revertingThroughFailover || revertingCleanup) {
+      return DRStatus.CleaningUp;
+    }
+  }
+
+  // Handle failover or relocation phases directly
+  if (phase === Phase.FailingOver) return DRStatus.FailingOver;
+  if (phase === Phase.Relocating) return DRStatus.Relocating;
+
+  // Map transitional phases to action-specific status when action is known.
+  // During initial enrollment (no action), fall through to Protecting/health logic.
+  if ((phase === Phase.Initiating || phase === Phase.Deploying) && action) {
+    if (action === DRActionType.FAILOVER) return DRStatus.FailingOver;
+    if (action === DRActionType.RELOCATE) return DRStatus.Relocating;
+  }
 
   // Reverting a failover test puts the phase back to Deployed while Ramen is
   // still removing the test copy from the failover cluster. The revert also

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useScheduler } from '@odf/shared/hooks';
+import { getAnnotations } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router';
 import {
@@ -9,9 +11,12 @@ import {
   EmptyStateBody,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
-import { getProtectedCondition } from '../../../utils';
+import { TEST_FAILOVER_DRYRUN_ANNOTATION } from '../../../constants';
+import { Progression } from '../../../types';
+import { drpcHasVolumes, getProtectedCondition } from '../../../utils';
 import { getDRStatus } from '../../../utils/dr-status';
 import { getPAVDRPolicyName } from '../../../utils/pav';
+import { isRevertingTestFailover } from '../../../utils/test-failover';
 import {
   AppSidebarItem,
   StaticAppsSidebarData,
@@ -118,7 +123,56 @@ export const DRPCTable: React.FC<DRPCTableProps> = ({ apps }) => {
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
   const { t } = useCustomTranslation();
-  if ('isStatic' in edgeData && edgeData.isStatic === true) {
+  const isStatic = 'isStatic' in edgeData && edgeData.isStatic === true;
+  const operationData = !isStatic
+    ? (edgeData as OperationAppSidebarData)
+    : undefined;
+  const operations =
+    operationData?.operations ||
+    (operationData?.operation ? [operationData.operation] : []);
+
+  // Preparing → Awaiting resync without waiting for a DRPC watch.
+  const needsLagTick = operations.some(
+    (op) =>
+      !!op.drpc?.spec?.dryRun && op.progression !== Progression.TestingFailover
+  );
+  const [lagTick, setLagTick] = React.useState(0);
+  const bumpLagTick = React.useCallback(() => {
+    if (!needsLagTick) return;
+    setLagTick((tick) => tick + 1);
+  }, [needsLagTick]);
+  useScheduler(bumpLagTick, needsLagTick ? undefined : null);
+
+  // lagTick forces getDRStatus to re-run when sync age crosses the threshold.
+  const appsFromOperations = React.useMemo(
+    () =>
+      operations.map((op) => {
+        const protectedCondition = getProtectedCondition(op.drpc);
+        return {
+          name: op.applicationName,
+          namespace: op.applicationNamespace,
+          status: getDRStatus({
+            phase: op.phase,
+            progression: op.progression,
+            protectedCondition,
+            volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
+            schedulingInterval: op.schedulingInterval,
+            action: op.action,
+            dryRun: op.drpc?.spec?.dryRun,
+            hasTestFailoverAnnotation:
+              getAnnotations(op.drpc)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
+              'true',
+            hasVolumes: drpcHasVolumes(op.drpc),
+            isRevertingTestFailover: isRevertingTestFailover(op.drpc),
+          }),
+          drPolicy: op.pav ? getPAVDRPolicyName(op.pav) : '',
+        };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lagTick forces lag re-eval
+    [operations, lagTick]
+  );
+
+  if (isStatic) {
     return (
       <div className="mco-topology-sidebar__container">
         <div className="mco-topology-sidebar__header">
@@ -127,32 +181,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ edgeData }) => {
           </Title>
         </div>
         <div className="mco-topology-sidebar__content">
-          <DRPCTable apps={edgeData.apps} />
+          <DRPCTable apps={(edgeData as StaticAppsSidebarData).apps} />
         </div>
       </div>
     );
   }
-
-  const operationData = edgeData as OperationAppSidebarData;
-  const operations =
-    operationData.operations ||
-    (operationData.operation ? [operationData.operation] : []);
-  const appsFromOperations = operations.map((op) => {
-    const protectedCondition = getProtectedCondition(op.drpc);
-    return {
-      name: op.applicationName,
-      namespace: op.applicationNamespace,
-      status: getDRStatus({
-        phase: op.phase,
-        progression: op.progression,
-        protectedCondition,
-        volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
-        action: op.action,
-        dryRun: op.drpc?.spec?.dryRun,
-      }),
-      drPolicy: op.pav ? getPAVDRPolicyName(op.pav) : '',
-    };
-  });
 
   return (
     <div className="mco-topology-sidebar__container">

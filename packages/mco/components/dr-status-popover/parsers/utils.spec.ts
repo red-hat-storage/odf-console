@@ -1,4 +1,5 @@
 import {
+  LAST_ACTION_ANNOTATION,
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
   TEST_FAILOVER_DRYRUN_ANNOTATION,
 } from '@odf/mco/constants';
@@ -8,6 +9,7 @@ import { getProgressionFields } from './utils';
 
 const ORIGINAL = 'amagrawa-15oct-b';
 const TEST = 'amagrawa-15oct-c';
+const DR_CLUSTERS = [ORIGINAL, TEST];
 
 type DRPCOverrides = {
   dryRun?: boolean;
@@ -16,6 +18,8 @@ type DRPCOverrides = {
   lastAppDeploymentCluster?: string;
   testFailoverAnnotation?: string;
   progression?: Progression;
+  // null = omit key (missing); string = set annotation value ('' = Deployed).
+  lastAction?: string | null;
 };
 
 const drpc = ({
@@ -25,6 +29,7 @@ const drpc = ({
   lastAppDeploymentCluster = ORIGINAL,
   testFailoverAnnotation = 'true',
   progression = Progression.WaitOnUserToCleanUp,
+  lastAction = null,
 }: DRPCOverrides): DRPlacementControlKind =>
   ({
     metadata: {
@@ -36,6 +41,9 @@ const drpc = ({
         }),
         ...(testFailoverAnnotation && {
           [TEST_FAILOVER_DRYRUN_ANNOTATION]: testFailoverAnnotation,
+        }),
+        ...(lastAction !== null && {
+          [LAST_ACTION_ANNOTATION]: lastAction,
         }),
       },
     },
@@ -50,67 +58,79 @@ const drpc = ({
   }) as unknown as DRPlacementControlKind;
 
 const cleanupCluster = (overrides: DRPCOverrides) =>
-  getProgressionFields(drpc(overrides)).testFailoverCleanupCluster;
+  getProgressionFields(drpc(overrides), DR_CLUSTERS).testFailoverCleanupCluster;
 
-// DFBUGS-11111. Fixtures follow a captured dry-run lifecycle: during the test
-// last-app-deployment-cluster is the test cluster, but Ramen points it back at
-// the original as soon as the revert starts, while spec.failoverCluster stays
-// on the test cluster until the DRPC settles.
 describe('getProgressionFields: test failover cleanup cluster', () => {
-  describe('revert', () => {
-    // Captured state: action and dryRun both dropped from the spec,
-    // failoverCluster still the test cluster, deployment cluster back home.
-    it('detects a revert where the action was cleared', () => {
-      expect(cleanupCluster({})).toBe(TEST);
-    });
-
-    it('detects a revert expressed as a relocate', () => {
-      expect(cleanupCluster({ action: 'Relocate' })).toBe(TEST);
-    });
+  it('detects Deployed and Relocate reverts via peer of last-app', () => {
+    expect(cleanupCluster({})).toBe(TEST);
+    expect(cleanupCluster({ action: 'Relocate' })).toBe(TEST);
   });
 
-  describe('not a revert', () => {
-    // On promote the workload stays on the test cluster, so the deployment
-    // cluster catches up to it and the action remains Failover.
-    it('ignores a promotion', () => {
-      expect(
-        cleanupCluster({
-          action: 'Failover',
-          dryRun: false,
-          lastAppDeploymentCluster: TEST,
-        })
-      ).toBeUndefined();
-    });
+  it('ignores promote, in-flight dryRun, and non-test cleanup', () => {
+    const promote = getProgressionFields(
+      drpc({
+        action: 'Failover',
+        dryRun: false,
+        failoverCluster: TEST,
+        lastAppDeploymentCluster: ORIGINAL,
+      }),
+      DR_CLUSTERS
+    );
+    expect(promote.testFailoverCleanupCluster).toBeUndefined();
+    expect(promote.promotedFromTest).toBe(true);
+    expect(promote.isRevertingTestFailover).toBe(false);
 
-    it('ignores a test that is still in flight', () => {
-      expect(
-        cleanupCluster({
-          dryRun: true,
-          action: 'Failover',
-          lastAppDeploymentCluster: TEST,
-          progression: Progression.TestingFailover,
-        })
-      ).toBeUndefined();
-    });
+    const inFlight = getProgressionFields(
+      drpc({
+        dryRun: true,
+        action: 'Failover',
+        lastAppDeploymentCluster: TEST,
+        progression: Progression.TestingFailover,
+      }),
+      DR_CLUSTERS
+    );
+    expect(inFlight.testFailoverCleanupCluster).toBeUndefined();
+    expect(inFlight.promotedFromTest).toBe(false);
+    expect(inFlight.isRevertingTestFailover).toBe(false);
 
-    it('ignores a cleanup unrelated to any dry run', () => {
-      expect(
-        cleanupCluster({ action: 'Relocate', testFailoverAnnotation: '' })
-      ).toBeUndefined();
-    });
+    expect(
+      cleanupCluster({ action: 'Relocate', testFailoverAnnotation: '' })
+    ).toBeUndefined();
+  });
 
-    // Known limitation. When the workload had previously been failed over, a
-    // revert re-points failoverCluster at the original cluster and the DRPC
-    // stops recording the test cluster anywhere. Nothing identifies it, so no
-    // cluster is named rather than the wrong one.
-    it('names no cluster when a revert re-points the failover cluster home', () => {
-      expect(
-        cleanupCluster({
-          action: 'Failover',
-          failoverCluster: ORIGINAL,
-          lastAppDeploymentCluster: ORIGINAL,
-        })
-      ).toBeUndefined();
-    });
+  it('names the peer test cluster after Failover-shaped clean-up', () => {
+    expect(
+      cleanupCluster({
+        action: 'Failover',
+        failoverCluster: ORIGINAL,
+        lastAppDeploymentCluster: ORIGINAL,
+      })
+    ).toBe(TEST);
+
+    const fields = getProgressionFields(
+      drpc({
+        action: 'Failover',
+        dryRun: false,
+        failoverCluster: ORIGINAL,
+        lastAppDeploymentCluster: ORIGINAL,
+        progression: Progression.TestingFailover,
+      }),
+      DR_CLUSTERS
+    );
+    expect(fields.promotedFromTest).toBe(false);
+    expect(fields.isRevertingTestFailover).toBe(true);
+    expect(fields.testFailoverCleanupCluster).toBe(TEST);
+
+    // Missing last-action stays undefined; empty string means Deployed.
+    expect(
+      getProgressionFields(drpc({}), DR_CLUSTERS).lastAction
+    ).toBeUndefined();
+    expect(
+      getProgressionFields(drpc({ lastAction: '' }), DR_CLUSTERS).lastAction
+    ).toBe('');
+    expect(
+      getProgressionFields(drpc({ lastAction: 'Failover' }), DR_CLUSTERS)
+        .lastAction
+    ).toBe('Failover');
   });
 });

@@ -1,5 +1,5 @@
 import { ACMManagedClusterModel } from '@odf/shared';
-import { getName, getUID } from '@odf/shared/selectors';
+import { getAnnotations, getName, getUID } from '@odf/shared/selectors';
 import { createNode } from '@odf/shared/topology';
 import { K8sResourceCondition } from '@odf/shared/types';
 import {
@@ -10,7 +10,10 @@ import {
   EdgeModel,
   TopologyQuadrant,
 } from '@patternfly/react-topology';
-import { MANAGED_CLUSTER_CONDITION_AVAILABLE } from '../../../constants';
+import {
+  MANAGED_CLUSTER_CONDITION_AVAILABLE,
+  TEST_FAILOVER_DRYRUN_ANNOTATION,
+} from '../../../constants';
 import { ClusterPairOperationsMap } from '../../../hooks/useActiveDROperations';
 import {
   ClusterPairPoliciesMap,
@@ -20,11 +23,13 @@ import {
 import { ClusterAppsMap } from '../../../hooks/useProtectedAppsByCluster';
 import { ACMManagedClusterKind, DRPolicyKind, Phase } from '../../../types';
 import {
+  drpcHasVolumes,
   getReplicationHealth,
   getReplicationType,
   getProtectedCondition,
 } from '../../../utils';
 import { getDRStatus, isCleanupRequired } from '../../../utils/dr-status';
+import { isRevertingTestFailover } from '../../../utils/test-failover';
 import { TOPOLOGY_CONSTANTS } from '../constants';
 import {
   DecoratorIcon,
@@ -89,6 +94,10 @@ const computeOperationDRStatus = (
     actionStartTime: drpc?.status?.actionStartTime,
     action: drpc?.spec?.action,
     dryRun: drpc?.spec?.dryRun,
+    hasTestFailoverAnnotation:
+      getAnnotations(drpc)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] === 'true',
+    hasVolumes: drpcHasVolumes(drpc),
+    isRevertingTestFailover: isRevertingTestFailover(drpc),
   });
 };
 
