@@ -553,13 +553,7 @@ export const getOCSRequestData = ({
       },
     };
   } else if (isTNFEnabled) {
-    // TNF supports a cluster network only.
-    requestData.spec = getTNFSpecs(
-      scName,
-      storage,
-      availablePvsCount,
-      networkConfiguration.clusterNetwork
-    );
+    requestData.spec = getTNFSpecs(scName, storage, availablePvsCount);
   } else {
     // for full deployment - ceph + mcg
     requestData.spec = {
