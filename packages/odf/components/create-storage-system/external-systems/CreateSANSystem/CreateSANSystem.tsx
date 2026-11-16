@@ -12,7 +12,6 @@ import {
   ButtonBar,
   TextInputWithFieldRequirements,
   LocalDiskModel,
-  TechPreviewBadge,
 } from '@odf/shared';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -255,14 +254,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           />
           <Checkbox
             id="stretch-cluster"
-            label={
-              <>
-                {t('Stretch cluster')}
-                <span className="pf-v6-u-ml-sm">
-                  <TechPreviewBadge />
-                </span>
-              </>
-            }
+            label={t('Stretch cluster')}
             isChecked={enableStretchCluster}
             isDisabled={isLocalClusterConfigured}
             onChange={(_event, checked) => setEnableStretchCluster(checked)}
