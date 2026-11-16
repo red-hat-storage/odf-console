@@ -16,6 +16,7 @@ import {
   getNextMirrorPeerProgressMilestone,
   isMirrorPeerReady,
 } from '@odf/mco/utils';
+import { getThrownMessage } from '@odf/mco/utils/error-message';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { getName } from '@odf/shared/selectors';
 import { RedExclamationCircleIcon } from '@odf/shared/status';
@@ -47,8 +48,7 @@ import '../create-dr-policy.scss';
 const PROGRESS_STEP_MS = 450;
 const SUCCESS_HOLD_MS = 1000;
 
-const getErrorMessage = (error: unknown): string =>
-  (error as Error)?.message || JSON.stringify(error);
+const getErrorMessage = (error: unknown): string => getThrownMessage(error);
 
 type ClusterPairingProgressProps = PairingSuccessProps & {
   mirrorPeerName: string;

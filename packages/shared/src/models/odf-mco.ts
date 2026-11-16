@@ -12,6 +12,18 @@ export const MirrorPeerModel: K8sModel = {
   namespaced: false,
 };
 
+export const S3ConfigurationModel: K8sModel = {
+  apiVersion: 'v1alpha1',
+  apiGroup: 'multicluster.odf.openshift.io',
+  kind: 'S3Configuration',
+  plural: 's3configurations',
+  label: 'S3 Configuration',
+  labelPlural: 'S3 Configurations',
+  crd: true,
+  abbr: 'S3C',
+  namespaced: false,
+};
+
 export const ProtectedApplicationViewModel: K8sModel = {
   apiVersion: 'v1alpha1',
   apiGroup: 'multicluster.odf.openshift.io',
