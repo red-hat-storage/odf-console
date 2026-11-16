@@ -2,11 +2,9 @@ import { WizardNodeState } from '@odf/core/components/create-storage-system/redu
 import { NodeData, ResourceProfile } from '@odf/core/types';
 import { OCS_PROVISIONERS } from '@odf/shared';
 import { NamespaceModel } from '@odf/shared/models';
-import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   DeviceSet,
   K8sResourceKind,
-  NetworkAttachmentDefinitionKind,
   NodeKind,
   ResourceConstraints,
   StorageClassResourceKind,
@@ -322,8 +320,7 @@ export const createDeviceSet = (
 export const getTNFSpecs = (
   scName: string,
   storage: string,
-  pvCount: number,
-  clusterNetwork?: NetworkAttachmentDefinitionKind | null
+  pvCount: number
 ) => ({
   flexibleScaling: true,
   managedResources: {
@@ -360,16 +357,6 @@ export const getTNFSpecs = (
       },
     },
   ],
-  ...(clusterNetwork
-    ? {
-        network: {
-          provider: 'multus',
-          selectors: {
-            cluster: `${getNamespace(clusterNetwork)}/${getName(clusterNetwork)}`,
-          },
-        } as unknown as StorageClusterKind['spec']['network'],
-      }
-    : {}),
 });
 
 export const getDeviceSetCount = (pvCount: number, replica: number): number =>
