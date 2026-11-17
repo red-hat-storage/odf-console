@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  DropzoneErrorCode,
   FileUpload,
   FormGroup,
   FormHelperText,
@@ -98,6 +99,7 @@ export const TextFileUpload: React.FC<TextFileUploadProps> = ({
         filename={file.fileName}
         filenamePlaceholder={t('Drag and drop a file or upload')}
         filenameAriaLabel={label}
+        aria-label={label}
         textAreaPlaceholder={textAreaPlaceholder}
         browseButtonText={t('Upload')}
         clearButtonText={t('Clear')}
@@ -107,7 +109,25 @@ export const TextFileUpload: React.FC<TextFileUploadProps> = ({
         dropzoneProps={{
           accept: { 'text/plain': extensions },
           maxSize: maxFileSize,
-          onDropRejected: (rejections) => acceptFile(rejections[0]?.file),
+          validator: (uploaded) =>
+            hasAllowedExtension(uploaded.name, extensions)
+              ? null
+              : {
+                  code: 'file-invalid-type',
+                  message: invalidFileMessage,
+                },
+          onDropRejected: (rejections) => {
+            const tooManyFiles = rejections.some((rejection) =>
+              rejection.errors.some(
+                (error) => error.code === DropzoneErrorCode.TooManyFiles
+              )
+            );
+            if (tooManyFiles) {
+              rejectFile(t('Select a single file.'));
+              return;
+            }
+            acceptFile(rejections[0]?.file);
+          },
         }}
         onFileInputChange={(_event, uploaded) => acceptFile(uploaded)}
         onDataChange={(_event, data) =>
