@@ -408,6 +408,13 @@ export type StorageClient = K8sResourceCommon & {
   spec?: {
     storageProviderEndpoint: string;
     onboardingTicket: string;
+    serverCAConfigMap?: {
+      name: string;
+      key: string;
+    };
+    clientCertSecret?: {
+      name: string;
+    };
   };
   status?: {
     phase?: StorageClientPhase;
