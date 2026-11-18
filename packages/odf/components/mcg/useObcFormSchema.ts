@@ -10,6 +10,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isClientPlugin } from '@odf/shared/utils';
 import validationRegEx from '@odf/shared/utils/validation';
 import * as Yup from 'yup';
+import { isReplicationNamespaceStoreMissing } from '../../utils';
 import { State } from './state';
 
 export type UseObcBaseSchema = {
@@ -71,14 +72,34 @@ const useObcFormSchema = (
         is: (value: string) => !!value && isNoobaa && !isClient,
         then: (schema: Yup.StringSchema) => schema.required(),
       }),
-    }).concat(obcNameSchema);
+    })
+      .concat(obcNameSchema)
+      .test(
+        'namespace-store-required',
+        'Namespace Store is a required field',
+        () =>
+          !isNoobaa ||
+          isClient ||
+          !isReplicationNamespaceStoreMissing(
+            !!state.replicationEnabled,
+            state.replicationRuleFormData ?? []
+          )
+      );
 
     return {
       obcFormSchema:
         obcFormSchema as unknown as UseObcBaseSchema['obcFormSchema'],
       fieldRequirements,
     };
-  }, [data, loadError, loaded, state.scProvisioner, t]);
+  }, [
+    data,
+    loadError,
+    loaded,
+    state.replicationEnabled,
+    state.replicationRuleFormData,
+    state.scProvisioner,
+    t,
+  ]);
 };
 
 export default useObcFormSchema;
