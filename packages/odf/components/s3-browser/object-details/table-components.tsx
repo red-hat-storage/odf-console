@@ -40,6 +40,7 @@ export const ObjectVersionsTableRow: React.FC<
     refreshTokens,
     closeObjectSidebar,
     blockDataPath = false,
+    isObjectLockEnabled = false,
   } = extraProps;
 
   const [downloadAndPreview, setDownloadAndPreview] =
@@ -50,6 +51,7 @@ export const ObjectVersionsTableRow: React.FC<
 
   const isLatest = object?.isLatest;
   const isDeleteMarker = object?.isDeleteMarker;
+
   const columnNames = getColumnNames(t);
   const actionItems = getInlineActionsItems(
     t,
@@ -64,8 +66,9 @@ export const ObjectVersionsTableRow: React.FC<
     refreshTokens,
     closeObjectSidebar,
     true,
-    undefined,
-    blockDataPath
+    true,
+    blockDataPath,
+    isObjectLockEnabled
   );
 
   return (

@@ -18,6 +18,8 @@ import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
 import { getBucketOverviewBaseRoute, PREFIX } from '../../../constants';
 import { SetObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
 import { LazyDeleteObjectsModal } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
+import { LegalHoldModalProps } from '../../../modals/s3-browser/legal-hold/LegalHoldModal';
+import { SetObjectRetentionModalProps } from '../../../modals/s3-browser/set-object-lock-and-retention/SetObjectRetentionModal';
 import { ObjectCrFormat, S3ProviderType } from '../../../types';
 import {
   getEncodedPrefix,
@@ -33,6 +35,15 @@ import {
 
 const LazyPresignedURLModal = React.lazy(
   () => import('../../../modals/s3-browser/presigned-url/PresignedURLModal')
+);
+
+const LazySetObjectRetentionModal = React.lazy(
+  () =>
+    import('../../../modals/s3-browser/set-object-lock-and-retention/SetObjectRetentionModal')
+);
+
+const LazyLegalHoldModal = React.lazy(
+  () => import('../../../modals/s3-browser/legal-hold/LegalHoldModal')
 );
 
 const getColumnNames = (t: TFunction): string[] => [
@@ -71,7 +82,8 @@ export const getInlineActionsItems = (
   closeObjectSidebar: () => void,
   showVersioning: boolean,
   isVersioningEnabledOrSuspended: boolean,
-  blockDataPath = false
+  blockDataPath = false,
+  isObjectLockEnabled = false
 ): IAction[] => {
   const isDeleteMarker = object?.isDeleteMarker;
   // Deep Archive objects must be restored before their data can be read, so
@@ -80,6 +92,7 @@ export const getInlineActionsItems = (
   // will be introduced in a later release.
   const needsRestore =
     isObjectDeepArchived(object) && !isObjectRestored(object);
+
   return [
     ...(!isDeleteMarker
       ? [
@@ -141,6 +154,46 @@ export const getInlineActionsItems = (
                 extraProps: { bucketName, object, s3Client, showVersioning },
               }),
             isDisabled: blockDataPath || isDeleteMarker || needsRestore,
+          },
+        ]
+      : []),
+    ...(!isDeleteMarker && isObjectLockEnabled
+      ? [
+          {
+            title: t('Object locking'),
+            isDisabled: true,
+          },
+          {
+            title: t('Set Retention'),
+            description: t(
+              'Set a retention mode and period to protect this object from deletion or overwrite.'
+            ),
+            onClick: () =>
+              launcher(LazySetObjectRetentionModal, {
+                isOpen: true,
+                extraProps: {
+                  bucketName,
+                  object,
+                  s3Client,
+                  showVersioning,
+                } as SetObjectRetentionModalProps,
+              }),
+          },
+          {
+            title: t('Legal hold'),
+            description: t(
+              'Legal hold prevents an object version from being overwritten or deleted until explicitly removed.'
+            ),
+            onClick: () =>
+              launcher(LazyLegalHoldModal, {
+                isOpen: true,
+                extraProps: {
+                  bucketName,
+                  object,
+                  s3Client,
+                  showVersioning,
+                } as LegalHoldModalProps,
+              }),
           },
         ]
       : []),
@@ -235,6 +288,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     showVersioning,
     isVersioningEnabledOrSuspended,
     blockDataPath,
+    isObjectLockEnabled = false,
   } = extraProps;
   const isFolder = object.isFolder;
   const name = replacePathFromName(object, foldersPath);
@@ -245,7 +299,6 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
 
   const columnNames = getColumnNames(t);
   const versioningColumnName = getVersioningColumnName(t);
-
   const actionItems = getInlineActionsItems(
     t,
     launcher,
@@ -260,7 +313,8 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     closeObjectSidebar,
     showVersioning,
     isVersioningEnabledOrSuspended,
-    blockDataPath
+    blockDataPath,
+    isObjectLockEnabled
   );
   actionItemsRef.current = actionItems;
 

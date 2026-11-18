@@ -4,9 +4,16 @@ import { OBDetails as ObjectBucketDetails } from '@odf/core/components/mcg/Objec
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import {
   BUCKET_ACL_CACHE_KEY_SUFFIX,
+  BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX,
   BUCKET_TAGGING_CACHE_KEY_SUFFIX,
   BUCKET_VERSIONING_CACHE_KEY_SUFFIX,
 } from '@odf/core/constants';
+import SetDefaultRetentionModal, {
+  SetDefaultRetentionModalProps,
+} from '@odf/core/modals/s3-browser/set-object-lock-and-retention/SetDefaultRetentionModal';
+import SetObjectLockModal, {
+  SetObjectLockModalModalProps,
+} from '@odf/core/modals/s3-browser/set-object-lock-and-retention/SetObjectLockModal';
 import SetVersioningModal, {
   SetVersioningModalModalProps,
 } from '@odf/core/modals/s3-browser/set-versioning/SetVersioningModal';
@@ -16,12 +23,22 @@ import { SectionHeading } from '@odf/shared/heading/page-heading';
 import {
   getVersioningStatus,
   getIsVersioningEnabled,
+  getIsObjectLockEnabled,
+  getDefaultRetention,
+  getRetentionModalLabel,
+  RetentionPeriodUnit,
 } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
 import {
+  Alert,
+  AlertVariant,
+  Button,
+  ButtonVariant,
+  Flex,
+  FlexItem,
   Label,
   LabelGroup,
   Level,
@@ -100,11 +117,37 @@ const S3BucketProperties: React.FC<{}> = ({}) => {
     () => s3Client.getBucketVersioning(input)
   );
 
+  const { data: objectLockData, mutate: objectLockMutate } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX}`,
+    () => s3Client.getObjectLockConfiguration(input)
+  );
+
   const [isVersioningChecked, setIsVersioningChecked] =
+    React.useState<boolean>(false);
+  const [isObjectLockChecked, setIsObjectLockChecked] =
+    React.useState<boolean>(false);
+  const [isDefaultRetentionChecked, setIsDefaultRetentionChecked] =
     React.useState<boolean>(false);
 
   const versioningStatus = getVersioningStatus(versioningData, t);
   const isVersioningEnabled = getIsVersioningEnabled(versioningData);
+  const isObjectLockEnabled = getIsObjectLockEnabled(objectLockData);
+  const objectLockStatus = isObjectLockEnabled ? t('Enabled') : t('Disabled');
+
+  const defaultRetention = getDefaultRetention(objectLockData);
+  const isDefaultRetentionEnabled = !!defaultRetention;
+  const defaultRetentionStatus = isDefaultRetentionEnabled
+    ? t('Enabled')
+    : t('Disabled');
+  const retentionMode = defaultRetention?.Mode;
+  const retentionModeLabel = getRetentionModalLabel(retentionMode, t);
+  const retentionPeriod = defaultRetention?.Days ?? defaultRetention?.Years;
+  const retentionPeriodUnit = defaultRetention?.Days
+    ? RetentionPeriodUnit.DAYS
+    : RetentionPeriodUnit.YEARS;
+  const retentionPeriodUnitLabel = defaultRetention?.Days
+    ? t('days')
+    : t('years');
 
   const launcher = useModalWrapper();
 
@@ -113,9 +156,32 @@ const S3BucketProperties: React.FC<{}> = ({}) => {
     [isVersioningEnabled, setIsVersioningChecked]
   );
 
+  React.useEffect(
+    () => setIsObjectLockChecked(isObjectLockEnabled),
+    [isObjectLockEnabled, setIsObjectLockChecked]
+  );
+
+  React.useEffect(
+    () => setIsDefaultRetentionChecked(isDefaultRetentionEnabled),
+    [isDefaultRetentionEnabled, setIsDefaultRetentionChecked]
+  );
+
   return (
     <div className="odf-m-pane__body">
       <SectionHeading text={t('Bucket properties')} />
+      {isObjectLockEnabled && (
+        <div className="pf-v6-u-mb-lg">
+          <Alert
+            variant={AlertVariant.info}
+            isInline
+            title={t(
+              'Bucket versioning cannot be suspended as object lock is already enabled for this bucket'
+            )}
+            className="odf-alert pf-v6-u-mb-xs pf-v6-u-pl-md"
+          />
+        </div>
+      )}
+      <br />
       <Level>
         <LevelItem>
           <Content>
@@ -132,6 +198,7 @@ const S3BucketProperties: React.FC<{}> = ({}) => {
             id="versioning-switch"
             label={versioningStatus}
             isChecked={isVersioningChecked}
+            isDisabled={isObjectLockEnabled}
             onChange={(_event, checked) =>
               launcher(SetVersioningModal, {
                 extraProps: {
@@ -146,6 +213,116 @@ const S3BucketProperties: React.FC<{}> = ({}) => {
           />
         </LevelItem>
       </Level>
+      <br />
+      <Level>
+        <LevelItem>
+          <Content>
+            <Content component={ContentVariants.h4}>{t('Object Lock')}</Content>
+            <Content component={ContentVariants.small}>
+              {t(
+                'Prevents objects in a bucket from being deleted or overwritten for a specified retention period, ensuring data immutability and compliance.'
+              )}
+              <br />
+              {t('Object lock works only in versioned buckets.')}
+            </Content>
+          </Content>
+        </LevelItem>
+        <LevelItem>
+          <Switch
+            id="object-lock-switch"
+            label={objectLockStatus}
+            isChecked={isObjectLockChecked}
+            isDisabled={isObjectLockEnabled}
+            onChange={() =>
+              launcher(SetObjectLockModal, {
+                extraProps: {
+                  mutate: objectLockMutate,
+                  versioningMutate,
+                  s3Client,
+                  bucketName,
+                  isVersioningEnabled,
+                } as SetObjectLockModalModalProps,
+                isOpen: true,
+              })
+            }
+          />
+        </LevelItem>
+      </Level>
+      {isObjectLockEnabled && (
+        <div className="pf-v6-u-ml-lg pf-v6-u-mt-lg">
+          <Level>
+            <LevelItem>
+              <Content>
+                <Content component={ContentVariants.h4}>
+                  {t('Default Retention')}
+                </Content>
+                <Content component={ContentVariants.small}>
+                  {t(
+                    'Ensure that every new object added to this bucket is automatically protected against deletion and overwrite operation'
+                  )}
+                </Content>
+              </Content>
+            </LevelItem>
+            <LevelItem>
+              <Switch
+                id="default-retention-switch"
+                label={defaultRetentionStatus}
+                isChecked={isDefaultRetentionChecked}
+                onChange={(_event, checked) =>
+                  launcher(SetDefaultRetentionModal, {
+                    extraProps: {
+                      bucketName,
+                      s3Client,
+                      mutate: objectLockMutate,
+                      enableDefaultRetention: checked,
+                      onConfirm: () => setIsDefaultRetentionChecked(checked),
+                    } as SetDefaultRetentionModalProps,
+                    isOpen: true,
+                  })
+                }
+              />
+            </LevelItem>
+          </Level>
+          {defaultRetention && (
+            <Flex
+              alignItems={{ default: 'alignItemsCenter' }}
+              className="pf-v6-u-mt-sm"
+            >
+              <FlexItem>
+                <Content component={ContentVariants.small}>
+                  {t('{{mode}} mode expires in {{period}} {{unit}}.', {
+                    mode: retentionModeLabel,
+                    period: retentionPeriod,
+                    unit: retentionPeriodUnitLabel,
+                  })}
+                </Content>
+              </FlexItem>
+              <FlexItem>
+                <Button
+                  variant={ButtonVariant.link}
+                  isInline
+                  onClick={() =>
+                    launcher(SetDefaultRetentionModal, {
+                      extraProps: {
+                        bucketName,
+                        s3Client,
+                        mutate: objectLockMutate,
+                        onConfirm: () => setIsDefaultRetentionChecked(true),
+                        currentRetentionMode: retentionMode,
+                        currentRetentionPeriod: retentionPeriod,
+                        currentRetentionPeriodUnit: retentionPeriodUnit,
+                      } as SetDefaultRetentionModalProps,
+                      isOpen: true,
+                    })
+                  }
+                >
+                  {t('Edit')}
+                </Button>
+              </FlexItem>
+            </Flex>
+          )}
+        </div>
+      )}
     </div>
   );
 };
