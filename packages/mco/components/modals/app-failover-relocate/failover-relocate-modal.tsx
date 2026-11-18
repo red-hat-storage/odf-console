@@ -1,10 +1,8 @@
 import * as React from 'react';
-import { DRPlacementControlModel } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
-import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import {
@@ -15,6 +13,7 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../constants';
+import { patchDRPCWithStartGate } from '../../../utils';
 import {
   ApplicationProps,
   PlacementControlProps,
@@ -59,40 +58,25 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
 
   const onClick = () => {
     setFooterStatus(ModalFooterStatus.INPROGRESS);
+    setErrorMessage('');
     // Preferred cluster and failover cluster should not be the same for failover and relocate.
-    const patch = [
+    // Fresh GET + busy gate + generation test: modal snapshot can be frozen at open.
+    patchDRPCWithStartGate(
       {
-        op: 'replace',
-        path: '/spec/action',
-        value: action,
-      },
-      {
-        op: 'replace',
-        path: '/spec/failoverCluster',
-        value:
+        name: placementControl?.drPlacementControlName,
+        namespace: applicationNamespace,
+        action,
+        failoverCluster:
           action === DRActionType.FAILOVER
             ? placementControl?.targetClusterName
             : placementControl?.primaryClusterName,
-      },
-      {
-        op: 'replace',
-        path: '/spec/preferredCluster',
-        value:
+        preferredCluster:
           action === DRActionType.FAILOVER
             ? placementControl?.primaryClusterName
             : placementControl?.targetClusterName,
       },
-    ];
-    k8sPatch({
-      model: DRPlacementControlModel,
-      resource: {
-        metadata: {
-          name: placementControl?.drPlacementControlName,
-          namespace: applicationNamespace,
-        },
-      },
-      data: patch,
-    })
+      t
+    )
       .then(() => {
         close();
       })

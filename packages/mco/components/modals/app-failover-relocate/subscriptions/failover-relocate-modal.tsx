@@ -1,12 +1,9 @@
 import * as React from 'react';
-import { DRPlacementControlModel } from '@odf/shared';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
-import { getName } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
-import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
-import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import {
@@ -17,6 +14,7 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../../constants';
+import { patchDRPCWithStartGate } from '../../../../utils';
 import {
   FailoverRelocateModalBody,
   findErrorMessage,
@@ -114,50 +112,36 @@ export const SubscriptionFailoverRelocateModal: React.FC<
 
   const onClick = () => {
     updateModalStatus(ModalFooterStatus.INPROGRESS);
-    const promises: Promise<K8sResourceKind>[] = [];
     const targetClusterName =
       state.selectedTargetCluster.clusterInfo.clusterName;
     const primaryClusterName = state.selectedDRPolicy.drClusters.find(
       (drCluster) => drCluster !== targetClusterName
     );
-    state.drPolicyControlState.forEach((acmToDRState) => {
-      if (
+    const promises = state.drPolicyControlState
+      .filter((acmToDRState) =>
         state.selectedSubsGroups.includes(
           getName(acmToDRState?.drPlacementControl)
         )
-      ) {
-        const patch = [
+      )
+      .map((acmToDRState) => {
+        const drpc = acmToDRState?.drPlacementControl;
+        return patchDRPCWithStartGate(
           {
-            op: 'replace',
-            path: '/spec/action',
-            value: action,
-          },
-          {
-            op: 'replace',
-            path: '/spec/failoverCluster',
-            value:
+            name: getName(drpc),
+            namespace: getNamespace(drpc),
+            action,
+            failoverCluster:
               action === DRActionType.FAILOVER
                 ? targetClusterName
                 : primaryClusterName,
-          },
-          {
-            op: 'replace',
-            path: '/spec/preferredCluster',
-            value:
+            preferredCluster:
               action === DRActionType.FAILOVER
                 ? primaryClusterName
                 : targetClusterName,
           },
-        ];
-        promises.push(
-          k8sPatch({
-            model: DRPlacementControlModel,
-            resource: acmToDRState?.drPlacementControl,
-            data: patch,
-          })
+          t
         );
-      }
-    });
+      });
     Promise.all(promises)
       .then(() => {
         updateModalStatus(ModalFooterStatus.FINISHED);
