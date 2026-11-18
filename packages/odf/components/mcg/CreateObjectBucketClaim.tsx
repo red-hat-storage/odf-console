@@ -1,13 +1,19 @@
 import * as React from 'react';
 import { BucketType, NOOBAA_DEFAULT_BUCKET_CLASS } from '@odf/core/constants';
 import { projectResource } from '@odf/core/resources';
-import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
+import {
+  BucketClassKind,
+  BucketClassType,
+  ObjectBucketClaimKind,
+} from '@odf/core/types';
 import {
   createNewObjectBucketClaim,
   createNewSingleNamespaceBucketClass,
   generateGenericName,
+  getBucketClassType,
   getBucketClassTypeDisplayText,
   getStorageClassDescription,
+  isReplicationNamespaceStoreMissing,
 } from '@odf/core/utils';
 import {
   NooBaaObjectBucketClaimModel,
@@ -28,9 +34,10 @@ import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
+  ALL_NAMESPACES_KEY,
+  getValidWatchK8sResourceObj,
   isClientPlugin,
   referenceForModel,
-  ALL_NAMESPACES_KEY,
 } from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
@@ -39,6 +46,7 @@ import {
   K8sResourceCommon,
   NamespaceBar,
   useActiveNamespace,
+  useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Tile } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
@@ -115,16 +123,12 @@ const createReplicationRulesAndStringify = (
     sync_deletions: rule.syncDeletion,
   }));
 
-  const obcLogReplicationInfo: OBCLogReplicationInfo = !_.isEmpty(
-    logReplicationInfo
-  )
-    ? {
-        logs_location: {
-          logs_bucket: logReplicationInfo.logLocation,
-          prefix: logReplicationInfo.logPrefix,
-        },
-      }
-    : { logs_location: { logs_bucket: null, prefix: null } };
+  const obcLogReplicationInfo: OBCLogReplicationInfo = {
+    logs_location: {
+      logs_bucket: logReplicationInfo?.logLocation || null,
+      prefix: logReplicationInfo?.logPrefix || null,
+    },
+  };
 
   return rules
     ? JSON.stringify({ rules: [...rules], obcLogReplicationInfo })
@@ -191,31 +195,42 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     dispatch({ type: 'setProvisioner', name: sc?.provisioner });
   };
 
-  const [replicationEnabled, toggleReplication] = React.useState(false);
+  const [bucketClasses, bucketClassesLoaded] = useK8sWatchResource<
+    BucketClassKind[]
+  >(
+    getValidWatchK8sResourceObj(
+      bucketClassResource(odfNamespace),
+      allowBucketClass && !!odfNamespace
+    )
+  );
+  const selectedBucketClass = bucketClasses?.find(
+    (bucketClass) => getName(bucketClass) === state.bucketClass
+  );
+  const eventLogsSupported =
+    !!selectedBucketClass &&
+    getBucketClassType(selectedBucketClass) === BucketClassType.NAMESPACE;
   const [s3VectorSubpath, setS3VectorSubpath] = React.useState('');
 
   const updateReplicationPolicy = (
     rules: Rule[],
     logReplicationInfo?: LogReplicationInfo
   ) => {
-    let rulesFormData: Array<ReplicationRuleFormData> = [];
-    rules.forEach((rule) => {
-      if (rule.namespaceStore)
-        rulesFormData.push({
-          ruleNumber: rule.id,
-          namespaceStore: rule.namespaceStore,
-          prefix: rule.prefix,
-          syncDeletion: rule.syncDeletion,
-        });
-    });
+    const rulesFormData: Array<ReplicationRuleFormData> = rules.map((rule) => ({
+      ruleNumber: rule.id,
+      namespaceStore: rule.namespaceStore,
+      prefix: rule.prefix,
+      syncDeletion: rule.syncDeletion,
+    }));
     dispatch({ type: 'setReplicationRuleFormData', data: rulesFormData });
-    if (
-      !_.isEmpty(logReplicationInfo) ||
-      !rules.some((rule) => rule.syncDeletion)
-    ) {
+    // Rule edits omit log info. Only replace it when this update includes it,
+    // otherwise a Namespace Store change stores {} and the request sends null.
+    if (!_.isEmpty(logReplicationInfo)) {
       dispatch({
         type: 'setLogReplicationInfo',
-        data: { ...logReplicationInfo },
+        data: {
+          logLocation: logReplicationInfo.logLocation || '',
+          logPrefix: logReplicationInfo.logPrefix || '',
+        },
       });
     }
   };
@@ -239,13 +254,21 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       obj.metadata.generateName = 'bucketclaim-';
       obj.spec.generateBucketName = 'bucket-';
     }
+    const completeReplicationRules = state.replicationRuleFormData.filter(
+      (rule) => !!rule.namespaceStore
+    );
+    const replicationRulesValid = !isReplicationNamespaceStoreMissing(
+      state.replicationEnabled,
+      state.replicationRuleFormData
+    );
     if (state.bucketClass && allowBucketClass) {
       if (
         bucketType !== BucketType.S3Vector &&
-        !!state.replicationRuleFormData.length
+        state.replicationEnabled &&
+        replicationRulesValid
       ) {
         const replicationPolicy = createReplicationRulesAndStringify(
-          state.replicationRuleFormData,
+          completeReplicationRules,
           namespace,
           state.logReplicationInfo
         );
@@ -268,6 +291,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     state.scName,
     state.bucketClass,
     dispatch,
+    state.replicationEnabled,
     state.replicationRuleFormData,
     state.logReplicationInfo,
     bucketType,
@@ -275,14 +299,20 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   ]);
 
   const onChangeReplication = React.useCallback(() => {
-    // if this checkbox is disabled, then on this point we purge the contents of replication form data
-    if (replicationEnabled)
+    if (state.replicationEnabled) {
+      dispatch({ type: 'setReplicationEnabled', enabled: false });
       dispatch({
         type: 'setReplicationRuleFormData',
         data: [],
       });
-    toggleReplication(!replicationEnabled);
-  }, [replicationEnabled, dispatch]);
+      dispatch({
+        type: 'setLogReplicationInfo',
+        data: { logLocation: '', logPrefix: '' },
+      });
+    } else {
+      dispatch({ type: 'setReplicationEnabled', enabled: true });
+    }
+  }, [state.replicationEnabled, dispatch]);
 
   const filterResource = React.useCallback(
     (sc: StorageClassResourceKind) => {
@@ -383,11 +413,21 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             <ResourceDropdown<K8sResourceKind>
               key={bucketType}
               onSelect={(sc) => {
-                onChange(getName(sc));
+                const bucketClassName = getName(sc);
+                const supportsEventLogs =
+                  getBucketClassType(sc as BucketClassKind) ===
+                  BucketClassType.NAMESPACE;
+                onChange(bucketClassName);
                 dispatch({
                   type: 'setBucketClass',
-                  name: getName(sc),
+                  name: bucketClassName,
                 });
+                if (!supportsEventLogs) {
+                  dispatch({
+                    type: 'setLogReplicationInfo',
+                    data: { logLocation: '', logPrefix: '' },
+                  });
+                }
               }}
               onBlur={onBlur}
               className="odf-mcg__resource-dropdown"
@@ -413,14 +453,14 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             <Checkbox
               id="enable-replication"
               label={t('Enable replication')}
-              isChecked={replicationEnabled}
+              isChecked={state.replicationEnabled}
               description={t(
                 'This option provides higher resiliency of objects stored in NooBaa buckets'
               )}
               onChange={onChangeReplication}
             />
           </FormGroup>
-          {replicationEnabled && (
+          {state.replicationEnabled && bucketClassesLoaded && (
             <>
               <FormGroup>
                 <Content component={ContentVariants.h2}>
@@ -431,6 +471,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
                 className="form-group"
                 namespace={namespace}
                 updateParentState={updateReplicationPolicy}
+                eventLogsSupported={eventLogsSupported}
               />
             </>
           )}
@@ -543,7 +584,8 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
     const promises: Promise<K8sResourceKind>[] = [];
     if (
       selectedBucketType !== BucketType.S3Vector &&
-      !!state.replicationRuleFormData.length
+      state.replicationEnabled &&
+      state.replicationRuleFormData.length > 0
     ) {
       const additionalResources = generateAdditionalReplicationResources(
         state,

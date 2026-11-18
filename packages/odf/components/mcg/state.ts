@@ -22,6 +22,7 @@ export type State = {
   error: string;
   payload: K8sResourceKind;
   bucketClass: string;
+  replicationEnabled: boolean;
   replicationRuleFormData: ReplicationRuleFormData[];
   logReplicationInfo: LogReplicationInfo;
 };
@@ -35,8 +36,8 @@ export type ReplicationPolicy = {
 // https://github.com/MeridianExplorer/noobaa-core/blob/log-replication-bg-worker/src/api/bucket_api.js#L1401
 export type OBCLogReplicationInfo = {
   logs_location: {
-    logs_bucket: string;
-    prefix: string;
+    logs_bucket: string | null;
+    prefix: string | null;
   };
 };
 // This is the actual format of replication rules in an OBC CRD
@@ -68,6 +69,7 @@ export const defaultState = {
   sizeUnit: 'GiB',
   sizeValue: '',
   bucketClass: '',
+  replicationEnabled: false,
   replicationRuleFormData: [],
   logReplicationInfo: { logLocation: '', logPrefix: '' },
 };
@@ -89,6 +91,7 @@ export type Action =
   | { type: 'setPayload'; payload: {} }
   | { type: 'setSize'; unit: string; value: string }
   | { type: 'setBucketClass'; name: string }
+  | { type: 'setReplicationEnabled'; enabled: boolean }
   | {
       type: 'setReplicationRuleFormData';
       data: Array<ReplicationRuleFormData>;
@@ -123,6 +126,8 @@ export const commonReducer = (state: State, action: Action) => {
       return Object.assign({}, state, { payload: action.payload });
     case 'setBucketClass':
       return Object.assign({}, state, { bucketClass: action.name });
+    case 'setReplicationEnabled':
+      return Object.assign({}, state, { replicationEnabled: action.enabled });
     case 'setReplicationRuleFormData':
       return Object.assign({}, state, { replicationRuleFormData: action.data });
     case 'setLogReplicationInfo':

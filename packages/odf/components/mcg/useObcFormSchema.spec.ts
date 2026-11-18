@@ -154,6 +154,25 @@ describe('useObcFormSchema tests', () => {
     expect(spy).toHaveBeenCalled();
   });
 
+  it('should return error "Namespace Store is a required field"', async () => {
+    const obcName = 'valid-name';
+    const expected = 'Namespace Store is a required field';
+    const { result } = renderHook(() =>
+      useObcFormSchema(defaultNs, {
+        scProvisioner: NOOBAA_PROVISIONER,
+        replicationEnabled: true,
+        replicationRuleFormData: [],
+      } as State)
+    );
+    await expect(
+      result.current.obcFormSchema.validate({
+        obcName,
+        'sc-dropdown': defaultSc,
+        bucketclass: 'standard',
+      })
+    ).rejects.toThrow(expected);
+  });
+
   it('should return error "bucketclass is a required field"', async () => {
     const obcName = 'valid-name';
     const expected = 'bucketclass is a required field';
