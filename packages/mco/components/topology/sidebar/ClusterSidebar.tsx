@@ -62,6 +62,8 @@ export const ClusterSidebar: React.FC<ClusterSidebarProps> = ({ resource }) => {
       protectedApps.map((app) => ({
         name: app.name,
         namespace: app.namespace,
+        drpcName: app.drpcName,
+        drpcNamespace: app.drpcNamespace,
         status: app.status,
         drPolicy: app.drPolicy,
       })),

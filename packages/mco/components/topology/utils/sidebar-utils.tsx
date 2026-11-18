@@ -14,8 +14,8 @@ import {
   isUserActionRequired as isUserActionRequiredUtil,
 } from '../../../utils/dr-status';
 
-export const getAppLink = (name: string, namespace: string) => {
-  return `/k8s/ns/${namespace}/${referenceForModel(DRPlacementControlModel)}/${name}`;
+export const getAppLink = (drpcName: string, drpcNamespace: string) => {
+  return `/k8s/ns/${drpcNamespace}/${referenceForModel(DRPlacementControlModel)}/${drpcName}`;
 };
 
 /**
