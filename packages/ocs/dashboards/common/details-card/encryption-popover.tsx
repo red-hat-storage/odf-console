@@ -44,7 +44,7 @@ const getKmsTypeDescription = (encryptionKMSType: string, t: TFunction) => {
       provider = KmsProviderNames.HPCS;
       break;
     case KmsImplementations.KMIP:
-      provider = KmsProviderNames.THALES;
+      provider = 'KMIP';
       break;
     case KmsImplementations.AZURE:
       provider = KmsProviderNames.AZURE;

@@ -341,9 +341,7 @@ type UseSubscriptionResourceWatch = (
 
 type NamespaceWiseMapping = {
   [namespace in string]:
-    | ApplicationKind[]
-    | ACMSubscriptionKind[]
-    | ACMPlacementDecisionKind[];
+    ApplicationKind[] | ACMSubscriptionKind[] | ACMPlacementDecisionKind[];
 };
 
 type ACMPlacementMap = {

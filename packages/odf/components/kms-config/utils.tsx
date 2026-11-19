@@ -16,11 +16,12 @@ import {
   VaultConfigMap,
   HpcsConfigMap,
   ThalesConfigMap,
+  GklmConfigMap,
   ProviderNames,
   KmsImplementations,
   VaultConfig,
   HpcsConfig,
-  ThalesConfig,
+  KmipConfig,
   VaultAuthMethods,
   KmsCsiConfigKeysMapping,
   VaultAuthMethodMapping,
@@ -170,15 +171,16 @@ const generateConfigMapPatch = (
   };
 };
 
-const generateThalesSecret = (
-  kms: ThalesConfig,
+const generateKmipSecret = (
+  kms: KmipConfig,
   isCSISecret: boolean,
-  ns: string
+  ns: string,
+  isGklm: boolean
 ) => ({
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `thales-kmip-${isCSISecret ? 'csi' : 'ocs'}-${getRandomChars()}`,
+    name: `${isGklm ? 'gklm' : 'thales'}-kmip-${isCSISecret ? 'csi' : 'ocs'}-${getRandomChars()}`,
     namespace: ns,
   },
   stringData: {
@@ -399,23 +401,41 @@ const getCsiHpcsResources = (
   return csiKmsResources;
 };
 
-const getCsiThalesResources = (
-  kms: ThalesConfig,
+const generateKmipConfigMap = (
+  kms: KmipConfig,
+  secretName: string,
+  isGklm: boolean,
+  includeUseCryptoRpc: boolean
+): ThalesConfigMap | GklmConfigMap => {
+  const config: ThalesConfigMap = {
+    KMS_PROVIDER: KmsImplementations.KMIP,
+    KMS_SERVICE_NAME: kms.name.value,
+    KMIP_ENDPOINT: `${kms.address.value}:${kms.port.value}`,
+    KMIP_SECRET_NAME: secretName,
+    TLS_SERVER_NAME: kms.tls,
+  };
+  return isGklm && includeUseCryptoRpc
+    ? { ...config, USE_CRYPTO_RPC: 'false' }
+    : config;
+};
+
+const getCsiKmipResources = (
+  kms: KmipConfig,
   update: boolean,
-  ns: string
+  ns: string,
+  isGklm: boolean
 ) => {
   const csiKmsResources: Promise<K8sResourceKind>[] = [];
   const kmsName = kms.name.value;
-  const keySecret = generateThalesSecret(kms, true, ns);
+  const keySecret = generateKmipSecret(kms, true, ns, isGklm);
   csiKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
 
-  const csiConfigData: ThalesConfigMap = {
-    KMS_PROVIDER: KmsImplementations.KMIP,
-    KMS_SERVICE_NAME: kmsName,
-    KMIP_ENDPOINT: `${kms.address.value}:${kms.port.value}`,
-    KMIP_SECRET_NAME: getName(keySecret),
-    TLS_SERVER_NAME: kms.tls,
-  };
+  const csiConfigData = generateKmipConfigMap(
+    kms,
+    getName(keySecret),
+    isGklm,
+    true
+  );
   const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(
     kmsName,
     csiConfigData,
@@ -423,12 +443,11 @@ const getCsiThalesResources = (
     false
   );
   if (update) {
-    const cmPatch = [generateConfigMapPatch(kmsName, csiConfigData, false)];
     csiKmsResources.push(
       k8sPatch({
         model: ConfigMapModel,
         resource: csiConfigObj,
-        data: cmPatch,
+        data: [generateConfigMapPatch(kmsName, csiConfigData, false)],
       })
     );
   } else {
@@ -436,7 +455,6 @@ const getCsiThalesResources = (
       k8sCreate({ model: ConfigMapModel, data: csiConfigObj })
     );
   }
-
   return csiKmsResources;
 };
 
@@ -598,27 +616,23 @@ const getClusterHpcsResources = (
   return clusterKmsResources;
 };
 
-const getClusterThalesResources = (
-  kms: ThalesConfig,
-  ns: string
+const getClusterKmipResources = (
+  kms: KmipConfig,
+  ns: string,
+  isGklm: boolean
 ): Promise<K8sResourceKind>[] => {
   const clusterKmsResources: Promise<K8sResourceKind>[] = [];
-
-  const keySecret: SecretKind = generateThalesSecret(kms, false, ns);
+  const keySecret: SecretKind = generateKmipSecret(kms, false, ns, isGklm);
   clusterKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
-
-  const configData: ThalesConfigMap = {
-    KMS_PROVIDER: KmsImplementations.KMIP,
-    KMS_SERVICE_NAME: kms.name.value,
-    KMIP_ENDPOINT: `${kms.address.value}:${kms.port.value}`,
-    KMIP_SECRET_NAME: getName(keySecret),
-    TLS_SERVER_NAME: kms.tls,
-  };
-  const configMapObj: ConfigMapKind = generateOcsKmsConfigMap(configData, ns);
   clusterKmsResources.push(
-    k8sCreate({ model: ConfigMapModel, data: configMapObj })
+    k8sCreate({
+      model: ConfigMapModel,
+      data: generateOcsKmsConfigMap(
+        generateKmipConfigMap(kms, getName(keySecret), isGklm, false),
+        ns
+      ),
+    })
   );
-
   return clusterKmsResources;
 };
 
@@ -643,8 +657,14 @@ export const createCsiKmsResources = (
     case ProviderNames.HPCS: {
       return getCsiHpcsResources(kms as HpcsConfig, update, odfNamespace);
     }
-    case ProviderNames.THALES: {
-      return getCsiThalesResources(kms as ThalesConfig, update, odfNamespace);
+    case ProviderNames.THALES:
+    case ProviderNames.GKLM: {
+      return getCsiKmipResources(
+        kms as KmipConfig,
+        update,
+        odfNamespace,
+        provider === ProviderNames.GKLM
+      );
     }
     case ProviderNames.AZURE: {
       return getCsiAzureResources(kms as AzureConfig, update, odfNamespace);
@@ -692,13 +712,16 @@ export const createClusterKmsResources = (
 
       return [...clusterKmsResources, ...csiKmsResources];
     }
-    case ProviderNames.THALES: {
-      const clusterKmsResources = getClusterThalesResources(
-        kms as ThalesConfig,
-        storageClusterNs
+    case ProviderNames.THALES:
+    case ProviderNames.GKLM: {
+      const isGklm = provider === ProviderNames.GKLM;
+      const clusterKmsResources = getClusterKmipResources(
+        kms as KmipConfig,
+        storageClusterNs,
+        isGklm
       );
       const csiKmsResources = !isMCGStandalone
-        ? getCsiThalesResources(kms as ThalesConfig, false, odfNamespace)
+        ? getCsiKmipResources(kms as KmipConfig, false, odfNamespace, isGklm)
         : [];
       return [...clusterKmsResources, ...csiKmsResources];
     }
@@ -746,8 +769,9 @@ export const kmsConfigValidation = (
         kmsObj.baseUrl.value !== ''
       );
     }
-    case ProviderNames.THALES: {
-      const kmsObj = kms as ThalesConfig;
+    case ProviderNames.THALES:
+    case ProviderNames.GKLM: {
+      const kmsObj = kms as KmipConfig;
       return (
         kmsObj.name.valid &&
         kmsObj.address.valid &&

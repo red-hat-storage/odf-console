@@ -45,7 +45,7 @@ export const getDataResiliencyState: PrometheusHealthHandler = (
 export const getCephHealthChecks = (
   cephCluster: CephClusterKind
 ): CephHealthCheckType[] => {
-  const pattern = /[A-Z]+_*|error/g;
+  const pattern = /[A-Z]+_*|error/;
   const healthChecks: CephHealthCheckType[] = [];
   const cephDetails = cephCluster?.status?.ceph?.details;
   for (const key in cephDetails) {

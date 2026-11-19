@@ -9,13 +9,13 @@ import { Phase } from '@odf/mco/types';
 import {
   findCluster,
   getDRPolicyName,
-  getPrimaryClusterName,
+  resolvePrimaryClusterName,
   getReplicationHealth,
   getReplicationType,
   getProtectedCondition,
   getAvailableCondition,
 } from '@odf/mco/utils';
-import { getNamespace, ApplicationKind } from '@odf/shared';
+import { getName, getNamespace, ApplicationKind } from '@odf/shared';
 import { getSubscriptionResources } from '../../modals/app-manage-policies/parsers/subscription-parser';
 import { getDRResources } from '../../modals/app-manage-policies/utils/parser-utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
@@ -47,11 +47,15 @@ const parseDRStatusForGroup = (
   const drPolicyName = getDRPolicyName(drpc);
   const schedulingInterval = group.drInfo?.drPolicy?.spec?.schedulingInterval;
 
-  const primaryClusterName = getPrimaryClusterName(drpc);
   const drClusters = group.drInfo?.drClusters;
   if (!drClusters) {
     return null;
   }
+
+  const primaryClusterName = resolvePrimaryClusterName(
+    drpc,
+    drClusters.map(getName)
+  );
   const targetCluster = findCluster(drClusters, primaryClusterName);
 
   const lastGroupSyncTime: string = drpc?.status?.lastGroupSyncTime;

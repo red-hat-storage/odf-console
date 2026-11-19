@@ -17,8 +17,8 @@ export enum DiskType {
 }
 
 export enum DiskMechanicalProperties {
-  'NonRotational' = 'NonRotational',
-  'Rotational' = 'Rotational',
+  NonRotational = 'NonRotational',
+  Rotational = 'Rotational',
 }
 
 export enum DiskStates {

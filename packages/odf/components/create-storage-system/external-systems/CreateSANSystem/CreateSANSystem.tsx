@@ -174,8 +174,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
       if (!isLocalClusterConfigured) {
         await labelNodes(componentState.selectedNodes, true)();
         const buildExternalKmmRegistry = ():
-          | ExternalKMMRegistryConfig
-          | undefined => {
+          ExternalKMMRegistryConfig | undefined => {
           const config: ExternalKMMRegistryConfig = {
             secretKey: values.secretKey || '',
           };

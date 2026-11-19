@@ -22,6 +22,7 @@ import {
   StatusBox,
   StorageAutoScalerKind,
   StorageClassResourceKind,
+  useToastWrapper,
 } from '@odf/shared';
 import { dateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { LoadingInline } from '@odf/shared/generic/Loading';
@@ -67,8 +68,7 @@ const CapacityAutoscalingCurrentStatus: React.FC<
   const { t } = useCustomTranslation();
 
   let StatusIcon:
-    | React.ComponentClass<SVGIconProps>
-    | React.FC<ColoredIconProps>;
+    React.ComponentClass<SVGIconProps> | React.FC<ColoredIconProps>;
   let statusText: string;
   switch (currentStatus) {
     case CapacityAutoscalingStatus.NotStarted:
@@ -157,6 +157,8 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
   const noProvisionerSCNames = storageClasses
     ?.filter((sc) => sc.provisioner === NO_PROVISIONER)
     .map((sc) => getName(sc));
+
+  const addToast = useToastWrapper();
 
   const isLoaded = storageAutoScalerLoaded && scLoaded;
   const isLoadError = storageAutoScalerLoadError || scLoadError;
@@ -269,6 +271,31 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
 
       setInProgress(false);
       closeModal();
+      if (!enable && alreadyEnabled) {
+        addToast({
+          title: t('Automatic capacity scaling is disabled'),
+          variant: AlertVariant.info,
+          content: '',
+          dismissible: true,
+          timeout: true,
+        });
+      } else if (enable && !alreadyEnabled) {
+        addToast({
+          title: t('Automatic capacity scaling is enabled'),
+          variant: AlertVariant.info,
+          content: '',
+          dismissible: true,
+          timeout: true,
+        });
+      } else if (enable && alreadyEnabled) {
+        addToast({
+          title: t('Automatic capacity scaling limit updated'),
+          variant: AlertVariant.info,
+          content: '',
+          dismissible: true,
+          timeout: true,
+        });
+      }
     } catch (error) {
       setError(error);
       setInProgress(false);

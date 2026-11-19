@@ -221,6 +221,9 @@ describe('ApplicationSet manage disaster recovery modal', () => {
         isOpen={true}
       />
     );
+    expect(
+      screen.getByText('Replication without consistency groups is deprecated')
+    ).toBeInTheDocument();
     // Ensure empty state
     expect(
       screen.getByText('No assigned disaster recovery policy found')
@@ -249,6 +252,9 @@ describe('ApplicationSet manage disaster recovery modal', () => {
 
     // Modal headers
     expect(screen.getByText('Manage disaster recovery')).toBeInTheDocument();
+    expect(
+      screen.getByText('Replication without consistency groups is deprecated')
+    ).toBeInTheDocument();
 
     // DR information
     expect(

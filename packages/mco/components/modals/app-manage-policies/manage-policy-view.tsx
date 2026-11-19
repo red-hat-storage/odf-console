@@ -4,12 +4,13 @@ import { getDRPolicyStatus, parseSyncInterval } from '@odf/mco/utils';
 import { formatTime, getLatestDate } from '@odf/shared/details-page/datetime';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { StatusBox } from '@odf/shared/generic/status-box';
+import { DOC_VERSION } from '@odf/shared/hooks/use-doc-version';
 import { Labels } from '@odf/shared/labels';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { getAnnotations, getName } from '@odf/shared/selectors';
 import { BlueInfoCircleIcon } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getErrorMessage } from '@odf/shared/utils';
+import { ExternalLink, getErrorMessage } from '@odf/shared/utils';
 import {
   GreenCheckCircleIcon,
   StatusIconAndText,
@@ -40,6 +41,7 @@ import {
   ReplicationType,
   SYNC_SCHEDULE_DISPLAY_TEXT,
   VM_RECIPE_NAME,
+  volumeGroupReplicationDoc,
 } from '../../../constants';
 import { getDRPlacementControlResourceObj } from '../../../hooks';
 import { unAssignPromises } from './utils/k8s-utils';
@@ -210,6 +212,29 @@ const getMessage = (t: TFunction<string>, errorMessage?: string) => ({
   },
 });
 
+const NonConsistencyGroupDeprecationAlert: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <Alert
+      variant={AlertVariant.warning}
+      isInline
+      title={t('Replication without consistency groups is deprecated')}
+      data-test="non-cg-dr-deprecation-warning"
+      className="pf-v6-u-mb-md"
+    >
+      {t(
+        'Support for replicating each volume on its own will be removed in a future release. Applications with volume group replication enabled are not affected.'
+      )}
+      <div className="pf-v6-u-mt-sm">
+        <ExternalLink href={volumeGroupReplicationDoc(DOC_VERSION)}>
+          {t('Learn about volume group replication')}
+        </ExternalLink>
+      </div>
+    </Alert>
+  );
+};
+
 const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
   eligiblePolicies,
   workloadNamespace,
@@ -249,6 +274,7 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
 
   return allLoaded && !anyLoadError ? (
     <>
+      <NonConsistencyGroupDeprecationAlert />
       {appType === DRApplication.SUBSCRIPTION && (
         <Alert
           variant={AlertVariant.warning}
@@ -532,6 +558,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   return (
     <>
       <ModalBody>
+        <NonConsistencyGroupDeprecationAlert />
         <DRInformation
           dataPolicyInfo={drInfo}
           hideEditAction={

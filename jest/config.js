@@ -15,6 +15,10 @@ const config = {
   roots: ['<rootDir>/packages/'],
   setupFilesAfterEnv: ['<rootDir>/jest/setup.ts'],
   testEnvironment: 'jsdom',
+  // Prefer Node CJS builds of dual-package deps (e.g. @aws-sdk) over browser ESM.
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'require', 'default'],
+  },
   transform: {
     '\\.[jt]sx?$': '@swc/jest',
     '\\.[m]js?$': '@swc/jest',

@@ -4,12 +4,14 @@ import { pluralize } from '@odf/core/components/utils';
 import { FieldLevelHelp } from '@odf/shared';
 import { useModalWrapper } from '@odf/shared';
 import { S3Commands } from '@odf/shared/s3';
+import { getIsObjectLockEnabled } from '@odf/shared/s3/utils';
 import { SelectableTable } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { useParams, useSearchParams, useNavigate } from 'react-router';
+import useSWR from 'swr';
 import {
   Button,
   ButtonVariant,
@@ -28,7 +30,11 @@ import {
   IAction,
   CustomActionsToggleProps,
 } from '@patternfly/react-table';
-import { PREFIX, SEARCH } from '../../../constants';
+import {
+  BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX,
+  PREFIX,
+  SEARCH,
+} from '../../../constants';
 import {
   ObjectsDeleteResponse,
   SetObjectsDeleteResponse,
@@ -404,6 +410,12 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
 
   const { s3Client } = React.useContext(S3Context);
 
+  const { data: objectLockData } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX}`,
+    () => s3Client.getObjectLockConfiguration({ Bucket: bucketName })
+  );
+  const isObjectLockEnabled = getIsObjectLockEnabled(objectLockData);
+
   // used for multi-select bulk operations
   const [selectedRows, setSelectedRows] = React.useState<ObjectCrFormat[]>([]);
   // used for storing API's response on performing delete operation on objects
@@ -519,6 +531,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
           showVersioning: listAllVersions,
           isVersioningEnabledOrSuspended: allowVersioning,
           blockDataPath,
+          isObjectLockEnabled,
         }}
         emptyRowMessage={EmptyPage}
       />
