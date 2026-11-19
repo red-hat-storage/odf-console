@@ -1,16 +1,15 @@
 import * as React from 'react';
+import { BucketVersioningStatus, ObjectLockEnabled } from '@aws-sdk/client-s3';
 import {
-  BucketVersioningStatus,
-  GetObjectLockConfigurationCommandOutput,
-  ObjectLockEnabled,
-} from '@aws-sdk/client-s3';
-import { BUCKET_VERSIONING_CACHE_KEY_SUFFIX } from '@odf/core/constants';
+  BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX,
+  BUCKET_VERSIONING_CACHE_KEY_SUFFIX,
+} from '@odf/core/constants';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { getIsVersioningEnabled } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import useSWR, { KeyedMutator } from 'swr';
+import useSWR from 'swr';
 import {
   Button,
   ButtonVariant,
@@ -22,12 +21,11 @@ import {
 export type ObjectLockNotEnabledModalProps = {
   bucketName: string;
   s3Client: S3Commands;
-  mutate: KeyedMutator<GetObjectLockConfigurationCommandOutput>;
 };
 
 const ObjectLockNotEnabledModal: React.FC<
   CommonModalProps<ObjectLockNotEnabledModalProps>
-> = ({ closeModal, isOpen, extraProps: { bucketName, s3Client, mutate } }) => {
+> = ({ closeModal, isOpen, extraProps: { bucketName, s3Client } }) => {
   const { t } = useCustomTranslation();
   const [inProgress, setInProgress] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
@@ -37,6 +35,11 @@ const ObjectLockNotEnabledModal: React.FC<
     () => s3Client.getBucketVersioning({ Bucket: bucketName })
   );
   const isVersioningEnabled = getIsVersioningEnabled(versioningData);
+
+  const { mutate: objectLockMutate } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX}`,
+    () => s3Client.getObjectLockConfiguration({ Bucket: bucketName })
+  );
 
   const onEnable = async () => {
     setInProgress(true);
@@ -62,7 +65,7 @@ const ObjectLockNotEnabledModal: React.FC<
         },
       });
 
-      mutate();
+      objectLockMutate();
       closeModal();
     } catch (error) {
       const errorMsg = error?.message || String(error);
