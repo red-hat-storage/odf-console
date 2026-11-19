@@ -88,6 +88,24 @@ export const SYNC_SCHEDULE_DISPLAY_TEXT = (
   [TimeUnits.Days]: t('days'),
 });
 
+// Interval + unit with i18n plurals ("1 minute", "2 minutes") — avoid string concat.
+export const formatSyncScheduleInterval = (
+  t: TFunction,
+  interval: number,
+  unit: TimeUnits
+): string => {
+  switch (unit) {
+    case TimeUnits.Minutes:
+      return t('{{count}} minute', { count: interval });
+    case TimeUnits.Hours:
+      return t('{{count}} hour', { count: interval });
+    case TimeUnits.Days:
+      return t('{{count}} day', { count: interval });
+    default:
+      return String(interval);
+  }
+};
+
 // Asisgn policy wizard steps
 export enum AssignPolicySteps {
   Policy = 'policy',

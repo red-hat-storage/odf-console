@@ -19,6 +19,7 @@ export enum DecoratorIcon {
   ExclamationCircle = 'exclamation-circle',
   ExclamationTriangle = 'exclamation-triangle',
   InProgress = 'in-progress',
+  Clock = 'clock',
   InfoCircle = 'info-circle',
 }
 

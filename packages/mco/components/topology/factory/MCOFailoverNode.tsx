@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useScheduler } from '@odf/shared/hooks';
+import { getAnnotations } from '@odf/shared/selectors';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
 import { ExclamationCircleIcon, SyncAltIcon } from '@patternfly/react-icons';
 import {
@@ -15,11 +17,17 @@ import {
   ScaleDetailsLevel,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import { getProtectedCondition } from '../../../utils';
+import { TEST_FAILOVER_DRYRUN_ANNOTATION } from '../../../constants';
+import { DRPlacementControlKind, Progression } from '../../../types';
+import { drpcHasVolumes, getProtectedCondition } from '../../../utils';
 import { getDRStatus, isUserActionRequired } from '../../../utils/dr-status';
+import { isRevertingTestFailover } from '../../../utils/test-failover';
 import { FailoverNodeData } from '../types';
 import { getDRNodeStatus } from '../utils/sidebar-utils';
 import '../utils/decorator-utils.scss';
+
+const hasTestFailoverAnnotation = (drpc?: DRPlacementControlKind): boolean =>
+  getAnnotations(drpc)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] === 'true';
 
 type MCOFailoverNodeProps = {
   element: Node<NodeModel, FailoverNodeData>;
@@ -46,8 +54,12 @@ const getFailoverNodeStatus = (data: FailoverNodeData): NodeStatus => {
       progression: op.progression,
       protectedCondition,
       volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
+      schedulingInterval: op.schedulingInterval,
       action: op.action,
       dryRun: op.drpc?.spec?.dryRun,
+      hasTestFailoverAnnotation: hasTestFailoverAnnotation(op.drpc),
+      hasVolumes: drpcHasVolumes(op.drpc),
+      isRevertingTestFailover: isRevertingTestFailover(op.drpc),
     });
     const nodeStatus = getDRNodeStatus(effectiveStatus);
 
@@ -113,22 +125,49 @@ const MCOFailoverNodeComponent: React.FC<MCOFailoverNodeProps> = ({
   // Use operations array length as source of truth for count
   const operations = data.operations || [];
   const operationCount = operations.length;
+
+  // Re-evaluate test sync lag on an interval (same as popover / node-generator).
+  const needsLagTick = operations.some(
+    (op) =>
+      !!op.drpc?.spec?.dryRun && op.progression !== Progression.TestingFailover
+  );
+  const [lagTick, setLagTick] = React.useState(0);
+  const bumpLagTick = React.useCallback(() => {
+    if (!needsLagTick) return;
+    setLagTick((tick) => tick + 1);
+  }, [needsLagTick]);
+  useScheduler(bumpLagTick, needsLagTick ? undefined : null);
+
   const showLabel = rest.hover || detailsLevel !== ScaleDetailsLevel.low;
-  const nodeStatus = getFailoverNodeStatus(data);
+  // lagTick forces getDRStatus to re-run when sync age crosses the threshold.
+  const nodeStatus = React.useMemo(
+    () => getFailoverNodeStatus(data),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lagTick forces lag re-eval
+    [data, lagTick]
+  );
   const action = data.action || 'Failover';
-  const needsUserAction = operations.some((op) => {
-    const protectedCondition = getProtectedCondition(op.drpc);
-    return isUserActionRequired(
-      getDRStatus({
-        phase: op.phase,
-        progression: op.progression,
-        protectedCondition,
-        volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
-        action: op.action,
-        dryRun: op.drpc?.spec?.dryRun,
-      })
-    );
-  });
+  const needsUserAction = React.useMemo(
+    () =>
+      operations.some((op) => {
+        const protectedCondition = getProtectedCondition(op.drpc);
+        return isUserActionRequired(
+          getDRStatus({
+            phase: op.phase,
+            progression: op.progression,
+            protectedCondition,
+            volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
+            schedulingInterval: op.schedulingInterval,
+            action: op.action,
+            dryRun: op.drpc?.spec?.dryRun,
+            hasTestFailoverAnnotation: hasTestFailoverAnnotation(op.drpc),
+            hasVolumes: drpcHasVolumes(op.drpc),
+            isRevertingTestFailover: isRevertingTestFailover(op.drpc),
+          })
+        );
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lagTick forces lag re-eval
+    [operations, lagTick]
+  );
   const label = needsUserAction ? 'Action required' : action;
   const statusTooltip = `${action} operation${operationCount > 1 ? 's' : ''}`;
 

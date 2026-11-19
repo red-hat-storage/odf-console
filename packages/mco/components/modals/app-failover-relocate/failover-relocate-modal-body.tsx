@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getReplicationHealth } from '@odf/mco/utils';
+import { getReplicationHealth, parseSyncInterval } from '@odf/mco/utils';
 import { ACM_DEFAULT_DOC_VERSION } from '@odf/shared/constants';
 import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { useDocVersion, DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
@@ -28,6 +28,7 @@ import {
   ReplicationType,
   ACM_OPERATOR_SPEC_NAME,
   VolumeReplicationHealth,
+  formatSyncScheduleInterval,
 } from '../../../constants';
 import {
   ErrorMessageType,
@@ -140,6 +141,58 @@ const validatePlacement = (
   return null;
 };
 
+const validateTestFailoverPlacement = (
+  placementControl: PlacementControlProps
+): ErrorMessageType => {
+  // Metro-DR failover requires fencing the primary cluster, which is disruptive
+  if (placementControl?.replicationType === ReplicationType.SYNC) {
+    return ErrorMessageType.TEST_FAILOVER_NOT_SUPPORTED;
+  }
+
+  // Policy / DRPC / readiness first (same early checks as validatePlacement).
+  if (placementControl?.invalidDRPolicy) {
+    return ErrorMessageType.DR_IS_INVALID;
+  }
+  if (!placementControl?.drPlacementControlName) {
+    return ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER;
+  }
+  if (!placementControl?.isDRActionReady) {
+    return ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED;
+  }
+
+  // Unresolved deployment cluster before "target offline" — Argo may leave
+  // isTargetClusterAvailable false when the cluster name could not be resolved.
+  if (placementControl?.isDeploymentClusterUnresolved) {
+    return ErrorMessageType.TARGET_CLUSTER_UNRESOLVED;
+  }
+
+  const preCheckError = failoverPreCheck(placementControl);
+  if (preCheckError) {
+    return preCheckError;
+  }
+
+  if (
+    [
+      VolumeReplicationHealth.CRITICAL,
+      VolumeReplicationHealth.WARNING,
+    ].includes(
+      getReplicationHealth(
+        placementControl?.snapshotTakenTime,
+        placementControl?.schedulingInterval,
+        placementControl?.replicationType
+      )
+    )
+  ) {
+    return ErrorMessageType.VOLUME_SYNC_DELAY_TEST_FAILOVER;
+  }
+
+  if (placementControl?.areSiblingApplicationsFound) {
+    return ErrorMessageType.SIBLING_APPLICATIONS_FOUND_FAILOVER;
+  }
+
+  return null;
+};
+
 const MessageStatus = ({ message }: { message: MessageKind }) => (
   <Flex>
     <FlexItem fullWidth={{ default: 'fullWidth' }}>
@@ -220,9 +273,11 @@ export const FailoverRelocateModalBody: React.FC<
     loaded,
     applicationModel,
     message,
+    isTestFailover,
   } = props;
   const [errorMessage, setErrorMessage] = React.useState<ErrorMessageType>();
   const placement = placementControls?.[0];
+  const [unit, interval] = parseSyncInterval(placement?.schedulingInterval);
 
   const acmDocVersion = useDocVersion({
     defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
@@ -231,7 +286,9 @@ export const FailoverRelocateModalBody: React.FC<
 
   React.useEffect(() => {
     if (loaded && !loadError) {
-      const placementErrorMessage = validatePlacement(placement, action);
+      const placementErrorMessage = isTestFailover
+        ? validateTestFailoverPlacement(placement)
+        : validatePlacement(placement, action);
       setErrorMessage(placementErrorMessage);
       setPlacement(placement);
       setCanInitiate(evaluateErrorMessage(placementErrorMessage) < 0);
@@ -239,6 +296,7 @@ export const FailoverRelocateModalBody: React.FC<
   }, [
     placement,
     action,
+    isTestFailover,
     loadError,
     loaded,
     setCanInitiate,
@@ -293,9 +351,11 @@ export const FailoverRelocateModalBody: React.FC<
         <Flex>
           <FlexItem>
             <strong>
-              {t('{{actionType}} readiness:', {
-                actionType: action,
-              })}
+              {isTestFailover
+                ? t('DR test readiness:')
+                : t('{{actionType}} readiness:', {
+                    actionType: action,
+                  })}
             </strong>
           </FlexItem>
           <FlexItem>
@@ -313,6 +373,23 @@ export const FailoverRelocateModalBody: React.FC<
               </FlexItem>
             </Flex>
           )}
+        {isTestFailover && (
+          <Flex>
+            <FlexItem>
+              <strong>{t('Replication interval:')}</strong>
+            </FlexItem>
+            <FlexItem data-test="replication-interval">
+              {placement?.schedulingInterval ? (
+                formatSyncScheduleInterval(t, interval, unit)
+              ) : (
+                <StatusIconAndText
+                  title={t('Unknown')}
+                  icon={<UnknownIcon />}
+                />
+              )}
+            </FlexItem>
+          </Flex>
+        )}
 
         {
           // ToDo: Enable this once DRPC has kube object last sync time.
@@ -361,6 +438,8 @@ export type PlacementControlProps = Partial<{
   kubeObjectLastSyncTime: string;
   schedulingInterval: string;
   invalidDRPolicy: K8sResourceCondition;
+  // Test failover only: empty deployment cluster (do not treat as offline).
+  isDeploymentClusterUnresolved: boolean;
 }>;
 
 export type ApplicationProps = {
@@ -372,6 +451,7 @@ export type ApplicationProps = {
   message?: AlertProps;
   loadError: any;
   loaded: boolean;
+  isTestFailover?: boolean;
 };
 
 export type FailoverRelocateModalBodyProps = ApplicationProps & {

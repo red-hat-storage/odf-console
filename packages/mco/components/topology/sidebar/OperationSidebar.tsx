@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { getDRStatus } from '@odf/mco/utils/dr-status';
 import { DASH } from '@odf/shared/constants';
+import { useScheduler } from '@odf/shared/hooks';
+import { getAnnotations } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useNavigate } from 'react-router';
 import {
@@ -17,9 +19,15 @@ import {
   EmptyStateBody,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
-import { DRActionType } from '../../../constants';
+import {
+  DRActionType,
+  TEST_FAILOVER_DRYRUN_ANNOTATION,
+} from '../../../constants';
 import { getClustersFromPairKey } from '../../../hooks/useDRPoliciesByClusterPair';
+import { Progression } from '../../../types';
+import { drpcHasVolumes } from '../../../utils';
 import { getPAVDRPolicyName } from '../../../utils/pav';
+import { isRevertingTestFailover } from '../../../utils/test-failover';
 import { DROperationInfo, OperationEdgeSidebarData } from '../types';
 import { DRStatusIcon, getAppLink } from '../utils/sidebar-utils';
 import { DRPCFilterToolbar } from './DRPCFilterToolbar';
@@ -31,6 +39,12 @@ const getOperationStatus = (op: DROperationInfo) =>
     progression: op.progression,
     action: op.action,
     dryRun: op.drpc?.spec?.dryRun,
+    volumeLastGroupSyncTime: op.drpc?.status?.lastGroupSyncTime,
+    schedulingInterval: op.schedulingInterval,
+    hasTestFailoverAnnotation:
+      getAnnotations(op.drpc)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] === 'true',
+    hasVolumes: drpcHasVolumes(op.drpc),
+    isRevertingTestFailover: isRevertingTestFailover(op.drpc),
   });
 
 type OperationSidebarProps = {
@@ -62,26 +76,50 @@ const OperationsTableView: React.FC<{
   const [nameFilter, setNameFilter] = React.useState('');
   const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
 
+  // Preparing → Awaiting resync without waiting for a DRPC watch.
+  const needsLagTick = operations.some(
+    (op) =>
+      !!op.drpc?.spec?.dryRun && op.progression !== Progression.TestingFailover
+  );
+  const [lagTick, setLagTick] = React.useState(0);
+  const bumpLagTick = React.useCallback(() => {
+    if (!needsLagTick) return;
+    setLagTick((tick) => tick + 1);
+  }, [needsLagTick]);
+  useScheduler(bumpLagTick, needsLagTick ? undefined : null);
+
+  // Compute status once per operation per refresh; reuse for unique statuses,
+  // filter match, and cell render. lagTick forces lag re-eval.
+  const operationsWithStatus = React.useMemo(
+    () =>
+      operations.map((op) => ({
+        operation: op,
+        status: getOperationStatus(op),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lagTick forces lag re-eval
+    [operations, lagTick]
+  );
+
   const uniqueStatuses = React.useMemo(
-    () => Array.from(new Set(operations.map((op) => getOperationStatus(op)))),
-    [operations]
+    () => Array.from(new Set(operationsWithStatus.map(({ status }) => status))),
+    [operationsWithStatus]
   );
 
   const filteredOperations = React.useMemo(() => {
-    let results = operations;
+    let results = operationsWithStatus;
     if (nameFilter) {
       const lowerFilter = nameFilter.toLowerCase();
-      results = results.filter((op) =>
-        op.applicationName.toLowerCase().includes(lowerFilter)
+      results = results.filter(({ operation }) =>
+        operation.applicationName.toLowerCase().includes(lowerFilter)
       );
     }
     if (selectedStatuses.length > 0) {
-      results = results.filter((op) =>
-        selectedStatuses.includes(getOperationStatus(op))
+      results = results.filter(({ status }) =>
+        selectedStatuses.includes(status)
       );
     }
     return results;
-  }, [operations, nameFilter, selectedStatuses]);
+  }, [operationsWithStatus, nameFilter, selectedStatuses]);
 
   const operationCount = operations.length;
 
@@ -163,7 +201,7 @@ const OperationsTableView: React.FC<{
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filteredOperations.map((operation, index) => (
+                  {filteredOperations.map(({ operation, status }, index) => (
                     <Tr key={`${operation.drpcName}-${index}`}>
                       <Td dataLabel={t('Name')}>
                         <div>
@@ -187,7 +225,7 @@ const OperationsTableView: React.FC<{
                         </div>
                       </Td>
                       <Td dataLabel={t('DR Status')}>
-                        <DRStatusIcon status={getOperationStatus(operation)} />
+                        <DRStatusIcon status={status} />
                       </Td>
                       <Td dataLabel={t('Policy')}>
                         {operation.pav

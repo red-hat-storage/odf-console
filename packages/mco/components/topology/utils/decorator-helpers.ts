@@ -3,6 +3,15 @@ import { NodeStatus, TopologyQuadrant } from '@patternfly/react-topology';
 import { Phase, Progression } from '../../../types/ramen';
 import { DecoratorIcon, TopologyDecorator } from '../types';
 
+// Fixed tooltip keys shared with decorator-utils localization.
+// Adding a key here without a Record entry in decorator-utils is a type error.
+export enum DecoratorTooltipKey {
+  Preparing = 'Preparing',
+  AwaitingResync = 'Awaiting resync',
+  ActionNeeded = 'Action needed',
+  ActionRequired = 'Action required',
+}
+
 /**
  * Determines decorator properties based on DR status
  * Centralized logic to avoid duplication across node generation
@@ -12,7 +21,7 @@ export const getDecoratorForStatus = (
   quadrant: TopologyQuadrant = TopologyQuadrant.upperRight
 ): TopologyDecorator => {
   let icon: DecoratorIcon;
-  let tooltip = drStatus;
+  let tooltip: string = drStatus;
   let status = NodeStatus.default;
 
   switch (drStatus) {
@@ -27,7 +36,7 @@ export const getDecoratorForStatus = (
         drStatus === DRStatus.WaitOnUserToCleanUp ||
         drStatus === DRStatus.WaitForUser ||
         drStatus === Progression.WaitForUserAction
-          ? 'Action required'
+          ? DecoratorTooltipKey.ActionRequired
           : drStatus;
       status = NodeStatus.danger;
       break;
@@ -45,12 +54,27 @@ export const getDecoratorForStatus = (
     case DRStatus.Relocating:
     case DRStatus.Deleting:
     case DRStatus.Protecting:
-    case DRStatus.TestingFailover:
     case Phase.Initiating:
     case Phase.Deploying:
     case DRStatus.CleaningUp:
       icon = DecoratorIcon.InProgress;
       tooltip = `${drStatus}...`;
+      status = NodeStatus.info;
+      break;
+    case DRStatus.TestingFailover:
+      icon = DecoratorIcon.InProgress;
+      // Same label keys as the popover / sidebar (translated at render).
+      tooltip = DecoratorTooltipKey.Preparing;
+      status = NodeStatus.info;
+      break;
+    case DRStatus.TestFailoverPaused:
+      icon = DecoratorIcon.Clock;
+      tooltip = DecoratorTooltipKey.AwaitingResync;
+      status = NodeStatus.info;
+      break;
+    case DRStatus.TestFailoverActionRequired:
+      icon = DecoratorIcon.InfoCircle;
+      tooltip = DecoratorTooltipKey.ActionNeeded;
       status = NodeStatus.info;
       break;
     case DRStatus.Warning:

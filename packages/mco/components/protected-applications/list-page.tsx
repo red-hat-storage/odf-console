@@ -38,12 +38,14 @@ import {
   SearchInput,
 } from '@patternfly/react-core';
 import { ActionsColumn, OnSelect, Td, Tr } from '@patternfly/react-table';
-import { DRActionType, DR_BASE_ROUTE } from '../../constants';
+import { DRActionType, DR_BASE_ROUTE, ReplicationType } from '../../constants';
 import {
   getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
   getProtectedApplicationViewResourceObj,
 } from '../../hooks';
-import { DRPlacementControlKind } from '../../types';
+import { DRPlacementControlKind, DRPolicyKind } from '../../types';
+import { getReplicationType } from '../../utils';
 import { DRPlacementControlParser as DRStatusPopover } from '../dr-status-popover/parsers';
 import {
   BatchFailoverRelocateModal,
@@ -301,6 +303,8 @@ type RowExtraProps = {
   launcher: LaunchModal;
   navigate: NavigateFunction;
   drpcMap: Map<string, DRPlacementControlKind>;
+  // Policy names whose replication type is Metro (SYNC).
+  metroPolicyNames: Set<string>;
   selectProps: RowSelectProps;
 };
 
@@ -308,8 +312,13 @@ const ProtectedAppsTableRow: React.FC<
   RowComponentType<ProtectedApplicationViewKind>
 > = ({ row: pav, rowIndex, extraProps }) => {
   const { t } = useCustomTranslation();
-  const { launcher, navigate, drpcMap, selectProps }: RowExtraProps =
-    extraProps;
+  const {
+    launcher,
+    navigate,
+    drpcMap,
+    metroPolicyNames,
+    selectProps,
+  }: RowExtraProps = extraProps;
 
   const drpc = drpcMap.get(getDRPCKey(pav));
 
@@ -386,7 +395,9 @@ const ProtectedAppsTableRow: React.FC<
         <Td dataLabel={columnNames[4]}>{getPrimaryCluster(pav) || DASH}</Td>
         <Td isActionCell>
           <ActionsColumn
-            items={getRowActions(t, launcher, navigate, drpc, pav)}
+            items={getRowActions(t, launcher, navigate, drpc, pav, {
+              isMetroDR: metroPolicyNames.has(drPolicyName),
+            })}
           />
         </Td>
       </Tr>
@@ -414,6 +425,10 @@ export const ProtectedApplicationsListPage: React.FC = () => {
     DRPlacementControlKind[]
   >(getDRPlacementControlResourceObj({}));
 
+  const [drPolicies] = useK8sWatchResource<DRPolicyKind[]>(
+    getDRPolicyResourceObj()
+  );
+
   useDROperationAlert(drpcs || []);
 
   const drpcMap = React.useMemo(() => {
@@ -426,6 +441,16 @@ export const ProtectedApplicationsListPage: React.FC = () => {
     }
     return map;
   }, [drpcs, drpcsLoaded]);
+
+  const metroPolicyNames = React.useMemo(() => {
+    const names = new Set<string>();
+    (drPolicies || []).forEach((policy) => {
+      if (getReplicationType(policy) === ReplicationType.SYNC) {
+        names.add(getName(policy));
+      }
+    });
+    return names;
+  }, [drPolicies]);
 
   const isAllLoadedWOAnyError =
     pavsLoaded && drpcsLoaded && !pavsError && !drpcsError;
@@ -583,6 +608,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
             launcher,
             navigate,
             drpcMap,
+            metroPolicyNames,
             selectProps: rowSelectProps,
           },
           emptyRowMessage: EmptyRowMessage,

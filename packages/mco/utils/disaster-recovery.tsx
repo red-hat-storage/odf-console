@@ -57,6 +57,7 @@ import {
   PROTECTED_APP_ANNOTATION,
   PLACEMENT_REF_LABEL,
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
+  TEST_FAILOVER_DRYRUN_ANNOTATION,
 } from '../constants';
 import { DisasterRecoveryFormatted } from '../hooks';
 import { DRPlacementControlConditionType, Phase, Progression } from '../types';
@@ -668,6 +669,9 @@ export const findDeploymentClusters = (
   }
 };
 
+export const isDiscoveredDRPC = (drPlacementControl: DRPlacementControlKind) =>
+  !!drPlacementControl?.spec?.protectedNamespaces?.length;
+
 export const getPrimaryClusterName = (
   drPlacementControl: DRPlacementControlKind
 ) => {
@@ -695,34 +699,100 @@ export const getPrimaryClusterName = (
 export const isTestFailoverActive = (
   drPlacementControl: DRPlacementControlKind
 ): boolean =>
-  !!drPlacementControl?.spec?.dryRun &&
-  drPlacementControl?.status?.progression === Progression.TestingFailover;
+  drPlacementControl?.status?.progression === Progression.TestingFailover &&
+  (!!drPlacementControl?.spec?.dryRun ||
+    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
+      'true');
+
+// True when the DRPC selects PVCs. Ramen lastGroupSyncTime is PVC-only;
+// kube-object-only apps never set it and must not be treated as volume lag.
+export const drpcHasVolumes = (drpc?: DRPlacementControlKind): boolean => {
+  const sel = drpc?.spec?.pvcSelector;
+  return (
+    Object.keys(sel?.matchLabels || {}).length > 0 ||
+    (sel?.matchExpressions?.length || 0) > 0
+  );
+};
+
+export const isTestSyncLagging = (
+  lastGroupSyncTime?: string,
+  schedulingInterval?: string,
+  hasVolumes: boolean = true
+): boolean => {
+  if (!schedulingInterval) return false;
+  // 0m (e.g. FusionAccess) never replicates — not a lag condition.
+  const [intervalSeconds] = convertSyncIntervalToSeconds(schedulingInterval);
+  if (!intervalSeconds) return false;
+  // Kube-only apps never set lastGroupSyncTime; missing sync is not lag then.
+  if (!lastGroupSyncTime) return !!hasVolumes;
+  return (
+    getTimeDifferenceInSeconds(lastGroupSyncTime) > THRESHOLD * intervalSeconds
+  );
+};
 
 /**
- * The cluster actually serving the workload, for DR status display.
- *
- * During a failover test the DRPC cannot answer this on its own: the phase says
- * FailedOver, and the annotation (plus sometimes preferredCluster) points at
- * the test cluster. What always holds is that the test runs on
- * last-app-deployment-cluster, so the real primary is the other cluster in the
- * policy.
+ * Cluster serving the real workload.
+ * During a dry-run test, last-app-deployment-cluster names either the original
+ * primary or, once Ramen reaches the hold, the test cluster
+ * (spec.failoverCluster). In the second case the primary is the other cluster
+ * in the policy. After clean up clears dryRun, prefer the placement
+ * getEndTestFailoverPatch restored — phase / last-app-deployment-cluster can
+ * still name the test cluster until Ramen catches up.
  */
 export const resolvePrimaryClusterName = (
   drPlacementControl: DRPlacementControlKind,
   drClusterNames: string[]
 ): string => {
-  if (isTestFailoverActive(drPlacementControl)) {
-    // Both name the test cluster while a test is in flight. The annotation can
-    // be missing; spec.failoverCluster cannot, Ramen requires it to start one.
-    const testCluster =
-      getLastAppDeploymentClusterName(drPlacementControl) ||
-      drPlacementControl.spec?.failoverCluster;
+  if (drPlacementControl?.spec?.dryRun) {
+    const deployedCluster = getLastAppDeploymentClusterName(drPlacementControl);
+    const failoverCluster = drPlacementControl.spec?.failoverCluster || '';
+    const progression = drPlacementControl?.status?.progression;
 
-    // Without a known test cluster the peer lookup would just return the first
-    // cluster in the policy, so report unknown rather than guess.
+    // Only treat a differing annotation as production when the hold has a
+    // nonempty failoverCluster (the test target). An empty target must fall
+    // through to peer(annotation || fo) so we do not return the test cluster
+    // as production when Ramen has not written failoverCluster yet.
+    if (
+      deployedCluster &&
+      failoverCluster &&
+      deployedCluster !== failoverCluster
+    ) {
+      return deployedCluster;
+    }
+
+    // Pre-hold: dryRun set but no target yet — workload is still on the
+    // deployment cluster. Preserve peer lookup once TestingFailover holds
+    // and the annotation already names the test cluster.
+    if (
+      !failoverCluster &&
+      deployedCluster &&
+      progression !== Progression.TestingFailover
+    ) {
+      return deployedCluster;
+    }
+
+    const testCluster = deployedCluster || failoverCluster;
     return testCluster
       ? drClusterNames?.find((name) => name !== testCluster) || ''
       : '';
+  }
+
+  // Clean up clears dryRun and may remove failoverCluster (Deployed/Relocate
+  // restore) while phase stays FailedOver and the deployment annotation still
+  // names the test cluster. Trust the restored preferredCluster in that gap.
+  // Failover restore keeps failoverCluster = home and falls through below.
+  const progression = drPlacementControl?.status?.progression;
+  const lingeringAfterCleanup =
+    progression === Progression.TestingFailover ||
+    progression === Progression.WaitOnUserToCleanUp ||
+    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
+      'true';
+  if (
+    lingeringAfterCleanup &&
+    !drPlacementControl.spec?.failoverCluster &&
+    drPlacementControl.spec?.preferredCluster
+  ) {
+    return drPlacementControl.spec.preferredCluster;
   }
 
   return getPrimaryClusterName(drPlacementControl);

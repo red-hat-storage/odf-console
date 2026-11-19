@@ -3,6 +3,7 @@ import { DRActionType } from '@odf/mco/constants';
 import { Progression } from '@odf/mco/types';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { TFunction } from 'i18next';
 import {
   Flex,
   FlexItem,
@@ -18,6 +19,7 @@ import {
 import {
   CheckCircleIcon,
   InProgressIcon,
+  ClockIcon,
   AngleRightIcon,
   AngleDownIcon,
 } from '@patternfly/react-icons';
@@ -26,14 +28,38 @@ import './progression-train-view.scss';
 export enum TrainStep {
   Preparing = 'Preparing',
   Failover = 'Failover',
+  FailoverTest = 'Failover test',
   Syncing = 'Syncing',
   Restoring = 'Restoring',
   CleanUp = 'Clean up',
 }
 
+const translateTrainStep = (
+  label: TrainStep | string,
+  t: TFunction
+): string => {
+  switch (label) {
+    case TrainStep.Preparing:
+      return t('Preparing');
+    case TrainStep.Failover:
+      return t('Failover');
+    case TrainStep.FailoverTest:
+      return t('Failover test');
+    case TrainStep.Syncing:
+      return t('Syncing');
+    case TrainStep.Restoring:
+      return t('Restoring');
+    case TrainStep.CleanUp:
+      return t('Clean up');
+    default:
+      return label;
+  }
+};
+
 export enum StepStatus {
   Completed = 'completed',
   InProgress = 'in-progress',
+  Paused = 'paused',
   Pending = 'pending',
 }
 
@@ -223,10 +249,30 @@ const getCurrentStepFromFlow = (
   return stepConfig?.label || flow[0].label;
 };
 
+export const getTestTrainSteps = (
+  isHold: boolean,
+  isPaused: boolean
+): ProgressionStep[] => {
+  if (isHold) {
+    return [
+      { label: TrainStep.Preparing, status: StepStatus.Completed },
+      { label: TrainStep.FailoverTest, status: StepStatus.InProgress },
+    ];
+  }
+  return [
+    {
+      label: TrainStep.Preparing,
+      status: isPaused ? StepStatus.Paused : StepStatus.InProgress,
+    },
+    { label: TrainStep.FailoverTest, status: StepStatus.Pending },
+  ];
+};
+
 export const getTrainSteps = (
   action: DRActionType,
   currentProgression?: string,
-  isDiscoveredApp?: boolean
+  isDiscoveredApp?: boolean,
+  promotedFromTest?: boolean
 ): ProgressionStep[] => {
   const flow =
     action === DRActionType.FAILOVER
@@ -235,11 +281,27 @@ export const getTrainSteps = (
         ? RELOCATE_DISCOVERED_FLOW
         : RELOCATE_FLOW;
 
-  const currentStep = getCurrentStepFromFlow(currentProgression, flow);
-  const currentIndex = flow.findIndex((config) => config.label === currentStep);
+  // Convert clears dryRun before Ramen leaves TestingFailover. The test
+  // workload is already running — keep Preparing complete and Failover test
+  // in progress instead of falling back to the first (Preparing) step.
+  const failoverIndex = flow.findIndex(
+    (config) => config.label === TrainStep.Failover
+  );
+  const currentIndex =
+    promotedFromTest &&
+    currentProgression === Progression.TestingFailover &&
+    failoverIndex >= 0
+      ? failoverIndex
+      : flow.findIndex(
+          (config) =>
+            config.label === getCurrentStepFromFlow(currentProgression, flow)
+        );
 
   return flow.map((config, index) => ({
-    label: config.label,
+    label:
+      promotedFromTest && config.label === TrainStep.Failover
+        ? TrainStep.FailoverTest
+        : config.label,
     status:
       index < currentIndex
         ? StepStatus.Completed
@@ -259,6 +321,11 @@ type ProgressionTrainViewProps = {
   cleanupCluster?: string;
   isDiscoveredApp?: boolean;
   learnMoreHref?: string;
+  isTest?: boolean;
+  isTestPaused?: boolean;
+  isTestHold?: boolean;
+  holdAlert?: React.ReactNode;
+  promotedFromTest?: boolean;
 };
 
 export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
@@ -271,11 +338,27 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
   cleanupCluster,
   isDiscoveredApp,
   learnMoreHref,
+  isTest,
+  isTestPaused,
+  isTestHold,
+  holdAlert,
+  promotedFromTest,
 }) => {
   const { t } = useCustomTranslation();
-  const [isDetailsExpanded, setIsDetailsExpanded] = React.useState(false);
+  const [isDetailsExpanded, setIsDetailsExpanded] =
+    React.useState(!!isTestPaused);
+  React.useEffect(() => {
+    if (isTestPaused) setIsDetailsExpanded(true);
+  }, [isTestPaused]);
 
-  const steps = getTrainSteps(action, currentProgression, isDiscoveredApp);
+  const steps = isTest
+    ? getTestTrainSteps(!!isTestHold, !!isTestPaused)
+    : getTrainSteps(
+        action,
+        currentProgression,
+        isDiscoveredApp,
+        promotedFromTest
+      );
   const completedSteps = steps.filter(
     (s) => s.status === StepStatus.Completed
   ).length;
@@ -287,41 +370,66 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
       spaceItems={{ default: 'spaceItemsMd' }}
       className="progression-train-view"
     >
-      <FlexItem>
-        <Content component="p" className="progression-train-view__summary">
-          {t('{{completedSteps}} of {{totalSteps}} steps completed', {
-            completedSteps,
-            totalSteps,
-          })}
-        </Content>
-      </FlexItem>
+      {holdAlert}
+
+      {!holdAlert && (
+        <FlexItem>
+          <Content
+            component="p"
+            className="progression-train-view__summary"
+            data-test-id="progression-summary"
+            data-completed-steps={completedSteps}
+            data-total-steps={totalSteps}
+          >
+            {t('{{completedSteps}} of {{totalSteps}} steps completed', {
+              completedSteps,
+              totalSteps,
+            })}
+          </Content>
+        </FlexItem>
+      )}
 
       <FlexItem>
         <ProgressStepper isCenterAligned>
-          {steps.map((step, index) => (
-            <ProgressStep
-              key={step.label}
-              variant={
-                step.status === StepStatus.Completed
-                  ? 'success'
+          {steps.map((step, index) => {
+            const stepLabel = translateTrainStep(step.label, t);
+            const statusWord =
+              step.status === StepStatus.Paused
+                ? t('paused')
+                : step.status === StepStatus.Completed
+                  ? t('completed')
                   : step.status === StepStatus.InProgress
-                    ? 'info'
-                    : 'pending'
-              }
-              id={`step-${index}`}
-              titleId={`step-${index}-title`}
-              aria-label={step.label}
-              icon={
-                step.status === StepStatus.Completed ? (
-                  <CheckCircleIcon />
-                ) : step.status === StepStatus.InProgress ? (
-                  <InProgressIcon className="progression-train-view__in-progress-icon" />
-                ) : undefined
-              }
-            >
-              {step.label}
-            </ProgressStep>
-          ))}
+                    ? t('in progress')
+                    : t('pending');
+            const ariaLabel = `${stepLabel} (${statusWord})`;
+            return (
+              <ProgressStep
+                key={step.label}
+                variant={
+                  step.status === StepStatus.Completed
+                    ? 'success'
+                    : step.status === StepStatus.InProgress ||
+                        step.status === StepStatus.Paused
+                      ? 'info'
+                      : 'pending'
+                }
+                id={`step-${index}`}
+                titleId={`step-${index}-title`}
+                aria-label={ariaLabel}
+                icon={
+                  step.status === StepStatus.Completed ? (
+                    <CheckCircleIcon />
+                  ) : step.status === StepStatus.Paused ? (
+                    <ClockIcon />
+                  ) : step.status === StepStatus.InProgress ? (
+                    <InProgressIcon className="progression-train-view__in-progress-icon" />
+                  ) : undefined
+                }
+              >
+                {stepLabel}
+              </ProgressStep>
+            );
+          })}
         </ProgressStepper>
       </FlexItem>
 

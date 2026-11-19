@@ -126,6 +126,10 @@ export const SubscriptionFailoverRelocateModal: React.FC<
           getName(acmToDRState?.drPlacementControl)
         )
       ) {
+        const failoverCluster =
+          action === DRActionType.FAILOVER
+            ? targetClusterName
+            : primaryClusterName;
         const patch = [
           {
             op: 'replace',
@@ -135,10 +139,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<
           {
             op: 'replace',
             path: '/spec/failoverCluster',
-            value:
-              action === DRActionType.FAILOVER
-                ? targetClusterName
-                : primaryClusterName,
+            value: failoverCluster,
           },
           {
             op: 'replace',

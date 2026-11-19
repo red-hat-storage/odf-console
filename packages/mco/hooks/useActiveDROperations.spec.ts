@@ -73,8 +73,8 @@ describe('useActiveDROperations', () => {
     it('should return loading state initially', () => {
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], false, null]) // PAVs
-        .mockReturnValueOnce([[], false, null]); // DRPCs
-
+        .mockReturnValueOnce([[], false, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [, loaded] = result.current;
@@ -84,8 +84,8 @@ describe('useActiveDROperations', () => {
     it('should return loaded when both resources are loaded', () => {
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([[], true, null]); // DRPCs
-
+        .mockReturnValueOnce([[], true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [, loaded] = result.current;
@@ -107,8 +107,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -127,8 +127,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -148,8 +148,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -175,8 +175,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -222,8 +222,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -250,8 +250,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -276,8 +276,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -327,8 +327,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([mockPAVs, true, null]) // PAVs with matching PAV
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -349,8 +349,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -375,8 +375,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -389,8 +389,8 @@ describe('useActiveDROperations', () => {
     it('should handle empty DRPC list', () => {
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([[], true, null]); // DRPCs
-
+        .mockReturnValueOnce([[], true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [operationsMap] = result.current;
@@ -409,8 +409,8 @@ describe('useActiveDROperations', () => {
 
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], true, null]) // PAVs
-        .mockReturnValueOnce([mockDRPCs, true, null]); // DRPCs
-
+        .mockReturnValueOnce([mockDRPCs, true, null]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       // Should handle gracefully
@@ -421,8 +421,8 @@ describe('useActiveDROperations', () => {
       const mockError = new Error('Failed to watch DRPCs');
       mockUseK8sWatchResource
         .mockReturnValueOnce([[], false, null]) // PAVs
-        .mockReturnValueOnce([[], false, mockError]); // DRPCs
-
+        .mockReturnValueOnce([[], false, mockError]) // DRPCs
+        .mockReturnValueOnce([[], true, null]); // DRPolicies
       const { result } = renderHook(() => useActiveDROperations());
 
       const [, , error] = result.current;

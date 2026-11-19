@@ -62,6 +62,16 @@
 
   &__popover-body {
     max-width: 300px;
+    min-width: min-content;
+  }
+
+  &__description,
+  &__cluster-details,
+  &__sync-details,
+  &__policy-details {
+    max-width: 300px;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   &__button {

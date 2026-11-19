@@ -5,6 +5,7 @@ import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { ApplicationType, DRActionType } from '../constants';
 import {
   DRPlacementControlKind,
+  DRPolicyKind,
   Phase,
   Progression,
   ProtectedApplicationViewKind,
@@ -14,6 +15,7 @@ import { shouldShowProtectionError } from '../utils/dr-status';
 import { getApplicationName } from '../utils/pav';
 import {
   getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
   getProtectedApplicationViewResourceObj,
 } from './mco-resources';
 import {
@@ -35,6 +37,8 @@ export type ActiveDROperation = {
   hasProtectionError?: boolean;
   pav?: ProtectedApplicationViewKind;
   drpc?: DRPlacementControlKind;
+  // From the linked DRPolicy (sidebars need it for test pause status).
+  schedulingInterval?: string;
 };
 
 export type ClusterPairOperationsMap = {
@@ -80,10 +84,15 @@ export const useActiveDROperations = (): [
     DRPlacementControlKind[]
   >(getDRPlacementControlResourceObj());
 
+  const [drPolicies] = useK8sWatchResource<DRPolicyKind[]>(
+    getDRPolicyResourceObj()
+  );
+
   // Deep compare inputs to prevent re-computation when data hasn't actually changed
   // useK8sWatchResource may return new array references even when content is the same
   const memoizedPavs = useDeepCompareMemoize(pavs);
   const memoizedDrpcs = useDeepCompareMemoize(drpcs);
+  const memoizedPolicies = useDeepCompareMemoize(drPolicies);
 
   // Compute operations map - only re-runs when memoized inputs actually change
   const clusterPairOperationsMap = React.useMemo(() => {
@@ -97,6 +106,11 @@ export const useActiveDROperations = (): [
         if (drpcName) {
           pavByDRPC.set(drpcName, pav);
         }
+      });
+      const policyByName = new Map<string, DRPolicyKind>();
+      memoizedPolicies?.forEach((policy) => {
+        const name = getName(policy);
+        if (name) policyByName.set(name, policy);
       });
 
       // Process each DRPC to find active operations
@@ -154,6 +168,7 @@ export const useActiveDROperations = (): [
         const hasProtectionError =
           shouldShowProtectionError(protectedCondition);
 
+        const policyName = drpc.spec?.drPolicyRef?.name;
         const operation: ActiveDROperation = {
           applicationName,
           applicationNamespace: drpcNamespace,
@@ -168,6 +183,9 @@ export const useActiveDROperations = (): [
           hasProtectionError,
           pav,
           drpc,
+          schedulingInterval: policyName
+            ? policyByName.get(policyName)?.spec?.schedulingInterval
+            : undefined,
         };
 
         if (!operationsMap[pairKey]) {
@@ -181,6 +199,7 @@ export const useActiveDROperations = (): [
   }, [
     memoizedPavs,
     memoizedDrpcs,
+    memoizedPolicies,
     pavsLoaded,
     drpcsLoaded,
     pavsLoadError,

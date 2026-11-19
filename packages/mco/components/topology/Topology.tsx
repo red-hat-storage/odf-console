@@ -2,6 +2,7 @@ import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
 import { ACMManagedClusterViewModel } from '@odf/shared';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
+import { useScheduler } from '@odf/shared/hooks';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { getName } from '@odf/shared/selectors';
@@ -32,7 +33,11 @@ import {
   useDRPoliciesByClusterPair,
   useActiveDROperations,
 } from '../../hooks';
-import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
+import {
+  ACMManagedClusterKind,
+  ACMManagedClusterViewKind,
+  Progression,
+} from '../../types';
 import { getManagedClusterInfoTypes } from '../../utils/managed-cluster-info';
 import { TopologyDataContext } from './context/TopologyContext';
 import { mcoLayoutFactory } from './factory/MCOLayoutFactory';
@@ -74,11 +79,35 @@ const TopologyViewComponent: React.FC = () => {
 
   const prevStructureKeyRef = React.useRef<string>('');
   const prevSearchActiveRef = React.useRef(false);
+  const prevSearchValueRef = React.useRef(searchValue);
+  const prevSelectedFiltersRef = React.useRef(selectedFilters);
+  // Stays true until graph.fit runs so a lagTick refresh that cancels the first
+  // rAF can still schedule a fit when node IDs are unchanged.
+  const pendingSearchFitRef = React.useRef(false);
 
   const memoizedClusters = useDeepCompareMemoize(clusters);
   const memoizedPolicies = useDeepCompareMemoize(clusterPairPoliciesMap);
   const memoizedOperations = useDeepCompareMemoize(clusterPairOperationsMap);
   const memoizedApps = useDeepCompareMemoize(clusterAppsMap);
+
+  // Same lag tick as the DR status popover: Preparing → Awaiting resync without
+  // waiting for a DRPC watch. Skip once every dry-run test is held.
+  const [lagTick, setLagTick] = React.useState(0);
+  const needsLagTick = React.useMemo(() => {
+    if (!memoizedOperations) return false;
+    return Object.values(memoizedOperations).some((ops) =>
+      ops.some(
+        (op) =>
+          !!op.drpc?.spec?.dryRun &&
+          op.progression !== Progression.TestingFailover
+      )
+    );
+  }, [memoizedOperations]);
+  const bumpLagTick = React.useCallback(() => {
+    if (!needsLagTick) return;
+    setLagTick((tick) => tick + 1);
+  }, [needsLagTick]);
+  useScheduler(bumpLagTick, needsLagTick ? undefined : null);
 
   const model = React.useMemo(() => {
     return generateClusterNodesModel(
@@ -91,6 +120,8 @@ const TopologyViewComponent: React.FC = () => {
         filterTypes: selectedFilters,
       }
     );
+    // lagTick forces decorator recompute when sync age crosses the threshold.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     memoizedClusters,
     memoizedPolicies,
@@ -98,6 +129,7 @@ const TopologyViewComponent: React.FC = () => {
     memoizedApps,
     searchValue,
     selectedFilters,
+    lagTick,
   ]);
 
   // Memoize structure key to avoid recreating arrays on every render
@@ -114,8 +146,26 @@ const TopologyViewComponent: React.FC = () => {
   React.useEffect(() => {
     if (!controller) return;
 
-    const searchJustCleared = prevSearchActiveRef.current && !isSearchActive;
+    const wasSearchActive = prevSearchActiveRef.current;
+    const searchJustCleared = wasSearchActive && !isSearchActive;
+    const searchJustActivated = !wasSearchActive && isSearchActive;
+    const searchQueryChanged = prevSearchValueRef.current !== searchValue;
+    const filtersChanged =
+      prevSelectedFiltersRef.current.join(',') !== selectedFilters.join(',');
     prevSearchActiveRef.current = isSearchActive;
+    prevSearchValueRef.current = searchValue;
+    prevSelectedFiltersRef.current = selectedFilters;
+
+    // Keep fit pending across lagTick refreshes that cancel rAF before the
+    // first frame — clear only after the matching fit completes. Also refit
+    // when the user edits the query or filters without changing node IDs.
+    if (
+      searchJustActivated ||
+      searchJustCleared ||
+      (isSearchActive && (searchQueryChanged || filtersChanged))
+    ) {
+      pendingSearchFitRef.current = true;
+    }
 
     controller.fromModel(model, true);
 
@@ -126,11 +176,22 @@ const TopologyViewComponent: React.FC = () => {
 
     let cancelled = false;
 
+    // Search mode: fit only when search turns on, structure changes, or a
+    // previously queued activation fit was cancelled by a lagTick refresh.
+    // lagTick-only refreshes after a successful fit must not reset pan/zoom.
     if (isSearchActive) {
-      requestAnimationFrame(() => {
-        if (cancelled || !controller) return;
-        graph.fit(100);
-      });
+      if (
+        structureChanged ||
+        searchJustActivated ||
+        pendingSearchFitRef.current
+      ) {
+        requestAnimationFrame(() => {
+          if (cancelled || !controller) return;
+          graph.fit(100);
+          pendingSearchFitRef.current = false;
+          prevStructureKeyRef.current = structureKey;
+        });
+      }
       return () => {
         cancelled = true;
       };
@@ -140,7 +201,10 @@ const TopologyViewComponent: React.FC = () => {
       graph.reset();
     }
 
-    const shouldLayout = structureChanged || searchJustCleared;
+    // Mirror search-enter pending: if lagTick cancelled the clear-fit rAF,
+    // keep layout/fit pending until normal-mode fit completes.
+    const shouldLayout =
+      structureChanged || searchJustCleared || pendingSearchFitRef.current;
 
     requestAnimationFrame(() => {
       if (cancelled || !controller) return;
@@ -158,6 +222,7 @@ const TopologyViewComponent: React.FC = () => {
         if (cancelled || !controller) return;
         if (shouldLayout) {
           graph.fit(100);
+          pendingSearchFitRef.current = false;
           prevStructureKeyRef.current = structureKey;
         }
       });
@@ -166,7 +231,14 @@ const TopologyViewComponent: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [controller, model, structureKey, isSearchActive]);
+  }, [
+    controller,
+    model,
+    structureKey,
+    isSearchActive,
+    searchValue,
+    selectedFilters,
+  ]);
 
   const controlButtons = useTopologyControls({ controller });
 

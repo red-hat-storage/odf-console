@@ -1,7 +1,9 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Tooltip } from '@patternfly/react-core';
 import {
   CheckCircleIcon,
+  ClockIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   InfoCircleIcon,
@@ -14,7 +16,26 @@ import {
   getDefaultShapeDecoratorCenter,
 } from '@patternfly/react-topology';
 import { DecoratorIcon, TopologyDecorator, TopologyNodeData } from '../types';
+import { DecoratorTooltipKey } from './decorator-helpers';
 import './decorator-utils.scss';
+
+// Must cover every DecoratorTooltipKey — missing entries are a type error.
+const DECORATOR_TOOLTIP_I18N: Record<DecoratorTooltipKey, string> = {
+  [DecoratorTooltipKey.Preparing]: 'Preparing',
+  [DecoratorTooltipKey.AwaitingResync]: 'Awaiting resync',
+  [DecoratorTooltipKey.ActionNeeded]: 'Action needed',
+  [DecoratorTooltipKey.ActionRequired]: 'Action required',
+};
+
+const localizeDecoratorTooltip = (
+  tooltip: string,
+  t: (key: string) => string
+): string => {
+  if ((Object.values(DecoratorTooltipKey) as string[]).includes(tooltip)) {
+    return t(DECORATOR_TOOLTIP_I18N[tooltip as DecoratorTooltipKey]);
+  }
+  return tooltip;
+};
 
 /**
  * Maps icon string identifiers to their corresponding React icon components
@@ -47,6 +68,12 @@ export const getDecoratorIcon = (icon: DecoratorIcon): React.ReactNode => {
           />
         </g>
       );
+    case DecoratorIcon.Clock:
+      return (
+        <ClockIcon
+          style={{ fill: 'var(--pf-t--global--color--status--info--100)' }}
+        />
+      );
     case DecoratorIcon.InfoCircle:
       return (
         <InfoCircleIcon
@@ -67,14 +94,16 @@ export const DecoratorWithTooltip: React.FC<{
   decorator: TopologyDecorator;
   element: Node;
 }> = ({ decorator, element }) => {
+  const { t } = useCustomTranslation();
   const decoratorRef = React.useRef<SVGGElement>(null);
   const { quadrant, icon, tooltip } = decorator;
   const { x, y } = getDefaultShapeDecoratorCenter(quadrant, element);
   const decoratorIcon = icon ? getDecoratorIcon(icon) : null;
+  const tooltipContent = localizeDecoratorTooltip(tooltip, t);
 
   return (
     <>
-      <Tooltip content={tooltip} triggerRef={decoratorRef} />
+      <Tooltip content={tooltipContent} triggerRef={decoratorRef} />
       <Decorator
         innerRef={decoratorRef}
         x={x}
