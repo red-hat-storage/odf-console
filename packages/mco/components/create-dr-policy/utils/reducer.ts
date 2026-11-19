@@ -1,5 +1,15 @@
-import { BackendType, ReplicationType } from '@odf/mco/constants';
+import {
+  PolicyNameSource,
+  ReplicationType,
+  StorageVendorId,
+} from '@odf/mco/constants';
 import { ManagedClusterInfoType, S3Details } from '@odf/mco/types';
+import {
+  generatePolicyName,
+  getDescriptorById,
+  getReplicationTypeForPair,
+} from '@odf/mco/utils/storage-vendor-registry';
+import { getName } from '@odf/shared/selectors';
 
 export const emptyS3Details: S3Details = {
   clusterName: '',
@@ -8,7 +18,6 @@ export const emptyS3Details: S3Details = {
   accessKeyId: '',
   secretKey: '',
   region: '',
-  s3ProfileName: '',
 };
 
 export type DRPolicyState = {
@@ -19,8 +28,10 @@ export type DRPolicyState = {
     isClusterSelectionValid: boolean;
     selectedClustersHaveODF: boolean;
   };
+  provider: {
+    storageVendor: StorageVendorId;
+  };
   configure: {
-    replicationBackend: BackendType;
     cluster1S3Details: S3Details;
     cluster2S3Details: S3Details;
     useSameS3Connection: boolean;
@@ -39,7 +50,7 @@ export type DRPolicyState = {
 
 export enum DRPolicyActionType {
   SET_POLICY_NAME = 'SET_POLICY_NAME',
-  SET_REPLICATION_BACKEND = 'SET_REPLICATION_BACKEND',
+  SET_STORAGE_VENDOR = 'SET_STORAGE_VENDOR',
   SET_REPLICATION_TYPE = 'SET_REPLICATION_TYPE',
   SET_SYNC_INTERVAL_TIME = 'SET_SYNC_INTERVAL_TIME',
   SET_SELECTED_CLUSTERS = 'SET_SELECTED_CLUSTERS',
@@ -57,8 +68,10 @@ export const drPolicyInitialState: DRPolicyState = {
     selectedClustersHaveODF: false,
     isClusterSelectionValid: false,
   },
+  provider: {
+    storageVendor: null,
+  },
   configure: {
-    replicationBackend: BackendType.DataFoundation,
     cluster1S3Details: { ...emptyS3Details },
     cluster2S3Details: { ...emptyS3Details },
     useSameS3Connection: false,
@@ -73,7 +86,7 @@ export const drPolicyInitialState: DRPolicyState = {
 
 export type DRPolicyAction =
   | { type: DRPolicyActionType.SET_POLICY_NAME; payload: string }
-  | { type: DRPolicyActionType.SET_REPLICATION_BACKEND; payload: BackendType }
+  | { type: DRPolicyActionType.SET_STORAGE_VENDOR; payload: StorageVendorId }
   | { type: DRPolicyActionType.SET_REPLICATION_TYPE; payload: ReplicationType }
   | { type: DRPolicyActionType.SET_SYNC_INTERVAL_TIME; payload: string }
   | {
@@ -102,6 +115,41 @@ export type DRPolicyAction =
       payload: boolean;
     };
 
+/** The provider sets the replication type, and for Scale the policy name. */
+const setStorageVendor = (
+  state: DRPolicyState,
+  storageVendor: StorageVendorId
+): DRPolicyState => {
+  const previous = state.provider.storageVendor
+    ? getDescriptorById(state.provider.storageVendor)
+    : null;
+  const descriptor = storageVendor ? getDescriptorById(storageVendor) : null;
+  const { selectedClusters } = state.clusters;
+
+  let { policyName } = state.policy;
+  if (descriptor?.policyName === PolicyNameSource.Generated) {
+    policyName = generatePolicyName(
+      descriptor.id,
+      selectedClusters.map(getName)
+    );
+  } else if (previous?.policyName === PolicyNameSource.Generated) {
+    // Do not carry a generated name over to a provider that asks for one.
+    policyName = '';
+  }
+
+  return {
+    ...state,
+    provider: { ...state.provider, storageVendor },
+    policy: {
+      ...state.policy,
+      policyName,
+      replicationType: descriptor
+        ? getReplicationTypeForPair(descriptor, selectedClusters)
+        : null,
+    },
+  };
+};
+
 export const drPolicyReducer = (
   state: DRPolicyState,
   action: DRPolicyAction
@@ -116,15 +164,8 @@ export const drPolicyReducer = (
         },
       };
     }
-    case DRPolicyActionType.SET_REPLICATION_BACKEND: {
-      return {
-        ...state,
-        configure: {
-          ...state.configure,
-          replicationBackend: action.payload,
-        },
-      };
-    }
+    case DRPolicyActionType.SET_STORAGE_VENDOR:
+      return setStorageVendor(state, action.payload);
     case DRPolicyActionType.SET_CLUSTER1_S3_DETAILS:
       return {
         ...state,
@@ -167,15 +208,30 @@ export const drPolicyReducer = (
         },
       };
     }
-    case DRPolicyActionType.SET_SELECTED_CLUSTERS: {
-      return {
-        ...state,
-        clusters: {
-          ...state.clusters,
-          selectedClusters: action.payload,
+    case DRPolicyActionType.SET_SELECTED_CLUSTERS:
+      // Availability is per pair, so a provider picked for the old pair may no longer apply.
+      return setStorageVendor(
+        {
+          ...state,
+          clusters: {
+            ...state.clusters,
+            selectedClusters: action.payload,
+          },
+          configure: {
+            ...state.configure,
+            // The form shows S3 details by position; validation and submit look them up by name.
+            cluster1S3Details: {
+              ...state.configure.cluster1S3Details,
+              clusterName: getName(action.payload[0]) ?? '',
+            },
+            cluster2S3Details: {
+              ...state.configure.cluster2S3Details,
+              clusterName: getName(action.payload[1]) ?? '',
+            },
+          },
         },
-      };
-    }
+        null
+      );
     case DRPolicyActionType.SET_RBD_IMAGE_FLATTEN: {
       return {
         ...state,

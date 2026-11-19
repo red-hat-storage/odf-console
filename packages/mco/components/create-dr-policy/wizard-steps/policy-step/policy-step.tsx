@@ -1,4 +1,8 @@
 import * as React from 'react';
+import {
+  getDescriptorById,
+  getStorageVendorLabel,
+} from '@odf/mco/utils/storage-vendor-registry';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ExternalLink } from '@odf/shared/utils';
 import { Trans } from 'react-i18next';
@@ -14,7 +18,11 @@ import {
   TextInput,
   Title,
 } from '@patternfly/react-core';
-import { BackendType, ReplicationType } from '../../../../constants';
+import {
+  PolicyNameSource,
+  ReplicationType,
+  StorageVendorId,
+} from '../../../../constants';
 import {
   DRPolicyAction,
   DRPolicyActionType,
@@ -84,6 +92,15 @@ export const PolicyStep: React.FC<PolicyStepProps> = ({
   docHref,
 }) => {
   const { t } = useCustomTranslation();
+  const descriptor = state.provider.storageVendor
+    ? getDescriptorById(state.provider.storageVendor)
+    : null;
+  const showAdvancedSettings =
+    descriptor?.id === StorageVendorId.DataFoundation &&
+    state.policy.replicationType === ReplicationType.ASYNC;
+  // The provider generates the name and fixes the replication type.
+  const isProviderDefined =
+    descriptor?.policyName === PolicyNameSource.Generated;
 
   return (
     <Form className="mco-create-data-policy__body">
@@ -92,7 +109,12 @@ export const PolicyStep: React.FC<PolicyStepProps> = ({
       </Title>
       <Content>
         <Content component={ContentVariants.small}>
-          {t('Select a replication policy type and interval.')}
+          {isProviderDefined
+            ? t(
+                '{{provider}} sets the policy name and replication policy. They cannot be changed.',
+                { provider: getStorageVendorLabel(descriptor.id, t) }
+              )
+            : t('Select a replication policy type and interval.')}
         </Content>
       </Content>
       <FormGroup
@@ -107,6 +129,7 @@ export const PolicyStep: React.FC<PolicyStepProps> = ({
           data-test-id="policy-name"
           value={state.policy.policyName}
           type="text"
+          readOnlyVariant={isProviderDefined ? 'default' : undefined}
           placeholder={t('Enter a policy name')}
           onChange={(_event, policyName) =>
             dispatch({
@@ -118,21 +141,20 @@ export const PolicyStep: React.FC<PolicyStepProps> = ({
         />
       </FormGroup>
       <SelectReplicationType
-        selectedClusters={state.clusters.selectedClusters}
+        descriptor={descriptor}
         replicationType={state.policy.replicationType}
         syncIntervalTime={state.policy.syncIntervalTime}
         dispatch={dispatch}
       />
-      {state.configure.replicationBackend === BackendType.DataFoundation &&
-        state.policy.replicationType === ReplicationType.ASYNC && (
-          <FormGroup fieldId="advanced-settings">
-            <AdvancedSettings
-              enableRBDImageFlatten={state.policy.enableRBDImageFlatten}
-              docHref={docHref}
-              dispatch={dispatch}
-            />
-          </FormGroup>
-        )}
+      {showAdvancedSettings && (
+        <FormGroup fieldId="advanced-settings">
+          <AdvancedSettings
+            enableRBDImageFlatten={state.policy.enableRBDImageFlatten}
+            docHref={docHref}
+            dispatch={dispatch}
+          />
+        </FormGroup>
+      )}
     </Form>
   );
 };

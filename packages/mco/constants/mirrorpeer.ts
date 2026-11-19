@@ -1,5 +1,12 @@
 import { TFunction } from 'i18next';
 
+// Storage backend a MirrorPeer is created for.
+export enum MirrorPeerStorageVendor {
+  ODF = 'odf',
+  // From odf-multicluster-orchestrator#552; not on MCO main yet.
+  SCALE = 'ibmstoragescale',
+}
+
 export enum MirrorPeerPhase {
   Initializing = 'Initializing',
   Configuring = 'Configuring',

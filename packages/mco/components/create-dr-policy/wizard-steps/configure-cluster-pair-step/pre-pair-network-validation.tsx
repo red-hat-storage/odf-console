@@ -20,11 +20,14 @@ import {
   Spinner,
   Title,
 } from '@patternfly/react-core';
-import { requiresSubmarinerAcknowledgement } from '../../utils/step-validation';
 import {
   getSubmarinerAcknowledgementContent,
   getSubmarinerStatusDescription,
 } from './pre-pair-status-copy';
+
+const requiresSubmarinerAcknowledgement = (status: SubmarinerStatus): boolean =>
+  status === SubmarinerStatus.NotInstalled ||
+  status === SubmarinerStatus.Unknown;
 
 type StatusLine = {
   icon: React.ReactElement;

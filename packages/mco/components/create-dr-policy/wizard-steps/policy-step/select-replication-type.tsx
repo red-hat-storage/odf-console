@@ -1,14 +1,15 @@
 import * as React from 'react';
-import { ManagedClusterInfoType } from '@odf/mco/types';
 import { normalizeSyncTimeValue, parseSyncInterval } from '@odf/mco/utils';
+import { type StorageVendorDescriptor } from '@odf/mco/utils/storage-vendor-registry';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
 import { FormGroup, SelectOption } from '@patternfly/react-core';
 import {
   MIN_VALUE,
-  ReplicationType,
   REPLICATION_DISPLAY_TEXT,
+  ReplicationMode,
+  ReplicationType,
   SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '../../../../constants';
 import { DRPolicyAction, DRPolicyActionType } from '../../utils/reducer';
@@ -43,34 +44,14 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({
   );
 };
 
+// The replication type is set with the provider (see the reducer); it is shown here, not chosen.
 export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
-  selectedClusters,
+  descriptor,
   syncIntervalTime,
   replicationType,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
-
-  React.useEffect(() => {
-    // Set replication type when two clusters are selected.
-    const cephFSID1 =
-      selectedClusters[0]?.odfInfo?.storageClusterInfo?.cephFSID;
-    const cephFSID2 =
-      selectedClusters[1]?.odfInfo?.storageClusterInfo?.cephFSID;
-
-    // When neither cluster has a cephFSID this is the third-party storage path.
-    // Third-party providers (e.g. IBM Fusion Access) use async replication.
-    const isThirdPartyPath = !cephFSID1 && !cephFSID2;
-
-    dispatch({
-      type: DRPolicyActionType.SET_REPLICATION_TYPE,
-      payload: isThirdPartyPath
-        ? ReplicationType.ASYNC
-        : cephFSID1 === cephFSID2
-          ? ReplicationType.SYNC
-          : ReplicationType.ASYNC,
-    });
-  }, [selectedClusters, dispatch]);
 
   const replicationDropdownItems = Object.entries(
     REPLICATION_DISPLAY_TEXT(t)
@@ -91,6 +72,11 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
       payload: replType,
     });
 
+  const showInterval =
+    descriptor?.replication.mode === ReplicationMode.Async ||
+    (descriptor?.replication.mode === ReplicationMode.Derived &&
+      replicationType === ReplicationType.ASYNC);
+
   return (
     <>
       <FormGroup
@@ -106,7 +92,7 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
           onChange={onChange}
         />
       </FormGroup>
-      {replicationType === ReplicationType.ASYNC && (
+      {showInterval && (
         <FormGroup label={t('Replication interval')}>
           <SyncSchedule
             syncIntervalTime={syncIntervalTime}
@@ -124,7 +110,7 @@ type SyncScheduleProps = {
 };
 
 type SelectReplicationTypeProps = {
-  selectedClusters: ManagedClusterInfoType[];
+  descriptor?: StorageVendorDescriptor;
   syncIntervalTime: string;
   replicationType: ReplicationType;
   dispatch: React.Dispatch<DRPolicyAction>;

@@ -7,3 +7,5 @@ export * from './dashboard';
 export * from './url-paths';
 export * from './submariner';
 export * from './mirrorpeer';
+export * from './s3-configuration';
+export * from './storage-vendor';
