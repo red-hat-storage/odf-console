@@ -19,6 +19,7 @@ import { getBucketOverviewBaseRoute, PREFIX } from '../../../constants';
 import { SetObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
 import { LazyDeleteObjectsModal } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
 import { LegalHoldModalProps } from '../../../modals/s3-browser/legal-hold/LegalHoldModal';
+import { ObjectLockNotEnabledModalProps } from '../../../modals/s3-browser/set-object-lock-and-retention/ObjectLockNotEnabledModal';
 import { SetObjectRetentionModalProps } from '../../../modals/s3-browser/set-object-lock-and-retention/SetObjectRetentionModal';
 import { ObjectCrFormat, S3ProviderType } from '../../../types';
 import {
@@ -40,6 +41,11 @@ const LazyPresignedURLModal = React.lazy(
 const LazySetObjectRetentionModal = React.lazy(
   () =>
     import('../../../modals/s3-browser/set-object-lock-and-retention/SetObjectRetentionModal')
+);
+
+const LazyObjectLockNotEnabledModal = React.lazy(
+  () =>
+    import('../../../modals/s3-browser/set-object-lock-and-retention/ObjectLockNotEnabledModal')
 );
 
 const LazyLegalHoldModal = React.lazy(
@@ -157,7 +163,7 @@ export const getInlineActionsItems = (
           },
         ]
       : []),
-    ...(!isDeleteMarker && isObjectLockEnabled
+    ...(!isDeleteMarker
       ? [
           {
             title: t('Object locking'),
@@ -168,7 +174,17 @@ export const getInlineActionsItems = (
             description: t(
               'Set a retention mode and period to protect this object from deletion or overwrite.'
             ),
-            onClick: () =>
+            onClick: () => {
+              if (!isObjectLockEnabled) {
+                launcher(LazyObjectLockNotEnabledModal, {
+                  isOpen: true,
+                  extraProps: {
+                    bucketName,
+                    s3Client,
+                  } as ObjectLockNotEnabledModalProps,
+                });
+                return;
+              }
               launcher(LazySetObjectRetentionModal, {
                 isOpen: true,
                 extraProps: {
@@ -177,24 +193,29 @@ export const getInlineActionsItems = (
                   s3Client,
                   showVersioning,
                 } as SetObjectRetentionModalProps,
-              }),
+              });
+            },
           },
-          {
-            title: t('Legal hold'),
-            description: t(
-              'Legal hold prevents an object version from being overwritten or deleted until explicitly removed.'
-            ),
-            onClick: () =>
-              launcher(LazyLegalHoldModal, {
-                isOpen: true,
-                extraProps: {
-                  bucketName,
-                  object,
-                  s3Client,
-                  showVersioning,
-                } as LegalHoldModalProps,
-              }),
-          },
+          ...(isObjectLockEnabled
+            ? [
+                {
+                  title: t('Legal hold'),
+                  description: t(
+                    'Legal hold prevents an object version from being overwritten or deleted until explicitly removed.'
+                  ),
+                  onClick: () =>
+                    launcher(LazyLegalHoldModal, {
+                      isOpen: true,
+                      extraProps: {
+                        bucketName,
+                        object,
+                        s3Client,
+                        showVersioning,
+                      } as LegalHoldModalProps,
+                    }),
+                },
+              ]
+            : []),
         ]
       : []),
     {
