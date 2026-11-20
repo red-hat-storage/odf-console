@@ -1,11 +1,21 @@
+import { CONTROL_PLANE } from '@odf/core/constants/common';
+import { ARBITER_ZONE, NodeType } from '@odf/core/constants/scale';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
+import { Taint, Toleration } from '@odf/shared/types';
+import { WizardNodeState } from '../create-storage-system/reducer';
 import {
   digestDeviceKey,
   filterUsedDiscoveredDevices,
   getDiscoveredDeviceKey,
+  getEffectiveLocalClusterRole,
   getLocalDiskNameFromDeviceKey,
+  getTolerationsFromNodes,
+  mergeTolerations,
   toLocalDiskNameToken,
 } from './scale';
+
+const makeNode = (taints?: Taint[]): WizardNodeState =>
+  ({ name: 'node', taints }) as WizardNodeState;
 
 const makeDevice = (
   overrides: Partial<DiscoveredDevice> = {}
@@ -237,6 +247,289 @@ describe('filterUsedDiscoveredDevices', () => {
 
     expect(filterUsedDiscoveredDevices(devices, localDisks)).toEqual([
       makeDevice({ WWN: '', deviceID: '', path: hyphenPath }),
+    ]);
+  });
+});
+
+describe('getTolerationsFromNodes', () => {
+  it('returns an empty array when there are no nodes', () => {
+    expect(getTolerationsFromNodes()).toEqual([]);
+    expect(getTolerationsFromNodes([])).toEqual([]);
+  });
+
+  it('returns an empty array when nodes carry no taints', () => {
+    expect(getTolerationsFromNodes([makeNode(), makeNode([])])).toEqual([]);
+  });
+
+  it('uses operator Equal for a taint with a value', () => {
+    const node = makeNode([
+      { key: 'dedicated', value: 'storage', effect: 'NoSchedule' },
+    ]);
+    expect(getTolerationsFromNodes([node])).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+    ]);
+  });
+
+  it('uses operator Exists for a taint without a value', () => {
+    const node = makeNode([
+      {
+        key: 'node.kubernetes.io/disk-pressure',
+        value: '',
+        effect: 'NoExecute',
+      },
+    ]);
+    expect(getTolerationsFromNodes([node])).toEqual([
+      {
+        key: 'node.kubernetes.io/disk-pressure',
+        operator: 'Exists',
+        effect: 'NoExecute',
+      },
+    ]);
+  });
+
+  it('builds the de-duplicated union across nodes', () => {
+    const shared: Taint = {
+      key: 'dedicated',
+      value: 'storage',
+      effect: 'NoSchedule',
+    };
+    const nodeA = makeNode([shared]);
+    const nodeB = makeNode([
+      shared,
+      { key: 'tenant', value: 'a', effect: 'NoSchedule' },
+    ]);
+
+    expect(getTolerationsFromNodes([nodeA, nodeB])).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+      { key: 'tenant', operator: 'Equal', value: 'a', effect: 'NoSchedule' },
+    ]);
+  });
+
+  it('keeps taints with the same key but different value or effect distinct', () => {
+    const node = makeNode([
+      { key: 'dedicated', value: 'storage', effect: 'NoSchedule' },
+      { key: 'dedicated', value: 'storage', effect: 'NoExecute' },
+      { key: 'dedicated', value: 'other', effect: 'NoSchedule' },
+    ]);
+
+    expect(getTolerationsFromNodes([node])).toHaveLength(3);
+  });
+
+  it('collapses an identical taint repeated within a single node', () => {
+    const taint: Taint = {
+      key: 'dedicated',
+      value: 'storage',
+      effect: 'NoSchedule',
+    };
+    const node = makeNode([taint, { ...taint }, { ...taint }]);
+
+    expect(getTolerationsFromNodes([node])).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+    ]);
+  });
+
+  it('collapses the same taint appearing across multiple nodes into one toleration', () => {
+    const taint: Taint = {
+      key: 'dedicated',
+      value: 'storage',
+      effect: 'NoSchedule',
+    };
+    const nodes = [
+      makeNode([{ ...taint }]),
+      makeNode([{ ...taint }]),
+      makeNode([{ ...taint }]),
+    ];
+
+    expect(getTolerationsFromNodes(nodes)).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+    ]);
+  });
+
+  it('emits exactly one toleration per distinct taint when duplicates are mixed in', () => {
+    const dedicated: Taint = {
+      key: 'dedicated',
+      value: 'storage',
+      effect: 'NoSchedule',
+    };
+    const tenant: Taint = { key: 'tenant', value: '', effect: 'NoExecute' };
+    const nodes = [
+      // duplicate within the node + a unique taint
+      makeNode([{ ...dedicated }, { ...dedicated }, { ...tenant }]),
+      // same taints repeated on another node
+      makeNode([{ ...dedicated }, { ...tenant }]),
+    ];
+
+    const result = getTolerationsFromNodes(nodes);
+
+    expect(result).toHaveLength(2);
+    expect(result).toEqual([
+      {
+        key: 'dedicated',
+        operator: 'Equal',
+        value: 'storage',
+        effect: 'NoSchedule',
+      },
+      { key: 'tenant', operator: 'Exists', effect: 'NoExecute' },
+    ]);
+  });
+});
+
+describe('getEffectiveLocalClusterRole', () => {
+  const arbiterCandidate = (
+    localClusterRole = NodeType.CLUSTER
+  ): WizardNodeState =>
+    ({
+      name: 'cp-arbiter',
+      zone: ARBITER_ZONE,
+      roles: [CONTROL_PLANE],
+      localClusterRole,
+    }) as WizardNodeState;
+
+  it('derives Arbiter for a control-plane node in the arbiter zone when stretch is on', () => {
+    // Stored role is the base Cluster role; Arbiter is derived, never stored.
+    expect(getEffectiveLocalClusterRole(arbiterCandidate(), true)).toBe(
+      NodeType.ARBITER
+    );
+  });
+
+  it('does not derive Arbiter when stretch is off (returns the stored base role)', () => {
+    expect(getEffectiveLocalClusterRole(arbiterCandidate(), false)).toBe(
+      NodeType.CLUSTER
+    );
+    expect(getEffectiveLocalClusterRole(arbiterCandidate())).toBe(
+      NodeType.CLUSTER
+    );
+  });
+
+  it('never promotes a non-arbiter-zone control-plane node to Arbiter', () => {
+    const node = {
+      name: 'cp',
+      zone: 'zone-a',
+      roles: [CONTROL_PLANE],
+      localClusterRole: NodeType.CLUSTER,
+    } as WizardNodeState;
+    expect(getEffectiveLocalClusterRole(node, true)).toBe(NodeType.CLUSTER);
+  });
+
+  it('never promotes a worker node in the arbiter zone to Arbiter', () => {
+    const node = {
+      name: 'worker',
+      zone: ARBITER_ZONE,
+      roles: [],
+      localClusterRole: NodeType.DISK,
+    } as WizardNodeState;
+    expect(getEffectiveLocalClusterRole(node, true)).toBe(NodeType.DISK);
+  });
+
+  it('preserves a manual Disk override for an arbiter-eligible node when stretch is off', () => {
+    expect(getEffectiveLocalClusterRole(arbiterCandidate(NodeType.DISK))).toBe(
+      NodeType.DISK
+    );
+  });
+
+  it('falls back to the computed base role when none is stored', () => {
+    const worker = {
+      name: 'worker',
+      zone: 'zone-a',
+      roles: [],
+    } as WizardNodeState;
+    const controlPlane = {
+      name: 'cp',
+      zone: 'zone-a',
+      roles: [CONTROL_PLANE],
+    } as WizardNodeState;
+    expect(getEffectiveLocalClusterRole(worker, false)).toBe(NodeType.DISK);
+    expect(getEffectiveLocalClusterRole(controlPlane, false)).toBe(
+      NodeType.CLUSTER
+    );
+  });
+});
+
+describe('mergeTolerations', () => {
+  const existing: Toleration = {
+    key: 'dedicated',
+    operator: 'Equal',
+    value: 'storage',
+    effect: 'NoSchedule',
+  };
+  const added: Toleration = {
+    key: 'tenant',
+    operator: 'Exists',
+    effect: 'NoExecute',
+  };
+
+  it('returns an empty array when both inputs are empty/omitted', () => {
+    expect(mergeTolerations()).toEqual([]);
+    expect(mergeTolerations([], [])).toEqual([]);
+  });
+
+  it('appends genuinely new tolerations to the existing ones', () => {
+    expect(mergeTolerations([existing], [added])).toEqual([existing, added]);
+  });
+
+  it('de-duplicates on key + value + effect, keeping the existing entry', () => {
+    const duplicate: Toleration = { ...existing };
+    expect(mergeTolerations([existing], [duplicate])).toEqual([existing]);
+  });
+
+  it('treats the same key with a different value or effect as distinct', () => {
+    const differentValue: Toleration = { ...existing, value: 'other' };
+    const differentEffect: Toleration = { ...existing, effect: 'NoExecute' };
+    expect(
+      mergeTolerations([existing], [differentValue, differentEffect])
+    ).toEqual([existing, differentValue, differentEffect]);
+  });
+
+  it('preserves existing tolerations when nothing new is added', () => {
+    expect(mergeTolerations([existing, added], [])).toEqual([existing, added]);
+  });
+
+  it('keeps an Equal-with-empty-value toleration distinct from an Exists one', () => {
+    const equalEmpty: Toleration = {
+      key: 'dedicated',
+      operator: 'Equal',
+      value: '',
+      effect: 'NoSchedule',
+    };
+    const exists: Toleration = {
+      key: 'dedicated',
+      operator: 'Exists',
+      effect: 'NoSchedule',
+    };
+    // Same key/value/effect but different operator -> semantically distinct, so
+    // both must survive the merge.
+    expect(mergeTolerations([equalEmpty], [exists])).toEqual([
+      equalEmpty,
+      exists,
+    ]);
+  });
+
+  it('treats tolerations differing only by tolerationSeconds as distinct', () => {
+    const shortLived: Toleration = { ...added, tolerationSeconds: 30 };
+    const longLived: Toleration = { ...added, tolerationSeconds: 300 };
+    expect(mergeTolerations([shortLived], [longLived])).toEqual([
+      shortLived,
+      longLived,
     ]);
   });
 });

@@ -1,17 +1,10 @@
 import { ReclaimPolicy, VolumeBindingMode } from '@odf/shared';
+import { Toleration } from '@odf/shared/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 export type LabelMap = Record<string, string>;
 
 export type IntOrString = number | string;
-
-export type Toleration = {
-  key?: string;
-  operator?: 'Exists' | 'Equal';
-  value?: string;
-  effect?: 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
-  tolerationSeconds?: number;
-};
 
 export type ResourceRequirements = {
   limits?: {

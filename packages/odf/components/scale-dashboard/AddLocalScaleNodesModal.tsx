@@ -1,10 +1,14 @@
 import * as React from 'react';
 import { ScaleNodesSection } from '@odf/core/components/create-storage-system/external-systems/common/NodesSection';
-import { labelNodes } from '@odf/core/components/create-storage-system/external-systems/common/payload';
+import {
+  labelNodes,
+  patchScaleLocalClusterTolerations,
+} from '@odf/core/components/create-storage-system/external-systems/common/payload';
 import { useKernelDevelEligibility } from '@odf/core/components/create-storage-system/external-systems/CreateScaleSystem/hooks/useKernelDevelEligibility';
 import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
 import { SCALE_DAEMON_NODE_LABEL } from '@odf/core/constants';
 import { NodeData } from '@odf/core/types';
+import { ClusterKind } from '@odf/core/types/scale';
 import { useCustomTranslation } from '@odf/shared';
 import {
   Button,
@@ -19,11 +23,13 @@ import {
 type AddLocalScaleNodesModalProps = {
   closeModal: () => void;
   isOpen: boolean;
+  cluster: ClusterKind;
 };
 
 const AddLocalScaleNodesModal: React.FC<AddLocalScaleNodesModalProps> = ({
   closeModal,
   isOpen,
+  cluster,
 }) => {
   const { t } = useCustomTranslation();
   const [selectedNodes, setSelectedNodes] = React.useState<WizardNodeState[]>(
@@ -45,6 +51,15 @@ const AddLocalScaleNodesModal: React.FC<AddLocalScaleNodesModalProps> = ({
     setIsSubmitting(true);
     setError('');
     try {
+      // Expand the Cluster's tolerations BEFORE labeling the nodes (no-op when
+      // the nodes add no new taints). Ordering matters: labeling a node makes the
+      // daemon schedule a pod there, so the matching toleration must already be in
+      // place. If this order were reversed and the toleration patch failed, the
+      // node would be left labeled-but-untolerated (daemon pod stuck Pending) and
+      // its row would become a fixed/disabled entry that can never be re-selected
+      // to retry. Patching tolerations first keeps a partial failure recoverable:
+      // labeling can simply be retried, and any extra tolerations are harmless.
+      await patchScaleLocalClusterTolerations(cluster, selectedNodes)();
       await labelNodes(selectedNodes)();
       closeModal();
     } catch (err) {
@@ -52,7 +67,7 @@ const AddLocalScaleNodesModal: React.FC<AddLocalScaleNodesModalProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [closeModal, selectedNodes]);
+  }, [closeModal, cluster, selectedNodes]);
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal} variant={ModalVariant.medium}>

@@ -213,6 +213,122 @@ describe('NodesSection', () => {
     ]);
   });
 
+  it('filters the table rows via the search box', async () => {
+    const nodes = [
+      {
+        metadata: {
+          name: 'node-0',
+          uid: 'node-0-uid',
+          labels: { 'node-role.kubernetes.io/worker': '' },
+        },
+        spec: {},
+      },
+      {
+        metadata: {
+          name: 'node-1',
+          uid: 'node-1-uid',
+          labels: { 'node-role.kubernetes.io/worker': '' },
+        },
+        spec: {},
+      },
+    ];
+    (useNodesData as jest.Mock).mockReturnValue([nodes, true, null]);
+
+    render(
+      <ScaleNodesSection
+        selectedNodes={[]}
+        setSelectedNodes={jest.fn()}
+        kernelDevelEligibility={ineligible}
+      />
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('nodes-table')).toHaveAttribute(
+        'data-nodes',
+        'node-0,node-1'
+      )
+    );
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Find by name, label, or taint'),
+      'node-1'
+    );
+
+    expect(screen.getByTestId('nodes-table')).toHaveAttribute(
+      'data-nodes',
+      'node-1'
+    );
+  });
+
+  it('bulk selects and clears nodes via the toolbar control', async () => {
+    const nodes = [
+      {
+        metadata: {
+          name: 'node-0',
+          uid: 'node-0-uid',
+          labels: { 'node-role.kubernetes.io/worker': '' },
+        },
+        spec: {},
+      },
+      {
+        metadata: {
+          name: 'node-1',
+          uid: 'node-1-uid',
+          labels: { 'node-role.kubernetes.io/worker': '' },
+        },
+        spec: {},
+      },
+    ];
+    const onSelectionChange = jest.fn();
+    (useNodesData as jest.Mock).mockReturnValue([nodes, true, null]);
+
+    const TestScaleNodesSection = () => {
+      const [selectedNodes, setSelectedNodes] = React.useState<
+        WizardNodeState[]
+      >([]);
+      const handleSelection = (nextNodes: WizardNodeState[]) => {
+        setSelectedNodes(nextNodes);
+        onSelectionChange(nextNodes);
+      };
+      return (
+        <ScaleNodesSection
+          selectedNodes={selectedNodes}
+          setSelectedNodes={handleSelection}
+          kernelDevelEligibility={ineligible}
+        />
+      );
+    };
+
+    render(<TestScaleNodesSection />);
+
+    // Both untainted workers are selected by default.
+    await waitFor(() =>
+      expect(screen.getByTestId('nodes-table')).toHaveAttribute(
+        'data-selected',
+        'node-0,node-1'
+      )
+    );
+
+    // "Select none" clears the selection.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Bulk selection' })
+    );
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'Select none' })
+    );
+    expect(onSelectionChange).toHaveBeenLastCalledWith([]);
+
+    // "Select all" re-selects every visible node.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Bulk selection' })
+    );
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Select all' }));
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ name: 'node-0' }),
+      expect.objectContaining({ name: 'node-1' }),
+    ]);
+  });
+
   it.each([
     {
       eligibility: { ...ineligible, isLoading: true },

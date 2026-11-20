@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useExistingFileSystemNames } from '@odf/core/components/create-storage-system/external-systems/common/useResourceNameValidation';
+import { getTolerationsFromNodes } from '@odf/core/components/utils';
 import {
   PageHeading,
   useCustomTranslation,
@@ -142,7 +143,8 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           undefined,
           true,
           cpuRequest.toString(),
-          memoryRequest
+          memoryRequest,
+          getTolerationsFromNodes(componentState.selectedNodes)
         );
         await localClusterPromise();
         await configureMetricsNamespaceLabels();
@@ -465,7 +467,9 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           <FormHelperText>
             <HelperText>
               <HelperTextItem>
-                {t('Upload a certificate to secure your configuration.')}
+                {t(
+                  "If you don't upload certificate, the configuration will not be secured."
+                )}
               </HelperTextItem>
             </HelperText>
           </FormHelperText>
@@ -511,7 +515,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
               }))
             }
             description={t(
-              'Ensures all filesystem data is securely stored and protected.'
+              'Data encryption requires a username, password, port, and backup server details.'
             )}
           />
         </FormGroup>
@@ -583,7 +587,7 @@ export const CreateScaleSystem: React.FC = () => {
         ]}
       >
         {t(
-          'Connect to IBM Storage Scale to power Data Foundation with fast, reliable file storage optimized for enterprise performance.'
+          'Connect to IBM Storage Scale to deliver fast, scalable file storage for Data Foundation.'
         )}
       </PageHeading>
       <div className="odf-m-pane__body">

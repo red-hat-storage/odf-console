@@ -1,4 +1,9 @@
 import {
+  getTaintOrTolerationIdentity,
+  getTolerationsFromNodes,
+  mergeTolerations,
+} from '@odf/core/components/utils/scale';
+import {
   IBM_SCALE_LOCAL_CLUSTER_NAME,
   IBM_SCALE_NAMESPACE,
   SCALE_DAEMON_NODE_LABEL,
@@ -15,6 +20,7 @@ import {
   SecretKind,
   SecretModel,
 } from '@odf/shared';
+import { Toleration } from '@odf/shared/types';
 import { k8sPatchByName } from '@odf/shared/utils';
 import { createOrUpdate } from '@odf/shared/utils/k8s';
 import {
@@ -120,7 +126,8 @@ export const createScaleLocalClusterPayload = (
   addClusterLabels?: boolean,
   addResourceLimits?: boolean,
   cpuLimit?: string,
-  memoryLimit?: string
+  memoryLimit?: string,
+  tolerations?: Toleration[]
 ) => {
   const spec: ClusterKind['spec'] = {
     daemon: {
@@ -186,6 +193,21 @@ export const createScaleLocalClusterPayload = (
       },
     };
   }
+
+  // Tolerate the taints on the selected nodes so the Scale pods can schedule
+  // onto them. Each taint-sensitive section (daemon, GUI, pmcollector and
+  // grafana-bridge) has its own toleration knob that the operator fans out to
+  // the matching component, so set the same tolerations on all of them —
+  // otherwise those pods stay `Pending` on tainted nodes. Omitted entirely when
+  // there are no taints so the CR stays byte-identical to the previous
+  // (no-taint) behavior.
+  if (tolerations && tolerations.length > 0) {
+    spec.daemon = { ...spec.daemon, tolerations };
+    spec.gui = { ...spec.gui, tolerations };
+    spec.pmcollector = { ...spec.pmcollector, tolerations };
+    spec.grafanaBridge = { ...spec.grafanaBridge, tolerations };
+  }
+
   const payload: ClusterKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
     kind: 'Cluster',
@@ -201,6 +223,84 @@ export const createScaleLocalClusterPayload = (
     spec,
   };
   return () => k8sCreate({ model: ClusterModel, data: payload });
+};
+
+// The taint-sensitive sections of the Cluster CR. Each has its own
+// `tolerations` knob that the operator fans out to the matching pods, so all of
+// them must be kept in sync, not just the daemon.
+const TAINT_SENSITIVE_SECTIONS = [
+  'daemon',
+  'gui',
+  'pmcollector',
+  'grafanaBridge',
+] as const;
+
+/**
+ * Expands an existing local Cluster's tolerations to cover the taints on
+ * newly-added nodes. Without this, a node added after create time gets the
+ * daemon node-selector label but no matching toleration, so its pods stay
+ * `Pending` on a tainted node. Every taint-sensitive section (daemon, GUI,
+ * pmcollector, grafana-bridge) is patched, so the GUI/monitoring pods — which
+ * have their own toleration knobs — schedule too. Sections that are absent (e.g.
+ * on a cluster created before this behavior existed) get added.
+ */
+export const patchScaleLocalClusterTolerations = (
+  cluster: ClusterKind,
+  nodes: WizardNodeState[]
+) => {
+  const nodeTolerations = getTolerationsFromNodes(nodes);
+
+  const patch: Patch[] = TAINT_SENSITIVE_SECTIONS.flatMap<Patch>((section) => {
+    const sectionSpec = cluster?.spec?.[section];
+    const existingTolerations = sectionSpec?.tolerations ?? [];
+    const mergedTolerations = mergeTolerations(
+      existingTolerations,
+      nodeTolerations
+    );
+
+    // Nothing new to tolerate for this section -> skip it. Compare by identity,
+    // not list length: duplicates in the existing list can make the merged
+    // length equal even when a genuinely new toleration was added, so a length
+    // check would silently skip the patch.
+    const existingIdentities = new Set(
+      existingTolerations.map(getTaintOrTolerationIdentity)
+    );
+    const hasNewToleration = mergedTolerations.some(
+      (toleration) =>
+        !existingIdentities.has(getTaintOrTolerationIdentity(toleration))
+    );
+    if (!hasNewToleration) {
+      return [];
+    }
+
+    // The section object is missing entirely -> add it. A JSON Patch `add` on
+    // `/spec/<section>/tolerations` would fail when `/spec/<section>` does not
+    // exist, so add the whole section object instead.
+    if (!sectionSpec) {
+      return [
+        {
+          op: 'add' as const,
+          path: `/spec/${section}`,
+          value: { tolerations: mergedTolerations },
+        },
+      ];
+    }
+    return [
+      {
+        op: sectionSpec.tolerations ? ('replace' as const) : ('add' as const),
+        path: `/spec/${section}/tolerations`,
+        value: mergedTolerations,
+      },
+    ];
+  });
+
+  // Nothing new to tolerate across any section -> leave the CR untouched.
+  if (patch.length === 0) {
+    return () => Promise.resolve();
+  }
+
+  return () =>
+    k8sPatchByName(ClusterModel, IBM_SCALE_LOCAL_CLUSTER_NAME, null, patch);
 };
 
 const labelUserWorkloadMonitoringNamespace = (): Promise<unknown> => {
