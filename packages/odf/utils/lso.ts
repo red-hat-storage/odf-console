@@ -69,7 +69,7 @@ export const getLocalVolumeSetRequestData = (
   state: any,
   nodes: string[],
   ns: string,
-  toleration?: Toleration
+  tolerations?: Toleration[]
 ): LocalVolumeSetKind => {
   const deviceTypes = getDeviceTypes(state.deviceType);
   const requestData = {
@@ -99,7 +99,7 @@ export const getLocalVolumeSetRequestData = (
   } as LocalVolumeSetKind;
 
   if (state.fsType) requestData.spec.fsType = state.fsType;
-  if (!_.isEmpty(toleration)) requestData.spec.tolerations = [toleration];
+  if (tolerations?.length) requestData.spec.tolerations = tolerations;
   if (state.maxDiskLimit) requestData.spec.maxDeviceCount = +state.maxDiskLimit;
   if (state.minDiskSize)
     requestData.spec.deviceInclusionSpec.minSize = `${state.minDiskSize}${state.diskSizeUnit}`;
@@ -138,7 +138,7 @@ export const getNodeSelectorTermsIndices = (
 export const getDiscoveryRequestData = (
   nodes: string[],
   ns: string,
-  toleration?: Toleration
+  tolerations?: Toleration[]
 ): LocalVolumeDiscoveryKind => {
   const request: LocalVolumeDiscoveryKind = {
     apiVersion: getAPIVersionForModel(LocalVolumeDiscovery),
@@ -160,7 +160,7 @@ export const getDiscoveryRequestData = (
       },
     },
   };
-  if (!_.isEmpty(toleration)) request.spec.tolerations = [toleration];
+  if (tolerations?.length) request.spec.tolerations = tolerations;
   return request;
 };
 
@@ -195,7 +195,11 @@ export const updateLocalVolumeDiscovery = async (nodes, ns, setError) => {
   }
 };
 
-export const createLocalVolumeDiscovery = async (nodes, ns, toleration?) => {
-  const requestData = getDiscoveryRequestData(nodes, ns, toleration);
+export const createLocalVolumeDiscovery = async (
+  nodes: string[],
+  ns: string,
+  tolerations?: Toleration[]
+) => {
+  const requestData = getDiscoveryRequestData(nodes, ns, tolerations);
   await k8sCreate({ model: LocalVolumeDiscovery, data: requestData });
 };

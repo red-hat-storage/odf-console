@@ -25,11 +25,9 @@ const initDiskDiscovery = async (
   } catch (loadError) {
     if (loadError?.response?.status === 404) {
       try {
-        await createLocalVolumeDiscovery(
-          nodeByHostNames,
-          namespace,
-          OCS_TOLERATION
-        );
+        await createLocalVolumeDiscovery(nodeByHostNames, namespace, [
+          OCS_TOLERATION,
+        ]);
       } catch (createError) {
         setError(createError.message);
       }

@@ -18,6 +18,7 @@ import {
   deviceTypeDropdownItems,
   diskModeDropdownItems,
 } from '../../constants';
+import { HCI_DISK_DISCOVERY_DEFAULTS } from '../../constants';
 import { NodeType } from '../../constants/scale';
 import {
   DiskType,
@@ -330,6 +331,40 @@ const setBackingStorageType = (
   state.backingStorage.type = bsType;
   return state;
 };
+
+export const wizardStateInitializer =
+  (isHCIPlatform: boolean) =>
+  (state: WizardState): WizardState => {
+    if (!isHCIPlatform) {
+      return state;
+    }
+    const d = HCI_DISK_DISCOVERY_DEFAULTS;
+    return {
+      ...state,
+      backingStorage: {
+        ...state.backingStorage,
+        type: BackingStorageType.LOCAL_DEVICES,
+      },
+      capacityAndNodes: {
+        ...state.capacityAndNodes,
+        resourceProfile: ResourceProfile.Balanced,
+      },
+      createLocalVolumeSet: {
+        ...state.createLocalVolumeSet,
+        volumeSetName: d.volumeSetName,
+        diskType: d.diskType,
+        diskMode: d.volumeMode,
+        deviceType: [...d.deviceTypes],
+        minDiskSize: d.minDiskSize,
+        maxDiskSize: d.maxDiskSize,
+        diskSizeUnit: d.diskSizeUnit,
+      },
+      securityAndNetwork: {
+        ...state.securityAndNetwork,
+        networkType: NetworkType.HOST,
+      },
+    };
+  };
 
 /* Reducer of CreateStorageSystem */
 export const reducer: WizardReducer = (prevState, action) => {
