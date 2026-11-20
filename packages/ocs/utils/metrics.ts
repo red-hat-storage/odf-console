@@ -1,7 +1,6 @@
 import { Colors, COLORMAP } from '@odf/shared/dashboards/breakdown-card/consts';
 import { DataPoint } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
 
 export const getStackChartStats: GetStackStats = (
   response,
@@ -10,12 +9,13 @@ export const getStackChartStats: GetStackStats = (
 ) =>
   response.map((r, i) => {
     const capacity = humanize(r.y).string;
+    const fullName = labelNames ? labelNames[i] : `${r.x}`;
     return {
       // x value needs to be same for single bar stack chart
       x: '0',
       y: r.y,
-      name: labelNames ? labelNames[i] : _.truncate(`${r.x}`, { length: 12 }),
-      link: labelNames ? labelNames[i] : `${r.x}`,
+      name: fullName,
+      link: fullName,
       color: labelNames ? Colors.OTHER : Colors.LINK,
       fill: COLORMAP[i],
       label: capacity,
