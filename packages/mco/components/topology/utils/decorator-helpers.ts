@@ -10,6 +10,7 @@ export enum DecoratorTooltipKey {
   AwaitingResync = 'Awaiting resync',
   ActionNeeded = 'Action needed',
   ActionRequired = 'Action required',
+  UserActionRequired = 'User action required',
 }
 
 /**
@@ -25,15 +26,18 @@ export const getDecoratorForStatus = (
   let status = NodeStatus.default;
 
   switch (drStatus) {
+    case DRStatus.WaitOnUserToCleanUp:
+      icon = DecoratorIcon.ExclamationCircle;
+      tooltip = DecoratorTooltipKey.UserActionRequired;
+      status = NodeStatus.danger;
+      break;
     case DRStatus.Critical:
     case DRStatus.ProtectionError:
     case DRStatus.Unknown:
-    case DRStatus.WaitOnUserToCleanUp:
     case DRStatus.WaitForUser:
     case Progression.WaitForUserAction:
       icon = DecoratorIcon.ExclamationCircle;
       tooltip =
-        drStatus === DRStatus.WaitOnUserToCleanUp ||
         drStatus === DRStatus.WaitForUser ||
         drStatus === Progression.WaitForUserAction
           ? DecoratorTooltipKey.ActionRequired

@@ -43,6 +43,14 @@
     color: var(--pf-t--global--color--status--danger--100);
   }
 
+  &__title-text.dr-status-user-action {
+    color: var(--pf-t--global--color--nonstatus--purple--400);
+  }
+
+  &__column-label {
+    color: var(--pf-t--global--text--color--regular);
+  }
+
   &__title-text.dr-status-warning {
     color: var(--pf-t--global--color--status--warning--100);
   }

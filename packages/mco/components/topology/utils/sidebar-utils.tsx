@@ -3,6 +3,7 @@ import { DRPlacementControlModel } from '@odf/shared';
 import {
   BlueInfoCircleIcon,
   GreenCheckCircleIcon,
+  PurpleExclamationCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
@@ -78,12 +79,20 @@ export const isDRStatusUserActionRequired = isUserActionRequiredUtil;
 
 export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
   const { t } = useCustomTranslation();
-  // Danger states (includes user action required — matches protected-applications)
+  if (status === DRStatus.WaitOnUserToCleanUp) {
+    return (
+      <>
+        <PurpleExclamationCircleIcon />
+        <span>{t('User action required')}</span>
+      </>
+    );
+  }
+
+  // Danger states. WaitForUser keeps the existing red treatment.
   if (
     status === DRStatus.Critical ||
     status === DRStatus.Unknown ||
     status === DRStatus.ProtectionError ||
-    status === DRStatus.WaitOnUserToCleanUp ||
     status === DRStatus.WaitForUser
   ) {
     return (

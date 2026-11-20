@@ -16,6 +16,7 @@ import { DOC_VERSION as mcoDocVersion, useScheduler } from '@odf/shared/hooks';
 import {
   BlueInfoCircleIcon,
   GreenCheckCircleIcon,
+  PurpleExclamationCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
@@ -85,6 +86,7 @@ const DR_STATUS_CLASS_NAMES = {
   WARNING: 'dr-status-warning',
   CRITICAL: 'dr-status-critical',
   ACTION_NEEDED: 'dr-status-action-needed',
+  USER_ACTION: 'dr-status-user-action',
   FAILOVER: 'dr-status-failover',
   RELOCATING: 'dr-status-relocating',
   UNKNOWN: 'dr-status-unknown',
@@ -129,7 +131,7 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.Relocating]: <InProgressIcon />,
     [DRStatus.FailedOver]: <GreenCheckCircleIcon />,
     [DRStatus.Relocated]: <GreenCheckCircleIcon />,
-    [DRStatus.WaitOnUserToCleanUp]: <RedExclamationCircleIcon />,
+    [DRStatus.WaitOnUserToCleanUp]: <PurpleExclamationCircleIcon />,
     [DRStatus.WaitForUser]: <RedExclamationCircleIcon />,
     [DRStatus.Deleting]: <InProgressIcon />,
     [DRStatus.Protecting]: <InProgressIcon />,
@@ -144,6 +146,9 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
 };
 
 const getStatusLabel = (status: DRStatus, t: TFunction): string => {
+  if (status === DRStatus.WaitOnUserToCleanUp) {
+    return t('User action required');
+  }
   if (status === DRStatus.WaitForUser) return t('Action needed');
   // Ramen spells this "Cleaning Up"; show a translated, sentence-cased label.
   if (status === DRStatus.CleaningUp) return t('Cleaning up');
@@ -592,9 +597,9 @@ const getDRStatusDetails = ({
       // In both cases, targetCluster is the cluster that needs cleanup
       return createStatus(
         DRStatus.WaitOnUserToCleanUp,
-        t('Action needed'),
+        t('User action required'),
         getCleanupMessage(phase, targetCluster, t, testFailoverCleanupCluster),
-        DR_STATUS_CLASS_NAMES.ACTION_NEEDED
+        DR_STATUS_CLASS_NAMES.USER_ACTION
       );
     }
 
@@ -1017,6 +1022,11 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
           data-test-id="dr-status-button"
         >
           <StatusIconAndText
+            className={
+              status === DRStatus.WaitOnUserToCleanUp
+                ? 'dr-status-popover__column-label'
+                : undefined
+            }
             title={getStatusLabel(status, t)}
             icon={icon}
           />{' '}

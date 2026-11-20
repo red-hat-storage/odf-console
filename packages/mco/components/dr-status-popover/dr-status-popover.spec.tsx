@@ -319,9 +319,12 @@ describe('DRStatusPopover Component', () => {
       />
     );
 
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'User action required'
+    );
     await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Action needed/
+      'User action required'
     );
     expect(screen.getByTestId('popover-description')).toHaveTextContent(
       /finish reverting the failover test/
@@ -779,7 +782,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver cleanup required',
-        expectedStatus: 'WaitOnUserToCleanUp',
+        expectedStatus: 'User action required',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'WaitOnUserToCleanUp',
@@ -815,7 +818,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'Relocating cleanup required',
-        expectedStatus: 'WaitOnUserToCleanUp',
+        expectedStatus: 'User action required',
         overrides: {
           phase: Phase.Relocating,
           progression: 'WaitOnUserToCleanUp',

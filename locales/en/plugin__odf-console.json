@@ -2826,6 +2826,7 @@
   "Used: {{targetClusters}}": "Used: {{targetClusters}}",
   "User": "User",
   "User action is required to proceed.": "User action is required to proceed.",
+  "User action required": "User action required",
   "User created successfully": "User created successfully",
   "User has one or more access keys": "User has one or more access keys",
   "User is an identity who has specific permissions and policies depending on the assigned role": "User is an identity who has specific permissions and policies depending on the assigned role",
