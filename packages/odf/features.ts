@@ -3,8 +3,12 @@ import {
   PLUGIN_OPENSHIFT_CI,
   NOOBAA_PROVISIONER,
 } from '@odf/shared/constants';
-import { StorageClassModel, StorageClusterModel } from '@odf/shared/models';
-import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
+import {
+  StorageClassModel,
+  StorageClusterModel,
+  SelfSubjectAccessReviewModel,
+  BareMetalHostModel,
+} from '@odf/shared/models';
 import {
   StorageClassResourceKind,
   StorageClusterKind,
@@ -25,6 +29,7 @@ export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageS
 export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaa CR and NooBaa StorageClass
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
 export const PROVIDER_MODE = 'PROVIDER_MODE'; // Set to "true" if user has deployed it in provider mode
+export const HCI_PLATFORM = 'HCI_PLATFORM';
 
 const nooBaaFlagName = 'noobaa';
 type FeatureFlagResponse = {
@@ -186,6 +191,37 @@ export const detectComponents: FeatureDetector = async (
   // else it will wait for 15s before start polling
   noobaaDetector();
   noobaaIntervalId = setInterval(noobaaDetector, 15 * SECOND);
+};
+
+const HCI_BMH_NAME_PATTERN = /^(compute|control)-\d+-ru\d+$/;
+
+const detectHCIViaBMH = async (): Promise<boolean> => {
+  try {
+    const bmhs = (await k8sList<K8sResourceCommon>({
+      model: BareMetalHostModel,
+      queryParams: { ns: 'openshift-machine-api' },
+      requestInit: null,
+    })) as K8sResourceCommon[];
+    return bmhs?.some((bmh) =>
+      HCI_BMH_NAME_PATTERN.test(bmh.metadata?.name || '')
+    );
+  } catch {
+    return false;
+  }
+};
+
+const detectHCIViaCRD = async (): Promise<boolean> => {
+  try {
+    await consoleFetchJSON('/apis/discovery.isf.ibm.com');
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const setHCIFlags = async (setFlag: SetFeatureFlag) => {
+  const results = await Promise.all([detectHCIViaBMH(), detectHCIViaCRD()]);
+  setFlag(HCI_PLATFORM, results.some(Boolean));
 };
 
 export type FeatureDetector = (setFlag: SetFeatureFlag) => Promise<void>;

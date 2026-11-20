@@ -24,6 +24,12 @@ jest.mock('@odf/shared', () => ({
   }),
 }));
 
+// Mock useFlag (needs Redux Provider otherwise)
+jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
+  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
+  useFlag: () => false,
+}));
+
 // Mock console.log to verify redirect logging
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(jest.fn());
 

@@ -5,6 +5,7 @@ import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import * as _ from 'lodash-es';
 import { Alert, AlertVariant, FormGroup, Radio } from '@patternfly/react-core';
+import { HCI_PLATFORM } from '../../../../features';
 import { FDF_FLAG } from '../../../../redux';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardState } from '../../reducer';
@@ -31,6 +32,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const isFDF = useFlag(FDF_FLAG);
+  const isHCI = useFlag(HCI_PLATFORM);
 
   return (
     <>
@@ -39,7 +41,14 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
         label={t('Network')}
         className="ceph__install-radio--inline"
       >
-        {isFDF ? (
+        {isHCI ? (
+          <Alert
+            data-test="odf-host-network-alert"
+            title={t('Data Foundation will use the host network.')}
+            variant={AlertVariant.info}
+            isInline
+          />
+        ) : isFDF ? (
           <Radio
             isChecked={
               networkType === NetworkType.DEFAULT ||
@@ -62,7 +71,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
             isInline
           />
         )}
-        {isFDF && (
+        {isFDF && !isHCI && (
           <Radio
             isChecked={
               networkType === NetworkType.HOST ||

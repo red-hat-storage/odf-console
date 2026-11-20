@@ -16,6 +16,7 @@ import {
   SecurityAndNetwork,
   Security,
 } from './create-storage-system-steps';
+import { UseHCIDisksResult } from './create-storage-system-steps/create-local-volume-set-step/useHCIDisks';
 import { WizardDispatch, WizardState } from './reducer';
 
 export const createSteps = (
@@ -26,7 +27,9 @@ export const createSteps = (
   hasOCS: boolean,
   supportedExternalStorage: ExternalStorage[],
   hasMultipleClusters: boolean,
-  isTNFEnabled: boolean
+  isTNFEnabled: boolean,
+  isHCIEnabled = false,
+  hciResults?: UseHCIDisksResult
 ): (Pick<WizardStepProps, 'id' | 'name'> & {
   component: React.ReactElement;
   canJumpTo: boolean;
@@ -55,6 +58,8 @@ export const createSteps = (
 
   const isMCG = deployment === DeploymentType.MCG;
   const nodeCount = nodes?.length ?? 0;
+
+  const hciLVSExists = isHCIEnabled && (hciResults?.lvsExists ?? false);
 
   const includeAdvancedSettingsStep =
     !isMCG &&
@@ -164,6 +169,7 @@ export const createSteps = (
         stepIdReached={stepIdReached}
         isMCG={isMCG}
         systemNamespace={systemNamespace}
+        hciResults={hciResults}
       />
     ),
   };
@@ -272,30 +278,36 @@ export const createSteps = (
           },
         ];
       }
-      if (includeAdvancedSettingsStep) {
-        return [
-          createLocalVolumeSetStep,
+      if (isHCIEnabled) {
+        const hciSteps = [];
+        let nextId = 3;
+        if (!hciLVSExists) {
+          hciSteps.push(createLocalVolumeSetStep);
+          nextId = 4;
+        }
+        hciSteps.push(
           {
-            id: 4,
-            canJumpTo: stepIdReached >= 4,
+            id: nextId,
+            canJumpTo: stepIdReached >= nextId,
             ...commonSteps.capacityAndNodes,
           },
           {
-            id: 5,
-            canJumpTo: stepIdReached >= 5,
+            id: nextId + 1,
+            canJumpTo: stepIdReached >= nextId + 1,
             ...commonSteps.advancedSettings,
           },
           {
-            id: 6,
-            canJumpTo: stepIdReached >= 6,
+            id: nextId + 2,
+            canJumpTo: stepIdReached >= nextId + 2,
             ...commonSteps.securityAndNetwork,
           },
           {
-            id: 7,
-            canJumpTo: stepIdReached >= 7,
+            id: nextId + 3,
+            canJumpTo: stepIdReached >= nextId + 3,
             ...commonSteps.reviewAndCreate,
-          },
-        ];
+          }
+        );
+        return hciSteps;
       }
       return [
         createLocalVolumeSetStep,
@@ -307,11 +319,16 @@ export const createSteps = (
         {
           id: 5,
           canJumpTo: stepIdReached >= 5,
-          ...commonSteps.securityAndNetwork,
+          ...commonSteps.advancedSettings,
         },
         {
           id: 6,
           canJumpTo: stepIdReached >= 6,
+          ...commonSteps.securityAndNetwork,
+        },
+        {
+          id: 7,
+          canJumpTo: stepIdReached >= 7,
           ...commonSteps.reviewAndCreate,
         },
       ];

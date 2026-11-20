@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { CREATE_SS_PAGE_URL } from '@odf/core/constants';
+import { HCI_PLATFORM } from '@odf/core/features';
 import { StartingPoint } from '@odf/core/types/install-ui';
 import { useCustomTranslation } from '@odf/shared';
 import { useModalWrapper } from '@odf/shared';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Modal } from '@patternfly/react-core/deprecated';
 import { useLocation, useNavigate } from 'react-router';
 import {
@@ -160,6 +162,20 @@ export const StorageClusterCreateModal: React.FC<
   DataFoundationInitialCreateModalProps
 > = ({ closeModal }) => {
   const { t } = useCustomTranslation();
+  const isHCI = useFlag(HCI_PLATFORM);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (isHCI) {
+      const urlParams = new URLSearchParams({
+        mode: StartingPoint.STORAGE_CLUSTER,
+      });
+      navigate(`${CREATE_SS_PAGE_URL}?${urlParams.toString()}`);
+      closeModal();
+    }
+  }, [isHCI, navigate, closeModal]);
+
+  if (isHCI) return null;
 
   return (
     <Modal

@@ -13,6 +13,7 @@ import { useNodesData, useLSODiskDiscovery } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import {
   nodesWithoutTaints,
+  nodesIncludingControlPlane,
   getLocalVolumeSetRequestData,
 } from '@odf/core/utils';
 import { getNamespace, LocalVolumeSetModel } from '@odf/shared';
@@ -39,6 +40,7 @@ import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
 import { LocalVolumeSetBody } from './body';
 import { SelectedCapacity } from './selected-capacity';
+import { CONTROL_PLANE_TOLERATIONS, UseHCIDisksResult } from './useHCIDisks';
 import { useLSODiscoveredDisks } from './useLSODiscoveredDisks';
 import './create-local-volume-set-step.scss';
 
@@ -50,17 +52,21 @@ const makeLocalVolumeSetCall = (
   ns: string,
   onNext: () => void,
   lvsNodes: WizardState['nodes'],
-  dispatch: WizardDispatch
+  dispatch: WizardDispatch,
+  includeControlPlaneTolerations = false
 ) => {
   setInProgress(true);
 
   const nodes = lvsNodes.map((node) => node.hostName);
+  const tolerations = includeControlPlaneTolerations
+    ? [OCS_TOLERATION, ...CONTROL_PLANE_TOLERATIONS]
+    : [OCS_TOLERATION];
 
   const requestData = getLocalVolumeSetRequestData(
     { ...state, storageClassName },
     nodes,
     ns,
-    OCS_TOLERATION
+    tolerations
   );
   k8sCreate({ model: LocalVolumeSetModel, data: requestData })
     .then(() => {
@@ -88,9 +94,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   stepIdReached,
   ns,
   nodes,
+  hciResults,
 }) => {
   const { t } = useCustomTranslation();
   const { goToNextStep, activeStep } = useWizardContext();
+  const isHCI = hciResults?.isHCI ?? false;
 
   const cancel = () => {
     dispatch({
@@ -110,6 +118,20 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   const makeLVSCall = () => {
     cancel();
+    if (isHCI) {
+      setInProgress(true);
+      hciResults
+        .createHCILocalVolumeSet()
+        .then(() => {
+          setInProgress(false);
+          handleNext();
+        })
+        .catch((err) => {
+          setErrorMessage(err?.message || String(err));
+          setInProgress(false);
+        });
+      return;
+    }
     makeLocalVolumeSetCall(
       state,
       storageClassName,
@@ -118,7 +140,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       ns,
       handleNext,
       nodes,
-      dispatch
+      dispatch,
+      isHCI
     );
   };
 
@@ -163,6 +186,7 @@ type ConfirmationModalProps = {
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   nodes: WizardState['nodes'];
   stepIdReached: WizardState['stepIdReached'];
+  hciResults?: UseHCIDisksResult;
 };
 
 const RequestErrors: React.FC<RequestErrorsProps> = ({
@@ -238,8 +262,10 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   stepIdReached,
   isMCG,
   systemNamespace,
+  hciResults,
 }) => {
   const { t } = useCustomTranslation();
+  const isHCI = hciResults?.isHCI ?? false;
 
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
@@ -250,9 +276,12 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
     NodeData[],
     boolean,
     any,
-  ] = useNodesData();
-  const allNodes: WizardNodeState[] =
-    createWizardNodeState(nodesWithoutTaints(rawNodes)) || [];
+  ] = useNodesData(false, isHCI);
+  const allNodes: WizardNodeState[] = isHCI
+    ? createWizardNodeState(
+        nodesIncludingControlPlane(rawNodes as NodeData[])
+      ) || []
+    : createWizardNodeState(nodesWithoutTaints(rawNodes)) || [];
 
   const [discoveryInProgress, discoveryError] = useLSODiskDiscovery(
     allNodes,
@@ -309,6 +338,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
                     : diskModeDropdownItems.BLOCK
                 }
                 systemNamespace={systemNamespace}
+                isHCI={isHCI}
               />
             </Form>
           </GridItem>
@@ -338,6 +368,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
           setErrorMessage={setLvsError}
           storageClassName={storageClass.name}
           stepIdReached={stepIdReached}
+          hciResults={hciResults}
         />
         {!!lvsStepValidationErrors.length &&
           lvsStepValidationErrors.map((lvsStepValidationError) => (
@@ -362,6 +393,7 @@ type CreateLocalVolumeSetProps = {
   nodes: WizardState['nodes'];
   stepIdReached: WizardState['stepIdReached'];
   dispatch: WizardDispatch;
-  isMCG: boolean;
+  isMCG?: boolean;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  hciResults?: UseHCIDisksResult;
 };
