@@ -280,6 +280,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
             ) : (
               <StoragePoolBody
                 cephCluster={cephCluster}
+                cephClusterLoaded={cephClustersLoaded}
                 state={state}
                 dispatch={dispatch}
                 showPoolStatus
