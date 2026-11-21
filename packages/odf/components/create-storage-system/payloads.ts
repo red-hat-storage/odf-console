@@ -135,7 +135,8 @@ export const createStorageCluster = async (
   state: WizardState,
   storageClusterNamespace: string,
   storageClusterName: string,
-  isTNFEnabled = false
+  isTNFEnabled = false,
+  storageClusterMutator?: (sc: StorageClusterKind) => StorageClusterKind
 ) => {
   const {
     storageClass,
@@ -228,7 +229,11 @@ export const createStorageCluster = async (
     isTNFEnabled,
   });
 
-  return k8sCreate({ model: StorageClusterModel, data: payload });
+  const finalPayload = storageClusterMutator
+    ? storageClusterMutator(payload as StorageClusterKind)
+    : payload;
+
+  return k8sCreate({ model: StorageClusterModel, data: finalPayload });
 };
 
 export const createStorageAutoScaler = (

@@ -39,7 +39,7 @@ const makeLocalVolumeDiscoverRequest = async (
   } catch (error) {
     if (error?.response?.status === 404) {
       try {
-        await createLocalVolumeDiscovery(nodes, ns, setError);
+        await createLocalVolumeDiscovery(nodes, ns);
         navigate(url);
       } catch (createError) {
         setError(createError.message);
