@@ -7,6 +7,7 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
+  InProgressIcon,
 } from '@patternfly/react-icons';
 import './status-card-popover.scss';
 
@@ -23,7 +24,7 @@ type StatusCardPopoverProps = {
   secondColumnName: string;
 };
 
-const healthStateToIcon = {
+const healthStateToIcon: Partial<Record<HealthState, React.ReactNode>> = {
   [HealthState.OK]: (
     <CheckCircleIcon color="var(--pf-t--global--color--brand--default)" />
   ),
@@ -32,6 +33,9 @@ const healthStateToIcon = {
   ),
   [HealthState.ERROR]: (
     <ExclamationCircleIcon color="var(--pf-t--global--color--status--danger--default" />
+  ),
+  [HealthState.PROGRESS]: (
+    <InProgressIcon color="var(--pf-t--global--color--brand--default)" />
   ),
 };
 
