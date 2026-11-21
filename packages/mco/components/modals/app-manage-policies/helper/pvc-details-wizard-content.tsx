@@ -28,6 +28,7 @@ import {
   GridItem,
   Popover,
   SelectOption,
+  Tooltip,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import '../../../../style.scss';
@@ -141,6 +142,8 @@ const PairElement: React.FC<PairElementProps> = ({
   alwaysAllowRemove,
   pair,
   extraProps,
+  nameString,
+  valueString,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -186,7 +189,7 @@ const PairElement: React.FC<PairElementProps> = ({
   return (
     <Grid hasGutter>
       <GridItem lg={5} sm={5}>
-        <FormGroup hasNoPaddingTop isRequired>
+        <FormGroup label={nameString} isRequired>
           <SingleSelectDropdown
             id="placement-selection-dropdown"
             selectedKey={selectedPlacement}
@@ -207,7 +210,7 @@ const PairElement: React.FC<PairElementProps> = ({
       </GridItem>
 
       <GridItem lg={5} sm={5}>
-        <FormGroup hasNoPaddingTop isRequired>
+        <FormGroup label={valueString} isRequired>
           <MultiSelectDropdown
             id="labels-selection-dropdown"
             selections={selectedLabels}
@@ -234,8 +237,8 @@ const PairElement: React.FC<PairElementProps> = ({
           />
         </FormGroup>
       </GridItem>
-      <GridItem lg={2} sm={2}>
-        <FormGroup hasNoPaddingTop>
+      <GridItem lg={2} sm={2} className="pf-v6-u-align-self-flex-end">
+        <Tooltip content={t('Remove')}>
           <Button
             icon={deleteIcon}
             type="button"
@@ -244,7 +247,7 @@ const PairElement: React.FC<PairElementProps> = ({
             isDisabled={(isEmpty && !alwaysAllowRemove) || isDisabled}
             variant="plain"
           />
-        </FormGroup>
+        </Tooltip>
       </GridItem>
     </Grid>
   );
@@ -327,6 +330,7 @@ export const PVCDetailsWizardContent: React.FC<
           nameString={t('Application resource')}
           valueString={t('PVC label selector')}
           addString={t('Add application resource')}
+          hideHeader
           extraProps={{
             unProtectedPlacementNames,
             labels,
