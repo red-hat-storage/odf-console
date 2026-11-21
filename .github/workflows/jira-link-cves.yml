@@ -1,0 +1,21 @@
+name: Link Jira CVEs
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  link:
+    if: github.event.label.name == 'cve-sweep'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+      - run: npx --yes tsx scripts/jira-link-pr.mts "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
