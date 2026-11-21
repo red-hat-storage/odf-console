@@ -13644,7 +13644,7 @@ __metadata:
     redux: "npm:~5.0.1"
     resolve-url-loader: "npm:^5.0.0"
     sass: "npm:^1.107.1"
-    sass-loader: "npm:^16.0.7"
+    sass-loader: "npm:^17.1.0"
     semver: "npm:^7.8.5"
     stylelint: "npm:^17.16.0"
     stylelint-config-sass-guidelines: "npm:^13.0.0"
@@ -15272,21 +15272,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass-loader@npm:^16.0.7":
-  version: 16.0.7
-  resolution: "sass-loader@npm:16.0.7"
-  dependencies:
-    neo-async: "npm:^2.6.2"
+"sass-loader@npm:^17.1.0":
+  version: 17.1.0
+  resolution: "sass-loader@npm:17.1.0"
   peerDependencies:
     "@rspack/core": 0.x || ^1.0.0 || ^2.0.0-0
-    node-sass: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
     sass: ^1.3.0
     sass-embedded: "*"
     webpack: ^5.0.0
   peerDependenciesMeta:
     "@rspack/core":
-      optional: true
-    node-sass:
       optional: true
     sass:
       optional: true
@@ -15294,7 +15289,7 @@ __metadata:
       optional: true
     webpack:
       optional: true
-  checksum: 10/074be7eadbbb2e14f581b06e9f1ec010807d76bd5cc5cd9c6a120fa377f1b94a7f8dc4b0eea5b12cf34511e9b00fe056093b7da02e849d3f2513bfe21e9f660f
+  checksum: 10/6f742abb0d1bdcc2f6dc93068d405afca74ababd0317d423dfd5e5d842e0d330e109000e6ed2cfb388699264800913aff1a2bffd7e2415579708c30e5331723f
   languageName: node
   linkType: hard
 
