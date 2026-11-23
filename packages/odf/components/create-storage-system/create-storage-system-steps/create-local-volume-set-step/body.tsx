@@ -150,6 +150,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
   allNodes,
   defaultVolumeMode,
   systemNamespace,
+  isHCI = false,
 }) => {
   const { t } = useCustomTranslation();
   const [radio, setRadio] = React.useState(FilterDiskBy.ALL_NODES);
@@ -312,6 +313,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
             formHandler('volumeSetName', name)
           }
           isRequired
+          isDisabled={isHCI}
         />
         <FormHelperText>
           <HelperText>
@@ -342,6 +344,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           value: storageClassName,
           placeholder: state.volumeSetName,
           'data-test': 'create-lvs-storage-class-name',
+          isDisabled: isHCI,
         }}
       />
       <Content
@@ -400,171 +403,173 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           {diskTypeValidationError.description}
         </Alert>
       </FormGroup>
-      <ExpandableSection
-        toggleText={t('Advanced')}
-        data-test-id="create-lvs-form-advanced"
-      >
-        <FormGroup
-          label={t('Volume mode')}
-          fieldId="create-odf-disk-mode-dropdown"
-          className="odf-create-lvs__disk-mode-dropdown--margin"
+      {!isHCI && (
+        <ExpandableSection
+          toggleText={t('Advanced')}
+          data-test-id="create-lvs-form-advanced"
         >
-          <SingleSelectDropdown
-            id="create-odf-disk-mode-dropdown"
-            className="dropdown--full-width"
-            selectOptions={diskModeDropdownOptions}
-            selectedKey={state.diskMode}
-            onChange={(mode: string) => formHandler('diskMode', mode)}
-          />
-        </FormGroup>
-        <FormGroup
-          label={t('Device type')}
-          fieldId="create-odf-device-type-dropdown"
-          className="odf-create-lvs__device-type-dropdown--margin"
-        >
-          <MultiSelectDropdown
-            id="create-odf-device-type-dropdown"
-            selections={state.deviceType}
-            selectOptions={deviceTypeDropdownOptions(t)}
-            placeholderText={t('Select disk types')}
-            validated={!state.isValidDeviceType ? 'error' : 'default'}
-            onChange={(selectedValues: string[]) => {
-              const [deviceType, deviceTypeValidation] =
-                getValidatedDeviceTypes(selectedValues, state.deviceType);
-              formHandler('deviceType', deviceType);
-              formHandler('isValidDeviceType', deviceTypeValidation);
-            }}
-          />
-        </FormGroup>
-        <FormGroup
-          label={t('Disk size')}
-          fieldId="create-lvs-disk-size"
-          className="odf-create-lvs__disk-size-form-group--margin"
-        >
-          <div
-            id="create-lvs-disk-size"
-            className="odf-create-lvs__disk-size-form-group-div"
+          <FormGroup
+            label={t('Volume mode')}
+            fieldId="create-odf-disk-mode-dropdown"
+            className="odf-create-lvs__disk-mode-dropdown--margin"
           >
-            <FormGroup
-              label={t('Minimum')}
-              fieldId="create-lvs-min-disk-size"
-              className="odf-create-lvs__disk-size-form-group-max-min-input"
+            <SingleSelectDropdown
+              id="create-odf-disk-mode-dropdown"
+              className="dropdown--full-width"
+              selectOptions={diskModeDropdownOptions}
+              selectedKey={state.diskMode}
+              onChange={(mode: string) => formHandler('diskMode', mode)}
+            />
+          </FormGroup>
+          <FormGroup
+            label={t('Device type')}
+            fieldId="create-odf-device-type-dropdown"
+            className="odf-create-lvs__device-type-dropdown--margin"
+          >
+            <MultiSelectDropdown
+              id="create-odf-device-type-dropdown"
+              selections={state.deviceType}
+              selectOptions={deviceTypeDropdownOptions(t)}
+              placeholderText={t('Select disk types')}
+              validated={!state.isValidDeviceType ? 'error' : 'default'}
+              onChange={(selectedValues: string[]) => {
+                const [deviceType, deviceTypeValidation] =
+                  getValidatedDeviceTypes(selectedValues, state.deviceType);
+                formHandler('deviceType', deviceType);
+                formHandler('isValidDeviceType', deviceTypeValidation);
+              }}
+            />
+          </FormGroup>
+          <FormGroup
+            label={t('Disk size')}
+            fieldId="create-lvs-disk-size"
+            className="odf-create-lvs__disk-size-form-group--margin"
+          >
+            <div
+              id="create-lvs-disk-size"
+              className="odf-create-lvs__disk-size-form-group-div"
             >
-              <Tooltip
-                content={
-                  !validMinDiskSize
-                    ? diskSizeHelpText
-                    : t(
-                        'Please enter a value less than or equal to max disk size'
-                      )
-                }
-                isVisible={
-                  !validMinDiskSize ||
-                  (invalidMinGreaterThanMax && activeMinDiskSize)
-                }
-                trigger="manual"
+              <FormGroup
+                label={t('Minimum')}
+                fieldId="create-lvs-min-disk-size"
+                className="odf-create-lvs__disk-size-form-group-max-min-input"
               >
-                <TextInput
-                  type={TextInputTypes.text}
-                  id="create-lvs-min-disk-size"
-                  value={state.minDiskSize}
-                  validated={
+                <Tooltip
+                  content={
+                    !validMinDiskSize
+                      ? diskSizeHelpText
+                      : t(
+                          'Please enter a value less than or equal to max disk size'
+                        )
+                  }
+                  isVisible={
                     !validMinDiskSize ||
                     (invalidMinGreaterThanMax && activeMinDiskSize)
-                      ? 'error'
-                      : 'default'
                   }
-                  className="odf-create-lvs__disk-input"
-                  onFocus={() => setMinActiveState(true)}
-                  onBlur={() => setMinActiveState(false)}
-                  onChange={(_event, size: string) =>
-                    formHandler('minDiskSize', size)
-                  }
-                />
-              </Tooltip>
-            </FormGroup>
-            <div>-</div>
-            <FormGroup
-              label={t('Maximum')}
-              fieldId="create-lvs-max-disk-size"
-              className="odf-create-lvs__disk-size-form-group-max-min-input"
-            >
-              <Tooltip
-                content={
-                  !validMaxDiskSize
-                    ? diskSizeHelpText
-                    : t(
-                        'Please enter a value greater than or equal to min disk size'
-                      )
-                }
-                isVisible={
-                  !validMaxDiskSize ||
-                  (invalidMinGreaterThanMax && activeMaxDiskSize)
-                }
-                trigger="manual"
+                  trigger="manual"
+                >
+                  <TextInput
+                    type={TextInputTypes.text}
+                    id="create-lvs-min-disk-size"
+                    value={state.minDiskSize}
+                    validated={
+                      !validMinDiskSize ||
+                      (invalidMinGreaterThanMax && activeMinDiskSize)
+                        ? 'error'
+                        : 'default'
+                    }
+                    className="odf-create-lvs__disk-input"
+                    onFocus={() => setMinActiveState(true)}
+                    onBlur={() => setMinActiveState(false)}
+                    onChange={(_event, size: string) =>
+                      formHandler('minDiskSize', size)
+                    }
+                  />
+                </Tooltip>
+              </FormGroup>
+              <div>-</div>
+              <FormGroup
+                label={t('Maximum')}
+                fieldId="create-lvs-max-disk-size"
+                className="odf-create-lvs__disk-size-form-group-max-min-input"
               >
-                <TextInput
-                  type={TextInputTypes.text}
-                  id="create-lvs-max-disk-size"
-                  value={state.maxDiskSize}
-                  validated={
+                <Tooltip
+                  content={
+                    !validMaxDiskSize
+                      ? diskSizeHelpText
+                      : t(
+                          'Please enter a value greater than or equal to min disk size'
+                        )
+                  }
+                  isVisible={
                     !validMaxDiskSize ||
                     (invalidMinGreaterThanMax && activeMaxDiskSize)
-                      ? 'error'
-                      : 'default'
                   }
-                  className="odf-create-lvs__disk-input"
-                  onFocus={() => setMaxActiveState(true)}
-                  onBlur={() => setMaxActiveState(false)}
-                  onChange={(_event, value) =>
-                    formHandler('maxDiskSize', value)
-                  }
+                  trigger="manual"
+                >
+                  <TextInput
+                    type={TextInputTypes.text}
+                    id="create-lvs-max-disk-size"
+                    value={state.maxDiskSize}
+                    validated={
+                      !validMaxDiskSize ||
+                      (invalidMinGreaterThanMax && activeMaxDiskSize)
+                        ? 'error'
+                        : 'default'
+                    }
+                    className="odf-create-lvs__disk-input"
+                    onFocus={() => setMaxActiveState(true)}
+                    onBlur={() => setMaxActiveState(false)}
+                    onChange={(_event, value) =>
+                      formHandler('maxDiskSize', value)
+                    }
+                  />
+                </Tooltip>
+              </FormGroup>
+              <FormGroup
+                label={t('Units')}
+                fieldId="create-lvs-disk-size-unit-dropdown"
+                className="odf-create-lvs__disk-size-form-group-max-min-input"
+              >
+                <SingleSelectDropdown
+                  id="create-lvs-disk-size-unit-dropdown"
+                  selectOptions={diskSizeUnitDropdownOptions}
+                  selectedKey={STORAGE_SIZE_UNIT_NAME_MAP[state.diskSizeUnit]}
+                  onChange={(unit: string) => formHandler('diskSizeUnit', unit)}
+                  valueLabelMap={diskSizeUnitOptions}
                 />
-              </Tooltip>
-            </FormGroup>
-            <FormGroup
-              label={t('Units')}
-              fieldId="create-lvs-disk-size-unit-dropdown"
-              className="odf-create-lvs__disk-size-form-group-max-min-input"
-            >
-              <SingleSelectDropdown
-                id="create-lvs-disk-size-unit-dropdown"
-                selectOptions={diskSizeUnitDropdownOptions}
-                selectedKey={STORAGE_SIZE_UNIT_NAME_MAP[state.diskSizeUnit]}
-                onChange={(unit: string) => formHandler('diskSizeUnit', unit)}
-                valueLabelMap={diskSizeUnitOptions}
-              />
-            </FormGroup>
-          </div>
-        </FormGroup>
-        <FormGroup
-          label={t('Maximum disks limit')}
-          fieldId="create-lvs-max-disk-limit"
-        >
-          <p className="help-block odf-create-lvs__max-disk-limit-help-text--margin">
-            {t(
-              'Disks limit will set the maximum number of PVs to create on a node. If the field is empty we will create PVs for all available disks on the matching nodes.'
-            )}
-          </p>
-          <Tooltip
-            content={diskSizeHelpText}
-            isVisible={!validMaxDiskLimit}
-            trigger="manual"
+              </FormGroup>
+            </div>
+          </FormGroup>
+          <FormGroup
+            label={t('Maximum disks limit')}
+            fieldId="create-lvs-max-disk-limit"
           >
-            <TextInput
-              type={TextInputTypes.text}
-              id="create-lvs-max-disk-limit"
-              value={state.maxDiskLimit}
-              validated={validMaxDiskLimit ? 'default' : 'error'}
-              className="odf-create-lvs__disk-input"
-              onChange={(_event, maxLimit) =>
-                formHandler('maxDiskLimit', maxLimit)
-              }
-              placeholder={t('All')}
-            />
-          </Tooltip>
-        </FormGroup>
-      </ExpandableSection>
+            <p className="help-block odf-create-lvs__max-disk-limit-help-text--margin">
+              {t(
+                'Disks limit will set the maximum number of PVs to create on a node. If the field is empty we will create PVs for all available disks on the matching nodes.'
+              )}
+            </p>
+            <Tooltip
+              content={diskSizeHelpText}
+              isVisible={!validMaxDiskLimit}
+              trigger="manual"
+            >
+              <TextInput
+                type={TextInputTypes.text}
+                id="create-lvs-max-disk-limit"
+                value={state.maxDiskLimit}
+                validated={validMaxDiskLimit ? 'default' : 'error'}
+                className="odf-create-lvs__disk-input"
+                onChange={(_event, maxLimit) =>
+                  formHandler('maxDiskLimit', maxLimit)
+                }
+                placeholder={t('All')}
+              />
+            </Tooltip>
+          </FormGroup>
+        </ExpandableSection>
+      )}
     </>
   );
 };
@@ -577,4 +582,6 @@ type LocalVolumeSetBodyProps = {
   allNodes: WizardState['nodes'];
   defaultVolumeMode: WizardState['createLocalVolumeSet']['diskMode'];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  /** When true, LVS and StorageClass name fields are locked (HCI platform). */
+  isHCI?: boolean;
 };

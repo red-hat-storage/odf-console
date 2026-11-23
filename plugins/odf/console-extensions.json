@@ -32,6 +32,14 @@
     }
   },
   {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.setHCIFlags"
+      }
+    }
+  },
+  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "odfConsoleRedux",

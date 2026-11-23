@@ -205,11 +205,7 @@ export const NodesDisksListPage: React.FC<{ obj: NodeKind }> = ({ obj }) => {
       } catch (error) {
         if (error?.response?.status === 404) {
           try {
-            await createLocalVolumeDiscovery(
-              [nodeNameByHostnameLabel],
-              ns,
-              setError
-            );
+            await createLocalVolumeDiscovery([nodeNameByHostnameLabel], ns);
           } catch (createError) {
             setError(createError.message);
           }
