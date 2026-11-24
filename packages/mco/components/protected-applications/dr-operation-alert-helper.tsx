@@ -51,20 +51,12 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
       const currentFailover = currentApp.spec?.failoverCluster || '';
 
       // Record the test peer while dryRun is active (even on first sight).
+      // Keep it after Clean up moves failoverCluster home. Convert still
+      // requires the current cluster to be that peer, so this does not
+      // announce Convert. Forgetting it here makes the later Completed watch
+      // look like a real failover.
       if (currentApp.spec?.dryRun && currentFailover) {
         testTargetByDrpcRef.current.set(key, currentFailover);
-      }
-
-      const trackedTarget = testTargetByDrpcRef.current.get(key);
-
-      // Clean up (or any rewrite) moved failoverCluster off the recorded test
-      // peer — drop tracking so we never announce Convert for that abort.
-      if (
-        trackedTarget &&
-        currentFailover &&
-        currentFailover !== trackedTarget
-      ) {
-        testTargetByDrpcRef.current.delete(key);
       }
 
       const prevApp = prevApps.find(
@@ -87,19 +79,13 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
         !prevProgression || prevProgression === Progression.Completed;
 
       // Convert: hold is already FailedOver with dryRun. Clearing dryRun alone
-      // is too early — Ramen may still retry WaitForReadiness. Announce only
-      // when progression confirms promotion (Cleaning Up / Completed). dryRun
-      // and progression may update in one watch or two. Use the original test
-      // peer, not the previous watch.
+      // is too early — Ramen may still retry WaitForReadiness, and Cleaning Up
+      // can be followed by EnsuringVolSyncSetup or WaitOnUserToCleanUp.
+      // Announce once, on the same finished-progression edge as a real failover.
+      // Use the original test peer, not the previous watch.
       const originalTestTarget = testTargetByDrpcRef.current.get(key);
       const sameFailoverCluster =
         !!originalTestTarget && currentFailover === originalTestTarget;
-      const convertPromotionConfirmed =
-        progression === Progression.Completed ||
-        progression === Progression.CleaningUp;
-      const prevAlreadyConfirmed =
-        prevProgression === Progression.Completed ||
-        prevProgression === Progression.CleaningUp;
       const wasInTestSession =
         !!prevApp.spec?.dryRun ||
         prevProgression === Progression.TestingFailover ||
@@ -109,19 +95,20 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
         !currentApp.spec?.dryRun &&
         currentPhase === Phase.FailedOver &&
         sameFailoverCluster &&
-        convertPromotionConfirmed &&
-        !prevAlreadyConfirmed &&
-        wasInTestSession;
-
-      // Real failover. Phase can already be FailedOver while a step is still
-      // running, so the banner waits until progression finishes. That may be
-      // the same watch as the phase change, or a later one.
-      const finishedRealFailover =
-        !currentApp.spec?.dryRun &&
-        currentPhase === Phase.FailedOver &&
         progressionDone &&
         !prevProgressionDone &&
-        (prevPhase === Phase.FailingOver || prevPhase === Phase.FailedOver);
+        wasInTestSession;
+
+      // Real failover. Ramen often sets FailedOver while a step such as
+      // WaitForReadiness or Cleaning Up is still running, so completion can
+      // arrive on a later watch. Test promotion is announced above.
+      const finishedRealFailover =
+        !currentApp.spec?.dryRun &&
+        !wasInTestSession &&
+        currentPhase === Phase.FailedOver &&
+        progressionDone &&
+        (prevPhase === Phase.FailingOver ||
+          (prevPhase === Phase.FailedOver && !prevProgressionDone));
 
       if (finishedRealFailover || convertedFromTest) {
         const failoverCluster =
@@ -132,14 +119,20 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
           currentApp
         )}&${FAILED_OVER_CLUSTER_QUERY_PARAM}=${failoverCluster}`;
         navigate(alertUrl, { replace: true });
-        testTargetByDrpcRef.current.delete(key);
+        // Keep the test peer until the operation settles. Deleting it at
+        // Cleaning Up makes the next watch look like a new real failover.
+        // An empty progression is settled too, and leaving the peer recorded
+        // would hide the banner for a later failover.
+        if (progressionDone) {
+          testTargetByDrpcRef.current.delete(key);
+        }
       }
 
       const relocateCompleted =
         currentPhase === Phase.Relocated &&
         progressionDone &&
-        !prevProgressionDone &&
-        (prevPhase === Phase.Relocating || prevPhase === Phase.Relocated);
+        (prevPhase === Phase.Relocating ||
+          (prevPhase === Phase.Relocated && !prevProgressionDone));
 
       if (relocateCompleted) {
         const preferredCluster =
@@ -152,13 +145,11 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
         navigate(alertUrl, { replace: true });
       }
 
-      // Drop leftovers after the DRPC settles (Convert already cleared above;
-      // Clean up clears on failoverCluster rewrite).
-      if (
-        !convertedFromTest &&
-        !currentApp.spec?.dryRun &&
-        currentApp.status?.progression === Progression.Completed
-      ) {
+      // Drop leftovers once the DRPC has settled, including an empty
+      // progression. Convert may already have cleared the peer above.
+      // Clean up keeps it through Cleaning Up, then this watch clears it so
+      // the next failover or relocate is not treated as part of the test.
+      if (!convertedFromTest && !currentApp.spec?.dryRun && progressionDone) {
         testTargetByDrpcRef.current.delete(key);
       }
     });

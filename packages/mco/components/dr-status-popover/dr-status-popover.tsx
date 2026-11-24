@@ -14,7 +14,6 @@ import {
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { DOC_VERSION as mcoDocVersion, useScheduler } from '@odf/shared/hooks';
 import {
-  BlueInfoCircleIcon,
   GreenCheckCircleIcon,
   PurpleExclamationCircleIcon,
   RedExclamationCircleIcon,
@@ -138,7 +137,7 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
     [DRStatus.TestingFailover]: <InProgressIcon />,
     [DRStatus.TestFailoverPaused]: <ClockIcon />,
-    [DRStatus.TestFailoverActionRequired]: <BlueInfoCircleIcon />,
+    [DRStatus.TestFailoverActionRequired]: <PurpleExclamationCircleIcon />,
     [DRStatus.CleaningUp]: <InProgressIcon />,
   };
 
@@ -161,7 +160,7 @@ const getStatusLabel = (status: DRStatus, t: TFunction): string => {
     return t('Preparing');
   }
   if (status === DRStatus.TestFailoverActionRequired) {
-    return t('Action needed');
+    return t('User action required');
   }
   return status;
 };
@@ -649,9 +648,9 @@ const getDRStatusDetails = ({
     case DRStatus.TestFailoverActionRequired:
       return createStatus(
         DRStatus.TestFailoverActionRequired,
-        t('Action needed'),
+        t('Failover test - user action required'),
         '',
-        DR_STATUS_CLASS_NAMES.ACTION_NEEDED
+        DR_STATUS_CLASS_NAMES.USER_ACTION
       );
 
     case DRStatus.FailingOver: {
@@ -1040,7 +1039,8 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
           <StatusIconAndText
             className={
               status === DRStatus.WaitOnUserToCleanUp ||
-              status === DRStatus.WaitForUser
+              status === DRStatus.WaitForUser ||
+              status === DRStatus.TestFailoverActionRequired
                 ? 'dr-status-popover__column-label'
                 : undefined
             }

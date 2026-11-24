@@ -68,7 +68,8 @@ const topologyStatusLabel = (
 ): string => {
   if (
     status === DRStatus.WaitOnUserToCleanUp ||
-    status === DRStatus.WaitForUser
+    status === DRStatus.WaitForUser ||
+    status === DRStatus.TestFailoverActionRequired
   ) {
     const label = DecoratorTooltipKey.UserActionRequired;
     return translate ? translate(label) : label;

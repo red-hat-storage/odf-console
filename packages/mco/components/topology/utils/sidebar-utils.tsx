@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { DRPlacementControlModel } from '@odf/shared';
 import {
-  BlueInfoCircleIcon,
   GreenCheckCircleIcon,
   PurpleExclamationCircleIcon,
   RedExclamationCircleIcon,
@@ -44,7 +43,6 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
     status === DRStatus.Protecting ||
     status === DRStatus.TestingFailover ||
     status === DRStatus.TestFailoverPaused ||
-    status === DRStatus.TestFailoverActionRequired ||
     status === DRStatus.CleaningUp
   ) {
     return NodeStatus.info;
@@ -59,7 +57,8 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
   // so it stays neutral. The decorator carries the purple icon.
   if (
     status === DRStatus.WaitOnUserToCleanUp ||
-    status === DRStatus.WaitForUser
+    status === DRStatus.WaitForUser ||
+    status === DRStatus.TestFailoverActionRequired
   ) {
     return NodeStatus.default;
   }
@@ -88,7 +87,8 @@ export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
   const { t } = useCustomTranslation();
   if (
     status === DRStatus.WaitOnUserToCleanUp ||
-    status === DRStatus.WaitForUser
+    status === DRStatus.WaitForUser ||
+    status === DRStatus.TestFailoverActionRequired
   ) {
     return (
       <>
@@ -123,15 +123,6 @@ export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
       <>
         <GreenCheckCircleIcon />
         <span>{status}</span>
-      </>
-    );
-  }
-
-  if (status === DRStatus.TestFailoverActionRequired) {
-    return (
-      <>
-        <BlueInfoCircleIcon />
-        <span>{t('Action needed')}</span>
       </>
     );
   }

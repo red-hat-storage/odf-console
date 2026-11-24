@@ -280,7 +280,7 @@ describe('DRStatusPopover Component', () => {
     expect(screen.queryByTestId('cluster-details')).not.toBeInTheDocument();
   });
 
-  it('renders Preparing, Awaiting resync, and Action needed for a failover test', async () => {
+  it('renders Preparing, Awaiting resync, and User action required for a failover test', async () => {
     const { unmount } = render(
       <DRStatusPopover
         disasterRecoveryStatus={{
@@ -322,9 +322,20 @@ describe('DRStatusPopover Component', () => {
       />
     );
     expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
-      'Action needed'
+      'User action required'
     );
     await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Failover test - user action required'
+    );
+    expect(
+      screen.getByText('Test failover requires action')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The workloads are secured in both clusters. To conclude the test failover session, proceed with Clean up test. If required, you can Convert to real failover to make the failover permanent.'
+      )
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Convert to real failover' })
     ).toBeEnabled();

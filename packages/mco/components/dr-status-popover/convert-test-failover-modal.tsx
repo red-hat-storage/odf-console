@@ -18,7 +18,10 @@ import {
 import { HUB_CLUSTER_NAME } from '../../constants';
 import { DRPlacementControlKind } from '../../types';
 import { isTestFailoverActive } from '../../utils/disaster-recovery';
-import { getPromoteTestFailoverPatch } from '../../utils/test-failover';
+import {
+  getPromoteTestFailoverPatch,
+  markTestDryRunCleared,
+} from '../../utils/test-failover';
 
 export type ConvertTestFailoverModalProps = {
   drpcName: string;
@@ -117,6 +120,7 @@ const ConvertTestFailoverModal: React.FC<
       data: getPromoteTestFailoverPatch(sessionStartTime),
     })
       .then(() => {
+        markTestDryRunCleared(drpcNamespace, drpcName, sessionStartTime);
         addToast({
           variant: 'success',
           title: t('Convert to real failover started'),

@@ -2,6 +2,8 @@ import * as React from 'react';
 import { useModalWrapper } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
+  Alert,
+  AlertVariant,
   Button,
   ButtonVariant,
   Content,
@@ -10,7 +12,12 @@ import {
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
-import { getEndTestFailoverPatch } from '../../utils/test-failover';
+import { BellIcon } from '@patternfly/react-icons';
+import {
+  clearTestDryRunPending,
+  getEndTestFailoverPatch,
+  isTestDryRunClearPending,
+} from '../../utils/test-failover';
 
 export const ConvertTestFailoverModal = React.lazy(
   () => import('./convert-test-failover-modal')
@@ -51,12 +58,22 @@ export const TestFailoverHoldAlert: React.FC<TestFailoverHoldAlertProps> = ({
   const launcher = useModalWrapper();
   const canPatch = !!drpcName && !!drpcNamespace && !!dryRun;
   const hasSession = !!actionStartTime;
+  const dryRunClearPending = isTestDryRunClearPending(
+    drpcNamespace,
+    drpcName,
+    actionStartTime
+  );
+
+  React.useEffect(() => {
+    if (!dryRun && dryRunClearPending) {
+      clearTestDryRunPending(drpcNamespace, drpcName, actionStartTime);
+    }
+  }, [actionStartTime, dryRun, dryRunClearPending, drpcName, drpcNamespace]);
 
   // After Convert/Clean up clears dryRun, Ramen may still sit on the hold for a
-  // few watches. Show a wait message instead of Convert/Clean up buttons —
-  // do not require actionStartTime (session) so a partial prop set cannot
-  // flash the action buttons again.
-  if (!dryRun) {
+  // few watches. The watched DRPC can still say dryRun until that update
+  // arrives. Show a wait message instead of Convert / Clean up buttons.
+  if (!dryRun || dryRunClearPending) {
     return (
       <FlexItem>
         <Content component="p">
@@ -134,33 +151,40 @@ export const TestFailoverHoldAlert: React.FC<TestFailoverHoldAlertProps> = ({
 
   return (
     <FlexItem>
-      <Content component="p">
-        {t(
-          'A test copy is available and replication is paused. To complete the test failover session, proceed with {{cleanUp}}. If required, you can {{convert}} to make the failover permanent.',
-          { cleanUp: cleanUpLabel, convert: convertLabel }
-        )}
-      </Content>
-      <Flex
-        className="pf-v6-u-mt-sm"
-        flexWrap={{ default: 'nowrap' }}
-        spaceItems={{ default: 'spaceItemsSm' }}
+      <Alert
+        variant={AlertVariant.custom}
+        customIcon={<BellIcon />}
+        isInline
+        title={t('Test failover requires action')}
       >
-        <Button
-          variant={ButtonVariant.warning}
-          isDisabled={!canConvert}
-          onClick={onConvert}
+        <Content component="p">
+          {t(
+            'The workloads are secured in both clusters. To conclude the test failover session, proceed with {{cleanUp}}. If required, you can {{convert}} to make the failover permanent.',
+            { cleanUp: cleanUpLabel, convert: convertLabel }
+          )}
+        </Content>
+        <Flex
+          className="pf-v6-u-mt-sm"
+          flexWrap={{ default: 'nowrap' }}
+          spaceItems={{ default: 'spaceItemsSm' }}
         >
-          {convertLabel}
-        </Button>
-        {cleanUpButton}
-      </Flex>
-      {cleanUpDisabledReason && (
-        <HelperText className="pf-v6-u-mt-sm">
-          <HelperTextItem variant="warning">
-            {cleanUpDisabledReason}
-          </HelperTextItem>
-        </HelperText>
-      )}
+          <Button
+            variant={ButtonVariant.warning}
+            isDisabled={!canConvert}
+            onClick={onConvert}
+          >
+            {convertLabel}
+          </Button>
+          {cleanUpButton}
+        </Flex>
+        {cleanUpDisabledReason && (
+          <HelperText className="pf-v6-u-mt-sm">
+            <HelperTextItem variant="warning">
+              {cleanUpDisabledReason}
+            </HelperTextItem>
+          </HelperText>
+        )}
+      </Alert>
     </FlexItem>
   );
 };

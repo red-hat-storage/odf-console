@@ -18,7 +18,10 @@ import {
 import { HUB_CLUSTER_NAME } from '../../constants';
 import { DRPlacementControlKind } from '../../types';
 import { isTestFailoverActive } from '../../utils/disaster-recovery';
-import { getEndTestFailoverPatch } from '../../utils/test-failover';
+import {
+  getEndTestFailoverPatch,
+  markTestDryRunCleared,
+} from '../../utils/test-failover';
 
 export type CleanUpTestModalProps = {
   drpcName: string;
@@ -144,6 +147,7 @@ const CleanUpTestModal: React.FC<CommonModalProps<CleanUpTestModalProps>> = ({
       data: endPatches,
     })
       .then(() => {
+        markTestDryRunCleared(drpcNamespace, drpcName, sessionStartTime);
         addToast({
           variant: 'success',
           title: t('Clean up test started'),

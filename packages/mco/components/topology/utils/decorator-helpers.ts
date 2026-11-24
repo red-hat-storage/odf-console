@@ -8,7 +8,6 @@ import { DecoratorIcon, TopologyDecorator } from '../types';
 export enum DecoratorTooltipKey {
   Preparing = 'Preparing',
   AwaitingResync = 'Awaiting resync',
-  ActionNeeded = 'Action needed',
   ActionRequired = 'Action required',
   UserActionRequired = 'User action required',
 }
@@ -77,9 +76,9 @@ export const getDecoratorForStatus = (
       status = NodeStatus.info;
       break;
     case DRStatus.TestFailoverActionRequired:
-      icon = DecoratorIcon.InfoCircle;
-      tooltip = DecoratorTooltipKey.ActionNeeded;
-      status = NodeStatus.info;
+      icon = DecoratorIcon.UserAction;
+      tooltip = DecoratorTooltipKey.UserActionRequired;
+      status = NodeStatus.default;
       break;
     case DRStatus.Warning:
       icon = DecoratorIcon.ExclamationTriangle;
