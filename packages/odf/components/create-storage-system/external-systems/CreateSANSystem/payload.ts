@@ -2,7 +2,11 @@ import {
   getDiscoveredDeviceKey,
   getLocalDiskNameFromDeviceKey,
 } from '@odf/core/components/utils';
-import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
+import {
+  IBM_SCALE_NAMESPACE,
+  LOCAL_CLUSTER_NODE_ROLE_LABEL,
+  NodeType,
+} from '@odf/core/constants';
 import {
   DiscoveredDevice,
   FileSystemKind,
@@ -57,6 +61,11 @@ export const createLocalDisks = async (
       spec: {
         device: disk.path,
         node: disk.nodeName,
+        nodeConnectionSelector: {
+          matchLabels: {
+            [LOCAL_CLUSTER_NODE_ROLE_LABEL]: NodeType.DISK,
+          },
+        },
       },
     };
   });
