@@ -431,14 +431,14 @@ describe('getEffectiveLocalClusterRole', () => {
     expect(getEffectiveLocalClusterRole(node, true)).toBe(NodeType.CLUSTER);
   });
 
-  it('never promotes a worker node in the arbiter zone to Arbiter', () => {
+  it('derives Arbiter for a worker in the arbiter zone when stretch is on', () => {
     const node = {
       name: 'worker',
       zone: ARBITER_ZONE,
       roles: [],
       localClusterRole: NodeType.DISK,
     } as WizardNodeState;
-    expect(getEffectiveLocalClusterRole(node, true)).toBe(NodeType.DISK);
+    expect(getEffectiveLocalClusterRole(node, true)).toBe(NodeType.ARBITER);
   });
 
   it('preserves a manual Disk override for an arbiter-eligible node when stretch is off', () => {
