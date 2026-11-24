@@ -5,11 +5,11 @@ import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import {
   getZone,
-  hasControlPlaneRole,
   nodesIncludingControlPlane,
   getNodeCPUCapacity,
   getNodeTotalMemory,
   nodesWithoutTaints,
+  hasControlPlaneRole,
 } from '@odf/core/utils';
 import { ListPageFilterWrapper } from '@odf/shared';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
@@ -72,8 +72,7 @@ const tableColumnClasses = {
   zone: classNames('pf-v6-u-w-inherit'),
 };
 
-const isArbiterNode = (node: NodeData) =>
-  getZone(node) === ARBITER_ZONE && hasControlPlaneRole(node);
+const isArbiterNode = (node: NodeData) => getZone(node) === ARBITER_ZONE;
 
 const getLocalClusterRole = (
   node: NodeData,
@@ -362,7 +361,7 @@ export const SelectLocalClusterNodesTable: React.FC<
           variant="danger"
           isInline
           title={t('No node meets the requirements to be an arbiter node.')}
-          className="pf-v6-u-mt-md"
+          className="pf-v6-u-mt-md pf-v6-u-mb-md"
           actionLinks={
             <AlertActionLink
               component="a"
@@ -375,7 +374,7 @@ export const SelectLocalClusterNodesTable: React.FC<
           }
         >
           {t(
-            'At least one control plane node must have the required labels and resources in order to create a stretch cluster for the Storage Area Network.'
+            'At least one node must have the required labels and resources in order to create a stretch cluster for the Storage Area Network.'
           )}
         </Alert>
       )}

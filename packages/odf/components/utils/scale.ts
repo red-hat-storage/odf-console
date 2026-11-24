@@ -100,11 +100,7 @@ export const getDefaultLocalClusterRole = (
   zone: string,
   enableStretchCluster = false
 ): NodeType => {
-  if (
-    enableStretchCluster &&
-    zone === ARBITER_ZONE &&
-    roles.includes(CONTROL_PLANE)
-  ) {
+  if (enableStretchCluster && zone === ARBITER_ZONE) {
     return NodeType.ARBITER;
   }
   if (roles.includes(CONTROL_PLANE)) {
