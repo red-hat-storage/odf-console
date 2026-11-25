@@ -2,7 +2,7 @@ import * as React from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import { DR_BASE_ROUTE } from '../../constants';
-import { DRPlacementControlKind, Phase } from '../../types';
+import { DRPlacementControlKind, Phase, Progression } from '../../types';
 
 /**
  * Query parameter constants for DR operation completion alerts
@@ -48,11 +48,23 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
 
       const prevPhase = prevApp.status?.phase;
       const currentPhase = currentApp.status?.phase;
+      const prevProgression = prevApp.status?.progression;
+      const progression = currentApp.status?.progression;
+      const progressionDone =
+        !progression || progression === Progression.Completed;
+      // An empty progression is already finished. Treating that as still
+      // running would raise the banner again on every later watch.
+      const prevProgressionDone =
+        !prevProgression || prevProgression === Progression.Completed;
 
-      // Detect failover completion
+      // Phase can already be FailedOver while a step is still running, so the
+      // banner waits until progression finishes. That may be the same watch
+      // as the phase change, or a later one.
       if (
-        prevPhase === Phase.FailingOver &&
-        currentPhase === Phase.FailedOver
+        currentPhase === Phase.FailedOver &&
+        progressionDone &&
+        !prevProgressionDone &&
+        (prevPhase === Phase.FailingOver || prevPhase === Phase.FailedOver)
       ) {
         const failoverCluster =
           currentApp.spec?.failoverCluster ||
@@ -64,8 +76,12 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
         navigate(alertUrl, { replace: true });
       }
 
-      // Detect relocate completion
-      if (prevPhase === Phase.Relocating && currentPhase === Phase.Relocated) {
+      if (
+        currentPhase === Phase.Relocated &&
+        progressionDone &&
+        !prevProgressionDone &&
+        (prevPhase === Phase.Relocating || prevPhase === Phase.Relocated)
+      ) {
         const preferredCluster =
           currentApp.spec?.preferredCluster ||
           currentApp.status?.preferredDecision?.clusterName ||
