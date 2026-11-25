@@ -17,6 +17,7 @@ export enum TopologyViewLevel {
 export enum DecoratorIcon {
   CheckCircle = 'check-circle',
   ExclamationCircle = 'exclamation-circle',
+  UserAction = 'user-action',
   ExclamationTriangle = 'exclamation-triangle',
   InProgress = 'in-progress',
   Clock = 'clock',

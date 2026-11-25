@@ -40,6 +40,7 @@ import { generateClusterNodesModel } from './utils/node-generator';
 import './topology.scss';
 
 const TopologyViewComponent: React.FC = () => {
+  const { t } = useCustomTranslation();
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [searchValue, setSearchValue] = React.useState('');
   const [selectedFilters, setSelectedFilters] = React.useState<FilterType[]>([
@@ -109,7 +110,8 @@ const TopologyViewComponent: React.FC = () => {
       {
         searchValue,
         filterTypes: selectedFilters,
-      }
+      },
+      t
     );
     // lagTick forces decorator recompute when sync age crosses the threshold.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,6 +123,7 @@ const TopologyViewComponent: React.FC = () => {
     searchValue,
     selectedFilters,
     lagTick,
+    t,
   ]);
 
   // Memoize structure key to avoid recreating arrays on every render
