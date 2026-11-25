@@ -25,6 +25,7 @@ const DECORATOR_TOOLTIP_I18N: Record<DecoratorTooltipKey, string> = {
   [DecoratorTooltipKey.AwaitingResync]: 'Awaiting resync',
   [DecoratorTooltipKey.ActionNeeded]: 'Action needed',
   [DecoratorTooltipKey.ActionRequired]: 'Action required',
+  [DecoratorTooltipKey.UserActionRequired]: 'User action required',
 };
 
 const localizeDecoratorTooltip = (
@@ -52,6 +53,12 @@ export const getDecoratorIcon = (icon: DecoratorIcon): React.ReactNode => {
       return (
         <ExclamationCircleIcon
           style={{ fill: 'var(--pf-t--global--color--status--danger--100)' }}
+        />
+      );
+    case DecoratorIcon.UserAction:
+      return (
+        <ExclamationCircleIcon
+          style={{ fill: 'var(--pf-t--global--color--nonstatus--purple--400)' }}
         />
       );
     case DecoratorIcon.ExclamationTriangle:

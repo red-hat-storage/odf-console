@@ -112,6 +112,27 @@ describe('cluster down during failover and relocate', () => {
       decoratorStatus: NodeStatus.info,
     },
     {
+      label: 'primary down, relocate waiting for the user',
+      phase: Phase.WaitForUser,
+      progression: Progression.CleaningUp,
+      action: DRActionType.RELOCATE,
+      expected: DRStatus.WaitForUser,
+      node: NodeStatus.default,
+      icon: DecoratorIcon.UserAction,
+      decoratorStatus: NodeStatus.default,
+    },
+    {
+      label: 'failed cluster down, manual cleanup',
+      phase: Phase.FailedOver,
+      progression: Progression.WaitOnUserToCleanUp,
+      action: DRActionType.FAILOVER,
+      cleanup: true,
+      expected: DRStatus.WaitOnUserToCleanUp,
+      node: NodeStatus.default,
+      icon: DecoratorIcon.UserAction,
+      decoratorStatus: NodeStatus.default,
+    },
+    {
       label:
         'protection error during failover does not replace the in-progress status',
       phase: Phase.FailingOver,
@@ -249,6 +270,26 @@ describe('cluster down popover', () => {
       'Relocating application to primary-cluster'
     );
     expect(screen.queryByText('Relocation complete')).not.toBeInTheDocument();
+  });
+
+  it('shows user action, not critical, when relocate is paused for a down primary', async () => {
+    await open({
+      ...downHealth,
+      phase: Phase.WaitForUser,
+      progression: Progression.CleaningUp,
+      action: DRActionType.RELOCATE,
+      isDiscoveredApp: true,
+      applicationName: 'discoveredApp',
+    });
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'User action required'
+    );
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'User action required'
+    );
+    expect(
+      screen.queryByText('Volumes are not syncing')
+    ).not.toBeInTheDocument();
   });
 
   it('shows critical only after the operation has finished', async () => {
