@@ -69,7 +69,9 @@ export const lookupAll = async (
   if (!headers) return results;
 
   const clauses = cveIds.map((c) => `summary ~ "${c}"`).join(' OR ');
-  const jql = encodeURIComponent(`project = DFBUGS AND (${clauses})`);
+  const jql = encodeURIComponent(
+    `project = DFBUGS AND status != Closed AND (${clauses})`
+  );
   const url = `${JIRA_BASE}/rest/api/2/search/jql?jql=${jql}&fields=summary,key&maxResults=100`;
 
   try {
