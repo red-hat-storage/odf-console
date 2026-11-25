@@ -77,12 +77,14 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
 
       const prevPhase = prevApp.status?.phase;
       const currentPhase = currentApp.status?.phase;
-
-      // Real failover: FailingOver → FailedOver (not a dry-run test).
-      const finishedRealFailover =
-        prevPhase === Phase.FailingOver &&
-        currentPhase === Phase.FailedOver &&
-        !currentApp.spec?.dryRun;
+      const prevProgression = prevApp.status?.progression;
+      const progression = currentApp.status?.progression;
+      const progressionDone =
+        !progression || progression === Progression.Completed;
+      // An empty progression is already finished. Treating that as still
+      // running would raise the banner again on every later watch.
+      const prevProgressionDone =
+        !prevProgression || prevProgression === Progression.Completed;
 
       // Convert: hold is already FailedOver with dryRun. Clearing dryRun alone
       // is too early — Ramen may still retry WaitForReadiness. Announce only
@@ -92,8 +94,6 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
       const originalTestTarget = testTargetByDrpcRef.current.get(key);
       const sameFailoverCluster =
         !!originalTestTarget && currentFailover === originalTestTarget;
-      const progression = currentApp.status?.progression;
-      const prevProgression = prevApp.status?.progression;
       const convertPromotionConfirmed =
         progression === Progression.Completed ||
         progression === Progression.CleaningUp;
@@ -113,6 +113,16 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
         !prevAlreadyConfirmed &&
         wasInTestSession;
 
+      // Real failover. Phase can already be FailedOver while a step is still
+      // running, so the banner waits until progression finishes. That may be
+      // the same watch as the phase change, or a later one.
+      const finishedRealFailover =
+        !currentApp.spec?.dryRun &&
+        currentPhase === Phase.FailedOver &&
+        progressionDone &&
+        !prevProgressionDone &&
+        (prevPhase === Phase.FailingOver || prevPhase === Phase.FailedOver);
+
       if (finishedRealFailover || convertedFromTest) {
         const failoverCluster =
           currentApp.spec?.failoverCluster ||
@@ -125,8 +135,13 @@ export const useDROperationAlert = (applications: DRPlacementControlKind[]) => {
         testTargetByDrpcRef.current.delete(key);
       }
 
-      // Detect relocate completion
-      if (prevPhase === Phase.Relocating && currentPhase === Phase.Relocated) {
+      const relocateCompleted =
+        currentPhase === Phase.Relocated &&
+        progressionDone &&
+        !prevProgressionDone &&
+        (prevPhase === Phase.Relocating || prevPhase === Phase.Relocated);
+
+      if (relocateCompleted) {
         const preferredCluster =
           currentApp.spec?.preferredCluster ||
           currentApp.status?.preferredDecision?.clusterName ||
