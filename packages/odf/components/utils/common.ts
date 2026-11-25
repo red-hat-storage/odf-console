@@ -7,6 +7,7 @@ import {
   VolumeTypeValidation,
   NetworkType,
   ErasureCodingScheme,
+  ProviderNames,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
@@ -459,6 +460,9 @@ type NetworkConfiguration = Omit<
   'encryption' | 'kms'
 >;
 
+const KEY_ROTATION_ENABLE_ANNOTATION =
+  'keyrotation.csiaddons.openshift.io/enable';
+
 export type OCSRequestData = {
   storageClass: WizardState['storageClass'];
   storage: string;
@@ -468,6 +472,7 @@ export type OCSRequestData = {
   flexibleScaling: boolean;
   networkConfiguration: NetworkConfiguration;
   kmsEnable?: boolean;
+  kmsProvider?: ProviderNames;
   selectedArbiterZone?: string;
   stretchClusterChecked?: boolean;
   availablePvsCount?: number;
@@ -499,6 +504,7 @@ export const getOCSRequestData = ({
   flexibleScaling,
   networkConfiguration,
   kmsEnable,
+  kmsProvider,
   selectedArbiterZone,
   stretchClusterChecked,
   availablePvsCount,
@@ -637,6 +643,8 @@ export const getOCSRequestData = ({
   }
 
   if (encryption) {
+    const disableGklmKeyRotation =
+      kmsProvider === ProviderNames.GKLM && !!kmsEnable;
     requestData.spec.encryption = {
       enable: encryption.clusterWide,
       clusterWide: encryption.clusterWide,
@@ -644,7 +652,14 @@ export const getOCSRequestData = ({
       kms: {
         enable: kmsEnable,
       },
+      ...(disableGklmKeyRotation ? { keyRotation: { enable: false } } : {}),
     };
+    if (disableGklmKeyRotation) {
+      requestData.metadata.annotations = {
+        ...requestData.metadata.annotations,
+        [KEY_ROTATION_ENABLE_ANNOTATION]: 'false',
+      };
+    }
   }
 
   if (!isTNFEnabled && isNFSEnabled) {

@@ -101,6 +101,9 @@ export type StorageClusterKind = K8sResourceCommon & {
       kms?: {
         enable: boolean;
       };
+      keyRotation?: {
+        enable: boolean;
+      };
     };
     flexibleScaling?: boolean;
     monDataDirHostPath?: string;
