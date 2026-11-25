@@ -16,19 +16,22 @@ export const getDecoratorForStatus = (
   let status = NodeStatus.default;
 
   switch (drStatus) {
+    case DRStatus.WaitOnUserToCleanUp:
+    case DRStatus.WaitForUser:
+      icon = DecoratorIcon.UserAction;
+      tooltip = 'User action required';
+      status = NodeStatus.default;
+      break;
     case DRStatus.Critical:
     case DRStatus.ProtectionError:
     case DRStatus.Unknown:
-    case DRStatus.WaitOnUserToCleanUp:
-    case DRStatus.WaitForUser:
+      icon = DecoratorIcon.ExclamationCircle;
+      tooltip = drStatus;
+      status = NodeStatus.danger;
+      break;
     case Progression.WaitForUserAction:
       icon = DecoratorIcon.ExclamationCircle;
-      tooltip =
-        drStatus === DRStatus.WaitOnUserToCleanUp ||
-        drStatus === DRStatus.WaitForUser ||
-        drStatus === Progression.WaitForUserAction
-          ? 'Action required'
-          : drStatus;
+      tooltip = 'Action required';
       status = NodeStatus.danger;
       break;
     case DRStatus.Healthy:

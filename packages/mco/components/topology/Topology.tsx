@@ -44,6 +44,7 @@ import { generateClusterNodesModel } from './utils/node-generator';
 import './topology.scss';
 
 const TopologyViewComponent: React.FC = () => {
+  const { t } = useCustomTranslation();
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [searchValue, setSearchValue] = React.useState('');
   const [selectedFilters, setSelectedFilters] = React.useState<FilterType[]>([
@@ -89,7 +90,8 @@ const TopologyViewComponent: React.FC = () => {
       {
         searchValue,
         filterTypes: selectedFilters,
-      }
+      },
+      t
     );
   }, [
     memoizedClusters,
@@ -98,6 +100,7 @@ const TopologyViewComponent: React.FC = () => {
     memoizedApps,
     searchValue,
     selectedFilters,
+    t,
   ]);
 
   // Memoize structure key to avoid recreating arrays on every render
