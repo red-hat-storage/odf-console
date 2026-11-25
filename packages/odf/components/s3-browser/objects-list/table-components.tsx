@@ -18,8 +18,15 @@ import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
 import { getBucketOverviewBaseRoute, PREFIX } from '../../../constants';
 import { SetObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
 import { LazyDeleteObjectsModal } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
+import { LegalHoldModalProps } from '../../../modals/s3-browser/legal-hold/LegalHoldModal';
+import { SetObjectRetentionModalProps } from '../../../modals/s3-browser/set-object-lock-and-retention/SetObjectRetentionModal';
 import { ObjectCrFormat, S3ProviderType } from '../../../types';
-import { getEncodedPrefix, replacePathFromName } from '../../../utils';
+import {
+  getEncodedPrefix,
+  replacePathFromName,
+  isObjectDeepArchived,
+  isObjectRestored,
+} from '../../../utils';
 import {
   DownloadAndPreviewState,
   onDownload,
@@ -30,10 +37,20 @@ const LazyPresignedURLModal = React.lazy(
   () => import('../../../modals/s3-browser/presigned-url/PresignedURLModal')
 );
 
+const LazySetObjectRetentionModal = React.lazy(
+  () =>
+    import('../../../modals/s3-browser/set-object-lock-and-retention/SetObjectRetentionModal')
+);
+
+const LazyLegalHoldModal = React.lazy(
+  () => import('../../../modals/s3-browser/legal-hold/LegalHoldModal')
+);
+
 const getColumnNames = (t: TFunction): string[] => [
   t('Name'),
   t('Size'),
   t('Type'),
+  t('Storage class'),
   t('Last modified'),
   '',
 ];
@@ -65,9 +82,17 @@ export const getInlineActionsItems = (
   closeObjectSidebar: () => void,
   showVersioning: boolean,
   isVersioningEnabledOrSuspended: boolean,
-  blockDataPath = false
+  blockDataPath = false,
+  isObjectLockEnabled = false
 ): IAction[] => {
   const isDeleteMarker = object?.isDeleteMarker;
+  // Deep Archive objects must be restored before their data can be read, so
+  // data operations (download / preview / share) stay unavailable until a
+  // usable restored copy exists. Restoring is not offered from the UI yet; it
+  // will be introduced in a later release.
+  const needsRestore =
+    isObjectDeepArchived(object) && !isObjectRestored(object);
+
   return [
     ...(!isDeleteMarker
       ? [
@@ -88,7 +113,8 @@ export const getInlineActionsItems = (
                 setDownloadAndPreview,
                 showVersioning
               ),
-            isDisabled: blockDataPath || downloadAndPreview.isDownloading,
+            isDisabled:
+              blockDataPath || downloadAndPreview.isDownloading || needsRestore,
             shouldCloseOnClick: false,
           },
         ]
@@ -112,7 +138,8 @@ export const getInlineActionsItems = (
                 setDownloadAndPreview,
                 showVersioning
               ),
-            isDisabled: blockDataPath || downloadAndPreview.isPreviewing,
+            isDisabled:
+              blockDataPath || downloadAndPreview.isPreviewing || needsRestore,
             shouldCloseOnClick: false,
           },
         ]
@@ -126,7 +153,47 @@ export const getInlineActionsItems = (
                 isOpen: true,
                 extraProps: { bucketName, object, s3Client, showVersioning },
               }),
-            isDisabled: blockDataPath || isDeleteMarker,
+            isDisabled: blockDataPath || isDeleteMarker || needsRestore,
+          },
+        ]
+      : []),
+    ...(!isDeleteMarker && isObjectLockEnabled
+      ? [
+          {
+            title: t('Object locking'),
+            isDisabled: true,
+          },
+          {
+            title: t('Set Retention'),
+            description: t(
+              'Set a retention mode and period to protect this object from deletion or overwrite.'
+            ),
+            onClick: () =>
+              launcher(LazySetObjectRetentionModal, {
+                isOpen: true,
+                extraProps: {
+                  bucketName,
+                  object,
+                  s3Client,
+                  showVersioning,
+                } as SetObjectRetentionModalProps,
+              }),
+          },
+          {
+            title: t('Legal hold'),
+            description: t(
+              'Legal hold prevents an object version from being overwritten or deleted until explicitly removed.'
+            ),
+            onClick: () =>
+              launcher(LazyLegalHoldModal, {
+                isOpen: true,
+                extraProps: {
+                  bucketName,
+                  object,
+                  s3Client,
+                  showVersioning,
+                } as LegalHoldModalProps,
+              }),
           },
         ]
       : []),
@@ -184,9 +251,14 @@ export const getColumns = (t: TFunction, showVersioning: boolean) => {
     },
     {
       columnName: columnNames[3],
+      thProps: { modifier: 'nowrap' as const },
+      sortFunction: (a, b, c) => sortRows(a, b, c, 'apiResponse.storageClass'),
+    },
+    {
+      columnName: columnNames[4],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'apiResponse.lastModified'),
     },
-    { columnName: columnNames[4] },
+    { columnName: columnNames[5] },
   ];
 };
 
@@ -216,6 +288,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     showVersioning,
     isVersioningEnabledOrSuspended,
     blockDataPath,
+    isObjectLockEnabled = false,
   } = extraProps;
   const isFolder = object.isFolder;
   const name = replacePathFromName(object, foldersPath);
@@ -226,7 +299,6 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
 
   const columnNames = getColumnNames(t);
   const versioningColumnName = getVersioningColumnName(t);
-
   const actionItems = getInlineActionsItems(
     t,
     launcher,
@@ -241,7 +313,8 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     closeObjectSidebar,
     showVersioning,
     isVersioningEnabledOrSuspended,
-    blockDataPath
+    blockDataPath,
+    isObjectLockEnabled
   );
   actionItemsRef.current = actionItems;
 
@@ -293,9 +366,12 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
         {object.type}
       </Td>
       <Td dataLabel={columnNames[3]} onClick={onClick}>
+        {object.apiResponse.storageClass}
+      </Td>
+      <Td dataLabel={columnNames[4]} onClick={onClick}>
         {object.apiResponse.lastModified}
       </Td>
-      <Td dataLabel={columnNames[4]} isActionCell>
+      <Td dataLabel={columnNames[5]} isActionCell>
         {isFolder ? null : <ActionsColumn items={actionItems} />}
       </Td>
     </>

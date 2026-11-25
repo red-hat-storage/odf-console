@@ -2,7 +2,11 @@
 import React from 'react';
 import { describe, expect, it } from '@jest/globals';
 import { DRActionType, VolumeReplicationHealth } from '@odf/mco/constants';
-import { DRPlacementControlConditionReason, Phase } from '@odf/mco/types';
+import {
+  DRPlacementControlConditionReason,
+  Phase,
+  Progression,
+} from '@odf/mco/types';
 import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -71,6 +75,21 @@ describe('DRStatusPopover Component', () => {
   const relocateStatus: DRStatusProps = {
     isLoadedWOError: true,
     phase: Phase.Relocating,
+    primaryCluster: 'primary-cluster',
+    targetCluster: 'target-cluster',
+    policyName: '',
+    schedulingInterval: '',
+    volumeLastGroupSyncTime: '',
+    volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+  };
+
+  // DFBUGS-10990: during a dry-run test the primary cluster is the untouched
+  // original and the target is the cluster the test runs on.
+  const testFailoverStatus: DRStatusProps = {
+    isLoadedWOError: true,
+    phase: Phase.FailedOver,
+    progression: Progression.TestingFailover,
+    dryRun: true,
     primaryCluster: 'primary-cluster',
     targetCluster: 'target-cluster',
     policyName: '',
@@ -172,6 +191,129 @@ describe('DRStatusPopover Component', () => {
     );
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
       'Target clustertarget-cluster'
+    );
+  });
+
+  it('renders the popover with Failover test active status', async () => {
+    render(<DRStatusPopover disasterRecoveryStatus={testFailoverStatus} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Failover test active/
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Non-disruptive test in progress/
+    );
+    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
+      'Primary clusterprimary-cluster'
+    );
+    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
+      'Target clustertarget-cluster'
+    );
+  });
+
+  // DFBUGS-11111: a dry-run revert leaves the phase at Deployed, which used to
+  // fall through to the relocate wording and name the wrong cluster.
+  it('renders test-failover cleanup wording while a dry run is being reverted', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.Deployed,
+          progression: Progression.WaitOnUserToCleanUp,
+          isCleanupRequired: true,
+          testFailoverCleanupCluster: 'test-cluster',
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Action needed/
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /finish reverting the failover test/
+    );
+    expect(screen.getByTestId('popover-description')).not.toHaveTextContent(
+      /to start relocating/
+    );
+  });
+
+  it('renders relocate cleanup wording for an ordinary cleanup', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.Deployed,
+          progression: Progression.WaitOnUserToCleanUp,
+          isCleanupRequired: true,
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /to start relocating/
+    );
+  });
+
+  // DFBUGS-8070: reverting a dry run puts the phase back to Deployed and
+  // restores a now-stale lastGroupSyncTime. That used to fall through to the
+  // replication-health check and report a spurious Warning on a healthy
+  // workload, while the cleanup itself was shown nowhere.
+  it('renders Cleaning up rather than a stale-sync Warning during a dry-run revert', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.Deployed,
+          progression: Progression.CleaningUp,
+          volumeReplicationHealth: VolumeReplicationHealth.WARNING,
+          kubeObjectReplicationHealth: VolumeReplicationHealth.WARNING,
+          testFailoverCleanupCluster: 'test-cluster',
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      /Cleaning up/
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Cleaning up/
+    );
+    // The global t() mock does not interpolate, so assert on the branch rather
+    // than the resolved cluster name.
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Removing the failover test resources from cluster/
+    );
+    expect(screen.getByTestId('popover-description')).not.toHaveTextContent(
+      /left behind by the last operation/
+    );
+  });
+
+  // The same stale timestamp crosses into Critical once it exceeds 3x the
+  // scheduling interval, so a longer dry run must not turn the status red.
+  it('keeps showing Cleaning up when the stale sync has aged into Critical', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.Deployed,
+          progression: Progression.CleaningUp,
+          volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+          kubeObjectReplicationHealth: VolumeReplicationHealth.CRITICAL,
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Cleaning up/
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Removing resources left behind by the last operation/
     );
   });
 
@@ -586,7 +728,7 @@ describe('DRStatusPopover Component', () => {
         expectedStatus: 'Relocated',
         overrides: {
           phase: Phase.Relocated,
-          progression: 'CleaningUp',
+          progression: Progression.CleaningUp,
           volumeLastGroupSyncTime: noSync,
         },
       },

@@ -51,7 +51,8 @@
     color: var(--pf-t--global--color--status--success--100);
   }
 
-  &__title-text.dr-status-protecting {
+  &__title-text.dr-status-protecting,
+  &__title-text.dr-status-cleaning-up {
     color: var(--pf-t--global--color--status--info--100);
   }
 

@@ -14,10 +14,7 @@ import {
   HorizontalNav,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  Extension,
-  ExtensionTypeGuard,
-} from '@openshift-console/dynamic-plugin-sdk/lib/types';
+import { Extension } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { useLocation, useNavigate } from 'react-router';
@@ -57,7 +54,7 @@ const UpperSection: React.FC = () => (
   </Grid>
 );
 
-const isDashboardTab = (e: Extension) =>
+const isDashboardTab = (e: Extension): e is HorizontalNavTab =>
   isHorizontalNavTab(e) && e.properties.contextId === ODF_DASHBOARD_CONTEXT;
 
 export const ODFDashboard: React.FC = () => {
@@ -94,9 +91,7 @@ const ODFDashboardPage: React.FC<{}> = () => {
   const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
   const { areFlagsLoaded, flagsLoadError } = useODFSystemFlagsSelector();
 
-  const [extensions, isLoaded, error] = useResolvedExtensions<HorizontalNavTab>(
-    isDashboardTab as ExtensionTypeGuard<HorizontalNavTab>
-  );
+  const [extensions, isLoaded, error] = useResolvedExtensions(isDashboardTab);
 
   const haveExtensionsResolved = isLoaded && _.isEmpty(error);
   const sortedPages = useSortPages({

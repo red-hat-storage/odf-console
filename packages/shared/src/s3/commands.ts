@@ -12,6 +12,9 @@ import {
   GetBucketEncryptionCommand,
   GetBucketVersioningCommand,
   PutBucketVersioningCommand,
+  GetObjectLockConfigurationCommand,
+  GetObjectLockConfigurationCommandOutput,
+  PutObjectLockConfigurationCommand,
   GetBucketTaggingCommand,
   GetBucketAclCommand,
   GetBucketPolicyCommand,
@@ -28,6 +31,10 @@ import {
   GetBucketPolicyStatusCommand,
   GetPublicAccessBlockCommand,
   PutPublicAccessBlockCommand,
+  PutObjectRetentionCommand,
+  GetObjectRetentionCommand,
+  PutObjectLegalHoldCommand,
+  GetObjectLegalHoldCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -48,6 +55,8 @@ import {
   GetBucketEncryption,
   GetBucketVersioning,
   PutBucketVersioning,
+  GetObjectLockConfiguration,
+  PutObjectLockConfiguration,
   GetBucketTagging,
   GetBucketAcl,
   GetBucketPolicy,
@@ -62,7 +71,16 @@ import {
   GetBucketPolicyStatus,
   GetPublicAccessBlock,
   PutPublicAccessBlock,
+  PutObjectRetention,
+  GetObjectRetention,
+  PutObjectLegalHold,
+  GetObjectLegalHold,
 } from './types';
+import {
+  isNoObjectLegalHoldError,
+  isNoObjectLockConfigurationError,
+  isNoObjectRetentionError,
+} from './utils';
 
 export class S3Commands extends S3Client {
   private path: string;
@@ -149,6 +167,19 @@ export class S3Commands extends S3Client {
     return { ...response, supportedStorageClasses };
   };
 
+  getObjectLockConfiguration: GetObjectLockConfiguration = (input) =>
+    this.send(new GetObjectLockConfigurationCommand(input)).catch((err) => {
+      // A bucket without Object Lock configured throws; treat that the
+      // same as "disabled" instead of surfacing it as a fetch error.
+      if (isNoObjectLockConfigurationError(err)) {
+        return {} as GetObjectLockConfigurationCommandOutput;
+      }
+      throw err;
+    });
+
+  putObjectLockConfiguration: PutObjectLockConfiguration = (input) =>
+    this.send(new PutObjectLockConfigurationCommand(input));
+
   listBuckets: ListBuckets = (input) =>
     this.send(new ListBucketsCommand(input));
 
@@ -217,6 +248,30 @@ export class S3Commands extends S3Client {
 
   deleteObjects: DeleteObjects = (input) =>
     this.send(new DeleteObjectsCommand(input));
+
+  putObjectRetention: PutObjectRetention = (input) =>
+    this.send(new PutObjectRetentionCommand(input));
+
+  getObjectRetention: GetObjectRetention = (input) =>
+    this.send(new GetObjectRetentionCommand(input)).catch((err) => {
+      // No retention set, or Object Lock not enabled on the bucket.
+      if (isNoObjectRetentionError(err)) {
+        return null;
+      }
+      throw err;
+    });
+
+  putObjectLegalHold: PutObjectLegalHold = (input) =>
+    this.send(new PutObjectLegalHoldCommand(input));
+
+  getObjectLegalHold: GetObjectLegalHold = (input) =>
+    this.send(new GetObjectLegalHoldCommand(input)).catch((err) => {
+      // No legal hold set, or Object Lock not enabled on the bucket.
+      if (isNoObjectLegalHoldError(err)) {
+        return null;
+      }
+      throw err;
+    });
 
   getUploader = (file: File, key: string, bucketName: string): Upload => {
     const uploader = new Upload({

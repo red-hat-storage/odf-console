@@ -1,17 +1,38 @@
 import * as React from 'react';
-import { Tag, DeleteObjectsCommandOutput } from '@aws-sdk/client-s3';
+import {
+  Tag,
+  DeleteObjectsCommandOutput,
+  GetObjectLockConfigurationCommandOutput,
+  ObjectLockRetentionMode,
+  ObjectLockLegalHoldStatus,
+} from '@aws-sdk/client-s3';
 import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import {
   OBJECT_CACHE_KEY_SUFFIX,
   OBJECT_TAGGING_CACHE_KEY_SUFFIX,
+  OBJECT_RETENTION_CACHE_KEY_SUFFIX,
+  OBJECT_LEGAL_HOLD_CACHE_KEY_SUFFIX,
+  BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX,
   PREFIX,
 } from '@odf/core/constants';
+import LegalHoldModal, {
+  LegalHoldModalProps,
+} from '@odf/core/modals/s3-browser/legal-hold/LegalHoldModal';
+import ObjectLockNotEnabledModal, {
+  ObjectLockNotEnabledModalProps,
+} from '@odf/core/modals/s3-browser/set-object-lock-and-retention/ObjectLockNotEnabledModal';
+import SetObjectRetentionModal, {
+  SetObjectRetentionModalProps,
+} from '@odf/core/modals/s3-browser/set-object-lock-and-retention/SetObjectRetentionModal';
 import { ObjectCrFormat } from '@odf/core/types';
 import {
   replacePathFromName,
   getObjectVersionId,
   convertObjectDataToCrFormat,
   sortByLastModified,
+  isObjectDeepArchived,
+  isObjectRestored,
+  getRestoreStatusText,
 } from '@odf/core/utils';
 import {
   DASH,
@@ -23,13 +44,19 @@ import {
 import { useModalWrapper } from '@odf/shared';
 import { PaginatedListPage } from '@odf/shared/list-page';
 import { S3Commands } from '@odf/shared/s3';
+import {
+  getIsObjectLockEnabled,
+  getRetentionModalLabel,
+} from '@odf/shared/s3/utils';
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
 import { TFunction } from 'i18next';
 import { useParams, useSearchParams } from 'react-router';
-import useSWR from 'swr';
+import useSWR, { KeyedMutator } from 'swr';
 import {
   Alert,
   AlertVariant,
+  Button,
+  ButtonVariant,
   Drawer,
   DrawerActions,
   DrawerCloseButton,
@@ -40,6 +67,8 @@ import {
   Dropdown,
   DropdownItem,
   DropdownList,
+  Flex,
+  FlexItem,
   Grid,
   GridItem,
   Label,
@@ -47,6 +76,7 @@ import {
   Level,
   LevelItem,
   MenuToggle,
+  Switch,
   Title,
   Tab,
   Tabs,
@@ -77,6 +107,8 @@ type ObjectOverviewProps = {
   s3Client: S3Commands;
   bucketName: string;
   objShortenedName?: string;
+  isObjectLockEnabled: boolean;
+  objectLockMutate: KeyedMutator<GetObjectLockConfigurationCommandOutput>;
 };
 
 type ObjectVersionsProps = {
@@ -86,6 +118,7 @@ type ObjectVersionsProps = {
   extraProps: ExtraProps;
   foldersPath: string;
   blockDataPath?: boolean;
+  isObjectLockEnabled: boolean;
 };
 
 const ItemHeading: React.FC<{ text: string }> = ({ text }) => (
@@ -168,6 +201,7 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
   foldersPath,
   extraProps,
   blockDataPath = false,
+  isObjectLockEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -235,6 +269,7 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
             s3Client,
             foldersPath,
             blockDataPath,
+            isObjectLockEnabled,
             // if object has only single version, display deletion status on the main list page instead of the sidebar
             // sidebar will close in this case as no objects/versions are left to display
             setDeleteResponse: hasOnlySingleVersion
@@ -265,6 +300,8 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
   s3Client,
   bucketName,
   objShortenedName,
+  isObjectLockEnabled,
+  objectLockMutate,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -297,6 +334,51 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
         ...(showVersioning && { VersionId: versionId }),
       })
   );
+  const { data: retentionData, mutate: retentionMutate } = useSWR(
+    isDeleteMarker || !isObjectLockEnabled
+      ? null
+      : `${s3Client.providerType}-${objectKey}-${lastModified}-${OBJECT_RETENTION_CACHE_KEY_SUFFIX}`,
+    () =>
+      s3Client.getObjectRetention({
+        Bucket: bucketName,
+        Key: objectKey,
+        ...(versionId && { VersionId: versionId }),
+      })
+  );
+
+  const objectRetention = retentionData?.Retention;
+  const isObjectRetentionEnabled = !!objectRetention;
+  const retentionMode = objectRetention?.Mode;
+  const retainUntilDate = objectRetention?.RetainUntilDate;
+  // Compliance retention cannot be cleared before RetainUntilDate.
+  const isComplianceRetentionActive =
+    retentionMode === ObjectLockRetentionMode.COMPLIANCE &&
+    !!retainUntilDate &&
+    new Date(retainUntilDate) > new Date();
+
+  const [isObjectRetentionChecked, setIsObjectRetentionChecked] =
+    React.useState<boolean>(false);
+
+  const launcher = useModalWrapper();
+
+  React.useEffect(
+    () => setIsObjectRetentionChecked(isObjectRetentionEnabled),
+    [isObjectRetentionEnabled, setIsObjectRetentionChecked]
+  );
+
+  const { data: legalHoldData, mutate: legalHoldMutate } = useSWR(
+    isDeleteMarker || !isObjectLockEnabled
+      ? null
+      : `${s3Client.providerType}-${objectKey}-${lastModified}-${OBJECT_LEGAL_HOLD_CACHE_KEY_SUFFIX}`,
+    () =>
+      s3Client.getObjectLegalHold({
+        Bucket: bucketName,
+        Key: objectKey,
+        ...(versionId && { VersionId: versionId }),
+      })
+  );
+  const isLegalHoldApplied =
+    legalHoldData?.LegalHold?.Status === ObjectLockLegalHoldStatus.ON;
 
   const tags = tagData?.TagSet?.map((tag: Tag) => (
     <Label className="pf-v6-u-mr-xs" color="grey" icon={<TagIcon />}>
@@ -320,58 +402,224 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
 
   const isLoading = isObjectDataLoading || isTagDataLoading;
 
+  // Storage class and restore status are read from the list response (the
+  // single source of truth); the warning only applies while a usable restored
+  // copy is missing, as a restored object can be previewed/downloaded like any
+  // other.
+  const needsRestore =
+    isObjectDeepArchived(object) && !isObjectRestored(object);
+  const restoreStatusText = getRestoreStatusText(object, t);
+
   return isLoading ? (
     <LoadingBox />
   ) : (
-    <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
-      <GridItem span={6}>
-        <ItemHeading text={t('Name')} />
-        {objShortenedName}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Key')} />
-        <Level>
-          <LevelItem className="odf-object-sidebar__key">{objectKey}</LevelItem>
-          <LevelItem>
-            <CopyToClipboard value={objectKey} iconOnly={true} />
-          </LevelItem>
-        </Level>
-      </GridItem>
-      {showVersioning && (
-        <GridItem span={6}>
-          <ItemHeading text={t('Version')} />
-          {objectData?.VersionId || versionId || DASH}
-        </GridItem>
+    <>
+      {needsRestore && (
+        <Alert
+          isInline
+          variant={AlertVariant.warning}
+          title={t('This object is archived')}
+          className="pf-v6-u-mt-sm"
+        >
+          {t(
+            'This object is stored in the Deep Archive storage class and can only be previewed or downloaded after it is restored.'
+          )}
+        </Alert>
       )}
-      <GridItem span={6}>
-        <ItemHeading text={t('Owner')} />
-        {object.apiResponse?.ownerName}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Type')} />
-        {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Last modified')} />
-        {lastModified}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Size')} />
-        {object.apiResponse.size}
-      </GridItem>
-      <GridItem span={6}>
-        <ItemHeading text={t('Entity tag (ETag)')} />
-        {objectData?.ETag || DASH}
-      </GridItem>
-      <GridItem span={12}>
-        <ItemHeading text={t('Tags')} />
-        {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
-      </GridItem>
-      <GridItem span={12}>
-        <ItemHeading text={t('Metadata')} />
-        {metadata.length > 0 ? metadata : DASH}
-      </GridItem>
-    </Grid>
+      <Grid className="odf-object-sidebar__data-grid pf-v6-u-mt-sm" hasGutter>
+        <GridItem span={6}>
+          <ItemHeading text={t('Name')} />
+          {objShortenedName}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Key')} />
+          <Level>
+            <LevelItem className="odf-object-sidebar__key">
+              {objectKey}
+            </LevelItem>
+            <LevelItem>
+              <CopyToClipboard value={objectKey} iconOnly={true} />
+            </LevelItem>
+          </Level>
+        </GridItem>
+        {showVersioning && (
+          <GridItem span={6}>
+            <ItemHeading text={t('Version')} />
+            {objectData?.VersionId || versionId || DASH}
+          </GridItem>
+        )}
+        <GridItem span={6}>
+          <ItemHeading text={t('Owner')} />
+          {object.apiResponse?.ownerName}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Type')} />
+          {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Last modified')} />
+          {lastModified}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Size')} />
+          {object.apiResponse.size}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Storage class')} />
+          {object.apiResponse?.storageClass || DASH}
+          {restoreStatusText && (
+            <Content component={ContentVariants.small}>
+              {restoreStatusText}
+            </Content>
+          )}
+        </GridItem>
+        <GridItem span={6}>
+          <ItemHeading text={t('Entity tag (ETag)')} />
+          {objectData?.ETag || DASH}
+        </GridItem>
+        <GridItem span={12}>
+          <ItemHeading text={t('Tags')} />
+          {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
+        </GridItem>
+        <GridItem span={12}>
+          <ItemHeading text={t('Metadata')} />
+          {metadata.length > 0 ? metadata : DASH}
+        </GridItem>
+        {!isDeleteMarker && (
+          <GridItem span={12}>
+            <Level>
+              <LevelItem>
+                <Content>
+                  <Content component={ContentVariants.h5}>
+                    {t('Retention')}
+                  </Content>
+                  <Content component={ContentVariants.small}>
+                    {t(
+                      'Prevents this object from being deleted or overwritten for a specified retention period,'
+                    )}
+                    <br />
+                    {t('ensuring data immutability and compliance.')}
+                  </Content>
+                </Content>
+              </LevelItem>
+              <LevelItem>
+                <Switch
+                  id="object-retention-switch"
+                  label={
+                    isObjectRetentionChecked ? t('Enabled') : t('Disabled')
+                  }
+                  isChecked={isObjectRetentionChecked}
+                  isDisabled={isComplianceRetentionActive}
+                  onChange={(_event, checked) => {
+                    if (checked && !isObjectLockEnabled) {
+                      launcher(ObjectLockNotEnabledModal, {
+                        extraProps: {
+                          bucketName,
+                          s3Client,
+                          mutate: objectLockMutate,
+                        } as ObjectLockNotEnabledModalProps,
+                        isOpen: true,
+                      });
+                      return;
+                    }
+                    launcher(SetObjectRetentionModal, {
+                      extraProps: {
+                        bucketName,
+                        object,
+                        s3Client,
+                        showVersioning,
+                        enableObjectRetention: checked,
+                        onConfirm: () => {
+                          retentionMutate();
+                          setIsObjectRetentionChecked(checked);
+                        },
+                      } as SetObjectRetentionModalProps,
+                      isOpen: true,
+                    });
+                  }}
+                />
+              </LevelItem>
+            </Level>
+          </GridItem>
+        )}
+        {objectRetention && (
+          <GridItem span={12}>
+            <ItemHeading text={t('Edit retention')} />
+            <Flex
+              alignItems={{ default: 'alignItemsCenter' }}
+              className="pf-v6-u-mt-sm"
+            >
+              <FlexItem>
+                <Content component={ContentVariants.small}>
+                  {t('{{mode}} mode until {{date}}.', {
+                    mode: getRetentionModalLabel(retentionMode, t),
+                    date: retainUntilDate?.toLocaleString(),
+                  })}
+                </Content>
+              </FlexItem>
+              <FlexItem>
+                <Button
+                  variant={ButtonVariant.link}
+                  isInline
+                  onClick={() =>
+                    launcher(SetObjectRetentionModal, {
+                      extraProps: {
+                        bucketName,
+                        object,
+                        s3Client,
+                        showVersioning,
+                        onConfirm: () => {
+                          retentionMutate();
+                          setIsObjectRetentionChecked(true);
+                        },
+                      } as SetObjectRetentionModalProps,
+                      isOpen: true,
+                    })
+                  }
+                >
+                  {t('Edit')}
+                </Button>
+              </FlexItem>
+            </Flex>
+          </GridItem>
+        )}
+        {!isDeleteMarker && isObjectLockEnabled && (
+          <GridItem span={12}>
+            <Level>
+              <LevelItem>
+                <ItemHeading text={t('Legal hold')} />
+              </LevelItem>
+              <LevelItem>
+                <Button
+                  variant={ButtonVariant.link}
+                  isInline
+                  onClick={() =>
+                    launcher(LegalHoldModal, {
+                      extraProps: {
+                        bucketName,
+                        object,
+                        s3Client,
+                        showVersioning,
+                        onConfirm: () => legalHoldMutate(),
+                      } as LegalHoldModalProps,
+                      isOpen: true,
+                    })
+                  }
+                >
+                  {isLegalHoldApplied ? t('Remove') : t('Apply')}
+                </Button>
+              </LevelItem>
+            </Level>
+            <Content
+              component={ContentVariants.small}
+              className="pf-v6-u-mt-sm"
+            >
+              {isLegalHoldApplied ? t('Applied') : t('Not applied')}
+            </Content>
+          </GridItem>
+        )}
+      </Grid>
+    </>
   );
 };
 
@@ -403,6 +651,12 @@ const ObjectDetailsSidebarContent: React.FC<
   const { s3Client } = React.useContext(S3Context);
   const [searchParams] = useSearchParams();
   const { bucketName } = useParams();
+
+  const { data: objectLockData, mutate: objectLockMutate } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX}`,
+    () => s3Client.getObjectLockConfiguration({ Bucket: bucketName })
+  );
+  const isObjectLockEnabled = getIsObjectLockEnabled(objectLockData);
 
   const foldersPath = searchParams.get(PREFIX);
   const objName = object ? replacePathFromName(object, foldersPath) : '';
@@ -473,6 +727,8 @@ const ObjectDetailsSidebarContent: React.FC<
             s3Client={s3Client}
             bucketName={bucketName}
             objShortenedName={objName}
+            isObjectLockEnabled={isObjectLockEnabled}
+            objectLockMutate={objectLockMutate}
           />
         )}
         {!showVersioning && (
@@ -491,6 +747,8 @@ const ObjectDetailsSidebarContent: React.FC<
                 s3Client={s3Client}
                 bucketName={bucketName}
                 objShortenedName={objName}
+                isObjectLockEnabled={isObjectLockEnabled}
+                objectLockMutate={objectLockMutate}
               />
             </Tab>
             <Tab
@@ -504,6 +762,7 @@ const ObjectDetailsSidebarContent: React.FC<
                 foldersPath={foldersPath}
                 extraProps={extraProps}
                 blockDataPath={blockDataPath}
+                isObjectLockEnabled={isObjectLockEnabled}
               />
             </Tab>
           </Tabs>

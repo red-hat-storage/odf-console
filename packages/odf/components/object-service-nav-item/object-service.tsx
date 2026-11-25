@@ -20,10 +20,7 @@ import {
   NamespaceBar,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  Extension,
-  ExtensionTypeGuard,
-} from '@openshift-console/dynamic-plugin-sdk/lib/types';
+import { Extension } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { useParams, useLocation, useNavigate } from 'react-router';
@@ -37,7 +34,7 @@ import { StoredCredentials } from '../s3-common/types';
 const OBJECT_SERVICE_CONTEXT = 'odf-object-service';
 const NAMESPACE_BAR_PATHS = [referenceForModel(NooBaaObjectBucketClaimModel)];
 
-const isObjectServiceTab = (e: Extension) =>
+const isObjectServiceTab = (e: Extension): e is HorizontalNavTab =>
   isHorizontalNavTab(e) && e.properties.contextId === OBJECT_SERVICE_CONTEXT;
 
 const ObjectServicePage: React.FC = () => {
@@ -45,9 +42,8 @@ const ObjectServicePage: React.FC = () => {
   const title = t('Object Storage');
   const isAdmin = useFlag(ODF_ADMIN);
 
-  const [extensions, isLoaded, error] = useResolvedExtensions<HorizontalNavTab>(
-    isObjectServiceTab as ExtensionTypeGuard<HorizontalNavTab>
-  );
+  const [extensions, isLoaded, error] =
+    useResolvedExtensions(isObjectServiceTab);
 
   // When the list of matching extensions changes, the resolution is restarted.
   // The hook will continue to return the previous result until the resolution completes.

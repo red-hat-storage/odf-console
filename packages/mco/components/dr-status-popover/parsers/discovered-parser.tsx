@@ -6,7 +6,7 @@ import {
   getReplicationHealth,
   getReplicationType,
   getDRPolicyName,
-  getPrimaryClusterName,
+  resolvePrimaryClusterName,
   getProtectedCondition,
   getAvailableCondition,
 } from '../../../utils';
@@ -31,7 +31,10 @@ export const DRPlacementControlParser: React.FC<
 
     const schedulingInterval = drPolicy?.spec?.schedulingInterval;
 
-    const primaryClusterName = getPrimaryClusterName(drPlacementControl);
+    const primaryClusterName = resolvePrimaryClusterName(
+      drPlacementControl,
+      drPolicy?.spec?.drClusters
+    );
     const targetCluster = drPolicy?.spec?.drClusters?.find(
       (name) => name !== primaryClusterName
     );

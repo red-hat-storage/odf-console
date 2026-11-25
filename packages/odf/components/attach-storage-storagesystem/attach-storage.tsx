@@ -18,6 +18,7 @@ import {
   StorageClusterKind,
   StorageClusterModel,
   useFetchCsv,
+  useToastWrapper,
 } from '@odf/shared';
 import { isCSVSucceeded } from '@odf/shared/utils';
 import {
@@ -27,7 +28,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
-import { Content, ContentVariants } from '@patternfly/react-core';
+import { AlertVariant, Content, ContentVariants } from '@patternfly/react-core';
 import { createWizardNodeState, getDeviceSetReplica } from '../utils';
 import { AttachStorageFormFooter } from './attach-storage-footer';
 import './attach-storage.scss';
@@ -92,6 +93,8 @@ const AttachStorage = () => {
     );
 
   const [nodesData, nodesLoaded, nodesLoadError] = useNodesData();
+
+  const addToast = useToastWrapper();
 
   const breadcrumbs = [
     {
@@ -168,6 +171,13 @@ const AttachStorage = () => {
         deviceSetCount
       );
       await sendPostRequest(payload);
+      addToast({
+        title: t('Storage attached'),
+        variant: AlertVariant.info,
+        content: t('A new storage device class set is being provisioned.'),
+        dismissible: true,
+        timeout: true,
+      });
       onClose();
     } catch (error) {
       dispatch({
@@ -195,6 +205,7 @@ const AttachStorage = () => {
     namespace,
     dispatch,
     clusterName,
+    addToast,
     onClose,
   ]);
 

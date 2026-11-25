@@ -48,7 +48,7 @@ export const getDecoratorForStatus = (
     case DRStatus.TestingFailover:
     case Phase.Initiating:
     case Phase.Deploying:
-    case Progression.CleaningUp:
+    case DRStatus.CleaningUp:
       icon = DecoratorIcon.InProgress;
       tooltip = `${drStatus}...`;
       status = NodeStatus.info;

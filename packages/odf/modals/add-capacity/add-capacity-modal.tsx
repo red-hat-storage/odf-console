@@ -4,7 +4,11 @@ import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils/common';
-import { SingleSelectDropdown, useDeepCompareMemoize } from '@odf/shared';
+import {
+  SingleSelectDropdown,
+  useDeepCompareMemoize,
+  useToastWrapper,
+} from '@odf/shared';
 import { OCS_OPERATOR, ROOK_CEPH_OPERATOR } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
@@ -49,6 +53,7 @@ import {
   Button,
   Alert,
   SelectOption,
+  AlertVariant,
 } from '@patternfly/react-core';
 import {
   createWizardNodeState,
@@ -335,6 +340,7 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   );
   const hasMultiDeviceClasses = deviceClasses.length > 1;
 
+  const addToast = useToastWrapper();
   React.useEffect(() => {
     if (deviceClasses.length === 1) {
       setDeviceClass(deviceClasses[0] || NO_DEVICE_CLASS);
@@ -465,6 +471,15 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
         .then(() => {
           setProgress(false);
           closeModal();
+          addToast({
+            title: t('Capacity expansion triggered'),
+            variant: AlertVariant.info,
+            content: t(
+              'Additional OSDs are being provisioned. This may take several minutes.'
+            ),
+            dismissible: true,
+            timeout: true,
+          });
         })
         .catch((err) => {
           setError(err);
