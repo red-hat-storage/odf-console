@@ -24,7 +24,11 @@ import {
   getReplicationType,
   getProtectedCondition,
 } from '../../../utils';
-import { getDRStatus, isCleanupRequired } from '../../../utils/dr-status';
+import {
+  DRStatus,
+  getDRStatus,
+  isCleanupRequired,
+} from '../../../utils/dr-status';
 import { TOPOLOGY_CONSTANTS } from '../constants';
 import {
   DecoratorIcon,
@@ -92,11 +96,26 @@ const computeOperationDRStatus = (
   });
 };
 
+const topologyStatusLabel = (
+  status: string,
+  translate?: (key: string) => string
+): string => {
+  if (
+    status === DRStatus.WaitOnUserToCleanUp ||
+    status === DRStatus.WaitForUser
+  ) {
+    const label = 'User action required';
+    return translate ? translate(label) : label;
+  }
+  return status;
+};
+
 const createGroupedOperationNodes = (
   opsByPhase: Map<string, DROperationInfo[]>,
   isSource: boolean,
   clusterName: string,
-  drPolicyByName: Map<string, DRPolicyKind>
+  drPolicyByName: Map<string, DRPolicyKind>,
+  translate?: (key: string) => string
 ): NodeModel[] => {
   const nodes: NodeModel[] = [];
 
@@ -111,7 +130,7 @@ const createGroupedOperationNodes = (
       progression,
       drPolicyByName
     );
-    const label = effectiveStatus;
+    const label = topologyStatusLabel(effectiveStatus, translate);
     const directionLabel = isSource ? 'source' : 'target';
     const appId = `app-group-${clusterName}-${directionLabel}-${groupKey}`;
 
@@ -160,7 +179,8 @@ const generateClusterWithApps = (
   cluster: ACMManagedClusterKind,
   apps: ProtectedAppInfo[],
   drPolicyByName: Map<string, DRPolicyKind>,
-  operations?: DROperationInfo[]
+  operations?: DROperationInfo[],
+  translate?: (key: string) => string
 ): NodeModel[] => {
   const clusterName = getName(cluster);
 
@@ -213,13 +233,15 @@ const generateClusterWithApps = (
       sourceOperationsByActionPhase,
       true,
       clusterName,
-      drPolicyByName
+      drPolicyByName,
+      translate
     );
     const targetNodes = createGroupedOperationNodes(
       targetOperationsByActionPhase,
       false,
       clusterName,
-      drPolicyByName
+      drPolicyByName,
+      translate
     );
     appNodes.push(...sourceNodes, ...targetNodes);
   }
@@ -246,7 +268,7 @@ const generateClusterWithApps = (
         ([status, groupedApps]: [string, ProtectedAppInfo[]]) => {
           const count = groupedApps.length;
           const firstApp = groupedApps[0];
-          const label = status;
+          const label = topologyStatusLabel(status, translate);
 
           const appNode = createNode({
             id: `app-group-${clusterName}-${status}`,
@@ -568,7 +590,8 @@ export const generateClusterNodesModel = (
   clusterPairPoliciesMap?: ClusterPairPoliciesMap | null,
   clusterPairOperationsMap?: ClusterPairOperationsMap | null,
   clusterAppsMap?: ClusterAppsMap | null,
-  filters?: FilterOptions
+  filters?: FilterOptions,
+  translate?: (key: string) => string
 ): Model => {
   const isSearchActive = Boolean(filters?.searchValue?.trim());
 
@@ -692,7 +715,8 @@ export const generateClusterNodesModel = (
         cluster,
         clusterApps || [],
         drPolicyByName,
-        filteredOperations
+        filteredOperations,
+        translate
       );
     } else {
       // No matching apps/operations after filtering
