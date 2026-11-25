@@ -116,19 +116,17 @@ export const getDefaultLocalClusterRole = (
  *
  * The Arbiter role is never stored on the node (see {@link createWizardNodeState}'s
  * options): it is purely a function of the live "Stretch cluster" toggle plus the
- * node being a control-plane node in the arbiter zone. Computing it here — rather
- * than snapshotting it at selection time — keeps the role consistent with the
- * table display no matter when (or in which order) the stretch/control-plane
- * toggles are flipped. For every other case the node's stored base role
- * (Cluster/Disk, including any manual override) is returned unchanged.
+ * node being in the arbiter zone. Computing it here — rather than snapshotting it
+ * at selection time — keeps discovery and node-role labeling consistent with the
+ * table display no matter when the stretch toggle is flipped. For every other
+ * case the node's stored base role (Cluster/Disk, including any manual override)
+ * is returned unchanged.
  */
 export const getEffectiveLocalClusterRole = (
   node: WizardNodeState,
   enableStretchCluster?: boolean
 ): NodeType =>
-  enableStretchCluster &&
-  node.zone === ARBITER_ZONE &&
-  (node.roles ?? []).includes(CONTROL_PLANE)
+  enableStretchCluster && node.zone === ARBITER_ZONE
     ? NodeType.ARBITER
     : (node.localClusterRole ??
       getDefaultLocalClusterRole(node.roles ?? [], node.zone ?? ''));
