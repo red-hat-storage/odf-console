@@ -120,3 +120,5 @@ export enum NamespacePolicyType {
 export const RGW_PROVISIONER = 'ceph.rook.io/bucket';
 
 export const ATTACH_DEPLOYMENT = 'ATTACH_DEPLOYMENT';
+
+export const NOOBAA_DEFAULT_BUCKET_CLASS = 'noobaa-default-bucket-class';

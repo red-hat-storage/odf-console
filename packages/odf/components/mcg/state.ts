@@ -1,5 +1,6 @@
 import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
 import { K8sResourceKind } from '@odf/shared/types';
+import * as _ from 'lodash-es';
 
 export type ReplicationResources = {
   bucketClass: BucketClassKind;
@@ -66,12 +67,19 @@ export const defaultState = {
   payload: {},
   sizeUnit: 'GiB',
   sizeValue: '',
-  bucketClass: 'noobaa-default-bucket-class',
+  bucketClass: '',
   replicationRuleFormData: [],
   logReplicationInfo: { logLocation: '', logPrefix: '' },
 };
 
+export const defaultObcFormValues = {
+  obcName: defaultState.name,
+  'sc-dropdown': defaultState.scName,
+  bucketclass: defaultState.bucketClass,
+};
+
 export type Action =
+  | { type: 'reset' }
   | { type: 'setName'; name: string }
   | { type: 'setStorage'; name: string }
   | { type: 'setProvisioner'; name: string }
@@ -92,6 +100,8 @@ export type Action =
 
 export const commonReducer = (state: State, action: Action) => {
   switch (action.type) {
+    case 'reset':
+      return _.cloneDeep(defaultState);
     case 'setName':
       return Object.assign({}, state, { name: action.name });
     case 'setStorage':
