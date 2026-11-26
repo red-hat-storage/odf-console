@@ -23,7 +23,6 @@ import './decorator-utils.scss';
 const DECORATOR_TOOLTIP_I18N: Record<DecoratorTooltipKey, string> = {
   [DecoratorTooltipKey.Preparing]: 'Preparing',
   [DecoratorTooltipKey.AwaitingResync]: 'Awaiting resync',
-  [DecoratorTooltipKey.ActionNeeded]: 'Action needed',
   [DecoratorTooltipKey.ActionRequired]: 'Action required',
   [DecoratorTooltipKey.UserActionRequired]: 'User action required',
 };

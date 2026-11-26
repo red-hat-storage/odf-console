@@ -4,6 +4,10 @@ import { useModalWrapper } from '@odf/shared';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import {
+  clearTestDryRunPending,
+  markTestDryRunCleared,
+} from '../../utils/test-failover';
+import {
   CleanUpTestModal,
   ConvertTestFailoverModal,
   TestFailoverHoldAlert,
@@ -115,6 +119,20 @@ describe('TestFailoverHoldAlert', () => {
         /The application deployment cluster could not be resolved/
       )
     ).toBeInTheDocument();
+  });
+
+  it('hides the hold buttons after confirm while the watch still has dryRun', () => {
+    markTestDryRunCleared('app-ns', 'app-drpc', '2024-01-01T10:00:00Z');
+    renderAlert({ dryRun: true });
+    expect(
+      screen.getByText(
+        'Your request is being processed. This may take a few moments. No further action is needed.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Convert to real failover' })
+    ).not.toBeInTheDocument();
+    clearTestDryRunPending('app-ns', 'app-drpc', '2024-01-01T10:00:00Z');
   });
 
   it('shows a processing message instead of buttons after dryRun clears', () => {

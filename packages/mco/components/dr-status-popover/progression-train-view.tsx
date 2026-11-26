@@ -370,24 +370,20 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
       spaceItems={{ default: 'spaceItemsMd' }}
       className="progression-train-view"
     >
-      {holdAlert}
-
-      {!holdAlert && (
-        <FlexItem>
-          <Content
-            component="p"
-            className="progression-train-view__summary"
-            data-test-id="progression-summary"
-            data-completed-steps={completedSteps}
-            data-total-steps={totalSteps}
-          >
-            {t('{{completedSteps}} of {{totalSteps}} steps completed', {
-              completedSteps,
-              totalSteps,
-            })}
-          </Content>
-        </FlexItem>
-      )}
+      <FlexItem>
+        <Content
+          component="p"
+          className="progression-train-view__summary"
+          data-test-id="progression-summary"
+          data-completed-steps={completedSteps}
+          data-total-steps={totalSteps}
+        >
+          {t('{{completedSteps}} of {{totalSteps}} steps completed', {
+            completedSteps,
+            totalSteps,
+          })}
+        </Content>
+      </FlexItem>
 
       <FlexItem>
         <ProgressStepper isCenterAligned>
@@ -484,6 +480,8 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
           </Content>
         </FlexItem>
       )}
+
+      {holdAlert}
 
       {(currentProgression ||
         (progressionDetails && progressionDetails.length > 0)) && (

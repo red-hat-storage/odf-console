@@ -81,6 +81,18 @@ describe('useDROperationAlert', () => {
         }),
       ],
     });
+    expect(navigate).not.toHaveBeenCalled();
+
+    rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.Completed,
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
     expect(navigate).toHaveBeenCalledWith(
       expect.stringContaining('failedover_app=app-drpc'),
       { replace: true }
@@ -116,7 +128,120 @@ describe('useDROperationAlert', () => {
         }),
       ],
     });
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.Completed,
+          failoverCluster: 'east-1',
+        }),
+      ],
+    });
     expect(navigate).not.toHaveBeenCalled();
+
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.Completed,
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
+    expect(navigate).toHaveBeenCalledWith(
+      expect.stringContaining('failedover_app=app-drpc'),
+      { replace: true }
+    );
+    navigate.mockReset();
+
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+          failoverCluster: 'east-1',
+        }),
+      ],
+    });
+    expect(navigate).not.toHaveBeenCalled();
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.CleaningUp,
+          failoverCluster: 'east-1',
+        }),
+      ],
+    });
+    expect(navigate).not.toHaveBeenCalled();
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.Completed,
+          failoverCluster: 'east-1',
+        }),
+      ],
+    });
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith(
+      expect.stringContaining('failedover_app=app-drpc'),
+      { replace: true }
+    );
+    navigate.mockReset();
+
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.Relocating,
+          progression: 'WaitForReadiness',
+          failoverCluster: 'east-1',
+        }),
+      ],
+    });
+    expect(navigate).not.toHaveBeenCalled();
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.Relocated,
+          progression: Progression.CleaningUp,
+          failoverCluster: 'east-1',
+        }),
+      ],
+    });
+    expect(navigate).not.toHaveBeenCalled();
+    view.rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.Relocated,
+          progression: '',
+          failoverCluster: 'east-1',
+        }),
+      ],
+    });
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith(
+      expect.stringContaining('relocated_app=app-drpc'),
+      { replace: true }
+    );
   });
 
   it('still shows the banner for a normal (non-test) failover', () => {
@@ -185,6 +310,104 @@ describe('useDROperationAlert', () => {
       expect.stringContaining('failedover_app=app-drpc'),
       { replace: true }
     );
+  });
+
+  it('announces a converted test once when Cleaning Up is followed by Completed', () => {
+    const holding = drpc({
+      dryRun: true,
+      phase: Phase.FailedOver,
+      progression: Progression.TestingFailover,
+      failoverCluster: 'west-1',
+    });
+    const { rerender } = renderHook(
+      ({ apps }) => useDROperationAlert(apps as any),
+      { initialProps: { apps: [holding] } }
+    );
+
+    rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.CleaningUp,
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
+    expect(navigate).not.toHaveBeenCalled();
+
+    rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.Completed,
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
+    expect(navigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('announces a converted test once when a step sits between Cleaning Up and Completed', () => {
+    const holding = drpc({
+      dryRun: true,
+      phase: Phase.FailedOver,
+      progression: Progression.TestingFailover,
+      failoverCluster: 'west-1',
+    });
+    const { rerender } = renderHook(
+      ({ apps }) => useDROperationAlert(apps as any),
+      { initialProps: { apps: [holding] } }
+    );
+
+    rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.CleaningUp,
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
+    expect(navigate).not.toHaveBeenCalled();
+
+    rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: 'EnsuringVolSyncSetup',
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
+    expect(navigate).not.toHaveBeenCalled();
+
+    rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.Completed,
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
+    expect(navigate).toHaveBeenCalledTimes(1);
+
+    rerender({
+      apps: [
+        drpc({
+          dryRun: false,
+          phase: Phase.FailedOver,
+          progression: Progression.Completed,
+          failoverCluster: 'west-1',
+        }),
+      ],
+    });
+    expect(navigate).toHaveBeenCalledTimes(1);
   });
 });
 

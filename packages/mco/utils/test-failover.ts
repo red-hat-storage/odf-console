@@ -9,6 +9,46 @@ import { DRPlacementControlKind, Progression } from '../types';
 
 const DRY_RUN_PATH = '/spec/dryRun';
 
+// Confirm clears dryRun on the server before the console watch returns that
+// change. Remember the session so the hold does not offer Convert / Clean up
+// again while the watched DRPC still says dryRun.
+const clearedDryRunSessions = new Set<string>();
+
+const testSessionKey = (
+  namespace?: string,
+  name?: string,
+  actionStartTime?: string
+): string =>
+  namespace && name && actionStartTime
+    ? `${namespace}/${name}/${actionStartTime}`
+    : '';
+
+export const markTestDryRunCleared = (
+  namespace?: string,
+  name?: string,
+  actionStartTime?: string
+): void => {
+  const key = testSessionKey(namespace, name, actionStartTime);
+  if (key) clearedDryRunSessions.add(key);
+};
+
+export const isTestDryRunClearPending = (
+  namespace?: string,
+  name?: string,
+  actionStartTime?: string
+): boolean =>
+  clearedDryRunSessions.has(testSessionKey(namespace, name, actionStartTime));
+
+export const clearTestDryRunPending = (
+  namespace?: string,
+  name?: string,
+  actionStartTime?: string
+): void => {
+  clearedDryRunSessions.delete(
+    testSessionKey(namespace, name, actionStartTime)
+  );
+};
+
 // Other cluster in a 2-cluster DRPolicy (peer of clusterName).
 export const getPeerClusterName = (
   clusterName: string,
