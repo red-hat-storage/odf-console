@@ -574,21 +574,34 @@ const getDRStatusDetails = ({
         DR_STATUS_CLASS_NAMES.FAILOVER
       );
 
-    case DRStatus.FailingOver:
+    case DRStatus.FailingOver: {
+      // Phase FailingOver still names the destination as targetCluster.
+      // Once the phase is FailedOver, primaryCluster is the new cluster and
+      // targetCluster is the old one.
+      const failoverDestination =
+        phase === Phase.FailedOver ? primaryCluster : targetCluster;
       return createStatus(
         DRStatus.FailingOver,
-        t('Failing over application to {{targetCluster}}', { targetCluster }),
+        t('Failing over application to {{targetCluster}}', {
+          targetCluster: failoverDestination,
+        }),
         t('Deploying the application on the target cluster.'),
         DR_STATUS_CLASS_NAMES.FAILOVER
       );
+    }
 
-    case DRStatus.Relocating:
+    case DRStatus.Relocating: {
+      const relocateDestination =
+        phase === Phase.Relocated ? primaryCluster : targetCluster;
       return createStatus(
         DRStatus.Relocating,
-        t('Relocating application to {{targetCluster}}', { targetCluster }),
+        t('Relocating application to {{targetCluster}}', {
+          targetCluster: relocateDestination,
+        }),
         t('Deploying the application on the target cluster.'),
         DR_STATUS_CLASS_NAMES.RELOCATING
       );
+    }
 
     case DRStatus.FailedOver: {
       const isHealthy = isReplicationHealthy(
