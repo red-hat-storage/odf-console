@@ -344,8 +344,8 @@ export const ProgressionTrainView: React.FC<ProgressionTrainViewProps> = ({
                   { appName: applicationName, cluster: cleanupCluster }
                 )
               : t(
-                  'Clean up application resources on the primary cluster {{cluster}} to start relocating.',
-                  { cluster: cleanupCluster }
+                  'Go to the cloned repository for {{appName}} on the primary cluster {{cluster}} and delete the application.',
+                  { appName: applicationName, cluster: cleanupCluster }
                 )}
             <br />
             <Button
