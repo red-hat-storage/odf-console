@@ -231,8 +231,8 @@ export const getDRStatus = ({
   const isProgressionCompleted = !isProgressionActive(progression);
 
   // For FailedOver/Relocated phases:
-  // - If sync hasn't started yet, show completion message (phase status)
-  // - If progression is still active, keep phase status
+  // - While progression is still running, keep the in-progress status
+  // - Once progression is done, if sync has not started, show completion
   // - Otherwise, fall through to protection/health evaluation
   // This check must come BEFORE "Protecting" status to ensure completion status
   // is shown immediately after failover/relocate completes, even if protectedCondition
@@ -243,16 +243,22 @@ export const getDRStatus = ({
   const isNoReplicationRequired = schedulingInterval === '0m';
 
   if (phase === Phase.FailedOver || phase === Phase.Relocated) {
-    // If sync hasn't started yet and replication is expected, show completion message (phase status)
-    if (!hasSyncStarted && !isNoReplicationRequired) {
+    // WaitForReadiness, CleaningUp, and other steps are still running.
+    // Do not report the operation as complete until progression is done.
+    // WaitOnUserToCleanUp is handled above when cleanup is required.
+    const operationStillRunning =
+      isProgressionActive(progression) &&
+      progression !== Progression.WaitOnUserToCleanUp;
+
+    if (operationStillRunning) {
       return phase === Phase.FailedOver
-        ? DRStatus.FailedOver
-        : DRStatus.Relocated;
+        ? DRStatus.FailingOver
+        : DRStatus.Relocating;
     }
 
-    // Once sync has started, check if progression is still active before showing health status
-    // If progression is active (not Completed/undefined), show phase status to keep progression view visible
-    if (isProgressionActive(progression)) {
+    // Progression is completed or empty. If sync has not started and
+    // replication is expected, keep the completion status.
+    if (!hasSyncStarted && !isNoReplicationRequired) {
       return phase === Phase.FailedOver
         ? DRStatus.FailedOver
         : DRStatus.Relocated;

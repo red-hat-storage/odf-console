@@ -63,6 +63,11 @@
     max-width: 300px;
   }
 
+  // The step names need one line. The 300px cap folds "Preparing" and "Restoring".
+  &__popover-body:has(.progression-train-view) {
+    max-width: 36rem;
+  }
+
   &__button {
     width: 100%;
   }
