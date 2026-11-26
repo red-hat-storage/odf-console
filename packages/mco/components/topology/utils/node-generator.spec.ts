@@ -494,9 +494,25 @@ describe('generateClusterNodesModel', () => {
 
       const appNodes =
         model.nodes?.filter((n) => n.type === 'app-node-operation') || [];
-      // Labels should show WaitOnUserToCleanUp, not FailedOver
+      // Labels should show the user-facing cleanup text, not FailedOver
       appNodes.forEach((node) => {
-        expect(node.label).toBe('WaitOnUserToCleanUp');
+        expect(node.label).toBe('User action required');
+        expect(node.data?.appStatus).toBe('WaitOnUserToCleanUp');
+      });
+
+      const translated = generateClusterNodesModel(
+        clusters,
+        null,
+        operations,
+        null,
+        undefined,
+        (key) => `tr:${key}`
+      );
+      const translatedNodes =
+        translated.nodes?.filter((n) => n.type === 'app-node-operation') || [];
+      translatedNodes.forEach((node) => {
+        expect(node.label).toBe('tr:User action required');
+        expect(node.data?.appStatus).toBe('WaitOnUserToCleanUp');
       });
     });
 
@@ -575,7 +591,7 @@ describe('generateClusterNodesModel', () => {
       expect(appNodes).toHaveLength(4);
 
       const labels = appNodes.map((n) => n.label);
-      expect(labels).toContain('WaitOnUserToCleanUp');
+      expect(labels).toContain('User action required');
       expect(labels).toContain('FailedOver');
     });
   });
