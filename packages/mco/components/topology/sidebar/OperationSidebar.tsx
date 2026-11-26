@@ -17,6 +17,7 @@ import {
   EmptyStateBody,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
+import { DRActionType } from '../../../constants';
 import { getClustersFromPairKey } from '../../../hooks/useDRPoliciesByClusterPair';
 import { getPAVDRPolicyName } from '../../../utils/pav';
 import { DROperationInfo, OperationEdgeSidebarData } from '../types';
@@ -36,11 +37,26 @@ type OperationSidebarProps = {
   edgeData: OperationEdgeSidebarData;
 };
 
+const getOperationTitle = (
+  action: string | undefined,
+  t: ReturnType<typeof useCustomTranslation>['t']
+): string => {
+  switch (action) {
+    case DRActionType.FAILOVER:
+      return t('Failing over');
+    case DRActionType.RELOCATE:
+      return t('Relocating');
+    default:
+      return t('DR Operations');
+  }
+};
+
 const OperationsTableView: React.FC<{
   operations: DROperationInfo[];
   cluster1: string;
   cluster2: string;
-}> = ({ operations, cluster1, cluster2 }) => {
+  action?: string;
+}> = ({ operations, cluster1, cluster2, action }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
   const [nameFilter, setNameFilter] = React.useState('');
@@ -82,11 +98,15 @@ const OperationsTableView: React.FC<{
       <div className="mco-topology-sidebar__header">
         <Title headingLevel="h2" size="xl" style={{ marginBottom: 0 }}>
           {filteredOperations.length !== operationCount
-            ? t('DR Operations ({{filtered}} of {{total}})', {
+            ? t('{{operation}} ({{filtered}} of {{total}})', {
+                operation: getOperationTitle(action, t),
                 filtered: filteredOperations.length,
                 total: operationCount,
               })
-            : t('DR Operations ({{count}})', { count: operationCount })}
+            : t('{{operation}} ({{count}})', {
+                operation: getOperationTitle(action, t),
+                count: operationCount,
+              })}
         </Title>
       </div>
 
@@ -200,6 +220,7 @@ export const OperationSidebar: React.FC<OperationSidebarProps> = ({
         operations={operations}
         cluster1={cluster1}
         cluster2={cluster2}
+        action={edgeData.action}
       />
     );
   }
@@ -217,6 +238,7 @@ export const OperationSidebar: React.FC<OperationSidebarProps> = ({
       operations={[operation]}
       cluster1={cluster1}
       cluster2={cluster2}
+      action={operation?.action}
     />
   );
 };
