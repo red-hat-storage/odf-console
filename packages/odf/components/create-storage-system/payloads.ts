@@ -205,6 +205,7 @@ export const createStorageCluster = async (
     flexibleScaling,
     networkConfiguration,
     kmsEnable: kms.providerState.hasHandled && encryption.advanced,
+    kmsProvider: kms.provider,
     selectedArbiterZone: arbiterLocation,
     stretchClusterChecked: enableArbiter,
     availablePvsCount: pvCount,

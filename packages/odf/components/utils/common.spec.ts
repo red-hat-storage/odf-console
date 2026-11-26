@@ -4,11 +4,19 @@ import {
   TNF_MIN_CPU,
   TNF_MIN_MEMORY_GIB,
 } from '../../constants';
+import {
+  EncryptionType,
+  NetworkType,
+  ProviderNames,
+  ResourceProfile,
+} from '../../types';
 import { WizardNodeState } from '../create-storage-system/reducer';
 import {
   getDeviceSetReplica,
+  getOCSRequestData,
   getReplicasFromSelectedNodes,
   isTNFRunnable,
+  OCSRequestData,
 } from './common';
 
 const tnfNodes = (
@@ -175,5 +183,61 @@ describe('ODF common utilities', () => {
       expect(TNF_MIN_CPU).toBe(12);
       expect(minAggregateMemoryGiB).toBe(46.56);
     });
+  });
+});
+
+const encryption: EncryptionType = {
+  inTransit: false,
+  clusterWide: true,
+  storageClass: true,
+  advanced: true,
+  hasHandled: true,
+};
+
+const storageClusterRequest = (kmsProvider: ProviderNames): OCSRequestData => ({
+  storageClass: { name: 'local-block-sc', provisioner: 'test.provisioner' },
+  storage: '1Ti',
+  encryption,
+  resourceProfile: ResourceProfile.Balanced,
+  nodes: [],
+  flexibleScaling: false,
+  networkConfiguration: {
+    useClusterNetwork: false,
+    publicNetwork: null,
+    clusterNetwork: null,
+    addressRanges: { cluster: [] },
+    networkType: NetworkType.DEFAULT,
+    isMultusAcknowledged: false,
+  },
+  kmsEnable: true,
+  kmsProvider,
+  storageClusterNamespace: 'openshift-storage',
+  storageClusterName: 'ocs-storagecluster',
+  isMCG: true,
+});
+
+describe('getOCSRequestData key rotation', () => {
+  it('sets GKLM key rotation off in the spec and the annotation the operator copies', () => {
+    const request = getOCSRequestData(
+      storageClusterRequest(ProviderNames.GKLM)
+    );
+
+    expect(request.spec.encryption.keyRotation).toEqual({ enable: false });
+    expect(request.metadata.annotations).toEqual({
+      'keyrotation.csiaddons.openshift.io/enable': 'false',
+    });
+  });
+
+  it('leaves key rotation unset for other KMS providers', () => {
+    const request = getOCSRequestData(
+      storageClusterRequest(ProviderNames.VAULT)
+    );
+
+    expect(request.spec.encryption.keyRotation).toBeUndefined();
+    expect(
+      request.metadata.annotations?.[
+        'keyrotation.csiaddons.openshift.io/enable'
+      ]
+    ).toBeUndefined();
   });
 });
