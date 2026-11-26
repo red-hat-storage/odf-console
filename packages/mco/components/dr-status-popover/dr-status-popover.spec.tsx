@@ -12,6 +12,16 @@ import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import DRStatusPopover, { DRStatusProps } from './dr-status-popover';
 
+jest.mock('@odf/shared/useCustomTranslationHook', () => ({
+  useCustomTranslation: () => ({
+    t: (key: string, vars?: Record<string, string | number>) =>
+      key.replace(
+        /\{\{(\w+)\}\}/g,
+        (_, name) => vars?.[name]?.toString() ?? `{{${name}}}`
+      ),
+  }),
+}));
+
 type ScenarioOverrides = Partial<DRStatusProps>;
 
 type Scenario = {
@@ -192,6 +202,48 @@ describe('DRStatusPopover Component', () => {
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
       'Target clustertarget-cluster'
     );
+  });
+
+  it('names the new cluster while FailedOver is still running', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...failoverStatus,
+          action: DRActionType.FAILOVER,
+          phase: Phase.FailedOver,
+          progression: Progression.CleaningUp,
+          volumeLastGroupSyncTime: '',
+        }}
+      />
+    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Failing over application to primary-cluster'
+    );
+    expect(screen.getByLabelText('Clean up')).toBeInTheDocument();
+    expect(screen.queryByTestId('popover-description')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('cluster-details')).not.toBeInTheDocument();
+  });
+
+  it('names the new cluster while Relocated is still running', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...relocateStatus,
+          action: DRActionType.RELOCATE,
+          phase: Phase.Relocated,
+          progression: Progression.CleaningUp,
+          volumeLastGroupSyncTime: '',
+        }}
+      />
+    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Relocating application to primary-cluster'
+    );
+    expect(screen.getByLabelText('Clean up')).toBeInTheDocument();
+    expect(screen.queryByTestId('popover-description')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('cluster-details')).not.toBeInTheDocument();
   });
 
   it('renders the popover with Failover test active status', async () => {
@@ -508,7 +560,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver - WaitForReadiness',
-        expectedStatus: 'FailedOver',
+        expectedStatus: 'FailingOver',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'WaitForReadiness',
@@ -631,7 +683,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver progression active (EnsuringVolSyncSetup)',
-        expectedStatus: 'FailedOver',
+        expectedStatus: 'FailingOver',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'EnsuringVolSyncSetup',
@@ -639,7 +691,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver progression active (WaitingForResourceRestore)',
-        expectedStatus: 'FailedOver',
+        expectedStatus: 'FailingOver',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'WaitingForResourceRestore',
@@ -665,7 +717,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'Relocated - CleaningUp',
-        expectedStatus: 'Relocated',
+        expectedStatus: 'Relocating',
         overrides: {
           phase: Phase.Relocated,
           progression: 'CleaningUp',
