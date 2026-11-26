@@ -20,6 +20,7 @@ import {
   t_color_blue_40 as blueInfoColor,
   t_global_color_status_success_100 as okColor,
   t_global_icon_color_status_warning_default as warningColor,
+  t_global_color_nonstatus_purple_400 as purpleColor,
 } from '@patternfly/react-tokens';
 
 export type ColoredIconProps = {
@@ -45,6 +46,17 @@ export const RedExclamationCircleIcon: React.FC<ColoredIconProps> = ({
 }) => (
   <ExclamationCircleIcon
     color={dangerColor.value}
+    className={className}
+    title={title}
+  />
+);
+
+export const PurpleExclamationCircleIcon: React.FC<ColoredIconProps> = ({
+  className,
+  title,
+}) => (
+  <ExclamationCircleIcon
+    color={purpleColor.value}
     className={className}
     title={title}
   />
