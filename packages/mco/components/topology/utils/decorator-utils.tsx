@@ -33,6 +33,12 @@ export const getDecoratorIcon = (icon: DecoratorIcon): React.ReactNode => {
           style={{ fill: 'var(--pf-t--global--color--status--danger--100)' }}
         />
       );
+    case DecoratorIcon.UserAction:
+      return (
+        <ExclamationCircleIcon
+          style={{ fill: 'var(--pf-t--global--color--nonstatus--purple--400)' }}
+        />
+      );
     case DecoratorIcon.ExclamationTriangle:
       return (
         <ExclamationTriangleIcon
