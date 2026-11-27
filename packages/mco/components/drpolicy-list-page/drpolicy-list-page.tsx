@@ -1,23 +1,23 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
+import { findMirrorPeerForPair } from '@odf/mco/utils/mirrorpeer';
 import {
-  createSecretNameFromS3,
-  fetchRamenS3Profiles,
-  updateRamenHubOperatorConfig,
-} from '@odf/mco/utils/tps-payload-creator';
+  deleteS3ConfigurationByName,
+  deleteSecretByName,
+  getExternalS3SecretName,
+} from '@odf/mco/utils/s3-configuration';
 import {
-  DRClusterModel,
   DRPolicyModel,
   ListPageFilterWrapper,
   MirrorPeerModel,
-  SecretModel,
+  S3ConfigurationModel,
 } from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { useAccessReview } from '@odf/shared/hooks/rbac-hook';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
+import { isNotFoundError, referenceForModel } from '@odf/shared/utils';
 import {
   ListPageBody,
   ListPageCreateLink,
@@ -28,24 +28,98 @@ import {
   useActiveColumns,
   TableColumn,
   useK8sWatchResource,
-  k8sDelete,
+  k8sListItems,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
-import {
-  HUB_CLUSTER_NAME,
-  ODFMCO_OPERATOR_NAMESPACE,
-  ReplicationType,
-} from '../../constants';
+import { HUB_CLUSTER_NAME, ReplicationType } from '../../constants';
 import {
   DRPolicyToAppCount,
   getDRPolicyResourceObj,
   useProtectedApplicationsWatch,
 } from '../../hooks';
-import { DRClusterKind, DRPolicyKind, MirrorPeerKind } from '../../types';
+import { DRPolicyKind, MirrorPeerKind, S3ConfigurationKind } from '../../types';
 import { getReplicationType, isDRPolicyValidated } from '../../utils';
+import { deleteMirrorPeerByName } from '../create-dr-policy/utils/k8s-utils';
 import { Header, kebabActionItems, tableColumnInfo } from './helper';
 import './drpolicy-list-page.scss';
+
+const ignoreNotFound = (error: unknown) => {
+  if (!isNotFoundError(error)) throw error;
+};
+
+type SecretRef = { name: string; namespace?: string };
+
+/** Deletes what no remaining DRPolicy uses; keeps failed secret deletes so a retry finishes them. */
+export const createPolicyCleanup = () => {
+  const pendingSecrets = new Map<string, SecretRef>();
+
+  return async (drp: DRPolicyKind): Promise<void> => {
+    const policyClusters = drp.spec?.drClusters ?? [];
+    // Listed now, not from watches, so stale data or a failed list can't skip cleanup.
+    const [drPolicies, s3Configurations, mirrorPeers] = await Promise.all([
+      k8sListItems<DRPolicyKind>({ model: DRPolicyModel, queryParams: {} }),
+      k8sListItems<S3ConfigurationKind>({
+        model: S3ConfigurationModel,
+        queryParams: {},
+      }),
+      k8sListItems<MirrorPeerKind>({ model: MirrorPeerModel, queryParams: {} }),
+    ]);
+    const clustersInUse = new Set(
+      drPolicies
+        .filter(
+          (policy) =>
+            getName(policy) !== getName(drp) &&
+            !policy.metadata?.deletionTimestamp
+        )
+        .flatMap((policy) => policy.spec?.drClusters ?? [])
+    );
+
+    for (const config of s3Configurations) {
+      const managedClusters = config.spec?.managedClusters ?? [];
+      const isUnused =
+        managedClusters.length > 0 &&
+        managedClusters.every(
+          (cluster) =>
+            policyClusters.includes(cluster) && !clustersInUse.has(cluster)
+        );
+      // eslint-disable-next-line no-continue
+      if (!isUnused) continue;
+
+      const name = getName(config);
+      // Delete the S3Configuration before the secret it points at.
+      // eslint-disable-next-line no-await-in-loop
+      await deleteS3ConfigurationByName(name).catch(ignoreNotFound);
+      // Only remove a secret this wizard created; a user-supplied one is theirs.
+      const secretRef = config.spec?.externalS3?.secretRef;
+      if (secretRef?.name === getExternalS3SecretName(name)) {
+        pendingSecrets.set(
+          `${secretRef.namespace}/${secretRef.name}`,
+          secretRef
+        );
+      }
+    }
+
+    for (const [key, { name, namespace }] of pendingSecrets) {
+      // eslint-disable-next-line no-await-in-loop
+      await deleteSecretByName(name, namespace).catch(ignoreNotFound);
+      pendingSecrets.delete(key);
+    }
+
+    if (
+      policyClusters.length === 2 &&
+      policyClusters.every((cluster) => !clustersInUse.has(cluster))
+    ) {
+      const mirrorPeer = findMirrorPeerForPair(
+        policyClusters as [string, string],
+        mirrorPeers
+      );
+      if (mirrorPeer) {
+        await deleteMirrorPeerByName(getName(mirrorPeer)).catch(ignoreNotFound);
+      }
+    }
+  };
+};
 
 const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   obj,
@@ -53,13 +127,8 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   rowData,
 }) => {
   const { t } = useCustomTranslation();
-  const {
-    canDeleteDRPolicy,
-    policyToAppCount,
-    appCountLoadedWOError,
-    drClusterToPoliciesMap,
-    unpairedDRClusters,
-  } = rowData;
+  const { canDeleteDRPolicy, policyToAppCount, appCountLoadedWOError } =
+    rowData;
 
   const clusterNames = obj?.spec?.drClusters?.map((clusterName) => (
     <p key={clusterName}> {clusterName} </p>
@@ -68,60 +137,8 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   const syncInterval = obj?.spec?.schedulingInterval;
   const replicationType = getReplicationType(obj);
 
-  const cleanupDRCluster = React.useCallback(
-    async (drp: DRPolicyKind) => {
-      for (const drClusterName of drp.spec?.drClusters ?? []) {
-        const associatedPolicies = drClusterToPoliciesMap[drClusterName] || [];
-        // If more than one DRPolicy is using the same DRCluster, then only the last DRPolicy deleting will be doing the cleanup of DRCluster and its associated resources
-        if (associatedPolicies.length === 1) {
-          const drClusterToCleanup = unpairedDRClusters.find(
-            (dc) => dc.metadata?.name === drClusterName
-          );
-          if (drClusterToCleanup) {
-            const s3ProfileName = drClusterToCleanup?.spec?.s3ProfileName;
-            // eslint-disable-next-line no-await-in-loop
-            const ramenS3Profiles = await fetchRamenS3Profiles();
-            const s3Profile = ramenS3Profiles.find(
-              (profile) => profile.s3ProfileName === s3ProfileName
-            );
-            const { s3Bucket, s3CompatibleEndpoint, s3Region } = s3Profile;
-            const secretName = createSecretNameFromS3({
-              clusterName: drClusterName,
-              bucketName: s3Bucket,
-              region: s3Region,
-              endpoint: s3CompatibleEndpoint,
-              s3ProfileName: s3ProfileName,
-            });
-
-            // eslint-disable-next-line no-await-in-loop
-            await k8sDelete({
-              model: SecretModel,
-              resource: {
-                metadata: {
-                  name: secretName,
-                  namespace: ODFMCO_OPERATOR_NAMESPACE,
-                },
-              },
-            });
-
-            // eslint-disable-next-line no-await-in-loop
-            await updateRamenHubOperatorConfig({
-              namespace: ODFMCO_OPERATOR_NAMESPACE,
-              profile: s3Profile,
-              remove: true,
-            });
-
-            // eslint-disable-next-line no-await-in-loop
-            await k8sDelete({
-              model: DRClusterModel,
-              resource: drClusterToCleanup,
-            });
-          }
-        }
-      }
-    },
-    [drClusterToPoliciesMap, unpairedDRClusters]
-  );
+  // The modal keeps this instance, so a retry sees the secrets still pending.
+  const cleanupAfterDelete = React.useMemo(createPolicyCleanup, []);
 
   return (
     <>
@@ -153,7 +170,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
             resource: obj,
             resourceModel: DRPolicyModel,
             cluster: HUB_CLUSTER_NAME,
-            cleanupBeforeDelete: cleanupDRCluster,
+            cleanupAfterDelete,
           }}
           customKebabItems={kebabActionItems(
             canDeleteDRPolicy,
@@ -185,96 +202,12 @@ const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
   );
 };
 
-// Get the DRClusters list with no entry in any of the MirrorPeers. It means its self managed setup for ThirdParty DR
-/**
- * Returns a list of DRClusterKind objects that are not paired in any MirrorPeerKind.
- *
- * Iterates through the provided mirrorPeers and collects the cluster names from items
- * where the `manageS3` property is falsy (not managed by MirrorPeer, hence candidate for cleanup).
- * Then, filters the drClusters array to include only those clusters whose names are not present
- * in the pairedClusters set.
- *
- * @param drClusters - Array of DRClusterKind objects representing all DR clusters.
- * @param mirrorPeers - Array of MirrorPeerKind objects representing mirror peer relationships.
- * @returns Array of DRClusterKind objects that are not paired in any mirror peer.
- */
-const getUnpairedDRClusters = (
-  drClusters: DRClusterKind[],
-  mirrorPeers: MirrorPeerKind[]
-): DRClusterKind[] => {
-  const pairedClusters = new Set<string>();
-  mirrorPeers.forEach((mp) => {
-    const managedS3 = mp?.spec?.manageS3;
-    mp?.spec?.items?.forEach((item) => {
-      if (managedS3) pairedClusters.add(item.clusterName);
-    });
-  });
-  return drClusters.filter((dc) => !pairedClusters.has(dc.metadata.name));
-};
-
 export const DRPolicyListPage: React.FC = () => {
   const { t } = useCustomTranslation();
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
     useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
   const [policyToAppCount, appCountLoadedWOError] =
     useProtectedApplicationsWatch();
-
-  const [mirrorPeers, mirrorPeerLoaded, mirrorPeerLoadError] =
-    useK8sWatchResource<MirrorPeerKind[]>({
-      kind: referenceForModel(MirrorPeerModel),
-      isList: true,
-      namespaced: false,
-    });
-
-  const [drClusters, drClustersLoaded, drClustersLoadError] =
-    useK8sWatchResource<DRClusterKind[]>({
-      kind: referenceForModel(DRClusterModel),
-      isList: true,
-      namespaced: false,
-    });
-
-  // Get the list of DRClusters which are not part of any MirrorPeer. If its part of MirrorPeer, then its managed by ODF itself and hence it will be responsible for cleanup
-  // If not part of MirrorPeer, then its self managed ThirdParty DR setup and we need to check if more than one DRPolicy is using the same DRCluster
-  const unpairedDRClusters = React.useMemo(() => {
-    if (
-      drClustersLoaded &&
-      mirrorPeerLoaded &&
-      !drClustersLoadError &&
-      !mirrorPeerLoadError
-    ) {
-      return getUnpairedDRClusters(drClusters, mirrorPeers);
-    }
-    return [];
-  }, [
-    drClusters,
-    drClustersLoaded,
-    drClustersLoadError,
-    mirrorPeers,
-    mirrorPeerLoaded,
-    mirrorPeerLoadError,
-  ]);
-
-  // Map unpaired DRClusters to a list of DRPolicies it is associated with. This means that this DRCluster is part of a ThirdParty DR setup. This is being done to check if more than one DRPolicy is using the same DRCluster
-  // which will be deciding factor for cleanup steps while deleting a DRPolicy
-  // Only the last DRPolicy using a DRCluster will be doing the cleanup of DRCluster and its associated resources
-  const drClusterToPoliciesMap = React.useMemo(() => {
-    const map: Record<string, DRPolicyKind[]> = {};
-    if (
-      unpairedDRClusters.length > 0 &&
-      drPoliciesLoaded &&
-      !drPoliciesLoadError
-    ) {
-      unpairedDRClusters.forEach((dc) => {
-        const associatedPolicies = drPolicies.filter((policy) =>
-          policy.spec?.drClusters?.includes(dc.metadata.name)
-        );
-        if (associatedPolicies.length > 0) {
-          map[dc.metadata?.name] = associatedPolicies;
-        }
-      });
-    }
-    return map;
-  }, [unpairedDRClusters, drPolicies, drPoliciesLoaded, drPoliciesLoadError]);
 
   const location = useLocation();
   const drPolicyListPagePath = location.pathname.replace(/\/$/, '');
@@ -343,8 +276,6 @@ export const DRPolicyListPage: React.FC = () => {
               canDeleteDRPolicy,
               appCountLoadedWOError,
               policyToAppCount,
-              drClusterToPoliciesMap,
-              unpairedDRClusters,
             }}
           />
         </>
@@ -357,8 +288,6 @@ type RowData = {
   canDeleteDRPolicy: boolean;
   appCountLoadedWOError: boolean;
   policyToAppCount: DRPolicyToAppCount;
-  drClusterToPoliciesMap: Record<string, DRPolicyKind[]>;
-  unpairedDRClusters: DRClusterKind[];
 };
 
 type DRPolicyListProps = {

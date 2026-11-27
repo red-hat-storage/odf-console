@@ -24,6 +24,8 @@ type DeleteModalExtraProps = {
   resourceModel: K8sModel;
   cluster?: string;
   cleanupBeforeDelete?: (resource: K8sResourceCommon) => Promise<void>;
+  /** Cleanup that can only run once the resource is gone (e.g. a dependency that blocks on it). */
+  cleanupAfterDelete?: (resource: K8sResourceCommon) => Promise<void>;
   confirmWithName?: boolean;
 };
 
@@ -35,6 +37,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
     resourceModel,
     cluster,
     cleanupBeforeDelete,
+    cleanupAfterDelete,
     confirmWithName,
   },
 }) => {
@@ -69,9 +72,36 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
       });
   });
 
+  // Set once k8sDelete succeeds, so a retry runs only the cleanup.
+  const [isResourceDeleted, setIsResourceDeleted] = React.useState(false);
+
+  const finish = async () => {
+    if (cleanupAfterDelete) {
+      try {
+        await cleanupAfterDelete(resource);
+      } catch (cleanupError) {
+        setError(cleanupError);
+        setLoading(false);
+        return;
+      }
+    }
+    // If we are currently on the deleted resource's page, redirect to the resource list page
+    const re = new RegExp(`/${resource.metadata.name}(/|$)`);
+    const pathName = window.location.pathname;
+    if (re.test(pathName)) {
+      navigate(pathName.replace(re, ''));
+    }
+    closeModal();
+  };
+
   const submit = async (event) => {
     event.preventDefault();
     setLoading(true);
+    setError('');
+    if (isResourceDeleted) {
+      await finish();
+      return;
+    }
     if (cleanupBeforeDelete) {
       try {
         await cleanupBeforeDelete(resource);
@@ -89,26 +119,21 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
       ? { kind: 'DeleteOptions', apiVersion: 'v1', propagationPolicy }
       : null;
 
-    k8sDelete({
-      resource,
-      model: resourceModel,
-      json,
-      requestInit: null,
-      ...(!!cluster ? { cluster } : {}),
-    })
-      .then(() => {
-        // If we are currently on the deleted resource's page, redirect to the resource list page
-        const re = new RegExp(`/${resource.metadata.name}(/|$)`);
-        const pathName = window.location.pathname;
-        if (re.test(pathName)) {
-          navigate(pathName.replace(re, ''));
-        }
-        closeModal();
-      })
-      .catch((deleteError) => {
-        setError(deleteError);
-        setLoading(false);
+    try {
+      await k8sDelete({
+        resource,
+        model: resourceModel,
+        json,
+        requestInit: null,
+        ...(!!cluster ? { cluster } : {}),
       });
+    } catch (deleteError) {
+      setError(deleteError);
+      setLoading(false);
+      return;
+    }
+    setIsResourceDeleted(true);
+    await finish();
   };
 
   const header = (

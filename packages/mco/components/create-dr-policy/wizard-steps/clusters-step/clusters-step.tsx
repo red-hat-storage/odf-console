@@ -65,7 +65,6 @@ export const ClustersStep: React.FC<ClustersStepProps> = ({
         <FormGroup fieldId="cluster-selection-validation">
           <SelectedClusterValidation
             selectedClusters={state.clusters.selectedClusters}
-            requiredODFVersion={requiredODFVersion}
             dispatch={dispatch}
             mirrorPeers={mirrorPeers}
           />

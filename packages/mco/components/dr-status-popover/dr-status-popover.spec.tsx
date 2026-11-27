@@ -12,6 +12,13 @@ import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import DRStatusPopover, { DRStatusProps } from './dr-status-popover';
 
+jest.mock('@odf/shared/useCustomTranslationHook', () => ({
+  useCustomTranslation: () => ({
+    t: (key: string, vars?: Record<string, string>) =>
+      key.replace(/\{\{(\w+)\}\}/g, (_, name) => vars?.[name] ?? `{{${name}}}`),
+  }),
+}));
+
 type ScenarioOverrides = Partial<DRStatusProps>;
 
 type Scenario = {
@@ -90,6 +97,9 @@ describe('DRStatusPopover Component', () => {
     phase: Phase.FailedOver,
     progression: Progression.TestingFailover,
     dryRun: true,
+    actionStartTime: '2024-01-01T10:00:00Z',
+    // Empty last-action = Deployed restore (missing would disable Clean up).
+    lastAction: '',
     primaryCluster: 'primary-cluster',
     targetCluster: 'target-cluster',
     policyName: '',
@@ -162,12 +172,46 @@ describe('DRStatusPopover Component', () => {
     expect(screen.getByTestId('popover-description')).toBeInTheDocument();
   });
 
+  it('labels the failover step as a failover test after convert', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...failoverStatus,
+          action: DRActionType.FAILOVER,
+          progression: 'WaitingForResourceRestore',
+          promotedFromTest: true,
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+
+    expect(
+      screen.getByRole('listitem', { name: /Preparing \(completed\)/ })
+    ).toHaveClass('pf-m-success');
+    expect(
+      screen.getByRole('listitem', { name: /Failover test \(completed\)/ })
+    ).toHaveClass('pf-m-success');
+    expect(
+      screen.getByRole('listitem', { name: /Restoring \(in progress\)/ })
+    ).toHaveClass('pf-m-info');
+    expect(
+      screen.getByRole('listitem', { name: /Clean up \(pending\)/ })
+    ).toHaveClass('pf-m-pending');
+    // Reject a plain Failover step even with a status suffix; allow "Failover test".
+    expect(
+      screen.queryByRole('listitem', {
+        name: /^Failover(?:\s*\(|$)/,
+      })
+    ).not.toBeInTheDocument();
+  });
+
   it('renders the popover with FailingOver status', async () => {
     render(<DRStatusPopover disasterRecoveryStatus={failoverStatus} />);
 
     await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Failing over application to/
+      'Failing over application to target-cluster'
     );
     expect(screen.getByTestId('popover-description')).toBeInTheDocument();
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
@@ -183,7 +227,7 @@ describe('DRStatusPopover Component', () => {
 
     await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Relocating application to/
+      'Relocating application to target-cluster'
     );
     expect(screen.getByTestId('popover-description')).toBeInTheDocument();
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
@@ -194,22 +238,119 @@ describe('DRStatusPopover Component', () => {
     );
   });
 
-  it('renders the popover with Failover test active status', async () => {
-    render(<DRStatusPopover disasterRecoveryStatus={testFailoverStatus} />);
-
+  it('names the new cluster while FailedOver is still running', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...failoverStatus,
+          action: DRActionType.FAILOVER,
+          phase: Phase.FailedOver,
+          progression: Progression.CleaningUp,
+          volumeLastGroupSyncTime: '',
+        }}
+      />
+    );
     await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Failover test active/
+      'Failing over application to primary-cluster'
     );
-    expect(screen.getByTestId('popover-description')).toHaveTextContent(
-      /Non-disruptive test in progress/
+    expect(screen.getByLabelText('Clean up (in progress)')).toBeInTheDocument();
+    expect(screen.queryByTestId('popover-description')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('cluster-details')).not.toBeInTheDocument();
+  });
+
+  it('names the new cluster while Relocated is still running', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...relocateStatus,
+          action: DRActionType.RELOCATE,
+          phase: Phase.Relocated,
+          progression: Progression.CleaningUp,
+          volumeLastGroupSyncTime: '',
+        }}
+      />
     );
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Primary clusterprimary-cluster'
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Relocating application to primary-cluster'
     );
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Target clustertarget-cluster'
+    expect(screen.getByLabelText('Clean up (in progress)')).toBeInTheDocument();
+    expect(screen.queryByTestId('popover-description')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('cluster-details')).not.toBeInTheDocument();
+  });
+
+  it('renders Preparing, Awaiting resync, and Action needed for a failover test', async () => {
+    const { unmount } = render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+        }}
+      />
     );
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Preparing'
+    );
+    unmount();
+
+    const { unmount: unmountPaused } = render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.FailingOver,
+          progression: Progression.FailingOver,
+          schedulingInterval: '5m',
+          volumeLastGroupSyncTime: '2020-01-01T00:00:00Z',
+          progressionDetails: ['Available / VolumeReplicationGroup is lagging'],
+        }}
+      />
+    );
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Awaiting resync'
+    );
+    unmountPaused();
+
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          drpcName: 'busybox',
+          drpcNamespace: 'openshift-dr-ops',
+        }}
+      />
+    );
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Action needed'
+    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(
+      screen.getByRole('button', { name: 'Convert to real failover' })
+    ).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Clean up test' })).toBeEnabled();
+  });
+
+  // spec.dryRun stays true while Ramen sets Phase.Deleting, so the column
+  // must show Deleting instead of the test-failover view.
+  it('shows Deleting when a dry-run test is removed', async () => {
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...testFailoverStatus,
+          phase: Phase.Deleting,
+          progression: 'Deleting',
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'Deleting'
+    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(
+      screen.queryByRole('button', { name: 'Clean up test' })
+    ).not.toBeInTheDocument();
   });
 
   // DFBUGS-11111: a dry-run revert leaves the phase at Deployed, which used to
@@ -227,9 +368,12 @@ describe('DRStatusPopover Component', () => {
       />
     );
 
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'User action required'
+    );
     await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Action needed/
+      'User action required'
     );
     expect(screen.getByTestId('popover-description')).toHaveTextContent(
       /finish reverting the failover test/
@@ -257,12 +401,88 @@ describe('DRStatusPopover Component', () => {
     );
   });
 
-  // DFBUGS-8070: reverting a dry run puts the phase back to Deployed and
-  // restores a now-stale lastGroupSyncTime. That used to fall through to the
-  // replication-health check and report a spurious Warning on a healthy
-  // workload, while the cleanup itself was shown nowhere.
-  it('renders Cleaning up rather than a stale-sync Warning during a dry-run revert', async () => {
+  it('shows the Available condition for WaitForUser while an action is still running', async () => {
     render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.WaitForUser,
+          progression: Progression.CleaningUp,
+          action: DRActionType.RELOCATE,
+          isDiscoveredApp: true,
+          applicationName: 'discoveredApp',
+          primaryCluster: 'DRClusterA',
+          targetCluster: 'DRClusterB',
+          availableCondition: {
+            status: K8sResourceConditionStatus.False,
+            message: 'Operation Paused - User Intervention Required',
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
+      'User action required'
+    );
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'User action required'
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      'Operation Paused - User Intervention Required'
+    );
+    expect(
+      screen.queryByText(
+        'Go to the cloned repository for discoveredApp on the primary cluster DRClusterA and delete the application.'
+      )
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the Available condition for WaitForUser when the step train is hidden', async () => {
+    const { unmount } = render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.WaitForUser,
+          progression: Progression.Completed,
+          action: DRActionType.FAILOVER,
+          availableCondition: {
+            status: K8sResourceConditionStatus.False,
+            message: 'Operation Paused - User Intervention Required',
+          },
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      'Operation Paused - User Intervention Required'
+    );
+    expect(screen.getByTestId('popover-description')).not.toHaveTextContent(
+      /to start relocating/
+    );
+    unmount();
+
+    render(
+      <DRStatusPopover
+        disasterRecoveryStatus={{
+          ...baseStatus,
+          phase: Phase.WaitForUser,
+          progression: Progression.Completed,
+          action: DRActionType.FAILOVER,
+        }}
+      />
+    );
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      'User action is required to proceed.'
+    );
+  });
+
+  // DFBUGS-8070: stale sync during dry-run revert must not report Warning/Critical.
+  it('renders Cleaning up rather than stale-sync health during a dry-run revert', async () => {
+    const { unmount } = render(
       <DRStatusPopover
         disasterRecoveryStatus={{
           ...baseStatus,
@@ -278,24 +498,12 @@ describe('DRStatusPopover Component', () => {
     expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
       /Cleaning up/
     );
-
     await userEvent.click(screen.getByTestId('dr-status-button'));
-    expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      /Cleaning up/
-    );
-    // The global t() mock does not interpolate, so assert on the branch rather
-    // than the resolved cluster name.
     expect(screen.getByTestId('popover-description')).toHaveTextContent(
       /Removing the failover test resources from cluster/
     );
-    expect(screen.getByTestId('popover-description')).not.toHaveTextContent(
-      /left behind by the last operation/
-    );
-  });
+    unmount();
 
-  // The same stale timestamp crosses into Critical once it exceeds 3x the
-  // scheduling interval, so a longer dry run must not turn the status red.
-  it('keeps showing Cleaning up when the stale sync has aged into Critical', async () => {
     render(
       <DRStatusPopover
         disasterRecoveryStatus={{
@@ -307,13 +515,8 @@ describe('DRStatusPopover Component', () => {
         }}
       />
     );
-
-    await userEvent.click(screen.getByTestId('dr-status-button'));
-    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+    expect(screen.getByTestId('dr-status-button')).toHaveTextContent(
       /Cleaning up/
-    );
-    expect(screen.getByTestId('popover-description')).toHaveTextContent(
-      /Removing resources left behind by the last operation/
     );
   });
 
@@ -568,7 +771,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver - WaitForReadiness',
-        expectedStatus: 'FailedOver',
+        expectedStatus: 'FailingOver',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'WaitForReadiness',
@@ -691,7 +894,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver progression active (EnsuringVolSyncSetup)',
-        expectedStatus: 'FailedOver',
+        expectedStatus: 'FailingOver',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'EnsuringVolSyncSetup',
@@ -699,7 +902,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver progression active (WaitingForResourceRestore)',
-        expectedStatus: 'FailedOver',
+        expectedStatus: 'FailingOver',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'WaitingForResourceRestore',
@@ -707,7 +910,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver cleanup required',
-        expectedStatus: 'WaitOnUserToCleanUp',
+        expectedStatus: 'User action required',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'WaitOnUserToCleanUp',
@@ -725,7 +928,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'Relocated - CleaningUp',
-        expectedStatus: 'Relocated',
+        expectedStatus: 'Relocating',
         overrides: {
           phase: Phase.Relocated,
           progression: Progression.CleaningUp,
@@ -743,7 +946,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'Relocating cleanup required',
-        expectedStatus: 'WaitOnUserToCleanUp',
+        expectedStatus: 'User action required',
         overrides: {
           phase: Phase.Relocating,
           progression: 'WaitOnUserToCleanUp',
@@ -1038,7 +1241,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'WaitForUser with protection error (progression active)',
-        expectedStatus: 'Action needed',
+        expectedStatus: 'User action required',
         overrides: {
           phase: Phase.WaitForUser,
           progression: 'Any',

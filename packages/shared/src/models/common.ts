@@ -324,6 +324,20 @@ export const VolumeGroupSnapshotClassModel: K8sModel = {
   crd: true,
 };
 
+export const BareMetalHostModel: K8sKind = {
+  label: 'BareMetalHost',
+  labelKey: 'BareMetalHost',
+  apiGroup: 'metal3.io',
+  apiVersion: 'v1alpha1',
+  abbr: 'BMH',
+  namespaced: true,
+  plural: 'baremetalhosts',
+  kind: 'BareMetalHost',
+  id: 'baremetalhost',
+  labelPlural: 'BareMetalHosts',
+  labelPluralKey: 'BareMetalHosts',
+};
+
 export const ImageRegistryConfigModel: K8sModel = {
   label: 'Image Registry Config',
   labelKey: 'ImageRegistryConfig',

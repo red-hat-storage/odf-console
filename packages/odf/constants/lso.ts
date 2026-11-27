@@ -1,4 +1,5 @@
 import { STORAGE_SIZE_UNIT_NAME_MAP } from '@odf/shared';
+import { Toleration } from '@odf/shared/types';
 import { StorageSizeUnit } from '@odf/shared/types/storage';
 import { TFunction } from 'i18next';
 import { DiskType } from '../types';
@@ -46,3 +47,37 @@ export const fsTypeDropdownItems = Object.freeze({
 
 export const lsoInstallationPage =
   '/catalog/ns/default?selectedId=local-storage-operator-redhat-operators-openshift-marketplace';
+
+export const HCI_DISK_DISCOVERY_DEFAULTS = {
+  minDiskSize: '1',
+  maxDiskSize: '',
+  diskSizeUnit: DiskSize.Ti,
+  diskType: DiskType.SSD,
+  deviceTypes: [deviceTypeDropdownItems.DISK, deviceTypeDropdownItems.PART],
+  volumeMode: 'Block',
+  volumeSetName: 'ibm-spectrum-fusion-local',
+  storageClassName: 'ibm-spectrum-fusion-local',
+} as const;
+
+export const CONTROL_PLANE_TOLERATIONS: Toleration[] = [
+  {
+    key: 'node-role.kubernetes.io/control-plane',
+    operator: 'Exists',
+    effect: 'NoSchedule',
+  },
+  {
+    key: 'node-role.kubernetes.io/control-plane',
+    operator: 'Exists',
+    effect: 'NoExecute',
+  },
+  {
+    key: 'node-role.kubernetes.io/master',
+    operator: 'Exists',
+    effect: 'NoSchedule',
+  },
+  {
+    key: 'node-role.kubernetes.io/master',
+    operator: 'Exists',
+    effect: 'NoExecute',
+  },
+];

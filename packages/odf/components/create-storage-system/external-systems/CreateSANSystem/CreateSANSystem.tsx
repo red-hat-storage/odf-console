@@ -3,6 +3,8 @@ import { useExistingFileSystemNames } from '@odf/core/components/create-storage-
 import {
   filterUsedDiscoveredDevices,
   getDiscoveredDeviceKey,
+  getEffectiveLocalClusterRole,
+  getTolerationsFromNodes,
 } from '@odf/core/components/utils';
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import { DiscoveredDevice, LocalDiskKind } from '@odf/core/types/scale';
@@ -114,7 +116,26 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
 
   const selectedNodes = componentState.selectedNodes;
 
-  const { sharedDevices, deviceFinderLoading } = useDeviceFinder(selectedNodes);
+  // Resolve the Arbiter role live (never stored) from the current stretch toggle
+  // so discovery and submission labeling agree on each node's role. Arbiter-zone
+  // nodes must be excluded from disk discovery and labeled `arbiter-node`, not
+  // treated as disk nodes (a stored `Disk` override set before stretch was
+  // enabled would otherwise leak an arbiter node into LUN discovery).
+  const effectiveSelectedNodes = React.useMemo(
+    () =>
+      selectedNodes.map((node) => ({
+        ...node,
+        localClusterRole: getEffectiveLocalClusterRole(
+          node,
+          enableStretchCluster
+        ),
+      })),
+    [selectedNodes, enableStretchCluster]
+  );
+
+  const { sharedDevices, deviceFinderLoading } = useDeviceFinder(
+    effectiveSelectedNodes
+  );
 
   // Watch form fields
   const lunGroupName = watch('lunGroupName');
@@ -172,7 +193,9 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     );
     try {
       if (!isLocalClusterConfigured) {
-        await labelNodes(componentState.selectedNodes, true)();
+        // Reuse the effective-role nodes used for discovery so the node-role label
+        // always matches what the table displays (Arbiter derived live).
+        await labelNodes(effectiveSelectedNodes, true)();
         const buildExternalKmmRegistry = ():
           ExternalKMMRegistryConfig | undefined => {
           const config: ExternalKMMRegistryConfig = {
@@ -196,7 +219,8 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           false,
           true,
           cpuRequest.toString(),
-          memoryRequest
+          memoryRequest,
+          getTolerationsFromNodes(componentState.selectedNodes)
         )();
         await createCSIDriver();
         await configureMetricsNamespaceLabels();
@@ -221,6 +245,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     sharedDevices,
     componentState.selectedNodes,
     componentState.selectedLUNs,
+    effectiveSelectedNodes,
     isLocalClusterConfigured,
     lunGroupName,
     navigate,
@@ -372,7 +397,7 @@ export const CreateSANSystem: React.FC = () => {
         ]}
       >
         {t(
-          'Use groups of shared LUNs from local cluster nodes to create StorageClasses with Fusion Data Foundation Access for SAN.'
+          'Use groups of shared LUNs from local cluster nodes to create StorageClasses with Fusion Access for SAN.'
         )}
       </PageHeading>
       <div className="odf-m-pane__body">

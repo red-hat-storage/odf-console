@@ -75,7 +75,10 @@ export const DRPlacementControlParser: React.FC<
       phase: drPlacementControl?.status?.phase as Phase,
       isCleanupRequired: isCleanupPending(drPlacementControl),
       isLoadedWOError: loaded && !loadError,
-      ...getProgressionFields(drPlacementControl),
+      ...getProgressionFields(
+        drPlacementControl,
+        drPolicy?.spec?.drClusters || []
+      ),
       protectedCondition,
       availableCondition,
     };

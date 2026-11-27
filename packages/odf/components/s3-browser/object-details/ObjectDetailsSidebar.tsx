@@ -2,7 +2,6 @@ import * as React from 'react';
 import {
   Tag,
   DeleteObjectsCommandOutput,
-  GetObjectLockConfigurationCommandOutput,
   ObjectLockRetentionMode,
   ObjectLockLegalHoldStatus,
 } from '@aws-sdk/client-s3';
@@ -51,7 +50,7 @@ import {
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
 import { TFunction } from 'i18next';
 import { useParams, useSearchParams } from 'react-router';
-import useSWR, { KeyedMutator } from 'swr';
+import useSWR from 'swr';
 import {
   Alert,
   AlertVariant,
@@ -108,7 +107,6 @@ type ObjectOverviewProps = {
   bucketName: string;
   objShortenedName?: string;
   isObjectLockEnabled: boolean;
-  objectLockMutate: KeyedMutator<GetObjectLockConfigurationCommandOutput>;
 };
 
 type ObjectVersionsProps = {
@@ -301,7 +299,6 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
   bucketName,
   objShortenedName,
   isObjectLockEnabled,
-  objectLockMutate,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -516,7 +513,6 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
                         extraProps: {
                           bucketName,
                           s3Client,
-                          mutate: objectLockMutate,
                         } as ObjectLockNotEnabledModalProps,
                         isOpen: true,
                       });
@@ -652,7 +648,7 @@ const ObjectDetailsSidebarContent: React.FC<
   const [searchParams] = useSearchParams();
   const { bucketName } = useParams();
 
-  const { data: objectLockData, mutate: objectLockMutate } = useSWR(
+  const { data: objectLockData } = useSWR(
     `${s3Client.providerType}-${bucketName}-${BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX}`,
     () => s3Client.getObjectLockConfiguration({ Bucket: bucketName })
   );
@@ -728,7 +724,6 @@ const ObjectDetailsSidebarContent: React.FC<
             bucketName={bucketName}
             objShortenedName={objName}
             isObjectLockEnabled={isObjectLockEnabled}
-            objectLockMutate={objectLockMutate}
           />
         )}
         {!showVersioning && (
@@ -748,7 +743,6 @@ const ObjectDetailsSidebarContent: React.FC<
                 bucketName={bucketName}
                 objShortenedName={objName}
                 isObjectLockEnabled={isObjectLockEnabled}
-                objectLockMutate={objectLockMutate}
               />
             </Tab>
             <Tab

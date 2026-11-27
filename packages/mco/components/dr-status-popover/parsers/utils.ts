@@ -1,9 +1,16 @@
 import {
   DRActionType,
+  LAST_ACTION_ANNOTATION,
   TEST_FAILOVER_DRYRUN_ANNOTATION,
 } from '@odf/mco/constants';
 import { DRPlacementControlKind, VRGConditionReason } from '@odf/mco/types';
-import { getLastAppDeploymentClusterName } from '@odf/mco/utils';
+import {
+  drpcHasVolumes,
+  getLastAppDeploymentClusterName,
+  getPeerClusterName,
+  isDiscoveredDRPC,
+} from '@odf/mco/utils';
+import { isRevertingTestFailover } from '@odf/mco/utils/test-failover';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { getAnnotations } from '@odf/shared/selectors';
 import {
@@ -20,47 +27,50 @@ type ProgressionFields = Pick<
   | 'progressionDetails'
   | 'applicationName'
   | 'dryRun'
+  | 'hasTestFailoverAnnotation'
+  | 'hasVolumes'
   | 'testFailoverCleanupCluster'
+  | 'promotedFromTest'
+  | 'isRevertingTestFailover'
+  | 'lastAction'
+  | 'failoverCluster'
+  | 'drpcName'
+  | 'drpcNamespace'
 >;
 
-/**
- * After a failover test ends, the cluster left holding the test workload, or
- * undefined when there is nothing to clean up.
- *
- * A test ends one of two ways. Promote keeps the workload on the test cluster,
- * so nothing is left behind. Revert sends it back and strands the test copy.
- * Like Ramen, we call it a promote only when the action is still Failover and
- * failoverCluster still matches the deployment cluster; anything else is a
- * revert.
- */
+// Leftover test resources sit on the DRPolicy peer of last-app-deployment-cluster
+// (Ramen freezes that annotation as pre-test home during the test). Promote keeps
+// failoverCluster on that peer — no leftover cleanup then.
 const getTestFailoverCleanupCluster = (
-  drPlacementControl: DRPlacementControlKind
+  drPlacementControl: DRPlacementControlKind,
+  drClusterNames: string[]
 ): string | undefined => {
-  const hasTestAnnotation =
-    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] ===
-    'true';
-
-  // Ramen keeps the annotation until cleanup is done, so this is "a test ran
-  // and has now ended".
-  if (drPlacementControl.spec?.dryRun || !hasTestAnnotation) {
+  if (
+    drPlacementControl.spec?.dryRun ||
+    getAnnotations(drPlacementControl)?.[TEST_FAILOVER_DRYRUN_ANNOTATION] !==
+      'true'
+  ) {
     return undefined;
   }
 
-  // Where the test ran. last-app-deployment-cluster is no good here, Ramen
-  // points it back at the original cluster as soon as the revert starts.
-  const testCluster = drPlacementControl.spec?.failoverCluster;
+  const homeCluster = getLastAppDeploymentClusterName(drPlacementControl);
+  const testCluster = getPeerClusterName(homeCluster, drClusterNames);
+  if (!testCluster) {
+    return undefined;
+  }
 
-  // On promote the workload stays put, so the deployment cluster catches up to
-  // the failover cluster and the action stays Failover. A revert clears or
-  // re-points the action and leaves the deployment cluster behind. Mirrors
-  // Ramen's isFailoverPromotion(), dryRun included so the three conditions read
-  // together even though the guard above has already ruled it out.
-  const isPromotion =
+  const failoverCluster = drPlacementControl.spec?.failoverCluster;
+  const isPromoteShape =
     drPlacementControl.spec?.action === DRActionType.FAILOVER &&
-    testCluster === getLastAppDeploymentClusterName(drPlacementControl) &&
-    !drPlacementControl.spec?.dryRun;
+    !drPlacementControl.spec?.dryRun &&
+    failoverCluster === testCluster &&
+    failoverCluster !== homeCluster;
 
-  return isPromotion ? undefined : testCluster;
+  if (isPromoteShape) {
+    return undefined;
+  }
+
+  return testCluster;
 };
 
 const parseTime = (value?: string): number => {
@@ -99,7 +109,8 @@ const buildDetailList = (
     .filter(Boolean);
 
 export const getProgressionFields = (
-  drPlacementControl?: DRPlacementControlKind
+  drPlacementControl?: DRPlacementControlKind,
+  drClusterNames: string[] = []
 ): ProgressionFields & { isDiscoveredApp?: boolean } => {
   if (!drPlacementControl) return {};
 
@@ -123,20 +134,44 @@ export const getProgressionFields = (
       'drplacementcontrol.ramendr.openshift.io/app-namespace'
     ];
 
-  // Check if it's a discovered app: has protectedNamespaces defined and non-empty
-  const isDiscoveredApp =
-    drPlacementControl.spec?.protectedNamespaces !== undefined &&
-    drPlacementControl.spec.protectedNamespaces.length > 0;
+  const annotations = getAnnotations(drPlacementControl);
+  const homeCluster = getLastAppDeploymentClusterName(drPlacementControl);
+  const testCluster = getPeerClusterName(homeCluster, drClusterNames);
+  const failoverCluster = drPlacementControl.spec?.failoverCluster;
+
+  const hasTestFailoverAnnotation =
+    annotations?.[TEST_FAILOVER_DRYRUN_ANNOTATION] === 'true';
+
+  // Promote: failoverCluster still names the test peer while last-app is home.
+  const promotedFromTest =
+    hasTestFailoverAnnotation &&
+    drPlacementControl.spec?.action === DRActionType.FAILOVER &&
+    !drPlacementControl.spec?.dryRun &&
+    !!testCluster &&
+    failoverCluster === testCluster &&
+    failoverCluster !== homeCluster;
 
   return {
     progression: drPlacementControl.status?.progression,
     actionStartTime: drPlacementControl.status?.actionStartTime,
     action: drPlacementControl.spec?.action,
     dryRun: drPlacementControl.spec?.dryRun,
-    testFailoverCleanupCluster:
-      getTestFailoverCleanupCluster(drPlacementControl),
+    hasTestFailoverAnnotation,
+    hasVolumes: drpcHasVolumes(drPlacementControl),
+    testFailoverCleanupCluster: getTestFailoverCleanupCluster(
+      drPlacementControl,
+      drClusterNames
+    ),
+    promotedFromTest,
+    isRevertingTestFailover: isRevertingTestFailover(drPlacementControl),
+    // Keep missing (undefined) vs empty ('') distinct for Clean up restore.
+    // Empty means Deployed; missing must not guess Deployed.
+    lastAction: annotations?.[LAST_ACTION_ANNOTATION],
+    failoverCluster: failoverCluster || '',
     progressionDetails: detailMessages.length ? detailMessages : undefined,
     applicationName,
-    isDiscoveredApp,
+    isDiscoveredApp: isDiscoveredDRPC(drPlacementControl),
+    drpcName: drPlacementControl.metadata?.name,
+    drpcNamespace: drPlacementControl.metadata?.namespace,
   };
 };

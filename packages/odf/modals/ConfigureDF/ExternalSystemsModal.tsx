@@ -169,7 +169,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                 <Content>
                   <Content component="small">
                     {t(
-                      'Connect to an IBM FlashSystem to deploy Data Foundation using FlashSystem-backed storage.'
+                      'Connect to IBM FlashSystem to power Data Foundation with fast, reliable block storage optimized for enterprise performance.'
                     )}
                   </Content>
                 </Content>
@@ -212,7 +212,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                     <Content>
                       <Content component="small">
                         {t(
-                          'Connect to IBM Storage Scale to deliver fast, scalable file storage for Data Foundation via remote mount.'
+                          'Connect to IBM Storage Scale to deliver fast, scalable file storage for Data Foundation.'
                         )}
                       </Content>
                     </Content>
@@ -253,7 +253,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                     <Content>
                       <Content component="small">
                         {t(
-                          'Use groups of shared LUNs from local cluster nodes to create StorageClasses with Fusion Data Foundation Access for SAN.'
+                          'Use groups of shared LUNs from local cluster nodes to create StorageClasses with Fusion Access for SAN.'
                         )}
                       </Content>
                     </Content>

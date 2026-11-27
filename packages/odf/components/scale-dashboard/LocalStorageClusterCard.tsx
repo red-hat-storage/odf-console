@@ -100,7 +100,7 @@ const LocalStorageClusterCard: React.FC = () => {
     (encryptionConfigLoaded || encryptionConfigNotFound);
 
   const openNodeExpansion = () =>
-    launchModal(AddLocalScaleNodesModal, { isOpen: true });
+    launchModal(AddLocalScaleNodesModal, { isOpen: true, cluster });
   const openEncryptionConfig = () =>
     launchModal(EncryptionConfigModal, { isOpen: true });
 

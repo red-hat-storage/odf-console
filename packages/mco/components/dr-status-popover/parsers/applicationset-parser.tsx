@@ -80,7 +80,7 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         volumeReplicationHealth: healthStatus,
         phase: status,
         isLoadedWOError: drLoaded && !drLoadError,
-        ...getProgressionFields(drpc),
+        ...getProgressionFields(drpc, drPolicy?.spec?.drClusters || []),
         protectedCondition,
         availableCondition,
       };

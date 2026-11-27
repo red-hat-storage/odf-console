@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { DRPlacementControlModel } from '@odf/shared';
 import {
+  BlueInfoCircleIcon,
   GreenCheckCircleIcon,
+  PurpleExclamationCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import { InProgressIcon } from '@patternfly/react-icons';
+import { ClockIcon, InProgressIcon } from '@patternfly/react-icons';
 import { t_color_blue_40 as blueInfoColor } from '@patternfly/react-tokens';
 import { NodeStatus } from '@patternfly/react-topology';
 import {
@@ -40,6 +43,8 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
     status === DRStatus.Deleting ||
     status === DRStatus.Protecting ||
     status === DRStatus.TestingFailover ||
+    status === DRStatus.TestFailoverPaused ||
+    status === DRStatus.TestFailoverActionRequired ||
     status === DRStatus.CleaningUp
   ) {
     return NodeStatus.info;
@@ -50,13 +55,20 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
     return NodeStatus.warning;
   }
 
-  // Danger states (includes user action required — matches protected-applications)
+  // Manual cleanup is not an error. The node body has no purple status,
+  // so it stays neutral. The decorator carries the purple icon.
+  if (
+    status === DRStatus.WaitOnUserToCleanUp ||
+    status === DRStatus.WaitForUser
+  ) {
+    return NodeStatus.default;
+  }
+
+  // Danger states.
   if (
     status === DRStatus.Critical ||
     status === DRStatus.Unknown ||
-    status === DRStatus.ProtectionError ||
-    status === DRStatus.WaitOnUserToCleanUp ||
-    status === DRStatus.WaitForUser
+    status === DRStatus.ProtectionError
   ) {
     return NodeStatus.danger;
   }
@@ -73,13 +85,24 @@ export const getDRNodeStatus = (status: DRStatus): NodeStatus => {
 export const isDRStatusUserActionRequired = isUserActionRequiredUtil;
 
 export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
-  // Danger states (includes user action required — matches protected-applications)
+  const { t } = useCustomTranslation();
+  if (
+    status === DRStatus.WaitOnUserToCleanUp ||
+    status === DRStatus.WaitForUser
+  ) {
+    return (
+      <>
+        <PurpleExclamationCircleIcon />
+        <span>{t('User action required')}</span>
+      </>
+    );
+  }
+
+  // Danger states.
   if (
     status === DRStatus.Critical ||
     status === DRStatus.Unknown ||
-    status === DRStatus.ProtectionError ||
-    status === DRStatus.WaitOnUserToCleanUp ||
-    status === DRStatus.WaitForUser
+    status === DRStatus.ProtectionError
   ) {
     return (
       <>
@@ -104,13 +127,39 @@ export const DRStatusIcon: React.FC<{ status: DRStatus }> = ({ status }) => {
     );
   }
 
+  if (status === DRStatus.TestFailoverActionRequired) {
+    return (
+      <>
+        <BlueInfoCircleIcon />
+        <span>{t('Action needed')}</span>
+      </>
+    );
+  }
+
+  if (status === DRStatus.TestFailoverPaused) {
+    return (
+      <>
+        <ClockIcon color={blueInfoColor.value} />
+        <span>{t('Awaiting resync')}</span>
+      </>
+    );
+  }
+
+  if (status === DRStatus.TestingFailover) {
+    return (
+      <>
+        <InProgressIcon color={blueInfoColor.value} />
+        <span>{t('Preparing')}</span>
+      </>
+    );
+  }
+
   // In-progress states
   if (
     status === DRStatus.FailingOver ||
     status === DRStatus.Relocating ||
     status === DRStatus.Deleting ||
     status === DRStatus.Protecting ||
-    status === DRStatus.TestingFailover ||
     status === DRStatus.CleaningUp
   ) {
     return (

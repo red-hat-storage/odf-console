@@ -43,6 +43,14 @@
     color: var(--pf-t--global--color--status--danger--100);
   }
 
+  &__title-text.dr-status-user-action {
+    color: var(--pf-t--global--color--nonstatus--purple--400);
+  }
+
+  &__column-label {
+    color: var(--pf-t--global--text--color--regular);
+  }
+
   &__title-text.dr-status-warning {
     color: var(--pf-t--global--color--status--warning--100);
   }
@@ -62,6 +70,21 @@
 
   &__popover-body {
     max-width: 300px;
+    min-width: min-content;
+  }
+
+  // The step names need one line. The 300px cap folds "Preparing" and "Restoring".
+  &__popover-body:has(.progression-train-view) {
+    max-width: 36rem;
+  }
+
+  &__description,
+  &__cluster-details,
+  &__sync-details,
+  &__policy-details {
+    max-width: 300px;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   &__button {

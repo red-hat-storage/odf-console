@@ -389,3 +389,10 @@ export const getBucketClassTypeDisplayText = (
     t
   );
 };
+
+export const isReplicationNamespaceStoreMissing = (
+  replicationEnabled: boolean,
+  rules: { namespaceStore?: string }[]
+): boolean =>
+  replicationEnabled &&
+  (rules.length === 0 || rules.some((rule) => !rule.namespaceStore));

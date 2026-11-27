@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import {
+  useODFSystemFlagsSelector,
+  useODFNamespaceSelector,
+} from '@odf/core/redux';
 import {
   BackingStorageType,
   DeploymentType,
@@ -40,19 +43,36 @@ import {
   WizardStep,
 } from '@patternfly/react-core';
 import { EmptyState, Spinner } from '@patternfly/react-core';
-import { CREATE_SS_PAGE_URL, Steps, StepsName } from '../../constants';
+import {
+  CREATE_SS_PAGE_URL,
+  HCI_DISK_DISCOVERY_DEFAULTS,
+  NO_PROVISIONER,
+  Steps,
+  StepsName,
+} from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
 import {
   BackingStorage,
   OptionalSettings,
 } from './create-storage-system-steps';
+import {
+  UseHCIDisksResult,
+  HCIDiskProfile,
+} from './create-storage-system-steps/create-local-volume-set-step/useHCIDisks';
 import { EXTERNAL_CEPH_STORAGE } from './external-systems/CreateCephSystem/CephConnectionDetails/system-connection-details';
 import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
-import { initialState, reducer, WizardReducer } from './reducer';
-import './create-storage-system.scss';
+import {
+  initialState,
+  reducer,
+  WizardReducer,
+  WizardState,
+  wizardStateInitializer,
+} from './reducer';
+import { useHCILoadingOrchestrator } from './useHCILoadingOrchestrator';
 import useTNFValidation from './useTNFValidation';
+import './create-storage-system.scss';
 
 const useIsStorageClusterCRDPresent = (): boolean => {
   const [crds, crdsLoaded, crdsError] = useK8sWatchResource<
@@ -98,16 +118,27 @@ export const RedirectStorageSystem: React.FC<{}> = () => {
 
 type CreateStorageSystemProps = {
   isTNFEnabled: boolean;
+  isHCIEnabled: boolean;
+  hciResults: UseHCIDisksResult;
+  diskProfile?: HCIDiskProfile | null;
 };
 const CreateStorageSystem: React.FC<CreateStorageSystemProps> = ({
   isTNFEnabled,
+  isHCIEnabled,
+  hciResults,
+  diskProfile,
 }) => {
   const { t } = useCustomTranslation();
-  const [state, dispatch] = React.useReducer<WizardReducer>(
+  const [state, dispatch] = React.useReducer<WizardReducer, WizardState>(
     reducer,
-    initialState
+    initialState,
+    wizardStateInitializer(isHCIEnabled)
   );
   const location = useLocation();
+
+  const hciLVSExistsOnMount = React.useRef(
+    isHCIEnabled && (hciResults?.lvsExists ?? false)
+  );
 
   React.useEffect(() => {
     // To set up deployment type based the URL
@@ -131,6 +162,63 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = ({
       });
     }
   }, [location.search]);
+
+  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
+    useODFNamespaceSelector();
+  const hciInitRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!isHCIEnabled || hciInitRef.current) return;
+    if (!isODFNsLoaded || odfNsLoadError) return;
+    if (!hciResults.discoveryNodes.length) return;
+
+    hciInitRef.current = true;
+
+    dispatch({
+      type: 'backingStorage/setSystemNamespace',
+      payload: odfNamespace,
+    });
+    dispatch({ type: 'wizard/setNodes', payload: hciResults.discoveryNodes });
+    dispatch({
+      type: 'wizard/setStorageClass',
+      payload: {
+        name: HCI_DISK_DISCOVERY_DEFAULTS.storageClassName,
+        provisioner: NO_PROVISIONER,
+      },
+    });
+    if (diskProfile) {
+      dispatch({
+        type: 'wizard/setCreateLocalVolumeSet',
+        payload: { field: 'minDiskSize', value: diskProfile.minDiskSize },
+      });
+      dispatch({
+        type: 'wizard/setCreateLocalVolumeSet',
+        payload: { field: 'maxDiskSize', value: diskProfile.maxDiskSize },
+      });
+      dispatch({
+        type: 'wizard/setCreateLocalVolumeSet',
+        payload: { field: 'diskSizeUnit', value: diskProfile.diskSizeUnit },
+      });
+    }
+    if (hciResults.arbiter.isArbiterTopology) {
+      dispatch({
+        type: 'capacityAndNodes/enableArbiter',
+        payload: true,
+      });
+      dispatch({
+        type: 'capacityAndNodes/arbiterLocation',
+        payload: hciResults.arbiter.arbiterZone,
+      });
+    }
+  }, [
+    isHCIEnabled,
+    isODFNsLoaded,
+    odfNsLoadError,
+    odfNamespace,
+    hciResults.discoveryNodes,
+    hciResults.arbiter,
+    diskProfile,
+    dispatch,
+  ]);
 
   const [infra, infraLoaded, infraLoadError] = useK8sGet<InfrastructureKind>(
     InfrastructureModel,
@@ -182,12 +270,16 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = ({
       hasOCS,
       supportedExternalStorage,
       hasMultipleClusters,
-      isTNFEnabled
+      isTNFEnabled,
+      isHCIEnabled,
+      isHCIEnabled ? hciResults : undefined,
+      hciLVSExistsOnMount.current
     );
   }
 
-  const steps = [
-    {
+  const steps = [];
+  if (!isHCIEnabled) {
+    steps.push({
       id: 1,
       name: StepsName(t)[Steps.BackingStorage],
       component: (
@@ -207,7 +299,10 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = ({
         />
       ),
       canJumpTo: true,
-    },
+    });
+  }
+
+  steps.push(
     {
       id: 2,
       name: StepsName(t)[Steps.OptionalSettings],
@@ -224,8 +319,8 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = ({
       ),
       canJumpTo: true,
     },
-    ...wizardSteps,
-  ];
+    ...wizardSteps
+  );
 
   return (
     <>
@@ -242,6 +337,9 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = ({
             supportedExternalStorage={supportedExternalStorage}
             existingNamespaces={namespaces}
             isTNFEnabled={isTNFEnabled}
+            storageClusterMutator={
+              isHCIEnabled ? hciResults.storageClusterMutator : undefined
+            }
           />
         }
       >
@@ -260,10 +358,10 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
   // In case it randomly goes loading or refetches
   const [isCrdPresent, setIsCrdPresent] = React.useState(false);
   const isStorageClusterCRDPresent = useIsStorageClusterCRDPresent();
-  // It takes a while for the CRD to be present
-  const [delayedShow, setDelayedShow] = React.useState(false);
   const { isTNFEnabled, isTNFValidationLoading, isTNFValidated } =
     useTNFValidation();
+  const { isHCIEnabled, hciLoading, hciResults, diskProfile } =
+    useHCILoadingOrchestrator();
 
   React.useEffect(() => {
     if (isStorageClusterCRDPresent && !isCrdPresent) {
@@ -271,21 +369,18 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
     }
   }, [isCrdPresent, isStorageClusterCRDPresent]);
 
-  React.useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    if (isCrdPresent) {
-      timer = setTimeout(() => setDelayedShow(true), 5000);
-    }
-
-    return () => clearTimeout(timer);
-  }, [isCrdPresent]);
-
-  const isLoading = isTNFValidationLoading || !isCrdPresent || !delayedShow;
+  const isLoading = isTNFValidationLoading || !isCrdPresent || hciLoading;
   const isTNFValidationError = isTNFEnabled && !isTNFValidated;
 
   if (!isLoading && !isTNFValidationError) {
-    return <CreateStorageSystem isTNFEnabled={isTNFEnabled} />;
+    return (
+      <CreateStorageSystem
+        isTNFEnabled={isTNFEnabled}
+        isHCIEnabled={isHCIEnabled}
+        hciResults={hciResults}
+        diskProfile={diskProfile}
+      />
+    );
   }
 
   return (

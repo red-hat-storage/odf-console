@@ -3,7 +3,12 @@ import { getName } from '@odf/shared/selectors';
 import { sortRows } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import { MAX_ALLOWED_CLUSTERS } from '../../../../constants';
+import { MAX_ALLOWED_CLUSTERS, StorageVendorId } from '../../../../constants';
+import {
+  getClusterProviderIds,
+  getSharedProviderIds,
+  getStorageVendorLabel,
+} from '../../../../utils/storage-vendor-registry';
 
 export const INITIAL_PAGE_NUMBER = 1;
 export const COUNT_PER_PAGE_NUMBER = 10;
@@ -11,14 +16,31 @@ export const COUNT_PER_PAGE_NUMBER = 10;
 export enum ClusterListColumns {
   ManagedCluster,
   AvailabilityStatus,
-  DataFoundation,
-  StorageProvisioners,
-  StorageClients,
+  StorageProvider,
 }
+
+export const getClusterVendorIds = (
+  cluster: ManagedClusterInfoType
+): StorageVendorId[] => {
+  const ids: StorageVendorId[] = [];
+  if (cluster.storageProviders?.odf) ids.push(StorageVendorId.DataFoundation);
+  if (cluster.storageProviders?.scale)
+    ids.push(StorageVendorId.IbmStorageScale);
+  if (cluster.providers?.length) ids.push(StorageVendorId.Generic);
+  return ids;
+};
+
+export const getStorageProviderText = (
+  cluster: ManagedClusterInfoType,
+  t: TFunction<string>
+): string =>
+  getClusterVendorIds(cluster)
+    .map((id) => getStorageVendorLabel(id, t))
+    .join(', ');
 
 export const getColumns = (t: TFunction<string>) => [
   {
-    columnName: t('Managed Cluster'),
+    columnName: t('Managed cluster'),
     sortFunction: (a, b, c) => sortRows(a, b, c, 'metadata.name'),
   },
   {
@@ -26,16 +48,13 @@ export const getColumns = (t: TFunction<string>) => [
     sortFunction: (a, b, c) => sortRows(a, b, c, 'isManagedClusterAvailable'),
   },
   {
-    columnName: t('Data Foundation'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'odfInfo.odfVersion'),
-  },
-  {
-    columnName: t('Storage provisioners'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'storageProvisionersCount'),
-  },
-  {
-    columnName: t('Storage clients'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'storageClientsCount'),
+    columnName: t('Storage provider'),
+    sortFunction: (a: ManagedClusterInfoType, b: ManagedClusterInfoType, c) => {
+      const aKey = getStorageProviderText(a, t);
+      const bKey = getStorageProviderText(b, t);
+      if (c === 'asc') return aKey.localeCompare(bKey);
+      return bKey.localeCompare(aKey);
+    },
   },
 ];
 
@@ -49,20 +68,24 @@ export const getColumnHelper = (
       return columns[0];
     case ClusterListColumns.AvailabilityStatus:
       return columns[1];
-    case ClusterListColumns.DataFoundation:
+    case ClusterListColumns.StorageProvider:
       return columns[2];
-    case ClusterListColumns.StorageProvisioners:
-      return columns[3];
-    case ClusterListColumns.StorageClients:
-      return columns[4];
   }
 };
 
+/** A cluster can join the pair only if it shares a provider with the clusters already selected. */
 export const isRowSelectable = (
-  cluster: K8sResourceCommon,
+  row: K8sResourceCommon,
   selectedClusters: ManagedClusterInfoType[]
-) =>
-  selectedClusters.length < MAX_ALLOWED_CLUSTERS ||
-  !!selectedClusters.find(
-    (selectedCluster) => getName(selectedCluster) === getName(cluster)
+) => {
+  const cluster = row as ManagedClusterInfoType;
+  if (
+    selectedClusters.some((selected) => getName(selected) === getName(cluster))
+  )
+    return true;
+  return (
+    selectedClusters.length < MAX_ALLOWED_CLUSTERS &&
+    getClusterProviderIds(cluster).length > 0 &&
+    getSharedProviderIds([...selectedClusters, cluster]).length > 0
   );
+};

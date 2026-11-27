@@ -1,4 +1,9 @@
 .progression-train-view {
+  .pf-v6-c-progress-stepper__step-main {
+    overflow-wrap: normal;
+    white-space: nowrap;
+  }
+
   &__summary {
     color: var(--pf-t--global--text--color--subtle);
     font-size: var(--pf-t--global--font--size--sm);
@@ -21,8 +26,9 @@
 
   &__details pre {
     margin: 0;
+    min-width: 0;
     white-space: pre-wrap;
-    word-wrap: break-word;
+    overflow-wrap: anywhere;
   }
 }
 

@@ -88,6 +88,24 @@ export const SYNC_SCHEDULE_DISPLAY_TEXT = (
   [TimeUnits.Days]: t('days'),
 });
 
+// Interval + unit with i18n plurals ("1 minute", "2 minutes") — avoid string concat.
+export const formatSyncScheduleInterval = (
+  t: TFunction,
+  interval: number,
+  unit: TimeUnits
+): string => {
+  switch (unit) {
+    case TimeUnits.Minutes:
+      return t('{{count}} minute', { count: interval });
+    case TimeUnits.Hours:
+      return t('{{count}} hour', { count: interval });
+    case TimeUnits.Days:
+      return t('{{count}} day', { count: interval });
+    default:
+      return String(interval);
+  }
+};
+
 // Asisgn policy wizard steps
 export enum AssignPolicySteps {
   Policy = 'policy',
@@ -123,12 +141,14 @@ export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
 // Create DRPolicy wizard steps
 export enum CreateDRPolicyWizardSteps {
   Clusters = 'clusters',
+  Provider = 'provider',
   Configure = 'configure',
   Policy = 'policy',
   Review = 'review',
 }
 export const CreateDRPolicyStepNames = (t: TFunction) => ({
   [CreateDRPolicyWizardSteps.Clusters]: t('Clusters'),
+  [CreateDRPolicyWizardSteps.Provider]: t('Storage provider'),
   [CreateDRPolicyWizardSteps.Configure]: t('Configure'),
   [CreateDRPolicyWizardSteps.Policy]: t('Policy'),
   [CreateDRPolicyWizardSteps.Review]: t('Review'),
@@ -149,8 +169,3 @@ export const PROTECTED_VMS = 'PROTECTED_VMS';
 export const K8S_RESOURCE_SELECTOR_LABEL_KEY =
   'ramendr.openshift.io/k8s-resource-selector';
 export const STORAGE_ID_LABEL_KEY = 'ramendr.openshift.io/storageid';
-
-export enum BackendType {
-  DataFoundation = 'Data Foundation',
-  ThirdParty = 'Third Party Storage',
-}

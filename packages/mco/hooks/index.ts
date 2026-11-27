@@ -9,3 +9,4 @@ export * from './useDRPoliciesByClusterPair';
 export * from './useActiveDROperations';
 export * from './use-ramen-config';
 export * from './use-pre-pair-network-validation';
+export * from './use-storage-provider-info';

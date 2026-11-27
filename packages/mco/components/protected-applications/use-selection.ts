@@ -5,6 +5,7 @@ import { getUID } from '@odf/shared/selectors';
 import { OnSelect } from '@patternfly/react-table';
 import { DRPlacementControlKind } from '../../types';
 import { getDRPlacementControlRef } from '../../utils';
+import { isTestFailoverInProgress } from '../../utils/test-failover';
 import { isFailingOrRelocating } from './utils';
 
 export const getDRPCKey = (pav: ProtectedApplicationViewKind): string => {
@@ -20,6 +21,8 @@ const isEligible = (
   if (!drpc) return false;
   if (drpc.metadata?.deletionTimestamp) return false;
   if (isFailingOrRelocating(drpc)) return false;
+  // Match kebab: only block real test sessions, not ordinary WaitOnUser cleanup.
+  if (isTestFailoverInProgress(drpc)) return false;
   return true;
 };
 

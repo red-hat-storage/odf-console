@@ -1,22 +1,29 @@
 import * as React from 'react';
+import {
+  nameSort,
+  taintsSort,
+} from '@odf/core/components/nodes-table/node-filter';
+import { NodeBulkSelect } from '@odf/core/components/nodes-table/NodeBulkSelect';
+import { NodeSearchToolbar } from '@odf/core/components/nodes-table/NodeSearchToolbar';
+import { NodeTaintsCell } from '@odf/core/components/nodes-table/NodeTaintsCell';
+import { useNodeSelection } from '@odf/core/components/nodes-table/useNodeSelection';
 import { getDefaultLocalClusterRole } from '@odf/core/components/utils/scale';
 import { ARBITER_ZONE, NodeType } from '@odf/core/constants/scale';
 import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import {
   getZone,
-  hasControlPlaneRole,
   nodesIncludingControlPlane,
   getNodeCPUCapacity,
   getNodeTotalMemory,
   nodesWithoutTaints,
+  hasControlPlaneRole,
 } from '@odf/core/utils';
-import { ListPageFilterWrapper } from '@odf/shared';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
-import { getName } from '@odf/shared/selectors';
+import { getName, getUID } from '@odf/shared/selectors';
 import {
   SelectableTable,
   TableVariant,
@@ -30,10 +37,6 @@ import {
   getNodeRoles,
   humanizeCpuCores,
 } from '@odf/shared/utils';
-import {
-  ListPageBody,
-  useListPageFilter,
-} from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import {
   Alert,
@@ -41,6 +44,7 @@ import {
   Button,
   Popover,
   SelectOption,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import {
   ExternalLinkAltIcon,
@@ -59,6 +63,11 @@ const tableColumnClasses = {
     'pf-m-visible-on-xl',
     'pf-v6-u-w-inherit-on-xl'
   ),
+  taints: classNames(
+    'pf-m-hidden',
+    'pf-m-visible-on-xl',
+    'pf-v6-u-w-inherit-on-xl'
+  ),
   cpu: classNames(
     'pf-m-hidden',
     'pf-m-visible-on-xl',
@@ -69,11 +78,9 @@ const tableColumnClasses = {
     'pf-m-visible-on-xl',
     'pf-v6-u-w-inherit-on-xl'
   ),
-  zone: classNames('pf-v6-u-w-inherit'),
 };
 
-const isArbiterNode = (node: NodeData) =>
-  getZone(node) === ARBITER_ZONE && hasControlPlaneRole(node);
+const isArbiterNode = (node: NodeData) => getZone(node) === ARBITER_ZONE;
 
 const getLocalClusterRole = (
   node: NodeData,
@@ -129,8 +136,11 @@ const NodeRow: React.FC<RowComponentType<NodeData>> = ({
           resourceName={nodeName}
         />
       </Td>
-      <Td dataLabel={t('OCP node role')}>
+      <Td dataLabel={t('OCP Node role')}>
         {getNodeRoles(node).sort().join(', ') || '-'}
+      </Td>
+      <Td dataLabel={t('Taints')}>
+        <NodeTaintsCell node={node} />
       </Td>
       <Td dataLabel={t('Local cluster role')}>
         {showArbiterNode ? (
@@ -150,30 +160,23 @@ const NodeRow: React.FC<RowComponentType<NodeData>> = ({
       <Td dataLabel={t('Memory')}>
         {getConvertedUnits(getNodeTotalMemory(node))}
       </Td>
-      <Td dataLabel={t('Zone')}>{getZone(node) || '-'}</Td>
     </>
   );
 };
 
-const nameSort = (a: NodeData, b: NodeData, direction: SortByDirection) => {
-  const negation = direction !== 'asc';
-  const sortVal = getName(a).localeCompare(getName(b));
-  return negation ? -sortVal : sortVal;
-};
-
 const InternalNodeTable: React.FC<NodeTableProps> = ({
   nodes,
-  onRowSelected,
-  onLocalClusterRoleChange,
   nodesData,
-  includeControlPlane,
+  selectedNodes,
+  onSelectionChange,
+  onLocalClusterRoleChange,
   enableStretchCluster,
 }) => {
   const { t } = useCustomTranslation();
 
   const localClusterRoleSort = React.useCallback(
     (a: NodeData, b: NodeData, direction: SortByDirection) => {
-      const negation = direction !== 'asc';
+      const negation = direction !== SortByDirection.asc;
       const sortVal = getLocalClusterRole(
         a,
         nodes,
@@ -196,8 +199,17 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
         thProps: { className: tableColumnClasses.name },
       },
       {
-        columnName: t('OCP node role'),
+        columnName: t('OCP Node role'),
         thProps: { className: tableColumnClasses.role },
+      },
+      {
+        columnName: t('Taints'),
+        sortFunction: taintsSort as <T>(
+          a: T,
+          b: T,
+          c: SortByDirection
+        ) => number,
+        thProps: { className: tableColumnClasses.taints },
       },
       {
         columnName: (
@@ -262,65 +274,26 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
         columnName: t('Memory'),
         thProps: { className: tableColumnClasses.memory },
       },
-      {
-        columnName: t('Zone'),
-        thProps: { className: tableColumnClasses.zone },
-      },
     ];
   }, [t, enableStretchCluster]);
 
-  const filteredData = React.useMemo(() => {
-    const nodeList =
-      includeControlPlane || enableStretchCluster
-        ? nodesIncludingControlPlane(nodesData)
-        : nodesWithoutTaints(nodesData);
-    return [...nodeList].sort((a, b) =>
-      localClusterRoleSort(a, b, SortByDirection.asc)
-    );
-  }, [
-    includeControlPlane,
-    enableStretchCluster,
-    nodesData,
-    localClusterRoleSort,
-  ]);
-
-  // Initialize with all nodes selected (only once on first load, not when user deselects all)
-  const [selectedRows, setSelectedRows] = React.useState<NodeData[]>([]);
-  const hasInitializedSelection = React.useRef(false);
-
-  React.useEffect(() => {
-    hasInitializedSelection.current = false;
-  }, [includeControlPlane, enableStretchCluster]);
-
-  React.useEffect(() => {
-    if (hasInitializedSelection.current) return;
-    if (!filteredData.length) {
-      setSelectedRows([]);
-      onRowSelected([]);
-      return;
-    }
-    setSelectedRows(filteredData);
-    onRowSelected(filteredData);
-    hasInitializedSelection.current = true;
-  }, [filteredData, onRowSelected]);
-
-  const handleRowSelection = React.useCallback(
-    (selected: NodeData[]) => {
-      setSelectedRows(selected);
-      onRowSelected(selected);
-    },
-    [onRowSelected]
+  const sortedRows = React.useMemo(
+    () =>
+      [...nodesData].sort((a, b) =>
+        localClusterRoleSort(a, b, SortByDirection.asc)
+      ),
+    [nodesData, localClusterRoleSort]
   );
 
   return (
     <div className="ceph-odf-install__select-nodes-table">
       <SelectableTable<NodeData>
         columns={getColumns}
-        rows={filteredData}
+        rows={sortedRows}
         RowComponent={NodeRow}
         extraProps={{ enableStretchCluster, nodes, onLocalClusterRoleChange }}
-        selectedRows={selectedRows}
-        setSelectedRows={handleRowSelection}
+        selectedRows={selectedNodes}
+        setSelectedRows={onSelectionChange}
         loaded={true}
         variant={TableVariant.COMPACT}
       />
@@ -330,10 +303,10 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
 
 type NodeTableProps = {
   nodes: WizardNodeState[];
-  onRowSelected: (selectedNodes: NodeData[]) => void;
-  onLocalClusterRoleChange: (nodeName: string, role: NodeType) => void;
   nodesData: NodeData[];
-  includeControlPlane?: boolean;
+  selectedNodes: NodeData[];
+  onSelectionChange: (visibleSelected: NodeData[]) => void;
+  onLocalClusterRoleChange: (nodeName: string, role: NodeType) => void;
   enableStretchCluster?: boolean;
 };
 
@@ -353,7 +326,121 @@ export const SelectLocalClusterNodesTable: React.FC<
     true,
     controlPlaneOrStretchCluster
   );
-  const [data, filteredData, onFilterChange] = useListPageFilter(nodesData);
+  const [selectedNodes, setSelectedNodes] = React.useState<NodeData[]>([]);
+
+  const updateSelectedNodes = React.useCallback(
+    (next: NodeData[]) => {
+      setSelectedNodes(next);
+      onRowSelected(next);
+    },
+    [onRowSelected]
+  );
+
+  // Owns the free-text search, the row-selection handler, and the bulk-select
+  // control for this table. Selection preservation across the search is internal
+  // to the hook. This table passes no `isNodeSelectable`, so the hook falls back
+  // to its "not being deleted" rule (mirroring <SelectableTable>), keeping a node
+  // being deleted out of "Select all".
+  const { query, setQuery, filteredNodes, handleRowSelection, bulkSelect } =
+    useNodeSelection({
+      nodes: nodesData,
+      selectedNodes,
+      onChange: updateSelectedNodes,
+    });
+
+  // Initialize the selection once, after the node list has loaded without error
+  // (not when the user later deselects everything). Pre-select only the untainted
+  // (and opted-in control-plane) nodes; tainted workers stay visible but unchecked
+  // until the user opts into them. Toggling the control-plane/stretch option
+  // afterwards does NOT re-initialize — that would discard the user's picks — it is
+  // handled incrementally by the effect below. Wait for the first NON-EMPTY load:
+  // committing on an empty `nodesData` would lock in an empty default selection and
+  // never re-initialize once nodes actually arrive.
+  const hasInitializedSelection = React.useRef(false);
+  const prevControlPlaneOrStretch = React.useRef(controlPlaneOrStretchCluster);
+  React.useEffect(() => {
+    if (
+      hasInitializedSelection.current ||
+      !nodesLoaded ||
+      nodesLoadError ||
+      nodesData.length === 0
+    ) {
+      return;
+    }
+    updateSelectedNodes(
+      controlPlaneOrStretchCluster
+        ? nodesIncludingControlPlane(nodesData)
+        : nodesWithoutTaints(nodesData)
+    );
+    hasInitializedSelection.current = true;
+    prevControlPlaneOrStretch.current = controlPlaneOrStretchCluster;
+  }, [
+    nodesLoaded,
+    nodesLoadError,
+    nodesData,
+    controlPlaneOrStretchCluster,
+    updateSelectedNodes,
+  ]);
+
+  // Toggling "Include control plane nodes" (or stretch cluster) only adds or
+  // removes the control-plane nodes; the worker selection is preserved so that
+  // unchecking returns to the prior selection. `useNodesData` recomputes
+  // `nodesData` synchronously for the new flag, so the control-plane rows are
+  // already present/absent here.
+  React.useEffect(() => {
+    if (!hasInitializedSelection.current) return;
+    if (prevControlPlaneOrStretch.current === controlPlaneOrStretchCluster) {
+      return;
+    }
+    prevControlPlaneOrStretch.current = controlPlaneOrStretchCluster;
+    if (controlPlaneOrStretchCluster) {
+      // Enabling: keep the current worker selection and auto-select the newly
+      // available control-plane nodes.
+      const selectedUids = new Set(selectedNodes.map(getUID));
+      const controlPlaneAdditions = nodesData.filter(
+        (node) => hasControlPlaneRole(node) && !selectedUids.has(getUID(node))
+      );
+      updateSelectedNodes([...selectedNodes, ...controlPlaneAdditions]);
+    } else {
+      // Disabling: drop the now-hidden control-plane nodes, keeping every node
+      // that is still part of the (worker-only) table.
+      const visibleUids = new Set(nodesData.map(getUID));
+      updateSelectedNodes(
+        selectedNodes.filter((node) => visibleUids.has(getUID(node)))
+      );
+    }
+  }, [
+    controlPlaneOrStretchCluster,
+    nodesData,
+    selectedNodes,
+    updateSelectedNodes,
+  ]);
+
+  // Keep the committed selection pointing at the current node objects. The
+  // selection stores the `NodeData` references captured when each node was
+  // selected, but `useNodesData` hands back a fresh object for a node whenever it
+  // changes on the cluster (e.g. a taint is added). Without this, a stale snapshot
+  // would feed the downstream consumers (notably toleration derivation at create
+  // time) even though the table itself renders the live data. Re-point by UID and
+  // commit only when an object reference actually changed, so the periodic
+  // Prometheus-driven `nodesData` refresh — which reuses the same node references —
+  // does not re-commit on every tick.
+  React.useEffect(() => {
+    if (!hasInitializedSelection.current) return;
+    const nodeByUid = new Map(nodesData.map((node) => [getUID(node), node]));
+    let changed = false;
+    const refreshed = selectedNodes.map((node) => {
+      const current = nodeByUid.get(getUID(node));
+      if (current && current !== node) {
+        changed = true;
+        return current;
+      }
+      return node;
+    });
+    if (changed) {
+      updateSelectedNodes(refreshed);
+    }
+  }, [nodesData, selectedNodes, updateSelectedNodes]);
 
   return (
     <div className="odf-capacity-and-nodes__select-nodes">
@@ -362,7 +449,7 @@ export const SelectLocalClusterNodesTable: React.FC<
           variant="danger"
           isInline
           title={t('No node meets the requirements to be an arbiter node.')}
-          className="pf-v6-u-mt-md"
+          className="pf-v6-u-mt-md pf-v6-u-mb-md"
           actionLinks={
             <AlertActionLink
               component="a"
@@ -375,33 +462,30 @@ export const SelectLocalClusterNodesTable: React.FC<
           }
         >
           {t(
-            'At least one control plane node must have the required labels and resources in order to create a stretch cluster for the Storage Area Network.'
+            'At least one node must have the required labels and resources in order to create a stretch cluster for the Storage Area Network.'
           )}
         </Alert>
       )}
-      <ListPageBody>
-        <ListPageFilterWrapper
-          data={data}
-          loaded={nodesLoaded}
-          onFilterChange={onFilterChange}
-          hideColumnManagement={true}
+      <NodeSearchToolbar query={query} onQueryChange={setQuery}>
+        <ToolbarItem>
+          <NodeBulkSelect {...bulkSelect} />
+        </ToolbarItem>
+      </NodeSearchToolbar>
+      <StatusBox
+        skeleton={<div className="loading-skeleton--table" />}
+        data={filteredNodes}
+        loaded={nodesLoaded}
+        loadError={nodesLoadError}
+      >
+        <InternalNodeTable
+          nodes={nodes}
+          nodesData={filteredNodes}
+          selectedNodes={selectedNodes}
+          onSelectionChange={handleRowSelection}
+          onLocalClusterRoleChange={onLocalClusterRoleChange}
+          enableStretchCluster={enableStretchCluster}
         />
-        <StatusBox
-          skeleton={<div className="loading-skeleton--table" />}
-          data={filteredData}
-          loaded={nodesLoaded}
-          loadError={nodesLoadError}
-        >
-          <InternalNodeTable
-            nodes={nodes}
-            onRowSelected={onRowSelected}
-            onLocalClusterRoleChange={onLocalClusterRoleChange}
-            nodesData={filteredData}
-            includeControlPlane={includeControlPlane}
-            enableStretchCluster={enableStretchCluster}
-          />
-        </StatusBox>
-      </ListPageBody>
+      </StatusBox>
       {!!nodes.length && <SelectLocalClusterNodesTableFooter nodes={nodes} />}
     </div>
   );

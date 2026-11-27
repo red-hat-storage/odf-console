@@ -1,16 +1,15 @@
 import * as React from 'react';
+import { BucketVersioningStatus, ObjectLockEnabled } from '@aws-sdk/client-s3';
 import {
-  BucketVersioningStatus,
-  GetObjectLockConfigurationCommandOutput,
-  ObjectLockEnabled,
-} from '@aws-sdk/client-s3';
-import { BUCKET_VERSIONING_CACHE_KEY_SUFFIX } from '@odf/core/constants';
+  BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX,
+  BUCKET_VERSIONING_CACHE_KEY_SUFFIX,
+} from '@odf/core/constants';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { getIsVersioningEnabled } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core/deprecated';
-import useSWR, { KeyedMutator } from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import {
   Button,
   ButtonVariant,
@@ -22,19 +21,21 @@ import {
 export type ObjectLockNotEnabledModalProps = {
   bucketName: string;
   s3Client: S3Commands;
-  mutate: KeyedMutator<GetObjectLockConfigurationCommandOutput>;
 };
 
 const ObjectLockNotEnabledModal: React.FC<
   CommonModalProps<ObjectLockNotEnabledModalProps>
-> = ({ closeModal, isOpen, extraProps: { bucketName, s3Client, mutate } }) => {
+> = ({ closeModal, isOpen, extraProps: { bucketName, s3Client } }) => {
   const { t } = useCustomTranslation();
+  const { mutate } = useSWRConfig();
   const [inProgress, setInProgress] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
 
-  const { data: versioningData, mutate: versioningMutate } = useSWR(
-    `${s3Client.providerType}-${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
-    () => s3Client.getBucketVersioning({ Bucket: bucketName })
+  const versioningCacheKey = `${s3Client.providerType}-${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`;
+  const objectLockCacheKey = `${s3Client.providerType}-${bucketName}-${BUCKET_OBJECT_LOCK_CACHE_KEY_SUFFIX}`;
+
+  const { data: versioningData } = useSWR(versioningCacheKey, () =>
+    s3Client.getBucketVersioning({ Bucket: bucketName })
   );
   const isVersioningEnabled = getIsVersioningEnabled(versioningData);
 
@@ -52,7 +53,7 @@ const ObjectLockNotEnabledModal: React.FC<
             Status: BucketVersioningStatus.Enabled,
           },
         });
-        versioningMutate();
+        mutate(versioningCacheKey);
       }
 
       await s3Client.putObjectLockConfiguration({
@@ -62,7 +63,7 @@ const ObjectLockNotEnabledModal: React.FC<
         },
       });
 
-      mutate();
+      mutate(objectLockCacheKey);
       closeModal();
     } catch (error) {
       const errorMsg = error?.message || String(error);

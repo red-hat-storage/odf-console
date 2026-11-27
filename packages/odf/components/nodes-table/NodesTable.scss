@@ -9,6 +9,12 @@
     border: var(--pf-t--global--border--width--regular) solid
       var(--pf-t--global--border--color--100);
 
+    /* Let multi-word column headers (e.g. "OCP Node role") wrap instead of being
+       truncated to an ellipsis when the available width is tight. */
+    .pf-v6-c-table__th {
+      white-space: normal;
+    }
+
     .pf-v6-c-table__check {
       /* This overrides the default overrides of checkboxes for ocs based tables */
       width: 4.6% !important;

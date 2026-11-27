@@ -585,6 +585,65 @@ describe('Discovered application failover/relocate modal test', () => {
     expect(screen.getByRole('button', { name: /Initiate/i })).toBeEnabled();
   });
 
+  test('Happy path for a test failover', async () => {
+    const user = userEvent.setup();
+    type = 1;
+    const discoveredDRPC = {
+      ...mockDRPC1,
+      spec: { ...mockDRPC1.spec, protectedNamespaces: ['app-ns'] },
+    };
+
+    render(
+      <DRPlacementControlParser
+        extraProps={{
+          application: discoveredDRPC,
+          action: DRActionType.FAILOVER,
+          isTestFailover: true,
+        }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen.getByRole('dialog', { name: /Test Disaster Recovery \(DR\)/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Test requires manual clean up or you can convert test to real failover.'
+      )
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Start' }));
+
+    expect(JSON.stringify(patchObj)).toBe(
+      '[{"op":"replace","path":"/spec/action","value":"Failover"},{"op":"replace","path":"/spec/failoverCluster","value":"west-1"},{"op":"replace","path":"/spec/preferredCluster","value":"east-1"},{"op":"add","path":"/spec/dryRun","value":true}]'
+    );
+  });
+
+  test('Metro-DR blocks a test failover', () => {
+    type = 4;
+
+    render(
+      <DRPlacementControlParser
+        extraProps={{
+          application: mockDRPC1,
+          action: DRActionType.FAILOVER,
+          isTestFailover: true,
+        }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: /Danger alert: Cannot test failover./i,
+      })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
+  });
+
   test('No volume synchronization delay during relocate', async () => {
     type = 5;
 
