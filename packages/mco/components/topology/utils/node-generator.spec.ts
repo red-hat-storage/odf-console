@@ -494,9 +494,9 @@ describe('generateClusterNodesModel', () => {
 
       const appNodes =
         model.nodes?.filter((n) => n.type === 'app-node-operation') || [];
-      // Labels should show WaitOnUserToCleanUp, not FailedOver
+      // Labels should show User action required, not FailedOver
       appNodes.forEach((node) => {
-        expect(node.label).toBe('WaitOnUserToCleanUp');
+        expect(node.label).toBe('User action required');
       });
     });
 
@@ -575,7 +575,7 @@ describe('generateClusterNodesModel', () => {
       expect(appNodes).toHaveLength(4);
 
       const labels = appNodes.map((n) => n.label);
-      expect(labels).toContain('WaitOnUserToCleanUp');
+      expect(labels).toContain('User action required');
       expect(labels).toContain('FailedOver');
     });
   });

@@ -15,6 +15,7 @@ import { formatTime } from '@odf/shared/details-page/datetime';
 import { DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import {
   GreenCheckCircleIcon,
+  PurpleExclamationCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
@@ -66,6 +67,7 @@ const DR_STATUS_CLASS_NAMES = {
   WARNING: 'dr-status-warning',
   CRITICAL: 'dr-status-critical',
   ACTION_NEEDED: 'dr-status-action-needed',
+  USER_ACTION: 'dr-status-user-action',
   FAILOVER: 'dr-status-failover',
   RELOCATING: 'dr-status-relocating',
   UNKNOWN: 'dr-status-unknown',
@@ -109,8 +111,8 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.Relocating]: <InProgressIcon />,
     [DRStatus.FailedOver]: <GreenCheckCircleIcon />,
     [DRStatus.Relocated]: <GreenCheckCircleIcon />,
-    [DRStatus.WaitOnUserToCleanUp]: <RedExclamationCircleIcon />,
-    [DRStatus.WaitForUser]: <RedExclamationCircleIcon />,
+    [DRStatus.WaitOnUserToCleanUp]: <PurpleExclamationCircleIcon />,
+    [DRStatus.WaitForUser]: <PurpleExclamationCircleIcon />,
     [DRStatus.Deleting]: <InProgressIcon />,
     [DRStatus.Protecting]: <InProgressIcon />,
     [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
@@ -120,8 +122,15 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
   return iconMap[status] ?? null;
 };
 
-const getStatusLabel = (status: DRStatus, t: TFunction): string =>
-  status === DRStatus.WaitForUser ? t('Action needed') : status;
+const getStatusLabel = (status: DRStatus, t: TFunction): string => {
+  if (
+    status === DRStatus.WaitOnUserToCleanUp ||
+    status === DRStatus.WaitForUser
+  ) {
+    return t('User action required');
+  }
+  return status;
+};
 
 const DescriptionItem: React.FC<{ term: string; description?: string }> = ({
   term,
@@ -531,18 +540,18 @@ const getDRStatusDetails = ({
       // In both cases, targetCluster is the cluster that needs cleanup
       return createStatus(
         DRStatus.WaitOnUserToCleanUp,
-        t('Action needed'),
+        t('User action required'),
         getCleanupMessage(phase, targetCluster, t),
-        DR_STATUS_CLASS_NAMES.ACTION_NEEDED
+        DR_STATUS_CLASS_NAMES.USER_ACTION
       );
     }
 
     case DRStatus.WaitForUser:
       return createStatus(
         DRStatus.WaitForUser,
-        t('Action needed'),
+        t('User action required'),
         availableCondition?.message || t('User action is required to proceed.'),
-        DR_STATUS_CLASS_NAMES.ACTION_NEEDED
+        DR_STATUS_CLASS_NAMES.USER_ACTION
       );
 
     case DRStatus.TestingFailover:
@@ -863,6 +872,12 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
           data-test-id="dr-status-button"
         >
           <StatusIconAndText
+            className={
+              status === DRStatus.WaitOnUserToCleanUp ||
+              status === DRStatus.WaitForUser
+                ? 'dr-status-popover__column-label'
+                : undefined
+            }
             title={getStatusLabel(status, t)}
             icon={icon}
           />{' '}

@@ -621,7 +621,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'FailedOver cleanup required',
-        expectedStatus: 'WaitOnUserToCleanUp',
+        expectedStatus: 'User action required',
         overrides: {
           phase: Phase.FailedOver,
           progression: 'WaitOnUserToCleanUp',
@@ -657,7 +657,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'Relocating cleanup required',
-        expectedStatus: 'WaitOnUserToCleanUp',
+        expectedStatus: 'User action required',
         overrides: {
           phase: Phase.Relocating,
           progression: 'WaitOnUserToCleanUp',
@@ -952,7 +952,7 @@ describe('DRStatusPopover Component', () => {
       },
       {
         label: 'WaitForUser with protection error (progression active)',
-        expectedStatus: 'Action needed',
+        expectedStatus: 'User action required',
         overrides: {
           phase: Phase.WaitForUser,
           progression: 'Any',
